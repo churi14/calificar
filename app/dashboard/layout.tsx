@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { planLabel, planColor } from '@/lib/utils'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -69,3 +69,4 @@ export default async function DashboardLayout({ children }: { children: React.Re
     </div>
   )
 }
+

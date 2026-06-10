@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     if (!review_text) return NextResponse.json({ error: 'review_text requerido' }, { status: 400 })
 
     // Verificar auth y plan
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
@@ -68,3 +68,4 @@ Reseña del cliente:
     return NextResponse.json({ error: 'Error generando respuesta' }, { status: 500 })
   }
 }
+

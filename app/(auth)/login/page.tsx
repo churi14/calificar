@@ -15,7 +15,7 @@ export default function LoginPage() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true); setError('')
-    const supabase = createClient()
+    const supabase = await createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError('Email o contraseña incorrectos'); setLoading(false) }
     else router.push('/dashboard')
@@ -61,3 +61,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

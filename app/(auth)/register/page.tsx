@@ -17,7 +17,7 @@ export default function RegisterPage() {
     e.preventDefault()
     if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres'); return }
     setLoading(true); setError('')
-    const supabase = createClient()
+    const supabase = await createClient()
     const { error } = await supabase.auth.signUp({
       email, password,
       options: { data: { name } }
@@ -75,3 +75,4 @@ export default function RegisterPage() {
     </div>
   )
 }
+

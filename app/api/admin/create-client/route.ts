@@ -3,7 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   // Verificar que quien llama es admin
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
@@ -37,3 +37,4 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true, userId: newUser.user.id })
 }
+

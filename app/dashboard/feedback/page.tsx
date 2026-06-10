@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { formatDate } from '@/lib/utils'
 
 export default async function FeedbackPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -70,3 +70,4 @@ export default async function FeedbackPage() {
     </div>
   )
 }
+

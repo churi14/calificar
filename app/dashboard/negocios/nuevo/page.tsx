@@ -25,7 +25,7 @@ export default function NuevoNegocioPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true); setError('')
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setError('No autenticado'); setLoading(false); return }
 
@@ -142,3 +142,4 @@ export default function NuevoNegocioPage() {
     </div>
   )
 }
+
