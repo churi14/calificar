@@ -1,18 +1,19 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LandingPage() {
   const WA = 'https://wa.me/5491100000000?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
 
       {/* NAV */}
-      <nav className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
+      <nav className="border-b border-gray-100 sticky top-0 bg-white/90 backdrop-blur-md z-50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <span className="font-bold text-xl text-gray-900 flex items-center gap-1.5">
             <span className="text-amber-500">★</span> calificar
           </span>
-          <div className="hidden md:flex items-center gap-1 text-sm text-gray-500 mr-2">
+          <div className="hidden md:flex items-center gap-1 text-sm text-gray-500">
             <Link href="/tienda" className="px-3 py-2 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors font-medium">Carteles</Link>
             <Link href="/r/demo" className="px-3 py-2 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors font-medium">Demo</Link>
           </div>
@@ -29,33 +30,58 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO */}
-      <section className="max-w-5xl mx-auto px-4 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-200 mb-6">
-          ★ +200 negocios ya lo usan
+      <section className="relative bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-6xl mx-auto px-4 pt-16 pb-0 lg:pt-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+            {/* Texto */}
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-200 mb-6">
+                ★ +200 negocios ya lo usan
+              </div>
+              <h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 leading-[1.05] tracking-tight mb-6">
+                Más reseñas<br/>5 estrellas.<br/>
+                <span className="text-amber-500">Menos malas.</span>
+              </h1>
+              <p className="text-lg text-gray-500 max-w-md mx-auto lg:mx-0 mb-8 leading-relaxed">
+                El cliente feliz va directo a Google. El insatisfecho te escribe a vos en privado.
+                Protegé tu reputación y mejorá tu servicio al mismo tiempo.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                <a href={WA} target="_blank"
+                  className="bg-gray-900 text-white font-bold px-8 py-4 rounded-xl hover:bg-gray-700 transition-colors text-base">
+                  Quiero mi sistema →
+                </a>
+                <Link href="/tienda"
+                  className="border border-gray-200 text-gray-700 font-semibold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors text-base">
+                  Ver carteles
+                </Link>
+              </div>
+              <p className="text-xs text-gray-400 mt-4">Incluye cartel NFC físico + plataforma digital</p>
+            </div>
+
+            {/* Mockup celular */}
+            <div className="relative flex justify-center lg:justify-end">
+              <div className="relative w-[280px] sm:w-[320px]">
+                {/* Glow de fondo */}
+                <div className="absolute inset-0 bg-amber-400/20 blur-3xl rounded-full scale-90 translate-y-10"/>
+                {/* Frame del celular */}
+                <div className="relative rounded-[2.5rem] border-[8px] border-gray-900 bg-gray-900 shadow-2xl overflow-hidden">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-10"/>
+                  <Image src="/screenshots/funnel.png" alt="Funnel de Calificar en el celular"
+                    width={320} height={620} className="w-full h-auto"/>
+                </div>
+                {/* Badge flotante */}
+                <div className="absolute -left-6 top-1/3 bg-white rounded-2xl shadow-xl px-4 py-3 border border-gray-100 hidden sm:block">
+                  <p className="text-xs text-gray-400 mb-0.5">Filtro activo</p>
+                  <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"/> Protegiendo tu reputación
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 leading-tight tracking-tight mb-6">
-          Más reseñas 5 estrellas.<br/>
-          <span className="text-amber-500">Menos malas.</span>
-        </h1>
-        <p className="text-lg text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed">
-          El cliente feliz va directo a Google. El insatisfecho te escribe a vos en privado.
-          Así protegés tu reputación y mejorás tu servicio al mismo tiempo.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href={WA} target="_blank"
-            className="bg-gray-900 text-white font-bold px-8 py-4 rounded-xl hover:bg-gray-700 transition-colors text-base">
-            Quiero mi sistema →
-          </a>
-          <Link href="/tienda"
-            className="border border-gray-200 text-gray-700 font-semibold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors text-base">
-            Ver carteles
-          </Link>
-          <Link href="/r/demo"
-            className="text-sm text-gray-400 hover:text-gray-600 px-4 py-4 transition-colors">
-            Demo →
-          </Link>
-        </div>
-        <p className="text-xs text-gray-400 mt-4">Incluye cartel NFC físico + plataforma digital</p>
       </section>
 
       {/* CÓMO FUNCIONA */}
@@ -78,38 +104,76 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section className="max-w-5xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-12">Todo lo que incluye</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {[
-            { e:'🛡️', t:'Filtro anti-haters', d:'Los clientes descontentos te escriben a vos. Los contentos van a Google.' },
-            { e:'🤖', t:'Respuestas con IA', d:'Pegás la reseña y la IA te redacta una respuesta profesional en segundos.' },
-            { e:'📊', t:'Estadísticas en tiempo real', d:'Cuántos scans, cuántos positivos, cuántos negativos y de qué día.' },
-            { e:'👥', t:'Ranking de empleados', d:'QR personalizado por mozo/vendedor. Sabés quién consigue más reseñas.' },
-            { e:'🔗', t:'Link dinámico', d:'El QR del cartel nunca cambia. Vos cambiás el destino desde la plataforma.' },
-            { e:'📱', t:'Cartel físico incluido', d:'NFC + QR configurado y listo para instalar en tu local. Sin complicaciones.' },
-          ].map(({ e, t, d }) => (
-            <div key={t} className="flex gap-4 p-5 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors">
-              <span className="text-2xl">{e}</span>
-              <div>
-                <h3 className="font-bold text-gray-900 mb-1">{t}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{d}</p>
-              </div>
+      {/* DASHBOARD SHOWCASE */}
+      <section className="max-w-6xl mx-auto px-4 py-16 lg:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="order-2 lg:order-1">
+            <div className="rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
+              <Image src="/screenshots/dashboard.png" alt="Dashboard de Calificar"
+                width={1200} height={500} className="w-full h-auto"/>
             </div>
-          ))}
+          </div>
+          <div className="order-1 lg:order-2 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 mb-5">
+              📊 Tu panel de control
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
+              Todas tus estadísticas en un solo lugar
+            </h2>
+            <p className="text-gray-500 leading-relaxed mb-6">
+              Cuántos clientes escanearon tu cartel, cuántos fueron a Google, cuántos te escribieron en privado.
+              Todo en tiempo real, sin planillas ni complicaciones.
+            </p>
+            <div className="space-y-3 max-w-sm mx-auto lg:mx-0">
+              {[
+                'Estadísticas actualizadas al instante',
+                'Feedback privado de clientes insatisfechos',
+                'Historial de los últimos 7 días',
+                'Acceso desde el celu o la compu',
+              ].map(f => (
+                <div key={f} className="flex items-center gap-3 text-sm text-gray-700">
+                  <span className="text-amber-500 font-bold">✓</span>{f}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* EMPLEADOS — sección nueva */}
-      <section className="bg-gray-900 py-16">
+      {/* FEATURES */}
+      <section className="bg-gray-50 border-y border-gray-100 py-16">
         <div className="max-w-5xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-12">Todo lo que incluye</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {[
+              { e:'🛡️', t:'Filtro anti-haters', d:'Los clientes descontentos te escriben a vos. Los contentos van a Google.' },
+              { e:'🤖', t:'Respuestas con IA', d:'Pegás la reseña y la IA te redacta una respuesta profesional en segundos.' },
+              { e:'📊', t:'Estadísticas en tiempo real', d:'Cuántos scans, cuántos positivos, cuántos negativos y de qué día.' },
+              { e:'👥', t:'Ranking de empleados', d:'QR personalizado por mozo/vendedor. Sabés quién consigue más reseñas.' },
+              { e:'🔗', t:'Link dinámico', d:'El QR del cartel nunca cambia. Vos cambiás el destino desde la plataforma.' },
+              { e:'📱', t:'Cartel físico incluido', d:'NFC + QR configurado y listo para instalar en tu local. Sin complicaciones.' },
+            ].map(({ e, t, d }) => (
+              <div key={t} className="flex gap-4 p-5 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 transition-colors">
+                <span className="text-2xl">{e}</span>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-1">{t}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{d}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* EMPLEADOS */}
+      <section className="bg-gray-900 py-16 lg:py-24">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
             <div>
               <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-500/30 mb-5">
                 👥 Función exclusiva
               </div>
-              <h2 className="text-3xl font-extrabold text-white mb-4">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">
                 Sabé qué mozo trae más reseñas
               </h2>
               <p className="text-gray-400 leading-relaxed mb-6">
@@ -141,42 +205,50 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* RANKING VISUAL */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-bold text-white text-sm">Ranking del mes — Café El Sol</h3>
-                <span className="text-xs text-amber-400 font-semibold">Junio 2026</span>
-              </div>
-              <div className="space-y-4">
-                {[
-                  { n:'María García', s:34, pct:100, pos:'1°', medal:'🥇' },
-                  { n:'Juan Torres',  s:28, pct:82,  pos:'2°', medal:'🥈' },
-                  { n:'Laura Sosa',   s:19, pct:56,  pos:'3°', medal:'🥉' },
-                  { n:'Carlos Méndez',s:11, pct:32,  pos:'4°', medal:'' },
-                ].map(emp => (
-                  <div key={emp.n} className="flex items-center gap-3">
-                    <span className="text-base w-5 text-center">{emp.medal || emp.pos}</span>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm text-white font-medium">{emp.n}</span>
-                        <span className="text-xs text-gray-400">{emp.s} reseñas</span>
-                      </div>
-                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-amber-500 rounded-full transition-all" style={{width:`${emp.pct}%`}}/>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-xs text-gray-500">Total del mes</span>
-                <span className="text-sm font-bold text-white">92 reseñas generadas</span>
+            {/* Mockup celular con empleado */}
+            <div className="relative flex justify-center">
+              <div className="relative w-[260px] sm:w-[290px]">
+                <div className="absolute inset-0 bg-amber-400/10 blur-3xl rounded-full scale-90"/>
+                <div className="relative rounded-[2.5rem] border-[8px] border-gray-800 bg-gray-800 shadow-2xl overflow-hidden">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-gray-800 rounded-b-2xl z-10"/>
+                  <Image src="/screenshots/funnel-empleado.png" alt="Funnel personalizado por empleado"
+                    width={290} height={620} className="w-full h-auto"/>
+                </div>
               </div>
             </div>
           </div>
 
+          {/* RANKING */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-white text-sm">Ranking del mes — Café El Sol</h3>
+              <span className="text-xs text-amber-400 font-semibold">Junio 2026</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+              {[
+                { n:'María García', s:34, pct:100, medal:'🥇' },
+                { n:'Juan Torres',  s:28, pct:82,  medal:'🥈' },
+                { n:'Laura Sosa',   s:19, pct:56,  medal:'🥉' },
+                { n:'Carlos Méndez',s:11, pct:32,  medal:'' },
+              ].map((emp,idx) => (
+                <div key={emp.n} className="flex items-center gap-3">
+                  <span className="text-base w-5 text-center">{emp.medal || `${idx+1}°`}</span>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm text-white font-medium">{emp.n}</span>
+                      <span className="text-xs text-gray-400">{emp.s} reseñas</span>
+                    </div>
+                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-500 rounded-full" style={{width:`${emp.pct}%`}}/>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* PRECIO */}
-          <div className="mt-12 bg-white/5 border border-white/10 rounded-2xl p-6">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
             <h3 className="font-bold text-white text-center mb-6">¿Cuánto cuesta agregar empleados?</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
               {[
@@ -259,8 +331,29 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* CTA FINAL */}
+      <section className="py-16 lg:py-24 px-4 text-center">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
+          ¿Listo para empezar?
+        </h2>
+        <p className="text-gray-500 mb-8 max-w-md mx-auto">
+          Te instalamos el cartel y configuramos todo. En menos de una semana
+          empezás a recibir mejores reseñas.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href={WA} target="_blank"
+            className="bg-gray-900 text-white font-bold px-8 py-4 rounded-xl hover:bg-gray-700 transition-colors text-base">
+            Quiero mi sistema →
+          </a>
+          <Link href="/r/demo"
+            className="border border-gray-200 text-gray-700 font-semibold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors text-base">
+            Ver demo
+          </Link>
+        </div>
+      </section>
+
       {/* FOOTER */}
-      <footer className="py-8 px-4 text-center">
+      <footer className="border-t border-gray-100 py-8 px-4 text-center">
         <p className="text-sm text-gray-400">
           <span className="font-semibold text-gray-600">★ calificar.ar</span> — Hecho en Argentina 🇦🇷
         </p>
@@ -271,4 +364,3 @@ export default function LandingPage() {
     </div>
   )
 }
-// Note: add /tienda link to nav and hero
