@@ -1,366 +1,291 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import HeroNav from '@/components/landing/HeroNav'
+import OffsetBlock from '@/components/landing/OffsetBlock'
+import TestimonialPill from '@/components/landing/TestimonialPill'
+import Footer from '@/components/landing/Footer'
+
+const WA = 'https://wa.me/5491100000000?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
+
+const LOGOS = [
+  { name: 'Brushed', className: 'font-display italic font-semibold text-2xl' },
+  { name: 'FIXTERIA', className: 'font-sans font-extrabold uppercase tracking-[0.25em] text-base' },
+  { name: 'TruVision', className: 'font-display font-bold text-2xl' },
+  { name: 'norta', className: 'font-sans font-light tracking-wide text-3xl' },
+  { name: 'QUANTO', className: 'font-sans font-black uppercase tracking-widest text-xl' },
+]
+
+const BENEFITS = [
+  { icon: <IconClock/>, text: 'Ahorrá horas por semana' },
+  { icon: <IconChat/>, text: 'Todo el equipo, conectado' },
+  { icon: <IconChart/>, text: 'Tus datos, en tiempo real' },
+  { icon: <IconShield/>, text: 'Tu negocio, bajo control' },
+]
+
+function IconCheck() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+  )
+}
+function IconClock() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M12 7v5l3 3"/>
+    </svg>
+  )
+}
+function IconChat() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+    </svg>
+  )
+}
+function IconChart() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v18h18"/>
+      <rect x="7" y="12" width="3" height="6"/>
+      <rect x="12" y="8" width="3" height="10"/>
+      <rect x="17" y="5" width="3" height="13"/>
+    </svg>
+  )
+}
+function IconShield() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z"/>
+      <path d="M9 12l2 2 4-4"/>
+    </svg>
+  )
+}
 
 export default function LandingPage() {
-  const WA = 'https://wa.me/5491100000000?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
-
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
-
-      {/* NAV */}
-      <nav className="border-b border-gray-100 sticky top-0 bg-white/90 backdrop-blur-md z-50">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <span className="font-bold text-xl text-gray-900 flex items-center gap-1.5">
-            <span className="text-amber-500">★</span> calificar
-          </span>
-          <div className="hidden md:flex items-center gap-1 text-sm text-gray-500">
-            <Link href="/tienda" className="px-3 py-2 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors font-medium">Carteles</Link>
-            <Link href="/r/demo" className="px-3 py-2 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors font-medium">Demo</Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 px-3 py-2 hidden sm:block">
-              Iniciar sesión
-            </Link>
-            <a href={WA} target="_blank"
-              className="bg-gray-900 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
-              Quiero mi sistema →
-            </a>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-white text-gray-900">
 
       {/* HERO */}
-      <section className="relative bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-6xl mx-auto px-4 pt-16 pb-0 lg:pt-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="relative grid grid-cols-1 lg:grid-cols-2 lg:min-h-[800px]">
 
-            {/* Texto */}
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-200 mb-6">
-                ★ +200 negocios ya lo usan
-              </div>
-              <h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 leading-[1.05] tracking-tight mb-6">
-                Más reseñas<br/>5 estrellas.<br/>
-                <span className="text-amber-500">Menos malas.</span>
-              </h1>
-              <p className="text-lg text-gray-500 max-w-md mx-auto lg:mx-0 mb-8 leading-relaxed">
-                El cliente feliz va directo a Google. El insatisfecho te escribe a vos en privado.
-                Protegé tu reputación y mejorá tu servicio al mismo tiempo.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                <a href={WA} target="_blank"
-                  className="bg-gray-900 text-white font-bold px-8 py-4 rounded-xl hover:bg-gray-700 transition-colors text-base">
-                  Quiero mi sistema →
-                </a>
-                <Link href="/tienda"
-                  className="border border-gray-200 text-gray-700 font-semibold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors text-base">
-                  Ver carteles
-                </Link>
-              </div>
-              <p className="text-xs text-gray-400 mt-4">Incluye cartel NFC físico + plataforma digital</p>
-            </div>
-
-            {/* Mockup celular */}
-            <div className="relative flex justify-center lg:justify-end">
-              <div className="relative w-[280px] sm:w-[320px]">
-                {/* Glow de fondo */}
-                <div className="absolute inset-0 bg-amber-400/20 blur-3xl rounded-full scale-90 translate-y-10"/>
-                {/* Frame del celular */}
-                <div className="relative rounded-[2.5rem] border-[8px] border-gray-900 bg-gray-900 shadow-2xl overflow-hidden">
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-10"/>
-                  <Image src="/screenshots/funnel.png" alt="Funnel de Calificar en el celular"
-                    width={320} height={620} className="w-full h-auto"/>
-                </div>
-                {/* Badge flotante */}
-                <div className="absolute -left-6 top-1/3 bg-white rounded-2xl shadow-xl px-4 py-3 border border-gray-100 hidden sm:block">
-                  <p className="text-xs text-gray-400 mb-0.5">Filtro activo</p>
-                  <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"/> Protegiendo tu reputación
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Logo — solo a la izquierda, fijo */}
+        <div className="fixed top-6 left-6 sm:left-10 z-50">
+          <Link href="/" className="font-display font-extrabold text-xl text-gray-900 flex items-center gap-1.5">
+            <span className="text-violet-600">★</span> Calificar
+          </Link>
         </div>
-      </section>
 
-      {/* CÓMO FUNCIONA */}
-      <section className="bg-gray-50 border-y border-gray-100 py-16">
-        <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-12">¿Cómo funciona?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { n:'01', t:'El cliente escanea tu cartel', d:'Con el celu, en 2 segundos. Sin apps, sin buscar nada.' },
-              { n:'02', t:'Califica su experiencia', d:'4 o 5 estrellas → Google Maps. 1, 2 o 3 → te escribe a vos en privado.' },
-              { n:'03', t:'Vos solo recibís las buenas', d:'Las reseñas negativas se filtran antes de llegar a Google. Tu reputación crece.' },
-            ].map(({ n, t, d }) => (
-              <div key={n} className="bg-white rounded-2xl p-6 border border-gray-100">
-                <div className="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center text-sm font-bold mb-4">{n}</div>
-                <h3 className="font-bold text-gray-900 mb-2">{t}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* DASHBOARD SHOWCASE */}
-      <section className="max-w-6xl mx-auto px-4 py-16 lg:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="order-2 lg:order-1">
-            <div className="rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
-              <Image src="/screenshots/dashboard.png" alt="Dashboard de Calificar"
-                width={1200} height={500} className="w-full h-auto"/>
-            </div>
-          </div>
-          <div className="order-1 lg:order-2 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 mb-5">
-              📊 Tu panel de control
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-              Todas tus estadísticas en un solo lugar
-            </h2>
-            <p className="text-gray-500 leading-relaxed mb-6">
-              Cuántos clientes escanearon tu cartel, cuántos fueron a Google, cuántos te escribieron en privado.
-              Todo en tiempo real, sin planillas ni complicaciones.
+        {/* Texto */}
+        <div className="flex items-center px-6 sm:px-10 lg:px-16 py-24">
+          <div className="max-w-md mx-auto text-center">
+            <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl leading-[1.1] text-violet-600 mb-6">
+              Todo lo que necesitás para cuidar las reseñas de tu local
+            </h1>
+            <p className="text-gray-500 text-base sm:text-lg leading-relaxed mb-8">
+              Cada cliente que escanea el cartel califica su experiencia. Los conformes van
+              directo a Google. Los que tuvieron un problema te escriben a vos, en privado,
+              antes de que se convierta en una mala reseña.
             </p>
-            <div className="space-y-3 max-w-sm mx-auto lg:mx-0">
-              {[
-                'Estadísticas actualizadas al instante',
-                'Feedback privado de clientes insatisfechos',
-                'Historial de los últimos 7 días',
-                'Acceso desde el celu o la compu',
-              ].map(f => (
-                <div key={f} className="flex items-center gap-3 text-sm text-gray-700">
-                  <span className="text-amber-500 font-bold">✓</span>{f}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section className="bg-gray-50 border-y border-gray-100 py-16">
-        <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-12">Todo lo que incluye</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {[
-              { e:'🛡️', t:'Filtro anti-haters', d:'Los clientes descontentos te escriben a vos. Los contentos van a Google.' },
-              { e:'🤖', t:'Respuestas con IA', d:'Pegás la reseña y la IA te redacta una respuesta profesional en segundos.' },
-              { e:'📊', t:'Estadísticas en tiempo real', d:'Cuántos scans, cuántos positivos, cuántos negativos y de qué día.' },
-              { e:'👥', t:'Ranking de empleados', d:'QR personalizado por mozo/vendedor. Sabés quién consigue más reseñas.' },
-              { e:'🔗', t:'Link dinámico', d:'El QR del cartel nunca cambia. Vos cambiás el destino desde la plataforma.' },
-              { e:'📱', t:'Cartel físico incluido', d:'NFC + QR configurado y listo para instalar en tu local. Sin complicaciones.' },
-            ].map(({ e, t, d }) => (
-              <div key={t} className="flex gap-4 p-5 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 transition-colors">
-                <span className="text-2xl">{e}</span>
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-1">{t}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{d}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* EMPLEADOS */}
-      <section className="bg-gray-900 py-16 lg:py-24">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-500/30 mb-5">
-                👥 Función exclusiva
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">
-                Sabé qué mozo trae más reseñas
-              </h2>
-              <p className="text-gray-400 leading-relaxed mb-6">
-                Cada empleado tiene su propia tarjeta NFC. Cuando el cliente la escanea,
-                la reseña queda registrada a nombre de ese mozo o vendedor.
-                A fin de mes sabés exactamente quién aporta más a tu reputación — y podés premiarlo.
-              </p>
-              <div className="space-y-3 mb-8">
-                {[
-                  'Tarjeta NFC personal por empleado',
-                  'Ranking en tiempo real en tu dashboard',
-                  'Incentivá a tu equipo con datos reales',
-                  'Funciona con mozos, vendedores y cajeros',
-                ].map(f => (
-                  <div key={f} className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="text-amber-500 font-bold">✓</span>{f}
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link href="/r/demo?emp=maria"
-                  className="inline-flex items-center justify-center gap-2 bg-amber-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-amber-400 transition-colors text-sm">
-                  Probar tarjeta de mozo →
-                </Link>
-                <a href={WA} target="_blank"
-                  className="inline-flex items-center justify-center gap-2 border border-white/20 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors text-sm">
-                  Consultar precio
-                </a>
-              </div>
-            </div>
-
-            {/* Mockup celular con empleado */}
-            <div className="relative flex justify-center">
-              <div className="relative w-[260px] sm:w-[290px]">
-                <div className="absolute inset-0 bg-amber-400/10 blur-3xl rounded-full scale-90"/>
-                <div className="relative rounded-[2.5rem] border-[8px] border-gray-800 bg-gray-800 shadow-2xl overflow-hidden">
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-gray-800 rounded-b-2xl z-10"/>
-                  <Image src="/screenshots/funnel-empleado.png" alt="Funnel personalizado por empleado"
-                    width={290} height={620} className="w-full h-auto"/>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* RANKING */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-white text-sm">Ranking del mes — Café El Sol</h3>
-              <span className="text-xs text-amber-400 font-semibold">Junio 2026</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-              {[
-                { n:'María García', s:34, pct:100, medal:'🥇' },
-                { n:'Juan Torres',  s:28, pct:82,  medal:'🥈' },
-                { n:'Laura Sosa',   s:19, pct:56,  medal:'🥉' },
-                { n:'Carlos Méndez',s:11, pct:32,  medal:'' },
-              ].map((emp,idx) => (
-                <div key={emp.n} className="flex items-center gap-3">
-                  <span className="text-base w-5 text-center">{emp.medal || `${idx+1}°`}</span>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-white font-medium">{emp.n}</span>
-                      <span className="text-xs text-gray-400">{emp.s} reseñas</span>
-                    </div>
-                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500 rounded-full" style={{width:`${emp.pct}%`}}/>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* PRECIO */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h3 className="font-bold text-white text-center mb-6">¿Cuánto cuesta agregar empleados?</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-              {[
-                { prod:'Cartel de mostrador', desc:'NFC + QR del local', price:'$14.500', note:'pago único' },
-                { prod:'Tarjeta por empleado', desc:'NFC card personal', price:'$3.600', note:'c/u · pack ×5 $18.000' },
-                { prod:'Plataforma', desc:'Dashboard + filtro + IA', price:'$8.000', note:'por mes' },
-              ].map(p => (
-                <div key={p.prod} className="bg-white/5 rounded-xl p-4">
-                  <p className="text-xs text-gray-400 mb-1">{p.prod}</p>
-                  <p className="text-2xl font-extrabold text-white">{p.price}</p>
-                  <p className="text-xs text-amber-400 mt-0.5">{p.note}</p>
-                  <p className="text-xs text-gray-500 mt-1">{p.desc}</p>
-                </div>
-              ))}
-            </div>
-            <div className="text-center mt-6">
-              <p className="text-sm text-gray-400 mb-3">
-                Un restaurante con 4 mozos → cartel + 4 tarjetas + suscripción = <span className="text-white font-bold">$40.500 de entrada + $8.000/mes</span>
-              </p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link href="/r/demo"
+                className="inline-flex items-center justify-center bg-white border-2 border-gray-300 text-gray-900 font-semibold px-8 py-4 rounded-full hover:border-gray-400 hover:bg-gray-50 transition-colors text-base">
+                Ver demo
+              </Link>
               <a href={WA} target="_blank"
-                className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold px-6 py-3 rounded-xl hover:bg-gray-100 transition-colors text-sm">
-                Quiero esto para mi local
+                className="inline-flex items-center justify-center bg-[#1A1A2E] text-white font-semibold px-8 py-4 rounded-full hover:bg-[#2A2A45] transition-colors text-base shadow-lg shadow-[#1A1A2E]/20">
+                Quiero mi sistema
               </a>
             </div>
           </div>
         </div>
+
+        {/* Panel rosa */}
+        <div className="relative bg-[#F4CCD8] min-h-[520px] sm:min-h-[600px] lg:min-h-[800px] flex items-center justify-center overflow-hidden px-6 py-10">
+
+          {/* Nav flotante — derecha, fijo */}
+          <div className="fixed top-6 right-6 lg:right-10 z-50">
+            <HeroNav/>
+          </div>
+
+          {/* Placeholder para imagen del sistema */}
+          <div className="relative w-[230px] sm:w-[280px] aspect-[9/18] rounded-[1.75rem] border-2 border-dashed border-white/70 bg-white/10 flex items-center justify-center text-center px-6">
+            <p className="text-white/80 text-sm leading-relaxed">
+              Espacio para la imagen<br/>del sistema
+            </p>
+          </div>
+
+          {/* Tarjetas apiladas */}
+          <div className="hidden sm:flex absolute bottom-8 right-6 lg:right-14 flex-col gap-3 w-60">
+            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3 hover:shadow-xl hover:-translate-x-1 transition-all duration-300">
+              <span className="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0">
+                <IconCheck/>
+              </span>
+              <p className="text-sm font-semibold text-gray-900 leading-tight">Reseña enviada a Google</p>
+            </div>
+            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3 hover:shadow-xl hover:-translate-x-1 transition-all duration-300">
+              <span className="w-7 h-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                M
+              </span>
+              <p className="text-sm font-semibold text-gray-900 leading-tight">María recibió una reseña</p>
+            </div>
+            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3 hover:shadow-xl hover:-translate-x-1 transition-all duration-300">
+              <span className="relative inline-flex h-5 w-9 items-center rounded-full bg-violet-600 flex-shrink-0">
+                <span className="inline-block h-3.5 w-3.5 translate-x-[18px] rounded-full bg-white"/>
+              </span>
+              <p className="text-sm font-semibold text-gray-900 leading-tight">Filtro anti-haters</p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* PLANES */}
-      <section className="bg-gray-50 border-y border-gray-100 py-16">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-4">Planes de la plataforma</h2>
-          <p className="text-gray-500 text-center mb-12">El cartel físico y las tarjetas de empleados se cobran aparte.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              {
-                name:'Gratis', price:'$0', period:'incluido',
-                color:'border-gray-200',
-                features:['1 local','Filtro anti-haters','QR para imprimir','10 respuestas IA/mes'],
-              },
-              {
-                name:'Básico', price:'$8.000', period:'ARS/mes',
-                color:'border-amber-400 ring-2 ring-amber-400',
-                badge:'✦ Más popular',
-                features:['Hasta 3 locales','Filtro anti-haters','100 respuestas IA/mes','Ranking de empleados'],
-              },
-              {
-                name:'Pro', price:'$15.000', period:'ARS/mes',
-                color:'border-gray-200',
-                features:['Locales ilimitados','Filtro anti-haters','IA ilimitada','Ranking de empleados'],
-              },
-            ].map(plan => (
-              <div key={plan.name} className={`bg-white rounded-2xl border p-6 ${plan.color} relative`}>
-                {(plan as any).badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                    {(plan as any).badge}
-                  </div>
-                )}
-                <div className="mb-4">
-                  <h3 className="font-bold text-gray-900 text-lg">{plan.name}</h3>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-3xl font-extrabold text-gray-900">{plan.price}</span>
-                    <span className="text-sm text-gray-400">{plan.period}</span>
-                  </div>
-                </div>
-                <ul className="space-y-2 mb-6">
-                  {plan.features.map(f => (
-                    <li key={f} className="text-sm flex items-center gap-2 text-gray-600">
-                      <span className="text-amber-500">✓</span><span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <a href={WA} target="_blank"
-                  className="block text-center py-3 rounded-xl font-semibold text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
-                  Consultar por WhatsApp
-                </a>
+      {/* Composición de imágenes — cascada diagonal, sin rotación */}
+      <section className="relative bg-[#F5EFE7] pb-16 lg:pb-24">
+        <div className="relative flex flex-col gap-4 sm:block sm:h-[420px] lg:h-[480px] max-w-3xl mx-auto px-6">
+
+          {/* Tarjeta 1 — fondo, arriba izquierda */}
+          <div className="relative w-full aspect-[4/3] sm:absolute sm:w-[55%] sm:h-[58%] sm:-top-12 lg:-top-16 sm:left-0 sm:aspect-auto z-10
+            rounded-2xl border border-gray-100 bg-white shadow-xl
+            flex items-center justify-center text-gray-400 text-sm
+            hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+            Imagen 1
+          </div>
+
+          {/* Tarjeta 2 — frente, centro, la más grande */}
+          <div className="relative w-full aspect-[4/3] sm:absolute sm:w-[58%] sm:h-[62%] sm:top-[14%] sm:left-[20%] sm:aspect-auto z-30
+            rounded-2xl border border-gray-100 bg-white shadow-2xl
+            flex items-center justify-center text-gray-400 text-sm
+            hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+            Imagen 2
+          </div>
+
+          {/* Tarjeta 3 — medio, abajo derecha */}
+          <div className="relative w-full aspect-[4/3] sm:absolute sm:w-[55%] sm:h-[58%] sm:bottom-0 sm:right-0 sm:aspect-auto z-20
+            rounded-2xl border border-gray-100 bg-white shadow-xl
+            flex items-center justify-center text-gray-400 text-sm
+            hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+            Imagen 3
+          </div>
+        </div>
+      </section>
+
+      {/* Sección navy con curva superior */}
+      <section className="relative bg-[#0F172A] py-32 lg:py-48">
+        <svg viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true"
+          className="absolute bottom-full left-0 w-full h-16 sm:h-20 lg:h-28">
+          <path fill="#0F172A" d="M0,120 C360,10 1080,10 1440,120 L1440,120 L0,120 Z"/>
+        </svg>
+
+        <div className="max-w-4xl mx-auto text-center px-6">
+          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-white mb-4">
+            Basta de jugártela con cada reseña
+          </h2>
+          <p className="text-gray-300 leading-relaxed text-base sm:text-lg">
+            Con Calificar te enterás primero vos. Las experiencias copadas suman estrellas
+            en Google, y las que no salieron tan bien te llegan directo a vos, en privado.
+            Así cuidás tu nombre sin perder el sueño.
+          </p>
+        </div>
+      </section>
+
+      {/* Características — tarjetas desfasadas superpuestas */}
+      <section className="bg-[#F5EFE7] py-24 px-6">
+        <div className="max-w-7xl mx-auto space-y-28 lg:space-y-40">
+          <OffsetBlock
+            contentAlign="right"
+            bgColor="bg-[#FBCAD8]"
+            textColorClass="text-gray-900"
+            mutedColorClass="text-gray-700"
+            imageLabel="Imagen 4"
+            title="El cartel que hace todo el trabajo"
+            description="Tu cliente apoya el celular o escanea el código QR y listo. No necesita instalar nada
+              ni crear una cuenta. En menos de cinco segundos ya está calificando su experiencia."
+          />
+          <OffsetBlock
+            contentAlign="left"
+            bgColor="bg-[#056E4B]"
+            textColorClass="text-white"
+            mutedColorClass="text-gray-200"
+            imageLabel="Imagen 5"
+            title="Las quejas, antes de que sean públicas"
+            description="Si la experiencia no fue la mejor, el cliente te lo cuenta a vos primero, en privado.
+              Vos decidís cómo responder, y mientras tanto tu reputación en Google queda protegida."
+          />
+          <OffsetBlock
+            contentAlign="right"
+            bgColor="bg-[#FBCAD8]"
+            textColorClass="text-gray-900"
+            mutedColorClass="text-gray-700"
+            imageLabel="Imagen 6"
+            title="Tu equipo, con nombre y apellido"
+            description="Cada mozo o vendedor puede tener su propia tarjeta. Vos ves quién genera más
+              reseñas y podés reconocer al que más se esfuerza."
+            ctaText="Probar ahora"
+            ctaHref="/r/demo"
+          />
+        </div>
+      </section>
+
+      {/* LOGOS DE CLIENTES */}
+      <section className="bg-white py-20 lg:py-24 px-6">
+        <div className="max-w-5xl mx-auto text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-gray-400 mb-12">
+            Algunos de los locales que ya confían en Calificar
+          </p>
+          <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8 sm:gap-x-16">
+            {LOGOS.map(logo => (
+              <span key={logo.name}
+                className={`text-gray-400 grayscale hover:grayscale-0 hover:text-gray-900 transition-all duration-300 cursor-default ${logo.className}`}>
+                {logo.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIOS — fondo verde con curva cóncava superior */}
+      <section className="relative bg-[#056E4B] pt-24 pb-20 lg:pt-32 lg:pb-28">
+        <svg viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true"
+          className="absolute bottom-full left-0 w-full h-16 sm:h-20 lg:h-28">
+          <path fill="#056E4B" d="M0,0 C360,100 1080,100 1440,0 L1440,120 L0,120 Z"/>
+        </svg>
+
+        <div className="px-6">
+          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-white text-center mb-14 lg:mb-16">
+            Lo que dicen los que ya lo están usando
+          </h2>
+
+          <TestimonialPill/>
+        </div>
+      </section>
+
+      {/* BENEFICIOS — grilla de tarjetas */}
+      <section className="bg-[#FBCAD8] py-20 lg:py-28 px-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#0F172A] text-center max-w-3xl mx-auto mb-14 lg:mb-16">
+            ¿Querés que tu equipo se maneje solo?
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {BENEFITS.map(b => (
+              <div key={b.text}
+                className="bg-white rounded-[2rem] shadow-md p-8 flex flex-col items-center text-center
+                  hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                <span className="w-14 h-14 rounded-2xl border border-gray-200 flex items-center justify-center text-[#0F172A] mb-6">
+                  {b.icon}
+                </span>
+                <p className="font-display font-extrabold text-lg text-[#056E4B]">
+                  {b.text}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section className="py-16 lg:py-24 px-4 text-center">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-          ¿Listo para empezar?
-        </h2>
-        <p className="text-gray-500 mb-8 max-w-md mx-auto">
-          Te instalamos el cartel y configuramos todo. En menos de una semana
-          empezás a recibir mejores reseñas.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href={WA} target="_blank"
-            className="bg-gray-900 text-white font-bold px-8 py-4 rounded-xl hover:bg-gray-700 transition-colors text-base">
-            Quiero mi sistema →
-          </a>
-          <Link href="/r/demo"
-            className="border border-gray-200 text-gray-700 font-semibold px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors text-base">
-            Ver demo
-          </Link>
-        </div>
-      </section>
+      {/* Próximas secciones se agregan acá */}
 
-      {/* FOOTER */}
-      <footer className="border-t border-gray-100 py-8 px-4 text-center">
-        <p className="text-sm text-gray-400">
-          <span className="font-semibold text-gray-600">★ calificar.ar</span> — Hecho en Argentina 🇦🇷
-        </p>
-        <Link href="/login" className="text-xs text-gray-300 hover:text-gray-500 mt-2 inline-block">
-          Acceso clientes
-        </Link>
-      </footer>
+      <Footer/>
     </div>
   )
 }

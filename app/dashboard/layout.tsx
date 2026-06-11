@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { planLabel, planColor } from '@/lib/utils'
+import SidebarNav from '@/components/dashboard/SidebarNav'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -23,7 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-[#F7F9FB] flex">
       {/* SIDEBAR */}
       <aside className="w-60 bg-white border-r border-gray-100 flex flex-col fixed h-full">
         <div className="p-5 border-b border-gray-100">
@@ -32,19 +33,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </Link>
         </div>
 
-        <nav className="flex-1 p-3 space-y-0.5">
-          {navItems.map(item => (
-            <Link key={item.href} href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors font-medium">
-              <span>{item.icon}</span>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <SidebarNav items={navItems}/>
 
         <div className="p-4 border-t border-gray-100">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-600">
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600">
               {profile?.name?.charAt(0)?.toUpperCase() ?? '?'}
             </div>
             <div className="flex-1 min-w-0">
@@ -69,4 +62,3 @@ export default async function DashboardLayout({ children }: { children: React.Re
     </div>
   )
 }
-
