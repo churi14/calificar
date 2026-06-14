@@ -48,10 +48,17 @@ function DemoFunnel() {
   const [hovered, setHover] = useState(0)
   const [selected, setSel]  = useState(0)
   const [message, setMsg]   = useState('')
+  const [nombre,  setNombre] = useState('')
+  const [email,   setEmail]  = useState('')
+  const [wapp,    setWapp]   = useState('')
+  const [foto,    setFoto]   = useState<string | null>(null)
 
   const display = hovered || selected
 
-  function reset() { setStage('rating'); setSel(0); setHover(0); setMsg('') }
+  function reset() {
+    setStage('rating'); setSel(0); setHover(0)
+    setMsg(''); setNombre(''); setEmail(''); setWapp(''); setFoto(null)
+  }
 
   function handleStar(star: number) {
     setSel(star)
@@ -158,11 +165,64 @@ function DemoFunnel() {
                       <h2 className="text-[#0F172A] font-extrabold text-lg mb-1">Lamentamos escuchar eso</h2>
                       <p className="text-gray-500 text-sm">Tu comentario es privado — no llega a Google.</p>
                     </div>
+
                     <textarea value={message} onChange={e => setMsg(e.target.value)} rows={3}
                       placeholder="¿Qué podríamos haber hecho mejor?"
-                      className="w-full rounded-2xl bg-[#F5EFE7] p-4 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#FBCAD8] placeholder-gray-400"/>
+                      className="w-full rounded-2xl bg-[#F5EFE7] p-4 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-[#FBCAD8] placeholder-gray-400 mb-4"/>
+
+                    {/* Campos opcionales de contacto */}
+                    <div className="bg-[#F5EFE7] rounded-2xl p-4 mb-4">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                        Opcional — para que podamos contactarte
+                      </p>
+                      <div className="space-y-2.5">
+                        <input value={nombre} onChange={e => setNombre(e.target.value)}
+                          placeholder="Tu nombre"
+                          className="w-full bg-white rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FBCAD8] placeholder-gray-300"/>
+                        <input value={email} onChange={e => setEmail(e.target.value)}
+                          placeholder="Tu email"
+                          type="email"
+                          className="w-full bg-white rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FBCAD8] placeholder-gray-300"/>
+                        <input value={wapp} onChange={e => setWapp(e.target.value)}
+                          placeholder="Tu WhatsApp (ej: 1155667788)"
+                          type="tel"
+                          className="w-full bg-white rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FBCAD8] placeholder-gray-300"/>
+
+                        {/* Upload de foto */}
+                        <label className="block cursor-pointer">
+                          <div className={`w-full rounded-xl border-2 border-dashed transition-colors px-4 py-3 text-center
+                            ${foto ? 'border-[#FBCAD8] bg-[#FBCAD8]/10' : 'border-gray-200 bg-white hover:border-[#FBCAD8]'}`}>
+                            {foto ? (
+                              <div className="flex items-center justify-between gap-2">
+                                <img src={foto} alt="preview" className="w-12 h-12 rounded-lg object-cover flex-shrink-0"/>
+                                <span className="text-xs text-[#056E4B] font-semibold flex-1 text-left">Foto adjuntada ✓</span>
+                                <button type="button" onClick={e => { e.preventDefault(); setFoto(null) }}
+                                  className="text-gray-400 hover:text-red-400 text-lg leading-none">×</button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center gap-2 text-gray-400">
+                                <span className="text-lg">📷</span>
+                                <span className="text-xs font-medium">Adjuntá una foto (opcional)</span>
+                              </div>
+                            )}
+                          </div>
+                          <input type="file" accept="image/*" className="hidden"
+                            onChange={e => {
+                              const file = e.target.files?.[0]
+                              if (!file) return
+                              const reader = new FileReader()
+                              reader.onload = ev => setFoto(ev.target?.result as string)
+                              reader.readAsDataURL(file)
+                            }}/>
+                        </label>
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">
+                        Con tus datos, el local puede contactarte y ofrecerte algo a cambio.
+                      </p>
+                    </div>
+
                     <button onClick={() => setStage('sent')}
-                      className="w-full mt-3 py-3.5 rounded-full text-white font-semibold text-sm bg-[#0F172A] hover:bg-[#1E293B] transition-colors">
+                      className="w-full py-3.5 rounded-full text-white font-semibold text-sm bg-[#0F172A] hover:bg-[#1E293B] transition-colors">
                       Enviar comentario (demo)
                     </button>
                     <button onClick={reset} className="w-full mt-2 py-2 text-sm text-gray-400 hover:text-gray-600">
@@ -180,11 +240,48 @@ function DemoFunnel() {
                       </svg>
                     </div>
                     <h2 className="text-[#0F172A] font-extrabold text-xl mb-2">¡Gracias por avisarnos!</h2>
-                    <p className="text-gray-500 text-sm mb-4">El dueño recibe este mensaje por WhatsApp. La mala reseña nunca llega a Google Maps.</p>
-                    <div className="bg-[#FBCAD8]/20 rounded-2xl px-4 py-3 text-xs text-[#0F172A] text-left leading-relaxed font-medium">
+                    <p className="text-gray-500 text-sm mb-4">El dueño recibe este mensaje de forma privada y puede resolverlo antes de que sea una mala reseña en Google.</p>
+
+                    {/* Resumen de lo que recibe el dueño */}
+                    <div className="bg-[#F5EFE7] rounded-2xl px-4 py-4 text-left mb-3 space-y-2">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Así llega al panel del negocio</p>
+                      <div className="flex items-start gap-2 text-sm text-[#0F172A]">
+                        <span className="text-gray-400 w-16 flex-shrink-0 text-xs pt-0.5">Mensaje</span>
+                        <span className="font-medium italic">"{message || 'Sin mensaje'}"</span>
+                      </div>
+                      {foto && (
+                        <div className="flex items-center gap-2 text-sm text-[#0F172A]">
+                          <span className="text-gray-400 w-16 flex-shrink-0 text-xs">Foto</span>
+                          <img src={foto} alt="adjunto" className="w-16 h-16 rounded-xl object-cover shadow-sm"/>
+                        </div>
+                      )}
+                      {nombre && (
+                        <div className="flex items-center gap-2 text-sm text-[#0F172A]">
+                          <span className="text-gray-400 w-16 flex-shrink-0 text-xs">Nombre</span>
+                          <span className="font-medium">{nombre}</span>
+                        </div>
+                      )}
+                      {email && (
+                        <div className="flex items-center gap-2 text-sm text-[#0F172A]">
+                          <span className="text-gray-400 w-16 flex-shrink-0 text-xs">Email</span>
+                          <span className="font-medium">{email}</span>
+                        </div>
+                      )}
+                      {wapp && (
+                        <div className="flex items-center gap-2 text-sm text-[#0F172A]">
+                          <span className="text-gray-400 w-16 flex-shrink-0 text-xs">WhatsApp</span>
+                          <span className="font-medium">{wapp}</span>
+                        </div>
+                      )}
+                      {!nombre && !email && !wapp && !foto && (
+                        <p className="text-xs text-gray-400 italic">El cliente no dejó datos de contacto.</p>
+                      )}
+                    </div>
+
+                    <div className="bg-[#FBCAD8]/20 rounded-2xl px-4 py-3 text-xs text-[#0F172A] text-left leading-relaxed font-medium mb-4">
                       <strong>✓ Negativo filtrado:</strong> el dueño resuelve el problema en privado. Tu reputación en Google queda intacta.
                     </div>
-                    <button onClick={reset} className="mt-4 text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2">
+                    <button onClick={reset} className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2">
                       ← Volver a la demo
                     </button>
                   </div>
@@ -298,6 +395,12 @@ function DemoFunnel() {
             <p className="text-center text-xs text-gray-400 mt-4 px-4">
               Así ve cada local sus estadísticas, su QR y el ranking de su equipo en tiempo real.
             </p>
+            <div className="text-center mt-3">
+              <Link href="/demo/dashboard" target="_blank"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#0F172A] px-4 py-2.5 rounded-full hover:bg-[#1E293B] transition-colors">
+                Probar el panel completo →
+              </Link>
+            </div>
           </div>
         </div>
       </div>
