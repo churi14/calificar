@@ -108,10 +108,10 @@ export default function LandingPage() {
                 className="inline-flex items-center justify-center bg-white border-2 border-gray-300 text-gray-900 font-semibold px-8 py-4 rounded-full hover:border-gray-400 hover:bg-gray-50 transition-colors text-base">
                 Ver demo
               </Link>
-              <a href={WA} target="_blank"
+              <Link href="/como-funciona"
                 className="inline-flex items-center justify-center bg-[#1A1A2E] text-white font-semibold px-8 py-4 rounded-full hover:bg-[#2A2A45] transition-colors text-base shadow-lg shadow-[#1A1A2E]/20">
-                Quiero mi sistema
-              </a>
+                Cómo funciona
+              </Link>
             </div>
           </div>
         </div>

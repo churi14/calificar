@@ -6,71 +6,176 @@ import Link from 'next/link'
 const WA_NUM = '5491100000000'
 const FREE_SHIPPING = 100000
 
+type Variant = { label: string; price: number }
+
 type Product = {
-  id: number; name: string; sub: string; price: number; orig?: number
-  badge?: string; desc: string; feats: string[]; ideal: string; emoji: string
+  id: number; name: string; sub: string; price: number
+  badge?: string; desc: string; feats: string[]; ideal: string
+  emoji: string; variants?: Variant[]; note?: string
 }
 
 const PRODUCTS: Product[] = [
-  { id:1, emoji:'🪧', name:'Cartel de Mostrador', sub:'PVC o Acrílico · A5 (15×21cm)', price:14500, badge:'El titular',
-    desc:'El que va al lado de la caja. Formato A5, diseño en 3 franjas: tu logo arriba, ícono NFC en el centro, QR abajo. Chip NFC + QR dinámico configurado.',
-    feats:['Formato A5 (15×21 cm)','PVC 2mm o Acrílico 3mm','NFC + QR Dinámico','Configuración incluida'], ideal:'Zona de caja, mostrador, recepción' },
-  { id:2, emoji:'🔲', name:'Cartel de Mesa', sub:'Display acrílico · A6 (10×15cm)', price:12000, badge:'★ Popular',
-    desc:'Display acrílico tipo L o T con chip NFC y QR. No estorba en las mesas. El cliente apoya el celu o escanea y listo.',
-    feats:['Formato A6 (10×15 cm)','Display acrílico tipo L o T','NFC + QR Dinámico','Configuración incluida'], ideal:'Mesas de cafeterías, restaurantes y bares' },
-  { id:3, emoji:'⬡', name:'Sticker de Mesa/Barra', sub:'Vinilo laminado · 6×6 cm', price:8500, badge:'De combate',
-    desc:'Discos o cuadrados de 6-7cm que van fijos. No los pueden tirar ni caen. Resistentes al agua y lavandina.',
-    feats:['6cm círculo o 6×6cm cuadrado','Vinilo laminado premium','Resistente al agua','Configuración incluida'], ideal:'Mesas fijas, barras, mostradores' },
-  { id:4, emoji:'💳', name:'Tarjeta PVC para Mozos', sub:'Pack de 5 · 8.6×5.4 cm', price:18000, badge:'La carta maestra',
-    desc:'Tamaño tarjeta de crédito. El mozo la lleva en el delantal. Al traer la cuenta dice "¿Me dejás una reseña?" y la acerca al celu.',
-    feats:['×5 tarjetas PVC','86×54mm (credit card)','QR + NFC integrado','Configuración de todas incluida'], ideal:'Mozos y vendedores, cobro en mesa' },
-  { id:5, emoji:'📌', name:'Pin/Credencial para Mozos', sub:'Pack de 2 · 5 cm diámetro', price:9000, badge:'',
-    desc:'Círculo de 5cm que el mozo se cuelga en el pecho. El cliente apoya el celu directo. La opción más natural.',
-    feats:['5 cm diámetro','100% NFC (sin QR)','Pack de 2 unidades','Configuración incluida'], ideal:'Mozos, personal de atención, vendedores' },
-  { id:6, emoji:'🖼️', name:'Cartel de Pared', sub:'Alta visibilidad · 30×20 cm', price:19500, badge:'',
-    desc:'Cartel grande para colgar. Visible desde lejos. Ideal para locales con mucho flujo donde querés que todos lo vean al entrar.',
-    feats:['30×20 cm','QR + NFC','Sistema de cuelgue incluido','Configuración incluida'], ideal:'Locales con alta afluencia, entradas, cajas' },
-  { id:7, emoji:'📦', name:'Combo Local Completo', sub:'Mostrador + Mesa + Tarjetas', price:35000, orig:49500, badge:'Ahorrás $14.500',
-    desc:'Todo lo necesario para cubrir los puntos de contacto del local: Cartel de Mostrador + Cartel de Mesa + Pack ×5 Tarjetas PVC.',
-    feats:['1 Cartel de Mostrador (A5)','1 Cartel de Mesa (A6)','Pack ×5 Tarjetas PVC','Configuración de todo incluida'], ideal:'Para arrancar con presencia total' },
-  { id:8, emoji:'⭐', name:'Combo Premium', sub:'Mostrador + Mesa + Sticker + Pins', price:33000, orig:44000, badge:'Ahorrás $11.000',
-    desc:'Cartel de Mostrador + Cartel de Mesa + Stickers de barra + Pins para mozos. Cobertura total con presentación premium.',
-    feats:['1 Cartel de Mostrador','1 Cartel de Mesa','Pack Stickers + Pins','Logo del local incluido'], ideal:'Restaurantes y bares con personal' },
+  {
+    id: 1, emoji: '🪧', name: 'Cartel de Mostrador', badge: 'El titular',
+    sub: 'PVC 3mm o Acrílico · A5 (15×21cm)',
+    desc: 'El que va al lado de la caja. Formato A5, diseño en 3 franjas: tu logo arriba, ícono NFC en el centro, QR abajo. Chip NFC + QR dinámico configurado.',
+    feats: ['Formato A5 (15×21 cm)', 'NFC + QR Dinámico', 'Configuración incluida'],
+    ideal: 'Zona de caja, mostrador, recepción',
+    price: 14500,
+    variants: [
+      { label: 'PVC 3mm', price: 14500 },
+      { label: 'Acrílico', price: 18000 },
+    ],
+  },
+  {
+    id: 2, emoji: '🔲', name: 'Cartel de Mesa', badge: '★ Popular',
+    sub: 'PVC o Acrílico · A6 (10×15cm)',
+    desc: 'Display tipo L o T con chip NFC y QR. No estorba en las mesas. El cliente apoya el celu o escanea y listo.',
+    feats: ['Formato A6 (10×15 cm)', 'NFC + QR Dinámico', 'Configuración incluida'],
+    ideal: 'Mesas de cafeterías, restaurantes y bares',
+    price: 12000,
+    variants: [
+      { label: 'PVC', price: 12000 },
+      { label: 'Acrílico', price: 15500 },
+    ],
+  },
+  {
+    id: 3, emoji: '⬡', name: 'Sticker de Mesa/Barra', badge: 'De combate',
+    sub: 'PVC, Acrílico o Metal · 6×6 cm',
+    desc: 'Discos o cuadrados de 6-7cm que van fijos. No los pueden tirar ni caen. Resistentes al agua y lavandina. QR + NFC integrado.',
+    feats: ['6cm círculo o 6×6cm cuadrado', 'QR + NFC integrado', 'Resistente al agua y lavandina', 'Configuración incluida'],
+    ideal: 'Mesas fijas, barras, mostradores',
+    price: 8500,
+    variants: [
+      { label: 'PVC', price: 8500 },
+      { label: 'Acrílico', price: 11000 },
+      { label: 'Metal', price: 14000 },
+    ],
+  },
+  {
+    id: 4, emoji: '💳', name: 'Tarjeta para Mozos', badge: 'La carta maestra',
+    sub: 'Por unidad · 8.6×5.4 cm',
+    desc: 'Tamaño tarjeta de crédito. El mozo la lleva en el delantal. Al traer la cuenta dice "¿Me dejás una reseña?" y la acerca al celu.',
+    feats: ['86×54mm (credit card)', 'QR + NFC integrado', 'Configuración incluida'],
+    ideal: 'Mozos y vendedores, cobro en mesa',
+    price: 4500,
+  },
+  {
+    id: 5, emoji: '🖼️', name: 'Cartel de Pared', badge: '',
+    sub: 'Alta visibilidad · 30×20 cm',
+    desc: 'Cartel grande para colgar. Interior o exterior. Visible desde lejos. Ideal para locales con mucho flujo donde querés que todos lo vean al entrar.',
+    feats: ['30×20 cm', 'QR + NFC', 'Interior o exterior', 'Configuración incluida'],
+    ideal: 'Locales con alta afluencia, entradas, cajas',
+    note: 'La medida puede variar, el precio corresponde a la medida indicada.',
+    price: 19500,
+  },
 ]
 
 function fmt(n: number) { return '$' + n.toLocaleString('es-AR') }
 
-type CartItem = { product: Product; qty: number }
+type CartItem = { product: Product; qty: number; variantLabel?: string; variantPrice: number }
+
+// ─── Subcomponente ProductCard con estado local de variante ───────────────────
+function ProductCard({ p, onAdd, onDetail }: {
+  p: Product
+  onAdd: (p: Product, variantLabel: string | undefined, variantPrice: number) => void
+  onDetail: (p: Product, variantIdx: number) => void
+}) {
+  const [variantIdx, setVariantIdx] = useState(0)
+  const currentVariant = p.variants?.[variantIdx]
+  const price = currentVariant?.price ?? p.price
+
+  return (
+    <div className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden hover:border-[#FBCAD8] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col">
+
+      {/* Imagen */}
+      <div className="bg-[#F5EFE7] h-48 flex items-center justify-center relative cursor-pointer"
+        onClick={() => onDetail(p, variantIdx)}>
+        <span className="text-7xl group-hover:scale-110 transition-transform duration-300">{p.emoji}</span>
+        {p.badge && (
+          <div className="absolute top-4 left-4 bg-[#0F172A] text-[#FBCAD8] text-xs font-extrabold px-3 py-1.5 rounded-full shadow-md">
+            {p.badge}
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="p-6 flex flex-col flex-1">
+        <h3 className="font-display font-bold text-[#0F172A] text-lg mb-1">{p.name}</h3>
+        <p className="text-sm text-gray-500 mb-4">{p.sub}</p>
+
+        <div className="mt-auto">
+          {/* Selector de material */}
+          {p.variants && p.variants.length > 0 && (
+            <div className="flex gap-1.5 mb-4 flex-wrap">
+              {p.variants.map((v, i) => (
+                <button key={v.label} onClick={() => setVariantIdx(i)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all ${
+                    i === variantIdx
+                      ? 'bg-[#0F172A] text-white border-[#0F172A]'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                  }`}>
+                  {v.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <p className="text-2xl font-black text-[#0F172A] mb-4">{fmt(price)}</p>
+
+          {p.note && (
+            <p className="text-xs text-gray-400 italic mb-3 leading-relaxed">{p.note}</p>
+          )}
+
+          <button onClick={() => onAdd(p, currentVariant?.label, price)}
+            className="w-full bg-[#0F172A] text-white font-semibold py-3.5 rounded-full text-sm hover:bg-[#1e293b] transition-colors shadow-md">
+            Agregar al carrito
+          </button>
+          <button onClick={() => onDetail(p, variantIdx)}
+            className="w-full mt-2 text-sm font-medium text-gray-500 hover:text-[#0F172A] py-2 transition-colors">
+            Ver detalles
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function TiendaPage() {
   const [cart, setCart]         = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
-  const [modal, setModal]       = useState<Product | null>(null)
+  const [modal, setModal]             = useState<Product | null>(null)
+  const [modalVariantIdx, setModalVariantIdx] = useState(0)
 
-  const total    = cart.reduce((s, i) => s + i.product.price * i.qty, 0)
+  const total    = cart.reduce((s, i) => s + i.variantPrice * i.qty, 0)
   const cartQty  = cart.reduce((s, i) => s + i.qty, 0)
   const shipping = Math.min(total / FREE_SHIPPING * 100, 100)
 
-  function addToCart(p: Product) {
+  function addToCart(p: Product, variantLabel: string | undefined, variantPrice: number) {
     setCart(c => {
-      const exists = c.find(i => i.product.id === p.id)
-      if (exists) return c.map(i => i.product.id === p.id ? { ...i, qty: i.qty + 1 } : i)
-      return [...c, { product: p, qty: 1 }]
+      const key = `${p.id}-${variantLabel ?? ''}`
+      const exists = c.find(i => `${i.product.id}-${i.variantLabel ?? ''}` === key)
+      if (exists) return c.map(i => `${i.product.id}-${i.variantLabel ?? ''}` === key ? { ...i, qty: i.qty + 1 } : i)
+      return [...c, { product: p, qty: 1, variantLabel, variantPrice }]
     })
     setCartOpen(true)
   }
 
-  function removeFromCart(id: number) {
-    setCart(c => c.filter(i => i.product.id !== id))
+  function removeFromCart(key: string) {
+    setCart(c => c.filter(i => `${i.product.id}-${i.variantLabel ?? ''}` !== key))
   }
 
-  function updateQty(id: number, qty: number) {
-    if (qty < 1) { removeFromCart(id); return }
-    setCart(c => c.map(i => i.product.id === id ? { ...i, qty } : i))
+  function updateQty(key: string, qty: number) {
+    if (qty < 1) { removeFromCart(key); return }
+    setCart(c => c.map(i => `${i.product.id}-${i.variantLabel ?? ''}` === key ? { ...i, qty } : i))
   }
 
   function checkout() {
-    const lines = cart.map(i => `• ${i.product.name} ×${i.qty} = ${fmt(i.product.price * i.qty)}`).join('\n')
+    const lines = cart.map(i => {
+      const variant = i.variantLabel ? ` (${i.variantLabel})` : ''
+      return `• ${i.product.name}${variant} ×${i.qty} = ${fmt(i.variantPrice * i.qty)}`
+    }).join('\n')
     const msg = encodeURIComponent(`Hola! Quiero hacer este pedido:\n\n${lines}\n\nTOTAL: ${fmt(total)}${total >= FREE_SHIPPING ? '\n✓ Envío gratis!' : ''}`)
     window.open(`https://wa.me/${WA_NUM}?text=${msg}`, '_blank')
   }
@@ -78,7 +183,7 @@ export default function TiendaPage() {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* TICKER (Azul Marino) */}
+      {/* TICKER */}
       <div className="bg-[#0F172A] text-white h-10 overflow-hidden flex items-center">
         <div className="flex whitespace-nowrap" style={{ animation: 'ticker 25s linear infinite' }}>
           {['✦ NFC + QR en cada producto', '★ Configuración del link incluida', '✦ Atención por WhatsApp', '★ Envío gratis superando $100.000', '✦ +200 negocios en Argentina'].concat(
@@ -101,21 +206,19 @@ export default function TiendaPage() {
             <Link href="/tienda" className="px-4 py-2 rounded-full bg-[#F5EFE7] text-[#0F172A]">Tienda</Link>
             <Link href="/r/demo" className="px-4 py-2 rounded-full hover:bg-gray-50 hover:text-[#0F172A] transition-colors">Demo</Link>
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={() => setCartOpen(true)}
-              className="relative flex items-center gap-2 bg-[#0F172A] text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-[#1e293b] transition-colors shadow-md">
-              <span>🛒</span> Carrito
-              {cartQty > 0 && (
-                <span className="absolute -top-2 -right-2 w-5 h-5 bg-[#FBCAD8] text-[#0F172A] rounded-full text-xs font-extrabold flex items-center justify-center shadow-sm">
-                  {cartQty}
-                </span>
-              )}
-            </button>
-          </div>
+          <button onClick={() => setCartOpen(true)}
+            className="relative flex items-center gap-2 bg-[#0F172A] text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-[#1e293b] transition-colors shadow-md">
+            <span>🛒</span> Carrito
+            {cartQty > 0 && (
+              <span className="absolute -top-2 -right-2 w-5 h-5 bg-[#FBCAD8] text-[#0F172A] rounded-full text-xs font-extrabold flex items-center justify-center shadow-sm">
+                {cartQty}
+              </span>
+            )}
+          </button>
         </div>
       </nav>
 
-      {/* HERO TIENDA (Beige con curva) */}
+      {/* HERO */}
       <section className="relative bg-[#F5EFE7] pt-20 pb-32 px-6 text-center">
         <div className="inline-flex items-center gap-2 bg-[#FBCAD8] text-[#0F172A] text-xs font-extrabold px-4 py-2 rounded-full mb-6 tracking-widest uppercase shadow-sm">
           ★ TIENDA OFICIAL
@@ -129,8 +232,6 @@ export default function TiendaPage() {
         <p className="text-sm text-[#056E4B] font-bold bg-[#056E4B]/10 inline-block px-4 py-2 rounded-full">
           ✓ Envío gratis en Argentina superando los {fmt(FREE_SHIPPING)}
         </p>
-
-        {/* Curva SVG inferior */}
         <div className="absolute left-0 w-full top-full -mt-1 overflow-hidden leading-[0] z-0">
           <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-[50px] sm:h-[80px] lg:h-[100px] text-white" preserveAspectRatio="none">
             <path d="M0 0 C 360 100 1080 100 1440 0 L 1440 100 L 0 100 Z" fill="currentColor"/>
@@ -140,48 +241,14 @@ export default function TiendaPage() {
 
       {/* PRODUCTOS */}
       <section className="relative z-10 max-w-7xl mx-auto px-6 py-20 lg:py-32">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {PRODUCTS.map(p => (
-            <div key={p.id} className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden hover:border-[#FBCAD8] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col">
-              {/* Imagen / emoji (Fondo Beige) */}
-              <div className="bg-[#F5EFE7] h-48 flex items-center justify-center relative cursor-pointer"
-                onClick={() => setModal(p)}>
-                <span className="text-7xl group-hover:scale-110 transition-transform duration-300">{p.emoji}</span>
-                {p.badge && (
-                  <div className="absolute top-4 left-4 bg-[#0F172A] text-[#FBCAD8] text-xs font-extrabold px-3 py-1.5 rounded-full shadow-md">
-                    {p.badge}
-                  </div>
-                )}
-                {p.orig && (
-                  <div className="absolute top-4 right-4 bg-[#056E4B] text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
-                    -{Math.round((1-p.price/p.orig)*100)}%
-                  </div>
-                )}
-              </div>
-
-              {/* Info */}
-              <div className="p-6 flex flex-col flex-1">
-                <h3 className="font-display font-bold text-[#0F172A] text-lg mb-1">{p.name}</h3>
-                <p className="text-sm text-gray-500 mb-4">{p.sub}</p>
-                <div className="mt-auto">
-                  {p.orig && <p className="text-sm text-gray-400 line-through mb-0.5">{fmt(p.orig)}</p>}
-                  <p className="text-2xl font-black text-[#0F172A] mb-4">{fmt(p.price)}</p>
-                  <button onClick={() => addToCart(p)}
-                    className="w-full bg-[#0F172A] text-white font-semibold py-3.5 rounded-full text-sm hover:bg-[#1e293b] transition-colors shadow-md">
-                    Agregar al carrito
-                  </button>
-                  <button onClick={() => setModal(p)}
-                    className="w-full mt-2 text-sm font-medium text-gray-500 hover:text-[#0F172A] py-2 transition-colors">
-                    Ver detalles
-                  </button>
-                </div>
-              </div>
-            </div>
+            <ProductCard key={p.id} p={p} onAdd={addToCart} onDetail={(prod, idx) => { setModal(prod); setModalVariantIdx(idx) }}/>
           ))}
         </div>
       </section>
 
-      {/* INFO BANNER (Verde oscuro, estilo Landing) */}
+      {/* INFO BANNER */}
       <section className="px-6 pb-20">
         <div className="max-w-6xl mx-auto bg-[#056E4B] rounded-[2.5rem] py-16 px-8 shadow-2xl">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center">
@@ -200,46 +267,16 @@ export default function TiendaPage() {
         </div>
       </section>
 
-      {/* PLATAFORMA CTA (Rosa) */}
-      <section className="px-6 pb-24">
-        <div className="max-w-6xl mx-auto bg-[#FBCAD8] rounded-[2.5rem] py-16 px-8 sm:px-16 flex flex-col md:flex-row items-center justify-between gap-10 shadow-lg border border-pink-100">
-          <div className="text-center md:text-left max-w-xl">
-            <p className="text-sm font-extrabold text-[#0F172A] uppercase tracking-widest mb-3 opacity-70">¿Ya tenés el cartel?</p>
-            <h3 className="font-display text-3xl sm:text-4xl font-extrabold text-[#0F172A] mb-4">Sumale la plataforma Calificar</h3>
-            <p className="text-[#0F172A]/80 text-lg leading-relaxed">Filtro anti-haters, respuestas con IA, ranking de empleados y estadísticas en tiempo real.</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            <Link href="/r/demo" className="border-2 border-[#0F172A] text-[#0F172A] font-bold px-8 py-4 rounded-full text-center hover:bg-[#0F172A] hover:text-white transition-colors">
-              Ver demo
-            </Link>
-            <Link href="/" className="bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full text-center hover:bg-[#1e293b] shadow-xl transition-colors">
-              Ver planes →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* MINIMAL FOOTER TIENDA */}
-      <footer className="border-t border-gray-100 py-8 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
-          <Link href="/" className="font-display font-extrabold text-xl text-[#0F172A] flex items-center gap-1.5">
-            <span className="text-[#FBCAD8]">★</span> Calificar
-          </Link>
-          <p className="text-sm font-medium text-gray-400">Hecho en Argentina 🇦🇷 — Atención por WhatsApp</p>
-        </div>
-      </footer>
-
-      {/* CART DRAWER */}
+      {/* CARRITO DRAWER */}
       {cartOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-sm transition-opacity" onClick={() => setCartOpen(false)}/>
-          <div className="relative bg-white w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 rounded-l-[2rem] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="font-display font-bold text-xl text-[#0F172A]">Tu carrito ({cartQty})</h2>
-              <button onClick={() => setCartOpen(false)} className="text-gray-400 hover:text-[#0F172A] text-3xl leading-none transition-colors">×</button>
+          <div className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-sm" onClick={() => setCartOpen(false)}/>
+          <div className="relative w-full max-w-md bg-white shadow-2xl flex flex-col h-full">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <h2 className="font-display font-bold text-xl text-[#0F172A]">Tu carrito 🛒</h2>
+              <button onClick={() => setCartOpen(false)} className="text-gray-400 hover:text-[#0F172A] text-2xl transition-colors leading-none">×</button>
             </div>
 
-            {/* Barra envío gratis */}
             <div className="px-6 py-5 bg-[#F5EFE7] border-b border-gray-100">
               {total >= FREE_SHIPPING ? (
                 <p className="text-sm font-bold text-[#056E4B] flex items-center gap-2"><span>✨</span> ¡Conseguiste envío gratis!</p>
@@ -253,39 +290,40 @@ export default function TiendaPage() {
               </div>
             </div>
 
-            {/* Items */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {cart.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-6xl mb-6 opacity-50">🛒</p>
                   <p className="text-gray-500 text-lg font-medium">Tu carrito está vacío</p>
                 </div>
-              ) : cart.map(item => (
-                <div key={item.product.id} className="flex gap-4 items-center">
-                  <div className="w-20 h-20 bg-[#F5EFE7] rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-sm">
-                    {item.product.emoji}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-base font-bold text-[#0F172A] truncate mb-0.5">{item.product.name}</p>
-                    <p className="text-xs text-gray-500 mb-2">{item.product.sub}</p>
-                    <p className="text-sm font-black text-[#056E4B]">{fmt(item.product.price)}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-3">
-                    <button onClick={() => removeFromCart(item.product.id)}
-                      className="text-gray-300 hover:text-red-500 text-sm transition-colors font-bold">✕</button>
-                    <div className="flex items-center bg-gray-50 rounded-full overflow-hidden text-sm border border-gray-200">
-                      <button onClick={() => updateQty(item.product.id, item.qty - 1)}
-                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 text-gray-600 transition-colors font-bold">−</button>
-                      <span className="w-6 text-center font-bold text-[#0F172A]">{item.qty}</span>
-                      <button onClick={() => updateQty(item.product.id, item.qty + 1)}
-                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 text-gray-600 transition-colors font-bold">+</button>
+              ) : cart.map(item => {
+                const key = `${item.product.id}-${item.variantLabel ?? ''}`
+                return (
+                  <div key={key} className="flex gap-4 items-center">
+                    <div className="w-20 h-20 bg-[#F5EFE7] rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-sm">
+                      {item.product.emoji}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-bold text-[#0F172A] truncate mb-0.5">{item.product.name}</p>
+                      {item.variantLabel && <p className="text-xs text-gray-400 mb-1">{item.variantLabel}</p>}
+                      <p className="text-sm font-black text-[#056E4B]">{fmt(item.variantPrice)}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-3">
+                      <button onClick={() => removeFromCart(key)}
+                        className="text-gray-300 hover:text-red-500 text-sm transition-colors font-bold">✕</button>
+                      <div className="flex items-center bg-gray-50 rounded-full overflow-hidden text-sm border border-gray-200">
+                        <button onClick={() => updateQty(key, item.qty - 1)}
+                          className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 text-gray-600 transition-colors font-bold">−</button>
+                        <span className="w-6 text-center font-bold text-[#0F172A]">{item.qty}</span>
+                        <button onClick={() => updateQty(key, item.qty + 1)}
+                          className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 text-gray-600 transition-colors font-bold">+</button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
-            {/* Checkout */}
             {cart.length > 0 && (
               <div className="p-6 border-t border-gray-100 bg-white">
                 <div className="flex justify-between text-base mb-2">
@@ -312,48 +350,69 @@ export default function TiendaPage() {
         </div>
       )}
 
-      {/* MODAL DETALLE DE PRODUCTO */}
-      {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#0F172A]/60 backdrop-blur-sm transition-opacity" onClick={() => setModal(null)}/>
-          <div className="relative bg-white rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="bg-[#FBCAD8] h-48 flex items-center justify-center relative">
-              <span className="text-8xl drop-shadow-md">{modal.emoji}</span>
-              <button onClick={() => setModal(null)} className="absolute top-4 right-4 text-[#0F172A]/50 hover:text-[#0F172A] text-3xl leading-none bg-white/30 w-10 h-10 rounded-full flex items-center justify-center transition-colors pb-1">×</button>
-            </div>
-            <div className="p-8">
-              <div className="mb-5">
-                <h3 className="font-display font-extrabold text-[#0F172A] text-2xl mb-1">{modal.name}</h3>
-                <p className="text-sm font-medium text-gray-500">{modal.sub}</p>
+      {/* MODAL DETALLE */}
+      {modal && (() => {
+        const modalVariant = modal.variants?.[modalVariantIdx]
+        const modalPrice = modalVariant?.price ?? modal.price
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-[#0F172A]/60 backdrop-blur-sm" onClick={() => setModal(null)}/>
+            <div className="relative bg-white rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden">
+              <div className="bg-[#FBCAD8] h-48 flex items-center justify-center relative">
+                <span className="text-8xl drop-shadow-md">{modal.emoji}</span>
+                <button onClick={() => setModal(null)} className="absolute top-4 right-4 text-[#0F172A]/50 hover:text-[#0F172A] text-3xl leading-none bg-white/30 w-10 h-10 rounded-full flex items-center justify-center transition-colors pb-1">×</button>
               </div>
-              <p className="text-base text-gray-600 leading-relaxed mb-6">{modal.desc}</p>
-              
-              <div className="bg-[#F5EFE7] rounded-2xl p-5 mb-6">
-                <ul className="space-y-3">
-                  {modal.feats.map(f => (
-                    <li key={f} className="text-sm font-medium flex items-start gap-3 text-[#0F172A]">
-                      <span className="text-[#056E4B] mt-0.5">✓</span>{f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <p className="text-sm text-gray-500 mb-8 font-medium"><span className="mr-2">💡</span> Ideal para: {modal.ideal}</p>
-              
-              <div className="flex items-center justify-between border-t border-gray-100 pt-6">
-                <div>
-                  {modal.orig && <p className="text-sm text-gray-400 line-through mb-0.5">{fmt(modal.orig)}</p>}
-                  <p className="text-3xl font-black text-[#0F172A]">{fmt(modal.price)}</p>
+              <div className="p-8">
+                <div className="mb-5">
+                  <h3 className="font-display font-extrabold text-[#0F172A] text-2xl mb-1">{modal.name}</h3>
+                  <p className="text-sm font-medium text-gray-500">{modal.sub}</p>
                 </div>
-                <button onClick={() => { addToCart(modal); setModal(null) }}
-                  className="bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg">
-                  Agregar
-                </button>
+                <p className="text-base text-gray-600 leading-relaxed mb-6">{modal.desc}</p>
+                <div className="bg-[#F5EFE7] rounded-2xl p-5 mb-4">
+                  <ul className="space-y-3">
+                    {modal.feats.map(f => (
+                      <li key={f} className="text-sm font-medium flex items-start gap-3 text-[#0F172A]">
+                        <span className="text-[#056E4B] mt-0.5">✓</span>{f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {modal.note && (
+                  <p className="text-xs text-gray-400 italic mb-4 leading-relaxed px-1">{modal.note}</p>
+                )}
+                <p className="text-sm text-gray-500 mb-6 font-medium"><span className="mr-2">💡</span> Ideal para: {modal.ideal}</p>
+
+                {/* Selector de variantes en el modal */}
+                {modal.variants && modal.variants.length > 0 && (
+                  <div className="mb-6">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Material</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {modal.variants.map((v, i) => (
+                        <button key={v.label} onClick={() => setModalVariantIdx(i)}
+                          className={`text-sm font-semibold px-4 py-2 rounded-full border transition-all ${
+                            i === modalVariantIdx
+                              ? 'bg-[#0F172A] text-white border-[#0F172A]'
+                              : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                          }`}>
+                          {v.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between border-t border-gray-100 pt-6">
+                  <p className="text-3xl font-black text-[#0F172A]">{fmt(modalPrice)}</p>
+                  <button onClick={() => { addToCart(modal, modalVariant?.label, modalPrice); setModal(null) }}
+                    className="bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg">
+                    Agregar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
