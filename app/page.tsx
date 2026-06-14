@@ -1,24 +1,25 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import HeroNav from '@/components/landing/HeroNav'
 import OffsetBlock from '@/components/landing/OffsetBlock'
-import TestimonialPill from '@/components/landing/TestimonialPill'
 import Footer from '@/components/landing/Footer'
 
 const WA = 'https://wa.me/5491100000000?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
 
-const LOGOS = [
-  { name: 'Brushed', className: 'font-display italic font-semibold text-2xl' },
-  { name: 'FIXTERIA', className: 'font-sans font-extrabold uppercase tracking-[0.25em] text-base' },
-  { name: 'TruVision', className: 'font-display font-bold text-2xl' },
-  { name: 'norta', className: 'font-sans font-light tracking-wide text-3xl' },
-  { name: 'QUANTO', className: 'font-sans font-black uppercase tracking-widest text-xl' },
+const HERO_IMAGES = [
+  '/hero-app.png',
+  '/hero-app-2.png',
+  '/hero-app-3.png',
 ]
 
-const BENEFITS = [
-  { icon: <IconClock/>, text: 'Ahorrá horas por semana' },
-  { icon: <IconChat/>, text: 'Todo el equipo, conectado' },
-  { icon: <IconChart/>, text: 'Tus datos, en tiempo real' },
-  { icon: <IconShield/>, text: 'Tu negocio, bajo control' },
+const LOGOS = [
+  { name: 'Logo 1', src: '/logos/logo-1.png' },
+  { name: 'Logo 2', src: '/logos/logo-2.png' },
+  { name: 'Logo 3', src: '/logos/logo-3.png' },
+  { name: 'Logo 4', src: '/logos/logo-4.png' },
 ]
 
 function IconCheck() {
@@ -62,14 +63,29 @@ function IconShield() {
   )
 }
 
+const BENEFITS = [
+  { icon: <IconClock/>, text: 'Ahorrá horas por semana' },
+  { icon: <IconChat/>, text: 'Todo el equipo, conectado' },
+  { icon: <IconChart/>, text: 'Tus datos, en tiempo real' },
+  { icon: <IconShield/>, text: 'Tu negocio, bajo control' },
+]
+
 export default function LandingPage() {
+  const [activeImage, setActiveImage] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveImage(i => (i + 1) % HERO_IMAGES.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
 
       {/* HERO */}
       <section className="relative grid grid-cols-1 lg:grid-cols-2 lg:min-h-[800px]">
 
-        {/* Logo — solo a la izquierda, fijo */}
         <div className="fixed top-6 left-6 sm:left-10 z-50">
           <Link href="/" className="font-display font-extrabold text-xl text-gray-900 flex items-center gap-1.5">
             <span className="text-violet-600">★</span> Calificar
@@ -101,22 +117,32 @@ export default function LandingPage() {
         </div>
 
         {/* Panel rosa */}
-        <div className="relative bg-[#F4CCD8] min-h-[520px] sm:min-h-[600px] lg:min-h-[800px] flex items-center justify-center overflow-hidden px-6 py-10">
+        <div className="relative bg-[#F4CCD8] min-h-[520px] sm:min-h-[600px] lg:min-h-[800px] flex items-center justify-center px-6 py-10">
 
-          {/* Nav flotante — derecha, fijo */}
           <div className="fixed top-6 right-6 lg:right-10 z-50">
             <HeroNav/>
           </div>
 
-          {/* Placeholder para imagen del sistema */}
-          <div className="relative w-[230px] sm:w-[280px] aspect-[9/18] rounded-[1.75rem] border-2 border-dashed border-white/70 bg-white/10 flex items-center justify-center text-center px-6">
-            <p className="text-white/80 text-sm leading-relaxed">
-              Espacio para la imagen<br/>del sistema
-            </p>
+          <div className="absolute z-20 left-1/2 bottom-0 -translate-x-28 sm:-translate-x-40 lg:-translate-x-64 xl:-translate-x-72 pointer-events-none
+            translate-y-16 sm:translate-y-24 lg:translate-y-[12rem]
+            w-[280px] h-[380px] sm:w-[380px] sm:h-[480px] lg:w-[480px] lg:h-[600px] xl:w-[550px] xl:h-[700px]">
+            {HERO_IMAGES.map((src, i) => {
+              const isHeroApp = src === '/hero-app.png'
+              return (
+                <Image
+                  key={src}
+                  src={src}
+                  alt="Calificar — vista del cliente"
+                  fill
+                  priority={i === 0}
+                  className={`object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.3)] transition-all duration-1000 ease-in-out ${i === activeImage ? 'opacity-100' : 'opacity-0'} ${isHeroApp ? 'scale-[1.1] sm:scale-[1.15] lg:scale-[1.18] origin-bottom' : 'scale-100'}`}
+                />
+              )
+            })}
           </div>
 
           {/* Tarjetas apiladas */}
-          <div className="hidden sm:flex absolute bottom-8 right-6 lg:right-14 flex-col gap-3 w-60">
+          <div className="hidden sm:flex absolute z-30 bottom-8 right-6 lg:right-14 flex-col gap-3 w-60">
             <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3 hover:shadow-xl hover:-translate-x-1 transition-all duration-300">
               <span className="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0">
                 <IconCheck/>
@@ -139,87 +165,54 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Composición de imágenes — cascada diagonal, sin rotación */}
-      <section className="relative bg-[#F5EFE7] pb-16 lg:pb-24">
-        <div className="relative flex flex-col gap-4 sm:block sm:h-[420px] lg:h-[480px] max-w-3xl mx-auto px-6">
-
-          {/* Tarjeta 1 — fondo, arriba izquierda */}
-          <div className="relative w-full aspect-[4/3] sm:absolute sm:w-[55%] sm:h-[58%] sm:-top-12 lg:-top-16 sm:left-0 sm:aspect-auto z-10
-            rounded-2xl border border-gray-100 bg-white shadow-xl
-            flex items-center justify-center text-gray-400 text-sm
-            hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-            Imagen 1
-          </div>
-
-          {/* Tarjeta 2 — frente, centro, la más grande */}
-          <div className="relative w-full aspect-[4/3] sm:absolute sm:w-[58%] sm:h-[62%] sm:top-[14%] sm:left-[20%] sm:aspect-auto z-30
-            rounded-2xl border border-gray-100 bg-white shadow-2xl
-            flex items-center justify-center text-gray-400 text-sm
-            hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-            Imagen 2
-          </div>
-
-          {/* Tarjeta 3 — medio, abajo derecha */}
-          <div className="relative w-full aspect-[4/3] sm:absolute sm:w-[55%] sm:h-[58%] sm:bottom-0 sm:right-0 sm:aspect-auto z-20
-            rounded-2xl border border-gray-100 bg-white shadow-xl
-            flex items-center justify-center text-gray-400 text-sm
-            hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-            Imagen 3
-          </div>
-        </div>
-      </section>
-
-      {/* Sección navy con curva superior */}
+      {/* Sección navy */}
       <section className="relative bg-[#0F172A] py-32 lg:py-48">
         <svg viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true"
           className="absolute bottom-full left-0 w-full h-16 sm:h-20 lg:h-28">
           <path fill="#0F172A" d="M0,120 C360,10 1080,10 1440,120 L1440,120 L0,120 Z"/>
         </svg>
-
         <div className="max-w-4xl mx-auto text-center px-6">
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-white mb-4">
-            Basta de jugártela con cada reseña
+            Tomá el control de lo que dicen de tu local.
           </h2>
           <p className="text-gray-300 leading-relaxed text-base sm:text-lg">
-            Con Calificar te enterás primero vos. Las experiencias copadas suman estrellas
-            en Google, y las que no salieron tan bien te llegan directo a vos, en privado.
-            Así cuidás tu nombre sin perder el sueño.
+            El sistema actúa como un filtro inteligente. Potencia las reseñas positivas en tu perfil público y desvía las críticas hacia un chat privado con vos para que las atajes a tiempo.
           </p>
         </div>
       </section>
 
-      {/* Características — tarjetas desfasadas superpuestas */}
-      <section className="bg-[#F5EFE7] py-24 px-6">
-        <div className="max-w-7xl mx-auto space-y-28 lg:space-y-40">
+      {/* Características */}
+      <section className="bg-[#F5EFE7] py-24 overflow-hidden">
+        <div className="space-y-28 lg:space-y-40">
           <OffsetBlock
             contentAlign="right"
             bgColor="bg-[#FBCAD8]"
             textColorClass="text-gray-900"
             mutedColorClass="text-gray-700"
-            imageLabel="Imagen 4"
+            imageUrl="/screenshots/cartel-1.png"
+            imageAlt="Cartel STAR•TAG con código QR para reseñas"
             title="El cartel que hace todo el trabajo"
-            description="Tu cliente apoya el celular o escanea el código QR y listo. No necesita instalar nada
-              ni crear una cuenta. En menos de cinco segundos ya está calificando su experiencia."
+            description="Tu cliente apoya el celular o escanea el código QR y listo. No necesita instalar nada ni crear una cuenta. En menos de cinco segundos ya está calificando su experiencia."
           />
           <OffsetBlock
             contentAlign="left"
             bgColor="bg-[#056E4B]"
             textColorClass="text-white"
             mutedColorClass="text-gray-200"
-            imageLabel="Imagen 5"
+            imageUrl="/screenshots/quejas.png"
+            imageAlt="Feedback negativo filtrado antes de llegar a Google"
             title="Las quejas, antes de que sean públicas"
-            description="Si la experiencia no fue la mejor, el cliente te lo cuenta a vos primero, en privado.
-              Vos decidís cómo responder, y mientras tanto tu reputación en Google queda protegida."
+            description="Si la experiencia no fue la mejor, el cliente te lo cuenta a vos primero, en privado. Vos decidís cómo responder, y mientras tanto tu reputación en Google queda protegida."
           />
           <OffsetBlock
             contentAlign="right"
             bgColor="bg-[#FBCAD8]"
             textColorClass="text-gray-900"
             mutedColorClass="text-gray-700"
-            imageLabel="Imagen 6"
+            imageUrl="/screenshots/equipo.png"
+            imageAlt="Ranking de empleados por reseñas generadas"
             title="Tu equipo, con nombre y apellido"
-            description="Cada mozo o vendedor puede tener su propia tarjeta. Vos ves quién genera más
-              reseñas y podés reconocer al que más se esfuerza."
+            description="Cada mozo o vendedor puede tener su propia tarjeta. Vos ves quién genera más reseñas y podés reconocer al que más se esfuerza."
             ctaText="Probar ahora"
             ctaHref="/r/demo"
           />
@@ -234,56 +227,41 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8 sm:gap-x-16">
             {LOGOS.map(logo => (
-              <span key={logo.name}
-                className={`text-gray-400 grayscale hover:grayscale-0 hover:text-gray-900 transition-all duration-300 cursor-default ${logo.className}`}>
-                {logo.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIOS — fondo verde con curva cóncava superior */}
-      <section className="relative bg-[#056E4B] pt-24 pb-20 lg:pt-32 lg:pb-28">
-        <svg viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true"
-          className="absolute bottom-full left-0 w-full h-16 sm:h-20 lg:h-28">
-          <path fill="#056E4B" d="M0,0 C360,100 1080,100 1440,0 L1440,120 L0,120 Z"/>
-        </svg>
-
-        <div className="px-6">
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-white text-center mb-14 lg:mb-16">
-            Lo que dicen los que ya lo están usando
-          </h2>
-
-          <TestimonialPill/>
-        </div>
-      </section>
-
-      {/* BENEFICIOS — grilla de tarjetas */}
-      <section className="bg-[#FBCAD8] py-20 lg:py-28 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#0F172A] text-center max-w-3xl mx-auto mb-14 lg:mb-16">
-            ¿Querés que tu equipo se maneje solo?
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {BENEFITS.map(b => (
-              <div key={b.text}
-                className="bg-white rounded-[2rem] shadow-md p-8 flex flex-col items-center text-center
-                  hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
-                <span className="w-14 h-14 rounded-2xl border border-gray-200 flex items-center justify-center text-[#0F172A] mb-6">
-                  {b.icon}
-                </span>
-                <p className="font-display font-extrabold text-lg text-[#056E4B]">
-                  {b.text}
-                </p>
+              <div key={logo.name}
+                className="relative h-10 w-32 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                <Image src={logo.src} alt={logo.name} fill className="object-contain"/>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Próximas secciones se agregan acá */}
+      {/* BENEFICIOS */}
+      <section className="bg-[#FBCAD8] py-20 lg:py-28 px-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#0F172A] text-center max-w-3xl mx-auto mb-14 lg:mb-16">
+            Más estrellas en Google, menos dolores de cabeza.
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { icon: <IconChart/>, title: 'Multiplicá tus reseñas 5⭐', text: 'Los clientes felices te posicionan más arriba en el mapa.' },
+              { icon: <IconShield/>, title: 'Atajá las quejas a tiempo', text: 'El feedback negativo te llega a vos, no a internet.' },
+              { icon: <IconClock/>, title: 'Métricas al instante', text: 'Entendé qué opinan de tu local en tiempo real.' },
+              { icon: <IconChat/>, title: 'Medí a tu equipo', text: 'Descubrí quién atiende mejor y premiá su esfuerzo.' },
+            ].map(b => (
+              <div key={b.title}
+                className="bg-white rounded-[2rem] shadow-md p-8 flex flex-col items-center text-center
+                  hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                <span className="w-14 h-14 rounded-2xl border border-gray-200 flex items-center justify-center text-[#0F172A] mb-4">
+                  {b.icon}
+                </span>
+                <p className="font-display font-extrabold text-base text-[#056E4B] mb-2">{b.title}</p>
+                <p className="text-sm text-gray-500 leading-relaxed">{b.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <Footer/>
     </div>
