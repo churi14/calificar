@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   description: 'Planes simples y transparentes para cuidar la reputación de tu local en Google.',
 }
 
-const WA = 'https://wa.me/5491100000000?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
-const WA_SERVICIOS = 'https://wa.me/5491100000000?text=Hola!%20Me%20interesan%20los%20servicios%20adicionales%20(redes%2C%20Google%2C%20dominio).'
+const WA = 'https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
+const WA_SERVICIOS = 'https://wa.me/5491123867934?text=Hola!%20Me%20interesan%20los%20servicios%20adicionales%20(redes%2C%20Google%2C%20dominio).'
 
 function fmt(n: number) {
   return '$' + n.toLocaleString('es-AR')

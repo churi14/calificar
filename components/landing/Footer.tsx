@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-const WA = 'https://wa.me/5491100000000?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
+const WA = 'https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
 
 const COL1_LINKS = [
   { label: 'Inicio', href: '/' },

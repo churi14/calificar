@@ -28,7 +28,7 @@ const OVERVIEW = [
   { label: 'Feedback sin leer',    value: '0',   sub: null },
 ]
 
-const WA = 'https://wa.me/5491100000000?text=Vi%20la%20demo%20de%20Calificar%20y%20me%20interesa'
+const WA = 'https://wa.me/5491123867934?text=Vi%20la%20demo%20de%20Calificar%20y%20me%20interesa'
 
 function IconWhatsApp({ color = '#25D366' }: { color?: string }) {
   return (

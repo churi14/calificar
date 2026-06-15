@@ -229,7 +229,7 @@ export default function BusinessDetailClient({
               <div>
                 <label className={LABEL}>WhatsApp para feedback negativo</label>
                 <input value={form.whatsapp_number} onChange={e => setForm(f=>({...f,whatsapp_number:e.target.value}))}
-                  placeholder="5491100000000"
+                  placeholder="5491123867934"
                   className={INPUT}/>
               </div>
 

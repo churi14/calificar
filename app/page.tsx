@@ -7,7 +7,7 @@ import HeroNav from '@/components/landing/HeroNav'
 import OffsetBlock from '@/components/landing/OffsetBlock'
 import Footer from '@/components/landing/Footer'
 
-const WA = 'https://wa.me/5491100000000?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
+const WA = 'https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
 
 const HERO_IMAGES = [
   '/hero-app.png',

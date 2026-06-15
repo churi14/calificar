@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-const WA = 'https://wa.me/5491100000000?text=Hola!%20Quiero%20mejorar%20mi%20plan%20de%20Calificar.'
+const WA = 'https://wa.me/5491123867934?text=Hola!%20Quiero%20mejorar%20mi%20plan%20de%20Calificar.'
 
 export default async function PlanPage() {
   const supabase = await createClient()

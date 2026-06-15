@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-const WA_NUM = '5491100000000'
+const WA_NUM = '5491123867934'
 const FREE_SHIPPING = 100000
 
 type Variant = { label: string; price: number }
