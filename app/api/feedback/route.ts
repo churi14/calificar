@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { Resend } from 'resend'
 import { feedbackEmailHtml, feedbackEmailText } from '@/lib/email/feedback-notification'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.ar'
 
 export async function POST(req: NextRequest) {
@@ -64,6 +62,8 @@ export async function POST(req: NextRequest) {
 
     // Mandar email de notificación si hay email del dueño y API key configurada
     if (ownerEmail && process.env.RESEND_API_KEY) {
+      const { Resend } = await import('resend')
+      const resend = new Resend(process.env.RESEND_API_KEY)
       await resend.emails.send({
         from:    'Calificar <notificaciones@calificar.ar>',
         to:      ownerEmail,
