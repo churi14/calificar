@@ -23,7 +23,7 @@ export default function RegisterPage() {
       options: { data: { name } }
     })
     if (error) { setError(error.message); setLoading(false) }
-    else router.push('/dashboard')
+    else router.push('/onboarding')
   }
 
   return (
@@ -63,7 +63,8 @@ export default function RegisterPage() {
             {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
           </button>
           <p className="text-xs text-gray-400 text-center">
-            Al registrarte aceptás los términos de uso
+            Al registrarte aceptás los{' '}
+            <a href="/terminos" target="_blank" className="underline underline-offset-2 hover:text-gray-600">términos de uso</a>
           </p>
         </form>
 
@@ -75,4 +76,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-

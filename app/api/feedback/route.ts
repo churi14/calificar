@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { Resend } from 'resend'
+import { feedbackEmailHtml, feedbackEmailText } from '@/lib/email/feedback-notification'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.ar'
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,16 +18,13 @@ export async function POST(req: NextRequest) {
     const supabase = createServiceClient()
     let photo_url: string | null = null
 
-    // Subir foto a Supabase Storage si viene
+    // Subir foto a Supabase Storage
     if (photo_base64 && photo_ext) {
       const fileName = `${business_id}/${Date.now()}.${photo_ext}`
       const buffer = Buffer.from(photo_base64, 'base64')
       const { error: storageError } = await supabase.storage
         .from('feedback-photos')
-        .upload(fileName, buffer, {
-          contentType: `image/${photo_ext}`,
-          upsert: false,
-        })
+        .upload(fileName, buffer, { contentType: `image/${photo_ext}`, upsert: false })
       if (!storageError) {
         const { data } = supabase.storage.from('feedback-photos').getPublicUrl(fileName)
         photo_url = data.publicUrl
@@ -30,39 +32,52 @@ export async function POST(req: NextRequest) {
     }
 
     // Guardar feedback en DB
-    const { error } = await supabase.from('feedback').insert({
+    const { error: dbError } = await supabase.from('feedback').insert({
       business_id,
       employee_id: employee_id ?? null,
       rating,
-      message: message.trim(),
+      message:  message.trim(),
       nombre:   nombre?.trim()   || null,
       email:    email?.trim()    || null,
       whatsapp: whatsapp?.trim() || null,
       photo_url,
       read: false,
     })
+    if (dbError) throw dbError
 
-    if (error) throw error
-
-    // Obtener datos del negocio para notificación
+    // Obtener datos del negocio + email del dueño
     const { data: biz } = await supabase
       .from('businesses')
-      .select('name, whatsapp_number, negative_redirect')
+      .select('name, whatsapp_number, negative_redirect, owner_id')
       .eq('id', business_id)
       .single()
 
-    // Notificación por WhatsApp si está configurado
-    if (biz?.negative_redirect === 'whatsapp' && biz?.whatsapp_number) {
-      const contactInfo = [
-        nombre   ? `Nombre: ${nombre}`   : null,
-        email    ? `Email: ${email}`     : null,
-        whatsapp ? `WhatsApp: ${whatsapp}` : null,
-      ].filter(Boolean).join('\n')
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('email: id, name')
+      .eq('id', biz?.owner_id)
+      .single()
 
-      const txt = encodeURIComponent(
-        `[Calificar - ${biz.name}]\n⭐ ${rating} estrella${rating !== 1 ? 's' : ''}\n\n"${message}"${contactInfo ? `\n\n${contactInfo}` : ''}${photo_url ? `\n\n📷 Foto: ${photo_url}` : ''}`
-      )
-      // No esperamos la respuesta — es un link que el dueño abre, no un envío automático
+    // Email del dueño (viene de auth.users)
+    const { data: authUser } = await supabase.auth.admin.getUserById(biz?.owner_id ?? '')
+    const ownerEmail = authUser?.user?.email
+
+    // Mandar email de notificación si hay email del dueño y API key configurada
+    if (ownerEmail && process.env.RESEND_API_KEY) {
+      await resend.emails.send({
+        from:    'Calificar <notificaciones@calificar.ar>',
+        to:      ownerEmail,
+        subject: `⚠️ Nuevo feedback privado — ${biz?.name ?? 'Tu local'}`,
+        html: feedbackEmailHtml({
+          businessName: biz?.name ?? 'Tu local',
+          rating, message, nombre, email, whatsapp, photoUrl: photo_url,
+          dashboardUrl: `${APP_URL}/dashboard/feedback`,
+        }),
+        text: feedbackEmailText({
+          businessName: biz?.name ?? 'Tu local',
+          rating, message, nombre, email, whatsapp,
+        }),
+      })
     }
 
     return NextResponse.json({ ok: true, photo_url })
@@ -72,7 +87,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Marcar feedback como leído
+// Marcar como leído
 export async function PATCH(req: NextRequest) {
   try {
     const { id } = await req.json()

@@ -27,7 +27,7 @@ export default function HeroNav() {
         <Link href="/tienda" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-colors">
           Carteles
         </Link>
-        <a href="#planes" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-colors">
+        <a href="/precios" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-colors">
           Precios
         </a>
         <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1.5">
@@ -64,7 +64,7 @@ export default function HeroNav() {
           <nav className="flex flex-col gap-1 text-lg font-medium text-gray-700">
             <Link href="/r/demo" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-gray-50">Demo</Link>
             <Link href="/tienda" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-gray-50">Carteles</Link>
-            <a href="#planes" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-gray-50">Precios</a>
+            <a href="/precios" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-gray-50">Precios</a>
             <Link href="/login" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-gray-50 flex items-center gap-2">
               <IconUser/> Entrar
             </Link>
