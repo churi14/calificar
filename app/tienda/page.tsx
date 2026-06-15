@@ -176,23 +176,13 @@ export default function TiendaPage() {
       const variant = i.variantLabel ? ` (${i.variantLabel})` : ''
       return `• ${i.product.name}${variant} ×${i.qty} = ${fmt(i.variantPrice * i.qty)}`
     }).join('\n')
-    const msg = encodeURIComponent(`Hola! Quiero hacer este pedido:\n\n${lines}\n\nTOTAL: ${fmt(total)}${total >= FREE_SHIPPING ? '\n✓ Envío gratis!' : ''}`)
+    const msg = encodeURIComponent(`Hola! Quiero hacer este pedido:\n\n${lines}\n\nTOTAL: ${fmt(total)}\n(El envío lo coordinamos aparte)`)
     window.open(`https://wa.me/${WA_NUM}?text=${msg}`, '_blank')
   }
 
   return (
     <div className="min-h-screen bg-white">
 
-      {/* TICKER */}
-      <div className="bg-[#0F172A] text-white h-10 overflow-hidden flex items-center">
-        <div className="flex whitespace-nowrap" style={{ animation: 'ticker 25s linear infinite' }}>
-          {['✦ NFC + QR en cada producto', '★ Configuración del link incluida', '✦ Atención por WhatsApp', '★ Envío gratis superando $100.000', '✦ +200 negocios en Argentina'].concat(
-          ['✦ NFC + QR en cada producto', '★ Configuración del link incluida', '✦ Atención por WhatsApp', '★ Envío gratis superando $100.000', '✦ +200 negocios en Argentina']
-          ).map((t, i) => (
-            <span key={i} className="text-xs font-medium tracking-widest uppercase px-8 text-[#FBCAD8]">{t}</span>
-          ))}
-        </div>
-      </div>
       <style>{`@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}`}</style>
 
       {/* NAV */}
@@ -229,8 +219,8 @@ export default function TiendaPage() {
         <p className="text-[#0F172A]/70 text-lg max-w-2xl mx-auto mb-6 leading-relaxed">
           El cliente apoya el celu o escanea el QR — y en 3 segundos está en tu perfil de Google listo para dejarte las 5 estrellas.
         </p>
-        <p className="text-sm text-[#056E4B] font-bold bg-[#056E4B]/10 inline-block px-4 py-2 rounded-full">
-          ✓ Envío gratis en Argentina superando los {fmt(FREE_SHIPPING)}
+        <p className="text-sm text-gray-500 bg-white/60 inline-block px-4 py-2 rounded-full">
+          Los precios no incluyen envío
         </p>
         <div className="absolute left-0 w-full top-full -mt-1 overflow-hidden leading-[0] z-0">
           <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-[50px] sm:h-[80px] lg:h-[100px] text-white" preserveAspectRatio="none">
@@ -277,17 +267,8 @@ export default function TiendaPage() {
               <button onClick={() => setCartOpen(false)} className="text-gray-400 hover:text-[#0F172A] text-2xl transition-colors leading-none">×</button>
             </div>
 
-            <div className="px-6 py-5 bg-[#F5EFE7] border-b border-gray-100">
-              {total >= FREE_SHIPPING ? (
-                <p className="text-sm font-bold text-[#056E4B] flex items-center gap-2"><span>✨</span> ¡Conseguiste envío gratis!</p>
-              ) : (
-                <p className="text-sm text-gray-600">
-                  Te faltan <span className="font-bold text-[#0F172A]">{fmt(FREE_SHIPPING - total)}</span> para envío gratis
-                </p>
-              )}
-              <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className="h-full bg-[#056E4B] rounded-full transition-all duration-500 ease-out" style={{ width: `${shipping}%` }}/>
-              </div>
+            <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
+              <p className="text-xs text-gray-500">Los precios no incluyen envío.</p>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -332,9 +313,7 @@ export default function TiendaPage() {
                 </div>
                 <div className="flex justify-between text-base mb-6">
                   <span className="text-gray-500 font-medium">Envío</span>
-                  <span className={total >= FREE_SHIPPING ? 'text-[#056E4B] font-bold' : 'text-gray-500 font-medium'}>
-                    {total >= FREE_SHIPPING ? '¡Gratis!' : 'A calcular'}
-                  </span>
+                  <span className="text-gray-400 text-sm">No incluido</span>
                 </div>
                 <button onClick={checkout}
                   className="w-full bg-[#056E4B] text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 hover:bg-[#045c3f] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
