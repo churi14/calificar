@@ -23,8 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="w-56 bg-white border-r border-gray-100 flex flex-col fixed h-full">
         <div className="p-5 border-b border-gray-100">
           <div className="text-lg font-extrabold text-gray-900 flex items-center gap-1.5">
-            <span className="text-amber-500">★</span> calificar
-          </div>
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></div>
           <div className="text-xs text-gray-400 mt-0.5 font-semibold uppercase tracking-wider">Admin</div>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">

@@ -82,7 +82,7 @@ export default function NuevoNegocioPage() {
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">WhatsApp del local (para feedback negativo)</label>
           <input value={form.whatsapp_number} onChange={e => setForm(f => ({ ...f, whatsapp_number: e.target.value }))}
-            placeholder="5491100000000"
+            placeholder="5491123867934"
             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-gray-400 placeholder-gray-300"/>
         </div>
 

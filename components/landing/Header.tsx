@@ -12,8 +12,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
         <Link href="/" className="font-display font-extrabold text-xl text-gray-900 flex items-center gap-1.5">
-          <span className="text-violet-600">★</span> Calificar
-        </Link>
+          <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
 
         <nav className="hidden md:flex items-center gap-1 text-sm font-medium text-gray-600">
           <Link href="/r/demo" className="px-4 py-2 rounded-full hover:text-gray-900 hover:bg-gray-50 transition-colors">

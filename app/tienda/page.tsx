@@ -10,14 +10,19 @@ type Variant = { label: string; price: number }
 
 type Product = {
   id: number; name: string; sub: string; price: number
-  badge?: string; desc: string; feats: string[]; ideal: string
-  emoji: string; variants?: Variant[]; note?: string
+  desc: string; feats: string[]; ideal: string
+  emoji: string; images?: string[]; variants?: Variant[]; note?: string
 }
 
 const PRODUCTS: Product[] = [
   {
-    id: 1, emoji: '🪧', name: 'Cartel de Mostrador', badge: 'El titular',
+    id: 1, emoji: '🪧', name: 'Cartel de Mostrador',
     sub: 'PVC 3mm o Acrílico · A5 (15×21cm)',
+    images: [
+      '/screenshots/cartel-mostrador-1.jpg',
+      '/screenshots/cartel-mostrador-2.jpg',
+      '/screenshots/cartel-mostrador-3.jpg',
+    ],
     desc: 'El que va al lado de la caja. Formato A5, diseño en 3 franjas: tu logo arriba, ícono NFC en el centro, QR abajo. Chip NFC + QR dinámico configurado.',
     feats: ['Formato A5 (15×21 cm)', 'NFC + QR Dinámico', 'Configuración incluida'],
     ideal: 'Zona de caja, mostrador, recepción',
@@ -28,8 +33,9 @@ const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: 2, emoji: '🔲', name: 'Cartel de Mesa', badge: '★ Popular',
+    id: 2, emoji: '🔲', name: 'Cartel de Mesa',
     sub: 'PVC o Acrílico · A6 (10×15cm)',
+    images: ['/screenshots/cartel-mesa.png'],
     desc: 'Display tipo L o T con chip NFC y QR. No estorba en las mesas. El cliente apoya el celu o escanea y listo.',
     feats: ['Formato A6 (10×15 cm)', 'NFC + QR Dinámico', 'Configuración incluida'],
     ideal: 'Mesas de cafeterías, restaurantes y bares',
@@ -40,8 +46,9 @@ const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: 3, emoji: '⬡', name: 'Sticker de Mesa/Barra', badge: 'De combate',
+    id: 3, emoji: '⬡', name: 'Sticker de Mesa/Barra',
     sub: 'PVC, Acrílico o Metal · 6×6 cm',
+    images: ['/screenshots/sticker-mesa.jpg'],
     desc: 'Discos o cuadrados de 6-7cm que van fijos. No los pueden tirar ni caen. Resistentes al agua y lavandina. QR + NFC integrado.',
     feats: ['6cm círculo o 6×6cm cuadrado', 'QR + NFC integrado', 'Resistente al agua y lavandina', 'Configuración incluida'],
     ideal: 'Mesas fijas, barras, mostradores',
@@ -53,15 +60,22 @@ const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: 4, emoji: '💳', name: 'Tarjeta para Mozos', badge: 'La carta maestra',
+    id: 4, emoji: '💳', name: 'Tarjeta para Mozos',
     sub: 'Por unidad · 8.6×5.4 cm',
+    images: [
+      '/screenshots/tarjeta-mozo-1.jpg',
+      '/screenshots/tarjeta-mozo-2.jpg',
+      '/screenshots/tarjeta-personal-1.jpg',
+      '/screenshots/tarjeta-personal-2.jpg',
+      '/screenshots/tarjeta-mozos.png',
+    ],
     desc: 'Tamaño tarjeta de crédito. El mozo la lleva en el delantal. Al traer la cuenta dice "¿Me dejás una reseña?" y la acerca al celu.',
     feats: ['86×54mm (credit card)', 'QR + NFC integrado', 'Configuración incluida'],
     ideal: 'Mozos y vendedores, cobro en mesa',
     price: 4500,
   },
   {
-    id: 5, emoji: '🖼️', name: 'Cartel de Pared', badge: '',
+    id: 5, emoji: '🖼️', name: 'Cartel de Pared',
     sub: 'Alta visibilidad · 30×20 cm',
     desc: 'Cartel grande para colgar. Interior o exterior. Visible desde lejos. Ideal para locales con mucho flujo donde querés que todos lo vean al entrar.',
     feats: ['30×20 cm', 'QR + NFC', 'Interior o exterior', 'Configuración incluida'],
@@ -89,12 +103,16 @@ function ProductCard({ p, onAdd, onDetail }: {
     <div className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden hover:border-[#FBCAD8] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col">
 
       {/* Imagen */}
-      <div className="bg-[#F5EFE7] h-48 flex items-center justify-center relative cursor-pointer"
+      <div className="bg-[#F5EFE7] h-48 flex items-center justify-center relative cursor-pointer overflow-hidden"
         onClick={() => onDetail(p, variantIdx)}>
-        <span className="text-7xl group-hover:scale-110 transition-transform duration-300">{p.emoji}</span>
-        {p.badge && (
-          <div className="absolute top-4 left-4 bg-[#0F172A] text-[#FBCAD8] text-xs font-extrabold px-3 py-1.5 rounded-full shadow-md">
-            {p.badge}
+        {p.images?.[0] ? (
+          <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+        ) : (
+          <span className="text-7xl group-hover:scale-110 transition-transform duration-300">{p.emoji}</span>
+        )}
+        {p.images && p.images.length > 1 && (
+          <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+            {p.images.length} fotos
           </div>
         )}
       </div>
@@ -107,7 +125,7 @@ function ProductCard({ p, onAdd, onDetail }: {
         <div className="mt-auto">
           {/* Selector de material */}
           {p.variants && p.variants.length > 0 && (
-            <div className="flex gap-1.5 mb-4 flex-wrap">
+            <div className="flex gap-1.5 mb-3 flex-wrap">
               {p.variants.map((v, i) => (
                 <button key={v.label} onClick={() => setVariantIdx(i)}
                   className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all ${
@@ -121,6 +139,7 @@ function ProductCard({ p, onAdd, onDetail }: {
             </div>
           )}
 
+          <p className="text-xs text-gray-400 mb-0.5">Desde</p>
           <p className="text-2xl font-black text-[#0F172A] mb-4">{fmt(price)}</p>
 
           {p.note && (
@@ -145,8 +164,10 @@ function ProductCard({ p, onAdd, onDetail }: {
 export default function TiendaPage() {
   const [cart, setCart]         = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
-  const [modal, setModal]             = useState<Product | null>(null)
+  const [modal,          setModal]          = useState<Product | null>(null)
   const [modalVariantIdx, setModalVariantIdx] = useState(0)
+  const [modalImgIdx,    setModalImgIdx]    = useState(0)
+  const [lightbox,       setLightbox]       = useState<string | null>(null)
 
   const total    = cart.reduce((s, i) => s + i.variantPrice * i.qty, 0)
   const cartQty  = cart.reduce((s, i) => s + i.qty, 0)
@@ -189,8 +210,7 @@ export default function TiendaPage() {
       <nav className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-40">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-4">
           <Link href="/" className="font-display font-extrabold text-2xl text-[#0F172A] flex items-center gap-2 flex-shrink-0">
-            <span className="text-[#FBCAD8]">★</span> Calificar
-          </Link>
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
           <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 font-medium">
             <Link href="/" className="px-4 py-2 rounded-full hover:bg-gray-50 hover:text-[#0F172A] transition-colors">Inicio</Link>
             <Link href="/tienda" className="px-4 py-2 rounded-full bg-[#F5EFE7] text-[#0F172A]">Tienda</Link>
@@ -233,7 +253,7 @@ export default function TiendaPage() {
       <section className="relative z-10 max-w-7xl mx-auto px-6 py-20 lg:py-32">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {PRODUCTS.map(p => (
-            <ProductCard key={p.id} p={p} onAdd={addToCart} onDetail={(prod, idx) => { setModal(prod); setModalVariantIdx(idx) }}/>
+            <ProductCard key={p.id} p={p} onAdd={addToCart} onDetail={(prod, idx) => { setModal(prod); setModalVariantIdx(idx); setModalImgIdx(0) }}/>
           ))}
         </div>
       </section>
@@ -329,18 +349,62 @@ export default function TiendaPage() {
         </div>
       )}
 
+      {/* LIGHTBOX */}
+      {lightbox && (
+        <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}>
+          <img src={lightbox} alt="" className="max-w-3xl w-full max-h-[85vh] object-contain rounded-2xl"/>
+          <button onClick={() => setLightbox(null)} className="absolute top-4 right-4 text-white text-3xl leading-none bg-white/10 w-10 h-10 rounded-full flex items-center justify-center">×</button>
+        </div>
+      )}
+
       {/* MODAL DETALLE */}
       {modal && (() => {
         const modalVariant = modal.variants?.[modalVariantIdx]
         const modalPrice = modalVariant?.price ?? modal.price
+        const imgs = modal.images ?? []
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-[#0F172A]/60 backdrop-blur-sm" onClick={() => setModal(null)}/>
-            <div className="relative bg-white rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden">
-              <div className="bg-[#FBCAD8] h-48 flex items-center justify-center relative">
-                <span className="text-8xl drop-shadow-md">{modal.emoji}</span>
-                <button onClick={() => setModal(null)} className="absolute top-4 right-4 text-[#0F172A]/50 hover:text-[#0F172A] text-3xl leading-none bg-white/30 w-10 h-10 rounded-full flex items-center justify-center transition-colors pb-1">×</button>
-              </div>
+            <div className="relative bg-white rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+
+              {/* Galería de imágenes */}
+              {imgs.length > 0 ? (
+                <div className="relative bg-black h-56 overflow-hidden">
+                  <img
+                    src={imgs[modalImgIdx]}
+                    alt={modal.name}
+                    className="w-full h-full object-contain cursor-zoom-in"
+                    onClick={() => setLightbox(imgs[modalImgIdx])}
+                  />
+                  <button onClick={() => setModal(null)} className="absolute top-3 right-3 text-white bg-black/40 hover:bg-black/60 text-xl leading-none w-8 h-8 rounded-full flex items-center justify-center">×</button>
+                  <button onClick={() => setLightbox(imgs[modalImgIdx])} className="absolute bottom-3 right-3 bg-black/40 hover:bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                    🔍 Ampliar
+                  </button>
+                  {imgs.length > 1 && (
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                      {imgs.map((_, i) => (
+                        <button key={i} onClick={() => setModalImgIdx(i)}
+                          className={`w-2 h-2 rounded-full transition-all ${i === modalImgIdx ? 'bg-white' : 'bg-white/40'}`}/>
+                      ))}
+                    </div>
+                  )}
+                  {imgs.length > 1 && (
+                    <>
+                      <button onClick={() => setModalImgIdx(i => (i - 1 + imgs.length) % imgs.length)}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg">‹</button>
+                      <button onClick={() => setModalImgIdx(i => (i + 1) % imgs.length)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg">›</button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-[#FBCAD8] h-48 flex items-center justify-center relative">
+                  <span className="text-8xl drop-shadow-md">{modal.emoji}</span>
+                  <button onClick={() => setModal(null)} className="absolute top-4 right-4 text-[#0F172A]/50 hover:text-[#0F172A] text-3xl leading-none bg-white/30 w-10 h-10 rounded-full flex items-center justify-center pb-1">×</button>
+                </div>
+              )}
+
               <div className="p-8">
                 <div className="mb-5">
                   <h3 className="font-display font-extrabold text-[#0F172A] text-2xl mb-1">{modal.name}</h3>
@@ -361,7 +425,7 @@ export default function TiendaPage() {
                 )}
                 <p className="text-sm text-gray-500 mb-6 font-medium"><span className="mr-2">💡</span> Ideal para: {modal.ideal}</p>
 
-                {/* Selector de variantes en el modal */}
+                {/* Selector de variantes */}
                 {modal.variants && modal.variants.length > 0 && (
                   <div className="mb-6">
                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Material</p>
@@ -381,7 +445,10 @@ export default function TiendaPage() {
                 )}
 
                 <div className="flex items-center justify-between border-t border-gray-100 pt-6">
-                  <p className="text-3xl font-black text-[#0F172A]">{fmt(modalPrice)}</p>
+                  <div>
+                    <p className="text-xs text-gray-400">Desde</p>
+                    <p className="text-3xl font-black text-[#0F172A]">{fmt(modalPrice)}</p>
+                  </div>
                   <button onClick={() => { addToCart(modal, modalVariant?.label, modalPrice); setModal(null) }}
                     className="bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg">
                     Agregar

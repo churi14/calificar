@@ -74,8 +74,7 @@ export default function OnboardingPage() {
 
       {/* Logo */}
       <Link href="/" className="font-display font-extrabold text-2xl text-[#0F172A] flex items-center gap-2 mb-10">
-        <span className="text-[#FBCAD8]">★</span> calificar
-      </Link>
+        <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
 
       {/* Progress */}
       {step < 4 && (

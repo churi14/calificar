@@ -88,8 +88,7 @@ export default function LandingPage() {
 
         <div className="fixed top-6 left-6 sm:left-10 z-50">
           <Link href="/" className="font-display font-extrabold text-xl text-gray-900 flex items-center gap-1.5">
-            <span className="text-violet-600">★</span> Calificar
-          </Link>
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
         </div>
 
         {/* Texto */}

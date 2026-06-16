@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function DashboardPage() {
@@ -16,6 +17,11 @@ export default async function DashboardPage() {
     .select('id, name, slug, total_scans, positive_scans, negative_scans, active')
     .eq('owner_id', user!.id)
     .order('created_at', { ascending: false })
+
+  // Si no tiene ningún negocio, mandarlo al onboarding
+  if (!businesses || businesses.length === 0) {
+    redirect('/onboarding')
+  }
 
   const { data: recentFeedback } = await supabase
     .from('feedback')

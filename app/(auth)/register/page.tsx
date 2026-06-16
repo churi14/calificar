@@ -31,8 +31,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-extrabold text-gray-900 flex items-center justify-center gap-1.5">
-            <span className="text-amber-500">★</span> calificar
-          </Link>
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
           <p className="text-gray-500 text-sm mt-2">Creá tu cuenta gratis</p>
         </div>
 
@@ -76,3 +75,4 @@ export default function RegisterPage() {
     </div>
   )
 }
+

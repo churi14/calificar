@@ -187,8 +187,7 @@ export default function DemoDashboard() {
       <aside className="w-60 bg-white border-r border-gray-100 flex flex-col fixed h-full">
         <div className="p-5 border-b border-gray-100">
           <Link href="/" className="text-xl font-extrabold text-gray-900 flex items-center gap-1.5">
-            <span className="text-[#FBCAD8]">★</span> calificar
-          </Link>
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {[

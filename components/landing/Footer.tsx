@@ -48,8 +48,7 @@ export default function Footer() {
           {/* Columna 1 — marca, dirección y navegación */}
           <div>
             <Link href="/" className="font-display font-extrabold text-xl text-white flex items-center gap-1.5 mb-4">
-              <span className="text-[#FBCAD8]">★</span> Calificar
-            </Link>
+              <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" style={{filter:"brightness(0) invert(1)"}} /><span className="font-extrabold text-xl text-white">Calificar</span></Link>
             <p className="text-sm text-gray-400 mb-8 max-w-[220px] leading-relaxed">
               Merlo, Buenos Aires, Argentina
             </p>

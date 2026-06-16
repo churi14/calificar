@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { formatDate, planLabel, planColor } from '@/lib/utils'
 
 export default async function ClientesPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data: clients } = await supabase
     .from('profiles')
@@ -93,4 +93,3 @@ export default async function ClientesPage() {
     </div>
   )
 }
-

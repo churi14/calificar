@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { formatDate, planLabel, planColor } from '@/lib/utils'
 
 export default async function AdminPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { count: totalClients } = await supabase
     .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'business')
@@ -90,4 +90,3 @@ export default async function AdminPage() {
     </div>
   )
 }
-
