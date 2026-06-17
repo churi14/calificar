@@ -38,8 +38,16 @@ export default function OnboardingPage() {
     setLoading(true); setError('')
     try {
       const supabase = createClient()
+
+      // Refrescar sesión por si expiró durante el onboarding
+      await supabase.auth.refreshSession()
+
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setError('Sesión expirada'); return }
+      if (!user) {
+        setError('Tu sesión expiró. Por favor volvé a iniciar sesión.')
+        setTimeout(() => window.location.href = '/login', 2000)
+        return
+      }
 
       const { data, error: err } = await supabase.from('businesses').insert({
         name:              name.trim(),
