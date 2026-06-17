@@ -326,7 +326,7 @@ function DemoFunnel() {
                   <span className="w-2.5 h-2.5 rounded-full bg-gray-200"/>
                   <span className="w-2.5 h-2.5 rounded-full bg-gray-200"/>
                   <span className="w-2.5 h-2.5 rounded-full bg-gray-200"/>
-                  <span className="ml-3 text-xs text-gray-300 font-mono truncate">calificar.ar/dashboard/negocios/cafe-el-sol</span>
+                  <span className="ml-3 text-xs text-gray-300 font-mono truncate">calificar.com.ar/dashboard/negocios/cafe-el-sol</span>
                 </div>
 
                 <div className="p-6 sm:p-8 bg-[#F7F9FB]">
@@ -339,7 +339,7 @@ function DemoFunnel() {
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500"/> Activo
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400">calificar.ar/r/cafe-el-sol</p>
+                      <p className="text-xs text-gray-400">calificar.com.ar/r/cafe-el-sol</p>
                     </div>
                   </div>
 
@@ -367,7 +367,7 @@ function DemoFunnel() {
                       <div className="flex items-center gap-3">
                         <div className="w-16 h-16 rounded-xl bg-[#F5EFE7] flex items-center justify-center text-2xl flex-shrink-0">▦</div>
                         <div className="bg-gray-50 rounded-xl px-3 py-2 flex-1 min-w-0">
-                          <span className="text-[11px] text-gray-400 font-mono truncate block">calificar.ar/r/cafe-el-sol</span>
+                          <span className="text-[11px] text-gray-400 font-mono truncate block">calificar.com.ar/r/cafe-el-sol</span>
                         </div>
                       </div>
                     </div>

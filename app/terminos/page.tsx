@@ -34,7 +34,7 @@ export default function TerminosPage() {
 
           <section>
             <h2 className="font-display font-bold text-xl text-[#0F172A] mb-3">1. Aceptación de los términos</h2>
-            <p>Al registrarte y utilizar Calificar (<strong>calificar.ar</strong>), aceptás estos términos en su totalidad. Si no estás de acuerdo, te pedimos que no uses el servicio. Nos reservamos el derecho de modificar estos términos en cualquier momento, notificándote por email o mediante un aviso en la plataforma.</p>
+            <p>Al registrarte y utilizar Calificar (<strong>calificar.com.ar</strong>), aceptás estos términos en su totalidad. Si no estás de acuerdo, te pedimos que no uses el servicio. Nos reservamos el derecho de modificar estos términos en cualquier momento, notificándote por email o mediante un aviso en la plataforma.</p>
           </section>
 
           <section>
@@ -120,7 +120,7 @@ export default function TerminosPage() {
 
           <section>
             <h2 className="font-display font-bold text-xl text-[#0F172A] mb-3">13. Contacto</h2>
-            <p>Para consultas sobre estos términos podés escribirnos por WhatsApp o al email de contacto disponible en <Link href="/" className="text-[#056E4B] hover:underline">calificar.ar</Link>.</p>
+            <p>Para consultas sobre estos términos podés escribirnos por WhatsApp o al email de contacto disponible en <Link href="/" className="text-[#056E4B] hover:underline">calificar.com.ar</Link>.</p>
           </section>
 
         </div>

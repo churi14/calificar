@@ -119,7 +119,7 @@ export default function BusinessDetailClient({
               {business.active ? 'Activo' : 'Inactivo'}
             </span>
           </div>
-          <p className="text-sm text-gray-400 mt-0.5">calificar.ar/r/{business.slug}</p>
+          <p className="text-sm text-gray-400 mt-0.5">calificar.com.ar/r/{business.slug}</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <button onClick={toggleActive}

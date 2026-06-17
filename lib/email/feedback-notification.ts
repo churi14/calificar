@@ -101,7 +101,7 @@ export function feedbackEmailHtml({
     <!-- Footer -->
     <p style="text-align:center;font-size:12px;color:#9CA3AF;margin-top:24px">
       Este mensaje es privado — no llegó a Google Maps.<br>
-      <a href="https://calificar.ar" style="color:#9CA3AF">calificar.ar</a>
+      <a href="https://calificar.com.ar" style="color:#9CA3AF">calificar.com.ar</a>
     </p>
   </div>
 </body>
@@ -129,6 +129,6 @@ ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)} (${rating} estrella${rating !
 
 ${contact || 'El cliente no dejó datos de contacto.'}
 
-Ver en el panel: https://calificar.ar/dashboard/feedback
+Ver en el panel: https://calificar.com.ar/dashboard/feedback
   `.trim()
 }

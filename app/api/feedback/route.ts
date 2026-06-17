@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { feedbackEmailHtml, feedbackEmailText } from '@/lib/email/feedback-notification'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.ar'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       const { Resend } = await import('resend')
       const resend = new Resend(process.env.RESEND_API_KEY)
       await resend.emails.send({
-        from:    'Calificar <notificaciones@calificar.ar>',
+        from:    'Calificar <notificaciones@calificar.com.ar>',
         to:      ownerEmail,
         subject: `⚠️ Nuevo feedback privado — ${biz?.name ?? 'Tu local'}`,
         html: feedbackEmailHtml({

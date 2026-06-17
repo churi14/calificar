@@ -86,7 +86,7 @@ export default async function DashboardPage() {
                   className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors group">
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{b.name}</p>
-                    <p className="text-xs text-gray-400">calificar.ar/r/{b.slug}</p>
+                    <p className="text-xs text-gray-400">calificar.com.ar/r/{b.slug}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-gray-900">{b.total_scans ?? 0} scans</p>

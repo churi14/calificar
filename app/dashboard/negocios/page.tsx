@@ -68,7 +68,7 @@ export default async function NegociosPage() {
                   </span>
                 </div>
                 <h3 className="font-bold text-gray-900 mb-0.5">{b.name}</h3>
-                <p className="text-xs text-gray-400 mb-4">calificar.ar/r/{b.slug}</p>
+                <p className="text-xs text-gray-400 mb-4">calificar.com.ar/r/{b.slug}</p>
 
                 <div className="grid grid-cols-3 gap-2 border-t border-gray-50 pt-4">
                   <div className="text-center">

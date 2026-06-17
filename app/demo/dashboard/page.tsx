@@ -244,7 +244,7 @@ export default function DemoDashboard() {
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500"/>Activo
               </span>
             </div>
-            <p className="text-sm text-gray-400 mt-0.5">calificar.ar/r/cafe-el-sol</p>
+            <p className="text-sm text-gray-400 mt-0.5">calificar.com.ar/r/cafe-el-sol</p>
           </div>
           <button onClick={() => setEmpModal(true)}
             className="text-sm bg-gray-900 text-white rounded-xl px-5 py-2.5 hover:bg-gray-700 font-semibold flex items-center gap-2">
@@ -301,7 +301,7 @@ export default function DemoDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3">
-                  <span className="text-sm text-gray-500 font-mono flex-1 truncate">calificar.ar/r/cafe-el-sol</span>
+                  <span className="text-sm text-gray-500 font-mono flex-1 truncate">calificar.com.ar/r/cafe-el-sol</span>
                   <button className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white text-gray-600 hover:bg-gray-100 shadow-sm">Copiar</button>
                 </div>
               </div>

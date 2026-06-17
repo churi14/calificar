@@ -54,7 +54,7 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
     .eq('business_id', id)
     .eq('read', false)
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.ar'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
 
   return (
     <BusinessDetailClient

@@ -67,7 +67,7 @@ export default function OnboardingPage() {
     }
   }
 
-  const funnelUrl = `calificar.ar/r/${slug}`
+  const funnelUrl = `calificar.com.ar/r/${slug}`
 
   return (
     <div className="min-h-screen bg-[#F5EFE7] flex flex-col items-center justify-center p-6">
@@ -106,7 +106,7 @@ export default function OnboardingPage() {
 
             {slug && (
               <p className="text-xs text-gray-400 mt-3 ml-1">
-                Tu link va a ser: <span className="font-mono font-semibold text-gray-600">calificar.ar/r/{slug}</span>
+                Tu link va a ser: <span className="font-mono font-semibold text-gray-600">calificar.com.ar/r/{slug}</span>
               </p>
             )}
 

@@ -66,7 +66,7 @@ export default function NuevoNegocioPage() {
             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-gray-400 placeholder-gray-300"/>
           {slug && (
             <p className="text-xs text-gray-400 mt-1.5">
-              URL del funnel: <span className="font-semibold text-gray-600">calificar.ar/r/{slug}</span>
+              URL del funnel: <span className="font-semibold text-gray-600">calificar.com.ar/r/{slug}</span>
             </p>
           )}
         </div>

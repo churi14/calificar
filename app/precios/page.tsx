@@ -48,7 +48,7 @@ const PLANES = [
       'Registro y gestión del dominio',
       'QR dinámico de por vida',
       'Linktree personalizado con tu marca',
-      'Página calificar.ar/tunegocio incluida',
+      'Página calificar.com.ar/tunegocio incluida',
       'Soporte prioritario y cambios de links',
     ],
     note: `${fmt(30000)} pago anual · incluye dominio + configuración completa`,
