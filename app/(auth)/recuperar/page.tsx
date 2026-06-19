@@ -14,8 +14,9 @@ export default function RecuperarPage() {
     e.preventDefault()
     setLoading(true); setError('')
     const supabase = createClient()
+    const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/nueva-contrasenia`,
+      redirectTo: `${APP_URL}/auth/callback?next=/nueva-contrasenia`,
     })
     if (error) setError('No encontramos una cuenta con ese email.')
     else setSent(true)

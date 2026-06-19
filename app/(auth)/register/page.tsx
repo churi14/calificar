@@ -20,7 +20,10 @@ export default function RegisterPage() {
     const supabase = await createClient()
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { name } }
+      options: {
+        data: { name },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'}/auth/callback?next=/onboarding`,
+      }
     })
     if (error) { setError(error.message); setLoading(false) }
     else router.push('/onboarding')
