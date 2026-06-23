@@ -23,8 +23,9 @@ export default function NuevoNegocioPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
-      setPlanBlocked(profile?.plan === 'free' || !profile?.plan)
+      const { data: profile } = await supabase.from('profiles').select('plan, role').eq('id', user.id).single()
+      const isAdmin = profile?.role === 'admin'
+      setPlanBlocked(!isAdmin && (profile?.plan === 'free' || !profile?.plan))
     }
     checkPlan()
   }, [router])
@@ -42,8 +43,8 @@ export default function NuevoNegocioPage() {
     if (!user) { setError('No autenticado'); setLoading(false); return }
 
     // Double-check en submit
-    const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
-    if (profile?.plan === 'free' || !profile?.plan) {
+    const { data: profile } = await supabase.from('profiles').select('plan, role').eq('id', user.id).single()
+    if (profile?.role !== 'admin' && (profile?.plan === 'free' || !profile?.plan)) {
       setError('Tu cuenta está pendiente de activación. Contactanos para comenzar.')
       setLoading(false)
       return

@@ -14,11 +14,13 @@ export default async function NegociosPage() {
     .order('created_at', { ascending: false })
 
   const { data: profile } = await supabase
-    .from('profiles').select('plan').eq('id', user.id).single()
+    .from('profiles').select('plan, role').eq('id', user.id).single()
 
+  // Admin siempre tiene acceso completo sin importar el plan
+  const isAdmin = profile?.role === 'admin'
   const planLimits: Record<string, number> = { free: 0, basic: 3, pro: 999 }
-  const plan = profile?.plan ?? 'free'
-  const limit = planLimits[plan] ?? 0
+  const plan = isAdmin ? 'pro' : (profile?.plan ?? 'free')
+  const limit = isAdmin ? 999 : (planLimits[plan] ?? 0)
   const canAdd = (businesses?.length ?? 0) < limit
 
   return (
