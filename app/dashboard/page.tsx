@@ -8,7 +8,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('name, plan')
+    .select('name, plan, role')
     .eq('id', user!.id)
     .single()
 
@@ -18,8 +18,8 @@ export default async function DashboardPage() {
     .eq('owner_id', user!.id)
     .order('created_at', { ascending: false })
 
-  // Si no tiene ningún negocio, mandarlo al onboarding
-  if (!businesses || businesses.length === 0) {
+  // Solo redirigir al onboarding si NO es admin y no tiene negocios
+  if (profile?.role !== 'admin' && (!businesses || businesses.length === 0)) {
     redirect('/onboarding')
   }
 
