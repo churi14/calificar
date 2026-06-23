@@ -32,7 +32,10 @@ export default function BusinessDetailClient({
 }) {
   const router = useRouter()
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const logoInputRef = useRef<HTMLInputElement>(null)
   const [copied, setCopied] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(business.logo_url)
+  const [logoUploading, setLogoUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [form, setForm] = useState({
@@ -102,6 +105,40 @@ export default function BusinessDetailClient({
     const supabase = createClient()
     await supabase.from('businesses').update({ active: !business.active }).eq('id', business.id)
     router.refresh()
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) { alert('El logo debe pesar menos de 2MB'); return }
+
+    setLogoUploading(true)
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
+    const fileName = `${business.id}.${ext}`
+    const supabase = createClient()
+
+    const { error: storageError } = await supabase.storage
+      .from('logos')
+      .upload(fileName, file, { contentType: file.type, upsert: true })
+
+    if (storageError) {
+      alert('Error al subir el logo: ' + storageError.message)
+      setLogoUploading(false)
+      return
+    }
+
+    const { data } = supabase.storage.from('logos').getPublicUrl(fileName)
+    const publicUrl = data.publicUrl + '?t=' + Date.now() // cache-bust
+
+    await supabase.from('businesses').update({ logo_url: publicUrl }).eq('id', business.id)
+    setLogoUrl(publicUrl)
+    setLogoUploading(false)
+  }
+
+  async function removeLogo() {
+    const supabase = createClient()
+    await supabase.from('businesses').update({ logo_url: null }).eq('id', business.id)
+    setLogoUrl(null)
   }
 
   return (
@@ -219,6 +256,47 @@ export default function BusinessDetailClient({
             <h2 className="font-bold text-gray-900 text-base mb-5">Configuración</h2>
 
             <div className="space-y-5">
+
+              {/* LOGO */}
+              <div>
+                <label className={LABEL}>Logo del local</label>
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer border-2 border-dashed border-gray-200 hover:border-gray-400 transition-colors"
+                    style={{ background: logoUrl ? 'transparent' : form.primary_color + '22' }}
+                    onClick={() => logoInputRef.current?.click()}
+                  >
+                    {logoUploading ? (
+                      <svg className="animate-spin w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                      </svg>
+                    ) : logoUrl ? (
+                      <img src={logoUrl} alt="Logo" className="w-full h-full object-contain p-1"/>
+                    ) : (
+                      <span className="text-2xl font-bold" style={{ color: form.primary_color }}>
+                        {business.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button type="button" onClick={() => logoInputRef.current?.click()}
+                      className="text-xs font-semibold px-3 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-700 transition-colors">
+                      {logoUrl ? 'Cambiar logo' : 'Subir logo'}
+                    </button>
+                    {logoUrl && (
+                      <button type="button" onClick={removeLogo}
+                        className="text-xs font-semibold px-3 py-2 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
+                        Quitar logo
+                      </button>
+                    )}
+                    <p className="text-[10px] text-gray-300">PNG, JPG o SVG · máx 2MB</p>
+                  </div>
+                </div>
+                <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                  className="hidden" onChange={handleLogoUpload}/>
+              </div>
+
               <div>
                 <label className={LABEL}>Link de reseñas de Google</label>
                 <input value={form.google_review_url} onChange={e => setForm(f=>({...f,google_review_url:e.target.value}))}
