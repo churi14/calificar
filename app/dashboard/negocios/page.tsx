@@ -55,7 +55,7 @@ export default async function NegociosPage() {
             <p className="text-sm text-gray-400 mb-6 max-w-sm mx-auto">
               Para crear tu local y empezar a recibir reseñas, contactanos por WhatsApp. Activamos tu cuenta después de coordinar el pago.
             </p>
-            <a href="https://wa.me/5491100000000?text=Hola%2C%20quiero%20activar%20mi%20cuenta%20de%20Calificar"
+            <a href="https://wa.me/5491123867934?text=Hola%2C%20quiero%20activar%20mi%20cuenta%20de%20Calificar"
               target="_blank" rel="noopener noreferrer"
               className="inline-block bg-green-600 text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-green-700 transition-colors">
               Contactar por WhatsApp →

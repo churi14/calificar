@@ -118,7 +118,7 @@ export default function OnboardingPage() {
           <p className="text-gray-500 text-sm mb-6 leading-relaxed">
             Tu cuenta está lista. Para activar tu local y empezar a recibir reseñas, contactanos por WhatsApp y coordinamos el acceso.
           </p>
-          <a href="https://wa.me/5491100000000?text=Hola%2C%20me%20registr%C3%A9%20en%20Calificar%20y%20quiero%20activar%20mi%20cuenta"
+          <a href="https://wa.me/5491123867934?text=Hola%2C%20me%20registr%C3%A9%20en%20Calificar%20y%20quiero%20activar%20mi%20cuenta"
             target="_blank" rel="noopener noreferrer"
             className="w-full flex items-center justify-center bg-[#25D366] text-white font-bold py-4 rounded-full hover:bg-[#1ebe59] transition-colors mb-3">
             Activar por WhatsApp →
