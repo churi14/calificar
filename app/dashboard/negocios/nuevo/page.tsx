@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -16,6 +16,18 @@ export default function NuevoNegocioPage() {
   const [slug, setSlug] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [planBlocked, setPlanBlocked] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    async function checkPlan() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
+      setPlanBlocked(profile?.plan === 'free' || !profile?.plan)
+    }
+    checkPlan()
+  }, [router])
 
   function handleNameChange(val: string) {
     setForm(f => ({ ...f, name: val }))
@@ -25,9 +37,17 @@ export default function NuevoNegocioPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true); setError('')
-    const supabase = await createClient()
+    const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setError('No autenticado'); setLoading(false); return }
+
+    // Double-check en submit
+    const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
+    if (profile?.plan === 'free' || !profile?.plan) {
+      setError('Tu cuenta está pendiente de activación. Contactanos para comenzar.')
+      setLoading(false)
+      return
+    }
 
     const { error } = await supabase.from('businesses').insert({
       owner_id: user.id,
@@ -47,6 +67,38 @@ export default function NuevoNegocioPage() {
     } else {
       router.push('/dashboard/negocios')
     }
+  }
+
+  if (planBlocked === null) {
+    return (
+      <div className="max-w-xl">
+        <div className="h-8 bg-gray-100 rounded-xl animate-pulse mb-6 w-48"/>
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 h-64 animate-pulse"/>
+      </div>
+    )
+  }
+
+  if (planBlocked) {
+    return (
+      <div className="max-w-xl">
+        <div className="mb-6 flex items-center gap-3">
+          <Link href="/dashboard/negocios" className="text-sm text-gray-500 hover:text-gray-700">← Volver</Link>
+          <h1 className="text-2xl font-extrabold text-gray-900">Nuevo local</h1>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+          <p className="text-4xl mb-4">⏳</p>
+          <h2 className="text-lg font-bold text-gray-900 mb-2">Cuenta pendiente de activación</h2>
+          <p className="text-sm text-gray-400 mb-6 max-w-sm mx-auto">
+            Para crear tu local necesitás tener una cuenta activa. Contactanos por WhatsApp para coordinar el pago y activar tu acceso.
+          </p>
+          <a href="https://wa.me/5491100000000?text=Hola%2C%20quiero%20activar%20mi%20cuenta%20de%20Calificar"
+            target="_blank" rel="noopener noreferrer"
+            className="inline-block bg-green-600 text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-green-700 transition-colors">
+            Contactar por WhatsApp →
+          </a>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -142,4 +194,3 @@ export default function NuevoNegocioPage() {
     </div>
   )
 }
-

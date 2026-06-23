@@ -14,6 +14,7 @@ type Business = {
 }
 
 type DayScan = { date: string; total: number; positive: number }
+type RawScan = { created_at: string; outcome: string; employee_id: string | null; employee_name: string | null }
 type Employee = { id: string; name: string; total_scans: number; slug: string }
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -22,10 +23,11 @@ const INPUT = 'w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 
 const LABEL = 'block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2'
 
 export default function BusinessDetailClient({
-  business, weeklyScans, employees, unreadFeedback, appUrl
+  business, weeklyScans, rawScans, employees, unreadFeedback, appUrl
 }: {
   business: Business
   weeklyScans: DayScan[]
+  rawScans: RawScan[]
   employees: Employee[]
   unreadFeedback: number
   appUrl: string
@@ -34,6 +36,7 @@ export default function BusinessDetailClient({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const [copied, setCopied] = useState(false)
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(business.logo_url)
   const [logoUploading, setLogoUploading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -377,12 +380,16 @@ export default function BusinessDetailClient({
                 const pct = maxScans > 0 ? (d.total / maxScans) * 100 : 0
                 const day = DAY_LABELS[new Date(d.date + 'T12:00:00').getDay()]
                 const isToday = d.date === new Date().toISOString().split('T')[0]
+                const isSelected = selectedDay === d.date
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
-                    <div className="w-full relative"
-                      style={{ height: `${Math.max(pct, 4)}%` }}>
+                    <div
+                      className={`w-full relative cursor-pointer ${d.total > 0 ? 'cursor-pointer' : 'cursor-default'}`}
+                      style={{ height: `${Math.max(pct, 4)}%` }}
+                      onClick={() => d.total > 0 && setSelectedDay(isSelected ? null : d.date)}
+                    >
                       <div className="w-full h-full rounded-t-md transition-all"
-                        style={{ background: isToday ? '#3B82F6' : '#DBEAFE' }}/>
+                        style={{ background: isSelected ? '#1D4ED8' : isToday ? '#3B82F6' : '#DBEAFE' }}/>
                       {d.total > 0 && (
                         <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                           {d.total}
@@ -394,6 +401,43 @@ export default function BusinessDetailClient({
                 )
               })}
             </div>
+
+            {/* DETALLE DEL DÍA SELECCIONADO */}
+            {selectedDay && (() => {
+              const dayScans = rawScans.filter(s => s.created_at.split('T')[0] === selectedDay)
+              const label = DAY_LABELS[new Date(selectedDay + 'T12:00:00').getDay()]
+              return (
+                <div className="mt-3 border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50">
+                    <span className="text-xs font-bold text-gray-700">{label} {selectedDay} — {dayScans.length} scans</span>
+                    <button onClick={() => setSelectedDay(null)} className="text-xs text-gray-400 hover:text-gray-700">✕</button>
+                  </div>
+                  {dayScans.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-4">Sin datos</p>
+                  ) : (
+                    <div className="divide-y divide-gray-50 max-h-48 overflow-y-auto">
+                      {dayScans.map((s, i) => {
+                        const hora = new Date(s.created_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+                        return (
+                          <div key={i} className="flex items-center justify-between px-4 py-2">
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs text-gray-400 font-mono w-12">{hora}</span>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.outcome === 'positive' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                {s.outcome === 'positive' ? '→ Google' : 'Filtrado'}
+                              </span>
+                            </div>
+                            {s.employee_name && (
+                              <span className="text-[10px] text-gray-400">{s.employee_name}</span>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
             <div className="flex items-center gap-6 mt-5 pt-4 border-t border-gray-50">
               <div>
                 <p className="text-xs text-gray-400 mb-1">Esta semana</p>
@@ -408,6 +452,9 @@ export default function BusinessDetailClient({
                 <p className="text-lg font-bold text-gray-900">{weeklyScans.reduce((s,d)=>s+d.total-d.positive,0)}</p>
               </div>
             </div>
+            {!selectedDay && weeklyScans.some(d => d.total > 0) && (
+              <p className="text-[10px] text-gray-300 mt-2 text-center">Clickeá una barra para ver el detalle</p>
+            )}
           </div>
 
           {/* RANKING */}

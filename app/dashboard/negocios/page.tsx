@@ -16,8 +16,9 @@ export default async function NegociosPage() {
   const { data: profile } = await supabase
     .from('profiles').select('plan').eq('id', user.id).single()
 
-  const planLimits: Record<string, number> = { free: 1, basic: 3, pro: 999 }
-  const limit = planLimits[profile?.plan ?? 'free'] ?? 1
+  const planLimits: Record<string, number> = { free: 0, basic: 3, pro: 999 }
+  const plan = profile?.plan ?? 'free'
+  const limit = planLimits[plan] ?? 0
   const canAdd = (businesses?.length ?? 0) < limit
 
   return (
@@ -27,7 +28,11 @@ export default async function NegociosPage() {
           <h1 className="text-2xl font-extrabold text-gray-900">Mis locales</h1>
           <p className="text-sm text-gray-400 mt-0.5">{businesses?.length ?? 0} de {limit === 999 ? 'ilimitados' : limit} locales en tu plan</p>
         </div>
-        {canAdd ? (
+        {plan === 'free' ? (
+          <span className="border border-gray-200 bg-gray-50 text-gray-400 font-medium px-4 py-2.5 rounded-xl text-sm cursor-not-allowed">
+            Cuenta pendiente de activación
+          </span>
+        ) : canAdd ? (
           <Link href="/dashboard/negocios/nuevo"
             className="bg-gray-900 text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-gray-700 transition-colors">
             + Nuevo local
@@ -41,6 +46,20 @@ export default async function NegociosPage() {
       </div>
 
       {!businesses?.length ? (
+        plan === 'free' ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <p className="text-4xl mb-4">⏳</p>
+            <h2 className="text-lg font-bold text-gray-900 mb-2">Tu cuenta está pendiente de activación</h2>
+            <p className="text-sm text-gray-400 mb-6 max-w-sm mx-auto">
+              Para crear tu local y empezar a recibir reseñas, contactanos por WhatsApp. Activamos tu cuenta después de coordinar el pago.
+            </p>
+            <a href="https://wa.me/5491100000000?text=Hola%2C%20quiero%20activar%20mi%20cuenta%20de%20Calificar"
+              target="_blank" rel="noopener noreferrer"
+              className="inline-block bg-green-600 text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-green-700 transition-colors">
+              Contactar por WhatsApp →
+            </a>
+          </div>
+        ) : (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <p className="text-4xl mb-4">🏪</p>
           <h2 className="text-lg font-bold text-gray-900 mb-2">Todavía no tenés locales</h2>
@@ -52,6 +71,7 @@ export default async function NegociosPage() {
             Crear mi primer local →
           </Link>
         </div>
+        )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {businesses.map(b => {
