@@ -8,7 +8,7 @@ export default async function ClientesPage() {
   const { data: clients } = await supabase
     .from('profiles')
     .select('id, name, email, plan, created_at')
-    .eq('role', 'business')
+    .neq('role', 'admin')
     .order('created_at', { ascending: false })
 
   // Contar negocios por cliente

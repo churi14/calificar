@@ -6,7 +6,7 @@ export default async function AdminPage() {
   const supabase = createServiceClient()
 
   const { count: totalClients } = await supabase
-    .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'business')
+    .from('profiles').select('*', { count: 'exact', head: true }).neq('role', 'admin')
 
   const { count: totalBusinesses } = await supabase
     .from('businesses').select('*', { count: 'exact', head: true })
@@ -17,11 +17,11 @@ export default async function AdminPage() {
   const { count: totalFeedback } = await supabase
     .from('feedback').select('*', { count: 'exact', head: true })
 
-  // Últimos 5 clientes
+  // Últimos 5 clientes (todos menos admins)
   const { data: recentClients } = await supabase
     .from('profiles')
     .select('id, name, email, plan, created_at')
-    .eq('role', 'business')
+    .neq('role', 'admin')
     .order('created_at', { ascending: false })
     .limit(5)
 
