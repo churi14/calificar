@@ -128,7 +128,7 @@ export default function FunnelClient({ business, employee }: { business: Busines
             style={{ background: `linear-gradient(135deg, ${primary}15, ${accent}15)` }}>
             {business.logo_url ? (
               <img src={business.logo_url} alt={business.name}
-                className="h-16 w-auto mx-auto mb-3 object-contain"/>
+                className="h-24 w-24 mx-auto mb-3 object-cover rounded-2xl"/>
             ) : (
               <div className="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center text-white text-2xl font-bold"
                 style={{ background: primary }}>
