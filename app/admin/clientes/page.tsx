@@ -5,10 +5,11 @@ import { formatDate, planLabel, planColor } from '@/lib/utils'
 export default async function ClientesPage() {
   const supabase = createServiceClient()
 
+  // Traer TODOS los usuarios — neq() excluye NULLs en Postgres, por eso usamos filter directo
   const { data: clients } = await supabase
     .from('profiles')
-    .select('id, name, email, plan, created_at')
-    .neq('role', 'admin')
+    .select('id, name, email, plan, role, created_at')
+    .or('role.eq.business,role.is.null')
     .order('created_at', { ascending: false })
 
   // Contar negocios por cliente
