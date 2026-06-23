@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { formatDate, planLabel, planColor } from '@/lib/utils'
 
 export default async function ClientesPage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data: clients } = await supabase
     .from('profiles')

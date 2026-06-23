@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -22,12 +22,30 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
   const [bizId,   setBizId]   = useState('')
+  const [planCheck, setPlanCheck] = useState<'loading' | 'free' | 'ok'>('loading')
 
   // Datos del negocio
   const [name,       setName]    = useState('')
   const [slug,       setSlug_]   = useState('')
   const [googleUrl,  setGoogle]  = useState('')
   const [whatsapp,   setWA]      = useState('')
+
+  useEffect(() => {
+    async function checkPlan() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      const { data: profile } = await supabase
+        .from('profiles').select('plan, role').eq('id', user.id).single()
+      const isAdmin = profile?.role === 'admin'
+      if (isAdmin || (profile?.plan && profile.plan !== 'free')) {
+        setPlanCheck('ok')
+      } else {
+        setPlanCheck('free')
+      }
+    }
+    checkPlan()
+  }, [router])
 
   function handleNameChange(val: string) {
     setName(val)
@@ -76,6 +94,43 @@ export default function OnboardingPage() {
   }
 
   const funnelUrl = `calificar.com.ar/r/${slug}`
+
+  // Pantalla de carga mientras verificamos el plan
+  if (planCheck === 'loading') {
+    return (
+      <div className="min-h-screen bg-[#F5EFE7] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin"/>
+      </div>
+    )
+  }
+
+  // Plan free → pantalla de activación pendiente
+  if (planCheck === 'free') {
+    return (
+      <div className="min-h-screen bg-[#F5EFE7] flex flex-col items-center justify-center p-6">
+        <Link href="/" className="font-display font-extrabold text-2xl text-[#0F172A] flex items-center gap-2 mb-10">
+          <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" />
+          <span className="font-extrabold text-xl text-[#0F172A]">Calificar</span>
+        </Link>
+        <div className="w-full max-w-md bg-white rounded-[2rem] p-8 shadow-sm text-center">
+          <p className="text-5xl mb-4">⏳</p>
+          <h1 className="font-extrabold text-2xl text-[#0F172A] mb-3">¡Cuenta creada!</h1>
+          <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+            Tu cuenta está lista. Para activar tu local y empezar a recibir reseñas, contactanos por WhatsApp y coordinamos el acceso.
+          </p>
+          <a href="https://wa.me/5491100000000?text=Hola%2C%20me%20registr%C3%A9%20en%20Calificar%20y%20quiero%20activar%20mi%20cuenta"
+            target="_blank" rel="noopener noreferrer"
+            className="w-full flex items-center justify-center bg-[#25D366] text-white font-bold py-4 rounded-full hover:bg-[#1ebe59] transition-colors mb-3">
+            Activar por WhatsApp →
+          </a>
+          <Link href="/dashboard"
+            className="w-full flex items-center justify-center border border-gray-200 text-gray-500 font-semibold py-4 rounded-full hover:bg-gray-50 transition-colors text-sm">
+            Ir al dashboard
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#F5EFE7] flex flex-col items-center justify-center p-6">

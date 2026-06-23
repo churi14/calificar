@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { formatDate, planLabel, planColor } from '@/lib/utils'
 
 export default async function AdminPage() {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { count: totalClients } = await supabase
     .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'business')
