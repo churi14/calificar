@@ -91,16 +91,19 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
                         </div>
                         <p className="text-xs text-gray-400">calificar.com.ar/r/{b.slug}</p>
                       </div>
-                      <div className="flex items-center gap-6 text-right">
-                        <div>
+                      <div className="flex items-center gap-4 text-right">
+                        <div className="hidden sm:block">
                           <p className="text-sm font-bold text-gray-900">{b.total_scans ?? 0}</p>
                           <p className="text-[10px] text-gray-400">Scans</p>
                         </div>
-                        <div>
+                        <div className="hidden sm:block">
                           <p className="text-sm font-bold text-amber-500">{conv}%</p>
                           <p className="text-[10px] text-gray-400">Conv.</p>
                         </div>
-                        <p className="text-xs text-gray-300 hidden lg:block">{formatDate(b.created_at)}</p>
+                        <Link href={`/admin/clientes/${id}/locales/${b.id}`}
+                          className="text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors">
+                          Editar
+                        </Link>
                       </div>
                     </div>
                   )
