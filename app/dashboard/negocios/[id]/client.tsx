@@ -147,7 +147,7 @@ export default function BusinessDetailClient({
   return (
     <div>
       {/* HEADER */}
-      <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-3">
         <div>
           <Link href="/dashboard/negocios" className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1 mb-2 transition-colors">
             ← Mis locales
@@ -180,18 +180,21 @@ export default function BusinessDetailClient({
       {/* OVERVIEW — métricas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Scans totales', value: business.total_scans ?? 0, sub: null as string | null, accent: 'text-gray-900' },
-          { label: 'Positivos → Google', value: business.positive_scans ?? 0,
+          { label: 'Scans totales', labelMobile: 'Scans', value: business.total_scans ?? 0, sub: null as string | null, accent: 'text-gray-900' },
+          { label: 'Positivos → Google', labelMobile: 'Positivos', value: business.positive_scans ?? 0,
             sub: business.total_scans ? `${Math.round(((business.positive_scans??0)/(business.total_scans||1))*100)}%` : null,
             accent: 'text-gray-900' },
-          { label: 'Filtrados (privados)', value: business.negative_scans ?? 0,
+          { label: 'Filtrados (privados)', labelMobile: 'Filtrados', value: business.negative_scans ?? 0,
             sub: business.total_scans ? `${Math.round(((business.negative_scans??0)/(business.total_scans||1))*100)}%` : null,
             accent: 'text-gray-900' },
-          { label: 'Feedback sin leer', value: unreadFeedback, sub: null,
+          { label: 'Feedback sin leer', labelMobile: 'Sin leer', value: unreadFeedback, sub: null,
             accent: unreadFeedback > 0 ? 'text-red-500' : 'text-gray-900', alert: unreadFeedback > 0 },
         ].map(s => (
-          <div key={s.label} className={`${CARD} p-6`}>
-            <p className="text-sm text-gray-400 mb-3">{s.label}</p>
+          <div key={s.label} className={`${CARD} p-4 md:p-6`}>
+            <p className="text-xs md:text-sm text-gray-400 mb-2 md:mb-3">
+              <span className="md:hidden">{s.labelMobile}</span>
+              <span className="hidden md:inline">{s.label}</span>
+            </p>
             <div className="flex items-center gap-2">
               <p className={`text-3xl font-bold ${s.accent}`}>{s.value}</p>
               {s.sub && (
@@ -218,20 +221,20 @@ export default function BusinessDetailClient({
           {/* QR */}
           <div className={`${CARD} p-6`}>
             <h2 className="font-bold text-gray-900 text-base mb-5">Código QR y link del funnel</h2>
-            <div className="flex gap-5 items-start mb-5">
-              <div className="bg-gray-50 rounded-2xl p-3 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row gap-5 items-start mb-5">
+              <div className="bg-gray-50 rounded-2xl p-3 flex-shrink-0 self-center sm:self-start">
                 <canvas ref={canvasRef} className="block rounded-lg"/>
               </div>
-              <div>
+              <div className="w-full">
                 <p className="text-sm font-semibold text-gray-800 mb-1">Listo para imprimir</p>
                 <p className="text-xs text-gray-400 mb-4 leading-relaxed">Pegalo en tu cartel NFC o imprimilo y enmarcalo.</p>
-                <div className="flex flex-col gap-2">
+                <div className="flex sm:flex-col gap-2">
                   <button onClick={() => downloadQR('png')}
-                    className="text-sm bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-2.5 transition-colors text-gray-600 flex items-center gap-2 font-medium">
+                    className="flex-1 sm:flex-none text-sm bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-2.5 transition-colors text-gray-600 flex items-center justify-center sm:justify-start gap-2 font-medium">
                     ↓ Descargar PNG
                   </button>
                   <button onClick={() => downloadQR('svg')}
-                    className="text-sm bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-2.5 transition-colors text-gray-600 flex items-center gap-2 font-medium">
+                    className="flex-1 sm:flex-none text-sm bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-2.5 transition-colors text-gray-600 flex items-center justify-center sm:justify-start gap-2 font-medium">
                     ↓ Descargar SVG
                   </button>
                 </div>

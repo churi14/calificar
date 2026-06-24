@@ -24,8 +24,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-[#F7F9FB] flex">
-      {/* SIDEBAR */}
-      <aside className="w-60 bg-white border-r border-gray-100 flex flex-col fixed h-full">
+      {/* SIDEBAR — solo desktop */}
+      <aside className="hidden md:flex w-60 bg-white border-r border-gray-100 flex-col fixed h-full z-30">
         <div className="p-5 border-b border-gray-100">
           <Link href="/" className="text-xl font-extrabold text-gray-900 flex items-center gap-1.5">
             <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
@@ -54,9 +54,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </aside>
 
       {/* MAIN */}
-      <main className="flex-1 ml-60 p-8 min-h-screen">
+      <main className="flex-1 md:ml-60 p-4 md:p-8 min-h-screen pb-24 md:pb-8">
         {children}
       </main>
+
+      {/* BOTTOM NAV — solo mobile */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40 flex">
+        {navItems.map(item => (
+          <Link key={item.href} href={item.href}
+            className="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-gray-400 hover:text-gray-900 transition-colors">
+            <span className="text-xl leading-none">{item.icon}</span>
+            <span className="text-[10px] font-medium leading-none truncate px-1">{item.label}</span>
+          </Link>
+        ))}
+        <form action="/api/auth/signout" method="post" className="flex-1">
+          <button type="submit" className="w-full h-full flex flex-col items-center justify-center py-3 gap-0.5 text-gray-400 hover:text-gray-900 transition-colors">
+            <span className="text-xl leading-none">🚪</span>
+            <span className="text-[10px] font-medium leading-none">Salir</span>
+          </button>
+        </form>
+      </nav>
     </div>
   )
 }
