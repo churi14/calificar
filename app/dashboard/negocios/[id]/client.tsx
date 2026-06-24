@@ -487,28 +487,25 @@ export default function BusinessDetailClient({
                       <span className="text-xs font-bold text-gray-300 w-5">{i+1}°</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-sm font-medium text-gray-900">{emp.name}</span>
+                          <Link href={`/dashboard/negocios/${business.id}/empleados/${emp.id}`}
+                            className="text-sm font-medium text-gray-900 hover:underline">
+                            {emp.name}
+                          </Link>
                           <span className="text-xs text-gray-400">{emp.total_scans} scans</span>
                         </div>
                         <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
                           <div className="h-full rounded-full bg-gray-900 transition-all" style={{width:`${pct}%`}}/>
                         </div>
                       </div>
-                      <button onClick={async()=>{
-                        await navigator.clipboard.writeText(`${business.id}/r/${business.slug}?emp=${emp.slug}`)
-                      }} className="text-xs bg-gray-50 rounded-lg px-2.5 py-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
-                        QR
-                      </button>
+                      <Link href={`/dashboard/negocios/${business.id}/empleados/${emp.id}`}
+                        className="text-xs bg-gray-50 rounded-lg px-2.5 py-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                        Ver →
+                      </Link>
                     </div>
                   )
                 })}
               </div>
             )}
-
-            <div className="mt-5 pt-4 border-t border-gray-50 flex items-center gap-2 text-xs text-gray-400">
-              <span>QR por empleado disponible en plan Pro</span>
-              <Link href="/dashboard/plan" className="text-gray-700 font-semibold hover:underline ml-auto">Mejorar →</Link>
-            </div>
           </div>
         </div>
       </div>
