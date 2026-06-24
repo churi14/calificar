@@ -4,6 +4,8 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { formatDate, planLabel, planColor } from '@/lib/utils'
 import PlanChanger from './PlanChanger'
 
+export const dynamic = 'force-dynamic'
+
 type Business = { id: string; name: string; slug: string; active: boolean; total_scans: number; positive_scans: number; created_at: string }
 
 export default async function ClienteDetailPage({ params }: { params: Promise<{ id: string }> }) {
