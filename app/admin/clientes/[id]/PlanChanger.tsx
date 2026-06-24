@@ -23,11 +23,12 @@ export default function PlanChanger({ userId, currentPlan }: { userId: string; c
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, plan: selected })
     })
+    const data = await res.json()
     if (res.ok) {
       setMsg('Plan actualizado ✓')
       router.refresh()
     } else {
-      setMsg('Error al guardar')
+      setMsg(`Error: ${data.error ?? res.status}`)
     }
     setSaving(false)
     setTimeout(() => setMsg(''), 3000)
