@@ -38,23 +38,33 @@ export default function PlanChanger({ userId, currentPlan }: { userId: string; c
       <h2 className="font-bold text-gray-900 mb-4">Cambiar plan</h2>
       <div className="space-y-2 mb-4">
         {PLANS.map(p => (
-          <label key={p.value}
-            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${selected === p.value ? 'border-gray-900 bg-gray-50' : 'border-gray-100 hover:border-gray-200'}`}>
+          <div
+            key={p.value}
+            onClick={() => setSelected(p.value)}
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all select-none ${
+              selected === p.value
+                ? 'border-gray-900 bg-gray-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+          >
             <div>
               <p className="text-sm font-semibold text-gray-900">{p.label}</p>
               <p className="text-xs text-gray-400">{p.desc}</p>
             </div>
-            <input type="radio" name="plan" value={p.value}
-              checked={selected === p.value}
-              onChange={() => setSelected(p.value)}
-              className="hidden"/>
-            {selected === p.value && <span className="w-4 h-4 rounded-full bg-gray-900 flex-shrink-0"/>}
-          </label>
+            <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 transition-all ${
+              selected === p.value
+                ? 'border-gray-900 bg-gray-900'
+                : 'border-gray-300'
+            }`}/>
+          </div>
         ))}
       </div>
       <div className="flex items-center gap-3">
-        <button onClick={save} disabled={saving || selected === currentPlan}
-          className="flex-1 bg-gray-900 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-gray-700 transition-colors disabled:opacity-40">
+        <button
+          onClick={save}
+          disabled={saving || selected === currentPlan}
+          className="flex-1 bg-gray-900 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
           {saving ? 'Guardando...' : 'Guardar plan'}
         </button>
         {msg && (
