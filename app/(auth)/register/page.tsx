@@ -2,22 +2,21 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
-  const router = useRouter()
   const [name, setName]       = useState('')
   const [email, setEmail]     = useState('')
   const [password, setPass]   = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
+  const [done, setDone]       = useState(false)
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
     if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres'); return }
     setLoading(true); setError('')
-    const supabase = await createClient()
+    const supabase = createClient()
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
@@ -26,7 +25,41 @@ export default function RegisterPage() {
       }
     })
     if (error) { setError(error.message); setLoading(false) }
-    else router.push('/onboarding')
+    else setDone(true)
+  }
+
+  // Pantalla de confirmación
+  if (done) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm text-center">
+          <Link href="/" className="inline-flex items-center justify-center gap-1.5 mb-8">
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" />
+            <span className="font-extrabold text-xl text-[#0F172A]">Calificar</span>
+          </Link>
+          <div className="bg-white rounded-2xl border border-gray-200 p-8">
+            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </div>
+            <h1 className="text-xl font-extrabold text-gray-900 mb-2">¡Revisá tu email!</h1>
+            <p className="text-sm text-gray-500 leading-relaxed mb-1">
+              Te mandamos un link de confirmación a
+            </p>
+            <p className="text-sm font-semibold text-gray-900 mb-5">{email}</p>
+            <p className="text-xs text-gray-400 leading-relaxed mb-6">
+              Hacé click en el botón del email para activar tu cuenta. Revisá también la carpeta de spam si no aparece.
+            </p>
+            <Link href="/login"
+              className="w-full block text-center bg-gray-900 text-white font-bold py-3 rounded-xl text-sm hover:bg-gray-700 transition-colors">
+              Ir al inicio de sesión
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -34,7 +67,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-extrabold text-gray-900 flex items-center justify-center gap-1.5">
-            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span>
+          </Link>
           <p className="text-gray-500 text-sm mt-2">Creá tu cuenta gratis</p>
         </div>
 
