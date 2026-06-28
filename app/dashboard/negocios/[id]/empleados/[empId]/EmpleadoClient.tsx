@@ -20,6 +20,8 @@ export default function EmpleadoClient({
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [resetting, setResetting] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
   const [copied, setCopied] = useState(false)
   const [msg, setMsg] = useState('')
 
@@ -69,6 +71,17 @@ export default function EmpleadoClient({
     const supabase = createClient()
     await supabase.from('employees').update({ active: !employee.active }).eq('id', employee.id)
     router.refresh()
+  }
+
+  async function resetCounter() {
+    setResetting(true)
+    const supabase = createClient()
+    await supabase.from('employees').update({ total_scans: 0 }).eq('id', employee.id)
+    setConfirmReset(false)
+    setMsg('Contador reiniciado ✓')
+    router.refresh()
+    setResetting(false)
+    setTimeout(() => setMsg(''), 3000)
   }
 
   async function deleteEmployee() {
@@ -166,6 +179,31 @@ export default function EmpleadoClient({
             className={`text-xs font-bold px-3 py-2 rounded-lg transition-colors ${employee.active ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}>
             {employee.active ? 'Pausar' : 'Activar'}
           </button>
+        </div>
+
+        {/* Reiniciar contador */}
+        <div className="py-3 border-t border-gray-50">
+          {!confirmReset ? (
+            <button onClick={() => setConfirmReset(true)}
+              className="text-sm text-amber-500 hover:text-amber-700 font-medium transition-colors">
+              Reiniciar contador de scans
+            </button>
+          ) : (
+            <div className="bg-amber-50 rounded-xl p-4">
+              <p className="text-sm font-semibold text-amber-700 mb-1">¿Reiniciar el contador?</p>
+              <p className="text-xs text-amber-600 mb-3">Útil cuando cambia de empleado y querés reutilizar el QR. Los scans históricos globales del local se mantienen.</p>
+              <div className="flex gap-2">
+                <button onClick={resetCounter} disabled={resetting}
+                  className="flex-1 bg-amber-500 text-white text-sm font-bold py-2 rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50">
+                  {resetting ? 'Reiniciando...' : 'Sí, reiniciar'}
+                </button>
+                <button onClick={() => setConfirmReset(false)}
+                  className="flex-1 bg-white text-gray-600 text-sm font-semibold py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Eliminar */}

@@ -464,8 +464,12 @@ export default function BusinessDetailClient({
           <div className={`${CARD} p-6`}>
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-bold text-gray-900 text-base">Ranking de empleados</h2>
-              <Link href={`/dashboard/negocios/${business.id}/empleados/nuevo`}
-                className="text-xs text-gray-400 hover:text-gray-700 font-medium transition-colors">+ Agregar</Link>
+              <div className="flex items-center gap-3">
+                <Link href={`/dashboard/negocios/${business.id}/empleados`}
+                  className="text-xs text-gray-400 hover:text-gray-700 font-medium transition-colors">Ver todos</Link>
+                <Link href={`/dashboard/negocios/${business.id}/empleados/nuevo`}
+                  className="text-xs text-gray-400 hover:text-gray-700 font-medium transition-colors">+ Agregar</Link>
+              </div>
             </div>
 
             {employees.length === 0 ? (
