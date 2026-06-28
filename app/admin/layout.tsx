@@ -34,10 +34,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
           ))}
           <div className="pt-3 mt-3 border-t border-gray-100">
-            <Link href="/dashboard"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-gray-700 transition-colors">
-              ← Mi dashboard
-            </Link>
+            <form action="/api/auth/signout" method="post">
+              <button type="submit"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-gray-700 transition-colors">
+                🚪 Cerrar sesión
+              </button>
+            </form>
           </div>
         </nav>
         <div className="p-4 border-t border-gray-100">

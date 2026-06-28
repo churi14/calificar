@@ -20,11 +20,12 @@ export default async function DashboardPage() {
     .eq('owner_id', user!.id)
     .order('created_at', { ascending: false })
 
+  // Admin → siempre al panel admin
+  if (profile?.role === 'admin') redirect('/admin')
+
   // Solo redirigir al onboarding si tiene plan pago pero aún no creó ningún negocio
-  // Free plan → se queda en dashboard (ve el estado pendiente en Mis locales)
-  // Admin → nunca redirigir
   const hasPaidPlan = profile?.plan === 'basic' || profile?.plan === 'pro'
-  if (profile?.role !== 'admin' && hasPaidPlan && (!businesses || businesses.length === 0)) {
+  if (hasPaidPlan && (!businesses || businesses.length === 0)) {
     redirect('/onboarding')
   }
 
