@@ -42,6 +42,7 @@ export default function BusinessDetailClient({
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [form, setForm] = useState({
+    name:              business.name,
     google_review_url: business.google_review_url ?? '',
     whatsapp_number:   business.whatsapp_number ?? '',
     negative_redirect: business.negative_redirect,
@@ -90,6 +91,7 @@ export default function BusinessDetailClient({
     setSaving(true); setSaveMsg('')
     const supabase = createClient()
     const { error } = await supabase.from('businesses').update({
+      name:              form.name.trim(),
       google_review_url: form.google_review_url,
       whatsapp_number:   form.whatsapp_number.replace(/\D/g, ''),
       negative_redirect: form.negative_redirect,
@@ -262,6 +264,13 @@ export default function BusinessDetailClient({
             <h2 className="font-bold text-gray-900 text-base mb-5">Configuración</h2>
 
             <div className="space-y-5">
+
+              {/* NOMBRE */}
+              <div>
+                <label className={LABEL}>Nombre del local</label>
+                <input value={form.name} onChange={e => setForm(f=>({...f, name: e.target.value}))}
+                  required className={INPUT} placeholder="Nombre del local"/>
+              </div>
 
               {/* LOGO */}
               <div>
