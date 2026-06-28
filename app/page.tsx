@@ -263,6 +263,20 @@ export default function LandingPage() {
       </section>
 
       <Footer/>
+
+      {/* BOTÓN FLOTANTE — Registrarse */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+        <Link href="/register"
+          className="flex items-center gap-2 bg-[#056E4B] text-white font-bold text-sm px-6 py-3.5 rounded-full shadow-lg hover:bg-[#045c3f] transition-all hover:scale-105 active:scale-95 whitespace-nowrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <line x1="19" y1="8" x2="19" y2="14"/>
+            <line x1="22" y1="11" x2="16" y2="11"/>
+          </svg>
+          Crear mi cuenta gratis
+        </Link>
+      </div>
     </div>
   )
 }
