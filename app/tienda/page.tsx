@@ -90,6 +90,11 @@ function fmt(n: number) { return '$' + n.toLocaleString('es-AR') }
 type CartItem = { product: Product; qty: number; variantLabel?: string; variantPrice: number }
 
 // ─── Subcomponente ProductCard con estado local de variante ───────────────────
+function isPVC(label: string | undefined) {
+  if (!label) return true // sin variante = precio normal
+  return label.toLowerCase().includes('pvc')
+}
+
 function ProductCard({ p, onAdd, onDetail }: {
   p: Product
   onAdd: (p: Product, variantLabel: string | undefined, variantPrice: number) => void
@@ -98,6 +103,9 @@ function ProductCard({ p, onAdd, onDetail }: {
   const [variantIdx, setVariantIdx] = useState(0)
   const currentVariant = p.variants?.[variantIdx]
   const price = currentVariant?.price ?? p.price
+  const consultar = currentVariant ? !isPVC(currentVariant.label) : false
+
+  const waConsultar = `https://wa.me/${WA_NUM}?text=${encodeURIComponent(`Hola! Quiero consultar el precio del ${p.name} en ${currentVariant?.label ?? ''}.`)}`
 
   return (
     <div className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden hover:border-[#FBCAD8] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col">
@@ -139,17 +147,30 @@ function ProductCard({ p, onAdd, onDetail }: {
             </div>
           )}
 
-          <p className="text-xs text-gray-400 mb-0.5">Desde</p>
-          <p className="text-2xl font-black text-[#0F172A] mb-4">{fmt(price)}</p>
+          {consultar ? (
+            <p className="text-2xl font-black text-[#0F172A] mb-4">Consultar</p>
+          ) : (
+            <>
+              <p className="text-xs text-gray-400 mb-0.5">Desde</p>
+              <p className="text-2xl font-black text-[#0F172A] mb-4">{fmt(price)}</p>
+            </>
+          )}
 
           {p.note && (
             <p className="text-xs text-gray-400 italic mb-3 leading-relaxed">{p.note}</p>
           )}
 
-          <button onClick={() => onAdd(p, currentVariant?.label, price)}
-            className="w-full bg-[#0F172A] text-white font-semibold py-3.5 rounded-full text-sm hover:bg-[#1e293b] transition-colors shadow-md">
-            Agregar al carrito
-          </button>
+          {consultar ? (
+            <a href={waConsultar} target="_blank"
+              className="w-full bg-[#0F172A] text-white font-semibold py-3.5 rounded-full text-sm hover:bg-[#1e293b] transition-colors shadow-md flex items-center justify-center gap-2">
+              Consultar precio
+            </a>
+          ) : (
+            <button onClick={() => onAdd(p, currentVariant?.label, price)}
+              className="w-full bg-[#0F172A] text-white font-semibold py-3.5 rounded-full text-sm hover:bg-[#1e293b] transition-colors shadow-md">
+              Agregar al carrito
+            </button>
+          )}
           <button onClick={() => onDetail(p, variantIdx)}
             className="w-full mt-2 text-sm font-medium text-gray-500 hover:text-[#0F172A] py-2 transition-colors">
             Ver detalles
@@ -362,6 +383,8 @@ export default function TiendaPage() {
       {modal && (() => {
         const modalVariant = modal.variants?.[modalVariantIdx]
         const modalPrice = modalVariant?.price ?? modal.price
+        const modalConsultar = modalVariant ? !isPVC(modalVariant.label) : false
+        const waModalConsultar = `https://wa.me/${WA_NUM}?text=${encodeURIComponent(`Hola! Quiero consultar el precio del ${modal.name} en ${modalVariant?.label ?? ''}.`)}`
         const imgs = modal.images ?? []
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -446,13 +469,26 @@ export default function TiendaPage() {
 
                 <div className="flex items-center justify-between border-t border-gray-100 pt-6">
                   <div>
-                    <p className="text-xs text-gray-400">Desde</p>
-                    <p className="text-3xl font-black text-[#0F172A]">{fmt(modalPrice)}</p>
+                    {modalConsultar ? (
+                      <p className="text-3xl font-black text-[#0F172A]">Consultar</p>
+                    ) : (
+                      <>
+                        <p className="text-xs text-gray-400">Desde</p>
+                        <p className="text-3xl font-black text-[#0F172A]">{fmt(modalPrice)}</p>
+                      </>
+                    )}
                   </div>
-                  <button onClick={() => { addToCart(modal, modalVariant?.label, modalPrice); setModal(null) }}
-                    className="bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg">
-                    Agregar
-                  </button>
+                  {modalConsultar ? (
+                    <a href={waModalConsultar} target="_blank"
+                      className="bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg">
+                      Consultar
+                    </a>
+                  ) : (
+                    <button onClick={() => { addToCart(modal, modalVariant?.label, modalPrice); setModal(null) }}
+                      className="bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg">
+                      Agregar
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
