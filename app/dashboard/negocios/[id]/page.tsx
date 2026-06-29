@@ -2,8 +2,19 @@ import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import BusinessDetailClient from './client'
 
-export default async function BusinessDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export const dynamic = 'force-dynamic'
+
+export default async function BusinessDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ period?: string }>
+}) {
   const { id } = await params
+  const { period: rawPeriod = '7d' } = await searchParams
+  const period = rawPeriod === '30d' ? '30d' : '7d'
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -17,8 +28,9 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
 
   if (!business) notFound()
 
+  const numDays = period === '30d' ? 30 : 7
   const since = new Date()
-  since.setDate(since.getDate() - 6)
+  since.setDate(since.getDate() - (numDays - 1))
   since.setHours(0, 0, 0, 0)
 
   const { data: scans } = await supabase
@@ -28,8 +40,9 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
     .gte('created_at', since.toISOString())
     .order('created_at', { ascending: false })
 
+  // Build chart bars
   const days: Record<string, { total: number; positive: number }> = {}
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < numDays; i++) {
     const d = new Date(since)
     d.setDate(d.getDate() + i)
     const key = d.toISOString().split('T')[0]
@@ -58,20 +71,24 @@ export default async function BusinessDetailPage({ params }: { params: Promise<{
   const employeeMap: Record<string, string> = {}
   employees?.forEach(e => { employeeMap[e.id] = e.name })
 
-  const rawScans = scans?.map(s => ({
-    created_at: s.created_at,
-    outcome: s.outcome as string,
-    employee_id: s.employee_id ?? null,
-    employee_name: s.employee_id ? (employeeMap[s.employee_id] ?? null) : null,
-  })) ?? []
+  // rawScans only needed for 7d click-detail feature
+  const rawScans = period === '7d'
+    ? (scans?.map(s => ({
+        created_at: s.created_at,
+        outcome: s.outcome as string,
+        employee_id: s.employee_id ?? null,
+        employee_name: s.employee_id ? (employeeMap[s.employee_id] ?? null) : null,
+      })) ?? [])
+    : []
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
 
   return (
     <BusinessDetailClient
       business={business}
-      weeklyScans={Object.entries(days).map(([date, v]) => ({ date, ...v }))}
+      chartBars={Object.entries(days).map(([date, v]) => ({ date, ...v }))}
       rawScans={rawScans}
+      period={period}
       employees={employees ?? []}
       unreadFeedback={unreadCount ?? 0}
       appUrl={appUrl}

@@ -23,14 +23,15 @@ const INPUT = 'w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 
 const LABEL = 'block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2'
 
 export default function BusinessDetailClient({
-  business, weeklyScans, rawScans, employees, unreadFeedback, appUrl
+  business, chartBars, rawScans, employees, unreadFeedback, appUrl, period
 }: {
   business: Business
-  weeklyScans: DayScan[]
+  chartBars: DayScan[]
   rawScans: RawScan[]
   employees: Employee[]
   unreadFeedback: number
   appUrl: string
+  period: '7d' | '30d'
 }) {
   const router = useRouter()
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -52,7 +53,7 @@ export default function BusinessDetailClient({
   })
 
   const funnelUrl = `${appUrl}/r/${business.slug}`
-  const maxScans = Math.max(...weeklyScans.map(d => d.total), 1)
+  const maxScans = Math.max(...chartBars.map(d => d.total), 1)
 
   // Generar QR cuando monte
   useEffect(() => {
@@ -386,19 +387,33 @@ export default function BusinessDetailClient({
 
           {/* ACTIVIDAD */}
           <div className={`${CARD} p-6`}>
-            <h2 className="font-bold text-gray-900 text-base mb-5">Actividad — últimos 7 días</h2>
-            <div className="flex items-end gap-2 h-32 mb-3">
-              {weeklyScans.map((d, i) => {
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-bold text-gray-900 text-base">Actividad</h2>
+              <div className="flex items-center gap-1">
+                {(['7d', '30d'] as const).map(p => (
+                  <Link key={p} href={`/dashboard/negocios/${business.id}?period=${p}`}
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${period === p ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                    {p === '7d' ? '7 días' : '30 días'}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div className={`flex items-end h-32 mb-3 ${period === '30d' ? 'gap-0.5' : 'gap-2'}`}>
+              {chartBars.map((d, i) => {
                 const pct = maxScans > 0 ? (d.total / maxScans) * 100 : 0
-                const day = DAY_LABELS[new Date(d.date + 'T12:00:00').getDay()]
                 const isToday = d.date === new Date().toISOString().split('T')[0]
                 const isSelected = selectedDay === d.date
+                const canClick = period === '7d' && d.total > 0
+                // Labels: 7d → day name, 30d → day-of-month every 5
+                const label = period === '7d'
+                  ? DAY_LABELS[new Date(d.date + 'T12:00:00').getDay()]
+                  : (i % 5 === 0 ? d.date.split('-')[2] : '')
                 return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group">
                     <div
-                      className={`w-full relative cursor-pointer ${d.total > 0 ? 'cursor-pointer' : 'cursor-default'}`}
+                      className={`w-full relative ${canClick ? 'cursor-pointer' : 'cursor-default'}`}
                       style={{ height: `${Math.max(pct, 4)}%` }}
-                      onClick={() => d.total > 0 && setSelectedDay(isSelected ? null : d.date)}
+                      onClick={() => canClick && setSelectedDay(isSelected ? null : d.date)}
                     >
                       <div className="w-full h-full rounded-t-md transition-all"
                         style={{ background: isSelected ? '#1D4ED8' : isToday ? '#3B82F6' : '#DBEAFE' }}/>
@@ -408,7 +423,7 @@ export default function BusinessDetailClient({
                         </div>
                       )}
                     </div>
-                    <span className={`text-xs ${isToday ? 'font-bold text-gray-900' : 'text-gray-400'}`}>{day}</span>
+                    <span className={`text-[10px] ${isToday ? 'font-bold text-gray-900' : 'text-gray-400'}`}>{label}</span>
                   </div>
                 )
               })}
@@ -452,19 +467,19 @@ export default function BusinessDetailClient({
 
             <div className="flex items-center gap-6 mt-5 pt-4 border-t border-gray-50">
               <div>
-                <p className="text-xs text-gray-400 mb-1">Esta semana</p>
-                <p className="text-lg font-bold text-gray-900">{weeklyScans.reduce((s,d)=>s+d.total,0)} scans</p>
+                <p className="text-xs text-gray-400 mb-1">{period === '7d' ? 'Esta semana' : 'Últimos 30 días'}</p>
+                <p className="text-lg font-bold text-gray-900">{chartBars.reduce((s,d)=>s+d.total,0)} scans</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">→ Google</p>
-                <p className="text-lg font-bold text-blue-500">{weeklyScans.reduce((s,d)=>s+d.positive,0)}</p>
+                <p className="text-lg font-bold text-blue-500">{chartBars.reduce((s,d)=>s+d.positive,0)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Filtrados</p>
-                <p className="text-lg font-bold text-gray-900">{weeklyScans.reduce((s,d)=>s+d.total-d.positive,0)}</p>
+                <p className="text-lg font-bold text-gray-900">{chartBars.reduce((s,d)=>s+d.total-d.positive,0)}</p>
               </div>
             </div>
-            {!selectedDay && weeklyScans.some(d => d.total > 0) && (
+            {period === '7d' && !selectedDay && chartBars.some(d => d.total > 0) && (
               <p className="text-[10px] text-gray-300 mt-2 text-center">Clickeá una barra para ver el detalle</p>
             )}
           </div>
