@@ -279,6 +279,88 @@ export default function TiendaPage() {
         </div>
       </section>
 
+      {/* PLANES DEL SISTEMA */}
+      <section className="bg-[#F5EFE7] px-6 py-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="inline-block text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Sistema digital</span>
+            <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-[#0F172A] mb-3">
+              El cartel necesita el sistema
+            </h2>
+            <p className="text-gray-500 max-w-xl mx-auto">
+              El cartel físico activa el contacto. El sistema gestiona el filtro, el dashboard y las métricas. Los dos juntos son lo que hace la diferencia.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Plan base */}
+            <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-8 flex flex-col">
+              <h3 className="font-extrabold text-[#0F172A] text-xl mb-1">Sistema Calificar</h3>
+              <p className="text-sm text-gray-500 mb-6 leading-relaxed">Filtro inteligente de reseñas + dashboard con estadísticas en tiempo real + feedback privado + ranking de empleados.</p>
+              <div className="mb-6">
+                <div className="flex items-end gap-1">
+                  <span className="text-3xl font-black text-[#0F172A]">$5.000</span>
+                  <span className="text-sm text-gray-400 mb-1">/mes</span>
+                </div>
+              </div>
+              <ul className="space-y-2 mb-8 flex-1">
+                {['Filtro inteligente de reseñas', 'Dashboard con estadísticas', 'Feedback privado del cliente', 'Ranking de empleados', 'QR descargable', 'Soporte por WhatsApp'].map(f => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-600">
+                    <span className="w-4 h-4 rounded-full bg-[#056E4B]/10 text-[#056E4B] flex items-center justify-center flex-shrink-0">
+                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
+                    </span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/register"
+                className="w-full flex items-center justify-center border-2 border-[#0F172A] text-[#0F172A] font-bold py-3.5 rounded-full hover:bg-[#0F172A] hover:text-white transition-colors text-sm">
+                Empezar ahora
+              </Link>
+            </div>
+
+            {/* Plan con dominio */}
+            <div className="bg-[#0F172A] rounded-[2rem] shadow-2xl p-8 flex flex-col relative overflow-hidden">
+              <div className="absolute top-6 right-6">
+                <span className="text-xs font-extrabold bg-[#FBCAD8] text-[#0F172A] px-3 py-1.5 rounded-full">★ Recomendado</span>
+              </div>
+              <h3 className="font-extrabold text-white text-xl mb-1">Dominio Propio</h3>
+              <p className="text-sm text-gray-300 mb-6 leading-relaxed">Todo lo del plan base más tu propio dominio registrado. El QR apunta a tu dirección para siempre.</p>
+              <div className="mb-1">
+                <p className="text-sm font-semibold text-[#FBCAD8] mb-1">$30.000 setup único +</p>
+                <div className="flex items-end gap-1">
+                  <span className="text-3xl font-black text-white">$5.000</span>
+                  <span className="text-sm text-gray-400 mb-1">/mes</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mb-6">Pago anual · incluye dominio + config. completa</p>
+              <ul className="space-y-2 mb-8 flex-1">
+                {['Todo lo del Sistema Calificar', 'Registro y gestión del dominio', 'QR dinámico de por vida', 'Linktree con tu marca', 'Página calificar.com.ar/tunegocio', 'Soporte prioritario'].map(f => (
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
+                    <span className="w-4 h-4 rounded-full bg-[#FBCAD8]/20 text-[#FBCAD8] flex items-center justify-center flex-shrink-0">
+                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
+                    </span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <a href={`https://wa.me/${WA_NUM}?text=${encodeURIComponent('Hola! Quiero info sobre el plan Dominio Propio de Calificar.')}`} target="_blank"
+                className="w-full flex items-center justify-center bg-[#FBCAD8] text-[#0F172A] font-bold py-3.5 rounded-full hover:bg-white transition-colors text-sm">
+                Quiero este plan
+              </a>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-gray-400">
+            ¿Tenés dudas sobre qué plan elegir?{' '}
+            <a href={`https://wa.me/${WA_NUM}?text=${encodeURIComponent('Hola! Quiero saber qué plan de Calificar me conviene.')}`}
+              target="_blank" className="text-[#0F172A] font-semibold underline underline-offset-2 hover:opacity-70 transition-opacity">
+              Hablemos por WhatsApp →
+            </a>
+          </p>
+        </div>
+      </section>
+
       {/* INFO BANNER */}
       <section className="px-6 pb-20">
         <div className="max-w-6xl mx-auto bg-[#056E4B] rounded-[2.5rem] py-16 px-8 shadow-2xl">
