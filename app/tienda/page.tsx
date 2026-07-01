@@ -47,10 +47,10 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 3, emoji: '⬡', name: 'Sticker de Mesa/Barra',
-    sub: 'PVC, Acrílico o Metal · 6×6 cm',
+    sub: 'PVC, Acrílico o Metal · 9×5 cm',
     images: ['/screenshots/sticker-mesa.jpg'],
-    desc: 'Discos o cuadrados de 6-7cm que van fijos. No los pueden tirar ni caen. Resistentes al agua y lavandina. QR + NFC integrado.',
-    feats: ['6cm círculo o 6×6cm cuadrado', 'QR + NFC integrado', 'Resistente al agua y lavandina', 'Configuración incluida'],
+    desc: 'Stickers de 9×5cm que van fijos en la mesa o barra. No los pueden tirar ni caen. Resistentes al agua y lavandina. QR + NFC integrado.',
+    feats: ['9×5 cm', 'QR + NFC integrado', 'Resistente al agua y lavandina', 'Configuración incluida'],
     ideal: 'Mesas fijas, barras, mostradores',
     price: 8500,
     variants: [
