@@ -74,7 +74,7 @@ function DemoFunnel() {
         <span className="flex items-center gap-2 text-white text-sm font-semibold">
           <span className="text-[#FBCAD8]">★</span> Demo — así lo ve tu cliente
         </span>
-        <Link href="/" className="text-gray-400 hover:text-white text-xs transition-colors">Volver</Link>
+        <Link href="/links" className="text-gray-400 hover:text-white text-xs transition-colors">← Volver</Link>
       </div>
 
       {/* Toggle Vista cliente / Vista empresa */}
@@ -316,91 +316,185 @@ function DemoFunnel() {
             </div>
           </div>
 
-          {/* === SLIDE 2 — VISTA EMPRESA === */}
+          {/* === SLIDE 2 — VISTA EMPRESA (PANEL COMPLETO) === */}
           <div className="w-1/2 px-1">
             <div className="w-full">
-              <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden">
+              <div className="bg-[#F7F9FB] rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
 
                 {/* fake browser bar */}
-                <div className="flex items-center gap-1.5 px-5 py-3 border-b border-gray-100">
+                <div className="flex items-center gap-1.5 px-5 py-3 border-b border-gray-100 bg-white">
                   <span className="w-2.5 h-2.5 rounded-full bg-gray-200"/>
                   <span className="w-2.5 h-2.5 rounded-full bg-gray-200"/>
                   <span className="w-2.5 h-2.5 rounded-full bg-gray-200"/>
                   <span className="ml-3 text-xs text-gray-300 font-mono truncate">calificar.com.ar/dashboard/negocios/cafe-el-sol</span>
                 </div>
 
-                <div className="p-6 sm:p-8 bg-[#F7F9FB]">
+                <div className="p-5 overflow-y-auto" style={{ maxHeight: '560px' }}>
+
                   {/* header */}
-                  <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+                  <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h2 className="font-bold text-[#0F172A] text-base sm:text-lg">Café El Sol</h2>
-                        <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-semibold">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"/> Activo
+                      <div className="flex items-center gap-2">
+                        <h2 className="font-bold text-[#0F172A] text-sm">Café El Sol</h2>
+                        <span className="inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 font-semibold">
+                          <span className="w-1 h-1 rounded-full bg-green-500"/> Activo
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400">calificar.com.ar/r/cafe-el-sol</p>
+                      <p className="text-[10px] text-gray-400">calificar.com.ar/r/cafe-el-sol</p>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <span className="text-[10px] bg-white border border-gray-100 shadow-sm rounded-lg px-2.5 py-1.5 text-gray-500 font-medium">Pausar</span>
+                      <span className="text-[10px] bg-[#0F172A] text-white rounded-lg px-2.5 py-1.5 font-semibold">+ Empleado</span>
                     </div>
                   </div>
 
-                  {/* overview */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                    {OVERVIEW.map(s => (
-                      <div key={s.label} className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
-                        <p className="text-[11px] text-gray-400 mb-1.5 truncate">{s.label}</p>
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-xl font-bold text-[#0F172A]">{s.value}</p>
-                          {s.sub && (
-                            <span className="text-[10px] font-semibold text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded-full">
-                              {s.sub}
-                            </span>
-                          )}
+                  {/* stats */}
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {[
+                      { label: 'Scans', value: '231', sub: null as string | null },
+                      { label: '→ Google', value: '199', sub: '86%' },
+                      { label: 'Filtrados', value: '32', sub: '14%' },
+                      { label: 'Sin leer', value: '0', sub: null },
+                    ].map(s => (
+                      <div key={s.label} className="bg-white rounded-xl p-2.5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+                        <p className="text-[9px] text-gray-400 mb-1 truncate">{s.label}</p>
+                        <div className="flex items-center gap-1">
+                          <p className="text-base font-bold text-[#0F172A]">{s.value}</p>
+                          {s.sub && <span className="text-[8px] font-semibold text-gray-400 bg-gray-50 px-1 py-0.5 rounded-full">{s.sub}</span>}
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* qr + ranking */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
-                      <p className="text-xs font-bold text-[#0F172A] mb-3">Código QR del local</p>
-                      <div className="flex items-center gap-3">
-                        <div className="w-16 h-16 rounded-xl bg-[#F5EFE7] flex items-center justify-center text-2xl flex-shrink-0">▦</div>
-                        <div className="bg-gray-50 rounded-xl px-3 py-2 flex-1 min-w-0">
-                          <span className="text-[11px] text-gray-400 font-mono truncate block">calificar.com.ar/r/cafe-el-sol</span>
+                  {/* main grid */}
+                  <div className="grid grid-cols-5 gap-3">
+
+                    {/* izquierda — QR + actividad */}
+                    <div className="col-span-3 flex flex-col gap-3">
+
+                      {/* QR */}
+                      <div className="bg-white rounded-xl p-3.5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+                        <p className="text-[10px] font-bold text-[#0F172A] mb-2.5">Código QR y link del funnel</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-[#F5EFE7] flex items-center justify-center text-xl flex-shrink-0">▦</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="bg-gray-50 rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-1 mb-1.5">
+                              <span className="text-[9px] text-gray-400 font-mono truncate">calificar.com.ar/r/cafe-el-sol</span>
+                              <span className="text-[9px] font-semibold text-gray-500 bg-white rounded-md px-1.5 py-0.5 shadow-sm flex-shrink-0">Copiar</span>
+                            </div>
+                            <div className="flex gap-1">
+                              <span className="text-[9px] bg-gray-50 text-gray-400 px-2 py-1 rounded-md">↓ PNG</span>
+                              <span className="text-[9px] bg-gray-50 text-gray-400 px-2 py-1 rounded-md">↓ SVG</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actividad */}
+                      <div className="bg-white rounded-xl p-3.5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+                        <div className="flex items-center justify-between mb-2.5">
+                          <p className="text-[10px] font-bold text-[#0F172A]">Actividad</p>
+                          <div className="flex gap-1">
+                            <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-md bg-[#0F172A] text-white">7 días</span>
+                            <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-400">30 días</span>
+                          </div>
+                        </div>
+                        <div className="flex items-end gap-1 h-14 mb-2">
+                          {[
+                            { h: 55, label: 'Lun' },
+                            { h: 80, label: 'Mar' },
+                            { h: 40, label: 'Mié' },
+                            { h: 100, label: 'Jue' },
+                            { h: 65, label: 'Vie' },
+                            { h: 30, label: 'Sáb' },
+                            { h: 10, label: 'Dom', today: true },
+                          ].map((b, i) => (
+                            <div key={i} className="flex-1 flex flex-col items-center gap-0.5 justify-end h-full">
+                              <div className="w-full rounded-t-sm" style={{ height: `${b.h}%`, background: b.today ? '#3B82F6' : '#DBEAFE' }}/>
+                              <span className={`text-[7px] ${b.today ? 'font-bold text-gray-700' : 'text-gray-300'}`}>{b.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-4 pt-2 border-t border-gray-50">
+                          <div>
+                            <p className="text-[8px] text-gray-400">Esta semana</p>
+                            <p className="text-xs font-bold text-[#0F172A]">47 scans</p>
+                          </div>
+                          <div>
+                            <p className="text-[8px] text-gray-400">→ Google</p>
+                            <p className="text-xs font-bold text-blue-500">39</p>
+                          </div>
+                          <div>
+                            <p className="text-[8px] text-gray-400">Filtrados</p>
+                            <p className="text-xs font-bold text-gray-400">8</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Configuración */}
+                      <div className="bg-white rounded-xl p-3.5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+                        <p className="text-[10px] font-bold text-[#0F172A] mb-2.5">Configuración</p>
+                        <div className="space-y-2.5">
+                          <div>
+                            <p className="text-[8px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Link de Google</p>
+                            <div className="bg-gray-50 rounded-lg px-2.5 py-1.5">
+                              <span className="text-[9px] text-gray-400 font-mono">g.page/r/cafe-el-sol</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[8px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Umbral de filtro</p>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-[#0F172A] rounded-full" style={{ width: '60%' }}/>
+                              </div>
+                              <span className="text-[9px] font-semibold text-gray-600">3★ o menos</span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[8px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Colores del funnel</p>
+                            <div className="flex gap-1.5 items-center">
+                              <div className="w-5 h-5 rounded-md bg-[#F5EFE7] border border-gray-100"/>
+                              <div className="w-5 h-5 rounded-md bg-[#FBBF24] border border-gray-100"/>
+                              <span className="text-[8px] text-gray-400">Color principal · Estrellas</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
-                      <p className="text-xs font-bold text-[#0F172A] mb-3">Ranking de empleados</p>
-                      <div className="space-y-2.5">
-                        {RANKING.map((e, i) => (
-                          <div key={e.name}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[11px] font-medium text-gray-700 truncate">{i+1}° {e.name}</span>
-                              <span className="text-[11px] text-gray-400">{e.scans}</span>
+                    {/* derecha — ranking */}
+                    <div className="col-span-2">
+                      <div className="bg-white rounded-xl p-3.5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-[10px] font-bold text-[#0F172A]">Ranking empleados</p>
+                          <span className="text-[8px] text-gray-400">+ Agregar</span>
+                        </div>
+                        <div className="space-y-3">
+                          {RANKING.map((e, i) => (
+                            <div key={e.name}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[9px] font-medium text-gray-700 truncate">{i+1}° {e.name.split(' ')[0]}</span>
+                                <span className="text-[9px] text-gray-400">{e.scans}</span>
+                              </div>
+                              <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full bg-[#0F172A]" style={{ width: `${e.pct}%` }}/>
+                              </div>
                             </div>
-                            <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-[#0F172A]" style={{ width: `${e.pct}%` }}/>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  <p className="text-[9px] text-center text-gray-300 mt-4">
+                    Vista demo — el panel real se actualiza en tiempo real con tus datos
+                  </p>
                 </div>
               </div>
             </div>
             <p className="text-center text-xs text-gray-400 mt-4 px-4">
               Así ve cada local sus estadísticas, su QR y el ranking de su equipo en tiempo real.
             </p>
-            <div className="text-center mt-3">
-              <Link href="/demo/dashboard" target="_blank"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#0F172A] px-4 py-2.5 rounded-full hover:bg-[#1E293B] transition-colors">
-                Probar el panel completo →
-              </Link>
-            </div>
           </div>
         </div>
       </div>
