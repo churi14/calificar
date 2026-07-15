@@ -52,6 +52,15 @@ function DemoFunnel() {
   const [email,   setEmail]  = useState('')
   const [wapp,    setWapp]   = useState('')
   const [foto,    setFoto]   = useState<string | null>(null)
+  const [newFeedback, setNewFeedback] = useState(false)
+
+  // Simular notificación en tiempo real cuando se está en Vista empresa
+  useEffect(() => {
+    if (view !== 'empresa') return
+    setNewFeedback(false)
+    const t = setTimeout(() => setNewFeedback(true), 4000)
+    return () => clearTimeout(t)
+  }, [view])
 
   const display = hovered || selected
 
@@ -70,6 +79,13 @@ function DemoFunnel() {
     <div className="min-h-screen flex flex-col items-center justify-center p-5 bg-[#0F172A]">
 
       {/* Banner demo */}
+      <style>{`
+        @keyframes feedbackSlideIn {
+          from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0)   scale(1);    }
+        }
+      `}</style>
+
       <div className="w-full max-w-3xl mb-3 flex items-center justify-between px-1">
         <span className="flex items-center gap-2 text-white text-sm font-semibold">
           <span className="text-[#FBCAD8]">★</span> Demo — así lo ve tu cliente
@@ -351,16 +367,17 @@ function DemoFunnel() {
                   {/* stats */}
                   <div className="grid grid-cols-4 gap-2 mb-4">
                     {[
-                      { label: 'Scans', value: '231', sub: null as string | null },
-                      { label: '→ Google', value: '199', sub: '86%' },
-                      { label: 'Filtrados', value: '32', sub: '14%' },
-                      { label: 'Sin leer', value: '0', sub: null },
+                      { label: 'Scans', value: '231', sub: null as string | null, alert: false },
+                      { label: '→ Google', value: '199', sub: '86%', alert: false },
+                      { label: 'Filtrados', value: '32', sub: '14%', alert: false },
+                      { label: 'Sin leer', value: newFeedback ? '3' : '2', sub: null, alert: true },
                     ].map(s => (
-                      <div key={s.label} className="bg-white rounded-xl p-2.5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+                      <div key={s.label} className={`bg-white rounded-xl p-2.5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] ${s.alert ? 'ring-1 ring-red-200' : ''}`}>
                         <p className="text-[9px] text-gray-400 mb-1 truncate">{s.label}</p>
                         <div className="flex items-center gap-1">
-                          <p className="text-base font-bold text-[#0F172A]">{s.value}</p>
+                          <p className={`text-base font-bold ${s.alert ? 'text-red-500' : 'text-[#0F172A]'}`}>{s.value}</p>
                           {s.sub && <span className="text-[8px] font-semibold text-gray-400 bg-gray-50 px-1 py-0.5 rounded-full">{s.sub}</span>}
+                          {s.alert && <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse flex-shrink-0"/>}
                         </div>
                       </div>
                     ))}
@@ -462,8 +479,10 @@ function DemoFunnel() {
                       </div>
                     </div>
 
-                    {/* derecha — ranking */}
-                    <div className="col-span-2">
+                    {/* derecha — ranking + feedback */}
+                    <div className="col-span-2 flex flex-col gap-3">
+
+                      {/* Ranking */}
                       <div className="bg-white rounded-xl p-3.5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-[10px] font-bold text-[#0F172A]">Ranking empleados</p>
@@ -483,6 +502,67 @@ function DemoFunnel() {
                           ))}
                         </div>
                       </div>
+
+                      {/* Feedback privado */}
+                      <div className="bg-white rounded-xl p-3.5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-[10px] font-bold text-[#0F172A]">Feedback privado</p>
+                            <span className="text-[8px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+                              {newFeedback ? '3' : '2'}
+                            </span>
+                          </div>
+                          <span className="text-[8px] text-gray-400">Ver todos</span>
+                        </div>
+                        <div className="space-y-2">
+
+                          {/* Mensaje 1 */}
+                          <div className="bg-gray-50 rounded-lg p-2.5">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[8px] font-bold text-gray-500">★★☆☆☆</span>
+                                <span className="text-[8px] text-gray-400 font-mono">hace 2 días</span>
+                              </div>
+                              <span className="text-[7px] bg-gray-200 text-gray-500 px-1 py-0.5 rounded-full">Leído</span>
+                            </div>
+                            <p className="text-[9px] text-gray-600 leading-relaxed">"El café estaba frío y tardó mucho."</p>
+                          </div>
+
+                          {/* Mensaje 2 */}
+                          <div className="bg-gray-50 rounded-lg p-2.5">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[8px] font-bold text-gray-500">★★★☆☆</span>
+                                <span className="text-[8px] text-gray-400 font-mono">hace 5 días</span>
+                              </div>
+                              <span className="text-[7px] bg-gray-200 text-gray-500 px-1 py-0.5 rounded-full">Leído</span>
+                            </div>
+                            <p className="text-[9px] text-gray-600 leading-relaxed">"El lugar es lindo pero el servicio puede mejorar."</p>
+                          </div>
+
+                          {/* Mensaje 3 — llega en tiempo real */}
+                          {newFeedback && (
+                            <div
+                              className="bg-red-50 border border-red-100 rounded-lg p-2.5"
+                              style={{ animation: 'feedbackSlideIn 400ms cubic-bezier(0.23,1,0.32,1) forwards' }}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[8px] font-bold text-red-400">★☆☆☆☆</span>
+                                  <span className="text-[8px] text-red-400 font-mono font-bold">ahora mismo</span>
+                                </div>
+                                <span className="text-[7px] bg-red-500 text-white px-1 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+                                  <span className="w-1 h-1 rounded-full bg-white animate-pulse inline-block"/>
+                                  Nuevo
+                                </span>
+                              </div>
+                              <p className="text-[9px] text-gray-700 leading-relaxed font-medium">"La atención fue muy mala, no vuelvo."</p>
+                              <p className="text-[8px] text-red-400 mt-1">📱 WhatsApp: 11 5566 7788</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                     </div>
                   </div>
 
