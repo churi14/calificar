@@ -1,6 +1,11 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -16,6 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: '/admin', icon: '📊', label: 'Resumen' },
     { href: '/admin/clientes', icon: '👥', label: 'Clientes' },
     { href: '/admin/clientes/nuevo', icon: '➕', label: 'Nuevo cliente' },
+    { href: '/admin/qr', icon: '🔲', label: 'QR Dinámicos' },
   ]
 
   return (
