@@ -1,8 +1,15 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
-export const metadata = {
-  title: '¿Cómo funciona? — Calificar',
-  description: 'Transparencia total. Entendé el modelo de servicio de Calificar en 3 niveles: hardware, software y dominio propio.',
+export const metadata: Metadata = {
+  title: 'Cómo funciona el cartel de reseñas NFC',
+  description: 'El cliente apoya el celular, califica su experiencia y si estuvo conforme va directo a Google. Si no, te escribe a vos en privado. Sin apps, sin fricciones.',
+  alternates: { canonical: 'https://calificar.com.ar/como-funciona' },
+  openGraph: {
+    title: 'Cómo funciona el sistema de reseñas NFC — Calificar',
+    description: 'Cartel NFC + QR → cliente califica → positivos van a Google, negativos te llegan a vos. Así de simple.',
+    url: 'https://calificar.com.ar/como-funciona',
+  },
 }
 
 const SECTIONS = [

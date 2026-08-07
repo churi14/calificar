@@ -2,8 +2,14 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Precios — Calificar',
-  description: 'Planes simples y transparentes para cuidar la reputación de tu local en Google.',
+  title: 'Planes y Precios',
+  description: 'Planes desde $5.000/mes para conseguir más reseñas en Google y filtrar las negativas. Sin contratos, cancelás cuando querés.',
+  alternates: { canonical: 'https://calificar.com.ar/precios' },
+  openGraph: {
+    title: 'Planes y Precios — Calificar',
+    description: 'Planes desde $5.000/mes para conseguir más reseñas en Google y filtrar las negativas.',
+    url: 'https://calificar.com.ar/precios',
+  },
 }
 
 const WA = 'https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'

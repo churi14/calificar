@@ -1,6 +1,18 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import HeroNav from '@/components/landing/HeroNav'
 import Footer from '@/components/landing/Footer'
+
+export const metadata: Metadata = {
+  title: 'Sobre Calificar — Quiénes somos',
+  description: 'Calificar es un sistema de carteles NFC + QR para conseguir más reseñas en Google. Desarrollado por En Red Consultora, empresa argentina de tecnología para pymes.',
+  alternates: { canonical: 'https://calificar.com.ar/sobre-calificar' },
+  openGraph: {
+    title: 'Sobre Calificar — Quiénes somos',
+    description: 'Nacimos para darle a los pequeños negocios el control de su reputación online. Parte de En Red Consultora.',
+    url: 'https://calificar.com.ar/sobre-calificar',
+  },
+}
 
 const WA = 'https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
 

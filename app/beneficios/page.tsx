@@ -1,6 +1,18 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import HeroNav from '@/components/landing/HeroNav'
 import Footer from '@/components/landing/Footer'
+
+export const metadata: Metadata = {
+  title: 'Beneficios — Por qué tener un cartel de reseñas NFC',
+  description: 'Descubrí por qué más reseñas en Google aumentan las visitas a tu negocio. El cartel NFC + QR de Calificar funciona solo, sin apps y en 3 segundos.',
+  alternates: { canonical: 'https://calificar.com.ar/beneficios' },
+  openGraph: {
+    title: 'Beneficios del cartel NFC de reseñas — Calificar',
+    description: 'Más reseñas en Google, clientes que eligen tu local y control sobre tu reputación online. Sin apps, sin fricción.',
+    url: 'https://calificar.com.ar/beneficios',
+  },
+}
 
 const WA = 'https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local.'
 

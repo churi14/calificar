@@ -2,8 +2,10 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Términos y Condiciones — Calificar',
-  description: 'Términos y condiciones de uso del servicio Calificar.ar',
+  title: 'Términos y Condiciones',
+  description: 'Términos y condiciones de uso del servicio Calificar.',
+  alternates: { canonical: 'https://calificar.com.ar/terminos' },
+  robots: { index: false, follow: false },
 }
 
 const FECHA = '14 de junio de 2025'
