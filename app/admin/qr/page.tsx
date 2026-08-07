@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 const BASE = 'https://calificar.com.ar'
 
@@ -14,6 +14,56 @@ type QRCode = {
   activated_at: string | null
 }
 
+function QRCanvas({ url, size = 120 }: { url: string; size?: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    import('qrcode').then(QRCode => {
+      if (canvasRef.current) {
+        QRCode.toCanvas(canvasRef.current, url, {
+          width: size,
+          margin: 1,
+          color: { dark: '#0F172A', light: '#FFFFFF' },
+        })
+      }
+    })
+  }, [url, size])
+
+  return <canvas ref={canvasRef} className="rounded-lg block"/>
+}
+
+function QRCard({ code }: { code: string }) {
+  const url = `${BASE}/g/${code}`
+
+  async function download() {
+    const QRCode = await import('qrcode')
+    const dataUrl = await QRCode.toDataURL(url, {
+      width: 800, margin: 2,
+      color: { dark: '#0F172A', light: '#FFFFFF' },
+    })
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = `qr-calificar-${code}.png`
+    a.click()
+  }
+
+  return (
+    <div className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] flex flex-col items-center gap-3 border border-gray-100">
+      <QRCanvas url={url} size={120} />
+      <div className="text-center">
+        <p className="font-mono font-bold text-gray-900 text-sm">{code}</p>
+        <p className="text-[10px] text-gray-400 mt-0.5">{BASE}/g/{code}</p>
+      </div>
+      <button
+        onClick={download}
+        className="w-full text-xs font-semibold bg-gray-900 text-white py-2 rounded-xl hover:bg-gray-700 transition-colors"
+      >
+        ↓ Descargar PNG
+      </button>
+    </div>
+  )
+}
+
 export default function AdminQRPage() {
   const [codes, setCodes] = useState<QRCode[]>([])
   const [loading, setLoading] = useState(true)
@@ -22,6 +72,7 @@ export default function AdminQRPage() {
   const [generated, setGenerated] = useState<string[] | null>(null)
   const [filter, setFilter] = useState<'all' | 'pending' | 'active'>('all')
   const [copied, setCopied] = useState<string | null>(null)
+  const [showQR, setShowQR] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -65,7 +116,7 @@ export default function AdminQRPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">QR Dinámicos</h1>
-      <p className="text-sm text-gray-400 mb-8">Códigos para venta por mayor — se activan solos cuando el comprador escanea.</p>
+      <p className="text-sm text-gray-400 mb-8">Generá los códigos, descargá los QR y programá los chips NFC con la misma URL.</p>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-8">
@@ -102,28 +153,24 @@ export default function AdminQRPage() {
             disabled={generating}
             className="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl text-sm hover:bg-gray-700 transition-colors disabled:opacity-50"
           >
-            {generating ? 'Generando…' : `Generar ${quantity} códigos`}
+            {generating ? 'Generando…' : `Generar ${quantity} código${quantity !== 1 ? 's' : ''}`}
           </button>
           {generated && (
             <span className="text-sm font-semibold text-green-600 bg-green-50 px-4 py-2.5 rounded-xl">
-              ✓ {generated.length} códigos generados
+              ✓ {generated.length} códigos listos
             </span>
           )}
         </div>
 
-        {/* Últimos generados */}
+        {/* Grid de QRs generados */}
         {generated && generated.length > 0 && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Nuevos códigos — URLs para programar en los chips:</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="mt-6">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+              QR listos para imprimir o programar en NFC:
+            </p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
               {generated.map(code => (
-                <button
-                  key={code}
-                  onClick={() => copyUrl(code)}
-                  className="font-mono text-xs bg-white border border-gray-100 rounded-lg px-3 py-1.5 text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
-                >
-                  {copied === code ? '✓ Copiado' : `calificar.com.ar/g/${code}`}
-                </button>
+                <QRCard key={code} code={code} />
               ))}
             </div>
           </div>
@@ -183,22 +230,44 @@ export default function AdminQRPage() {
 
                 {/* Acciones */}
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Mini QR expandible */}
+                  <button
+                    onClick={() => setShowQR(showQR === c.code ? null : c.code)}
+                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    {showQR === c.code ? 'Cerrar' : '🔲 QR'}
+                  </button>
                   <button
                     onClick={() => copyUrl(c.code)}
                     className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium px-3 py-1.5 rounded-lg transition-colors"
                   >
                     {copied === c.code ? '✓' : 'Copiar URL'}
                   </button>
-                  <a
-                    href={`/g/${c.code}`}
-                    target="_blank"
-                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    Ver ↗
-                  </a>
                 </div>
               </div>
             ))}
+
+            {/* QR expandido inline */}
+            {filtered.map(c => showQR === c.code ? (
+              <div key={`qr-${c.code}`} className="px-6 py-5 bg-gray-50 border-t border-gray-100 flex items-center gap-6">
+                <QRCanvas url={`${BASE}/g/${c.code}`} size={100} />
+                <div>
+                  <p className="font-mono font-bold text-gray-900 mb-1">{c.code}</p>
+                  <p className="text-xs text-gray-400 mb-3">{BASE}/g/{c.code}</p>
+                  <button
+                    onClick={async () => {
+                      const QRCode = await import('qrcode')
+                      const dataUrl = await QRCode.toDataURL(`${BASE}/g/${c.code}`, { width: 800, margin: 2 })
+                      const a = document.createElement('a')
+                      a.href = dataUrl; a.download = `qr-${c.code}.png`; a.click()
+                    }}
+                    className="text-xs font-semibold bg-gray-900 text-white px-4 py-2 rounded-xl hover:bg-gray-700 transition-colors"
+                  >
+                    ↓ Descargar PNG
+                  </button>
+                </div>
+              </div>
+            ) : null)}
           </div>
         )}
       </div>
