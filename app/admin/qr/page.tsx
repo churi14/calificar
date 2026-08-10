@@ -91,7 +91,7 @@ export default function AdminQRPage() {
   const [copied, setCopied] = useState<string | null>(null)
   const [showQR, setShowQR] = useState<string | null>(null)
   const [editing, setEditing] = useState<string | null>(null)
-  const [editState, setEditState] = useState<EditState>({ business_name: '', google_url: '', client_id: '', notes: '' })
+  const [editState, setEditState] = useState<EditState>({ business_name: '', google_url: '', client_id: '', notes: '', buyer_name: '', buyer_phone: '' })
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
