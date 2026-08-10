@@ -10,7 +10,7 @@ export async function PATCH(req: NextRequest) {
     .from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
 
-  const { code, business_name, google_url, client_id, notes } = await req.json()
+  const { code, business_name, google_url, client_id, notes, buyer_name, buyer_phone } = await req.json()
   if (!code) return NextResponse.json({ error: 'Falta code' }, { status: 400 })
 
   const serviceClient = createServiceClient()
@@ -21,6 +21,8 @@ export async function PATCH(req: NextRequest) {
   if (google_url !== undefined) updates.google_url = google_url || null
   if (client_id !== undefined) updates.client_id = client_id || null
   if (notes !== undefined) updates.notes = notes || null
+  if (buyer_name !== undefined) updates.buyer_name = buyer_name || null
+  if (buyer_phone !== undefined) updates.buyer_phone = buyer_phone || null
 
   // Si se están editando URL o nombre, marcar como activado si tiene URL
   if (google_url !== undefined) {

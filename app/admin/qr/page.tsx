@@ -16,6 +16,8 @@ type QRCode = {
   activated_at: string | null
   client_id: string | null
   notes: string | null
+  buyer_name: string | null
+  buyer_phone: string | null
   profiles: { name: string; email: string } | null
 }
 
@@ -74,6 +76,8 @@ type EditState = {
   google_url: string
   client_id: string
   notes: string
+  buyer_name: string
+  buyer_phone: string
 }
 
 export default function AdminQRPage() {
@@ -135,6 +139,8 @@ export default function AdminQRPage() {
       google_url: c.google_url ?? '',
       client_id: c.client_id ?? '',
       notes: c.notes ?? '',
+      buyer_name: c.buyer_name ?? '',
+      buyer_phone: c.buyer_phone ?? '',
     })
   }
 
@@ -275,10 +281,11 @@ export default function AdminQRPage() {
                     ) : (
                       <p className="text-sm text-gray-300 italic">Sin activar</p>
                     )}
-                    {/* Cliente asignado */}
-                    {c.profiles && (
-                      <p className="text-[11px] text-violet-600 font-semibold mt-0.5 truncate">
-                        👤 {c.profiles.name}
+                    {/* Comprador asignado */}
+                    {(c.buyer_name || c.profiles?.name) && (
+                      <p className="text-[11px] text-violet-600 font-semibold mt-0.5 truncate flex items-center gap-1">
+                        👤 {c.buyer_name || c.profiles?.name}
+                        {c.buyer_phone && <span className="text-gray-400 font-normal">· {c.buyer_phone}</span>}
                       </p>
                     )}
                   </div>
@@ -339,19 +346,27 @@ export default function AdminQRPage() {
                   <div className="px-6 py-5 bg-violet-50/60 border-t border-violet-100">
                     <p className="text-xs font-bold text-violet-700 uppercase tracking-wider mb-4">Editar código {c.code}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                      {/* Cliente */}
+
+                      {/* ── COMPRADOR ── */}
                       <div>
-                        <label className="block text-xs font-semibold text-gray-500 mb-1.5">Cliente asignado</label>
-                        <select
-                          value={editState.client_id}
-                          onChange={e => setEditState(s => ({ ...s, client_id: e.target.value }))}
-                          className="w-full text-sm bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900"
-                        >
-                          <option value="">— Sin asignar —</option>
-                          {clients.map(cl => (
-                            <option key={cl.id} value={cl.id}>{cl.name} ({cl.email})</option>
-                          ))}
-                        </select>
+                        <label className="block text-xs font-semibold text-gray-500 mb-1.5">Nombre del comprador</label>
+                        <input
+                          type="text"
+                          value={editState.buyer_name}
+                          onChange={e => setEditState(s => ({ ...s, buyer_name: e.target.value }))}
+                          placeholder="Ej: Juan García"
+                          className="w-full text-sm bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 mb-1.5">Teléfono</label>
+                        <input
+                          type="tel"
+                          value={editState.buyer_phone}
+                          onChange={e => setEditState(s => ({ ...s, buyer_phone: e.target.value }))}
+                          placeholder="Ej: 11 2233-4455"
+                          className="w-full text-sm bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
+                        />
                       </div>
 
                       {/* Nombre del negocio */}
@@ -367,20 +382,20 @@ export default function AdminQRPage() {
                       </div>
 
                       {/* URL de Google */}
-                      <div className="sm:col-span-2">
+                      <div>
                         <label className="block text-xs font-semibold text-gray-500 mb-1.5">URL de Google Maps / G.page</label>
                         <input
                           type="url"
                           value={editState.google_url}
                           onChange={e => setEditState(s => ({ ...s, google_url: e.target.value }))}
-                          placeholder="https://g.page/... o https://maps.google.com/..."
+                          placeholder="https://g.page/..."
                           className="w-full text-sm bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
                         />
                       </div>
 
                       {/* Notas internas */}
                       <div className="sm:col-span-2">
-                        <label className="block text-xs font-semibold text-gray-500 mb-1.5">Notas internas (solo admin)</label>
+                        <label className="block text-xs font-semibold text-gray-500 mb-1.5">Notas internas</label>
                         <input
                           type="text"
                           value={editState.notes}
@@ -389,6 +404,23 @@ export default function AdminQRPage() {
                           className="w-full text-sm bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
                         />
                       </div>
+
+                      {/* Cliente registrado (opcional) */}
+                      {clients.length > 0 && (
+                        <div className="sm:col-span-2 pt-1 border-t border-violet-100">
+                          <label className="block text-xs font-semibold text-gray-400 mb-1.5">Vincular a cliente registrado (opcional)</label>
+                          <select
+                            value={editState.client_id}
+                            onChange={e => setEditState(s => ({ ...s, client_id: e.target.value }))}
+                            className="w-full text-sm bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-600"
+                          >
+                            <option value="">— Sin vincular —</option>
+                            {clients.map(cl => (
+                              <option key={cl.id} value={cl.id}>{cl.name} ({cl.email})</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                     </div>
 
                     {saveError && (
