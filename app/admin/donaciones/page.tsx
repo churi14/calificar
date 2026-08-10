@@ -16,9 +16,6 @@ type Donation = {
 
 const METHOD_LABELS: Record<string, string> = {
   cafecito: '☕ Cafecito',
-  usdt: '₮ USDT',
-  eth: 'Ξ ETH',
-  btc: '₿ BTC',
 }
 
 export default function AdminDonacionesPage() {

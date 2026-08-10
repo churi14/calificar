@@ -7,12 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 const BASE = 'https://calificar.com.ar'
 const FREE_LIMIT = 30
 
-// ── REEMPLAZAR CON TUS DATOS REALES ──────────────────────────────
-const CAFECITO_URL = 'https://cafecito.app/calificar'   // ← tu URL de Cafecito
-const WALLET_USDT  = 'TU_WALLET_USDT_TRC20_AQUI'        // ← wallet USDT (TRC-20)
-const WALLET_ETH   = '0xTU_WALLET_ETH_AQUI'              // ← wallet ETH (ERC-20)
-const WALLET_BTC   = 'TU_WALLET_BTC_AQUI'                // ← wallet BTC
-// ─────────────────────────────────────────────────────────────────
+const CAFECITO_URL = 'https://cafecito.app/calificar'
 
 type QREntry = {
   code: string
@@ -58,34 +53,20 @@ function QRCanvas({ url, size = 140 }: { url: string; size?: number }) {
 // ── Modal Donación ────────────────────────────────────────────────
 function DonationModal({ onClose, onSent }: { onClose: () => void; onSent: () => void }) {
   const [step, setStep] = useState<DonateStep>('options')
-  const [method, setMethod] = useState<'cafecito' | 'usdt' | 'eth' | 'btc' | ''>('')
-  const [copiedWallet, setCopiedWallet] = useState<string | null>(null)
   const [amount, setAmount] = useState('')
   const [reference, setReference] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  const wallets: Record<string, { label: string; address: string; note: string }> = {
-    usdt: { label: 'USDT (TRC-20)', address: WALLET_USDT, note: 'Red Tron · mínimo $5 USDT' },
-    eth:  { label: 'ETH (ERC-20)',  address: WALLET_ETH,  note: 'Red Ethereum · mínimo $5 equivalente' },
-    btc:  { label: 'BTC (Bitcoin)', address: WALLET_BTC,  note: 'Red Bitcoin · mínimo $5 equivalente' },
-  }
-
-  function copyWallet(addr: string, key: string) {
-    navigator.clipboard.writeText(addr)
-    setCopiedWallet(key)
-    setTimeout(() => setCopiedWallet(null), 2000)
-  }
-
   async function handleSubmit() {
-    if (!method || !reference.trim()) { setError('Completá todos los campos'); return }
+    if (!reference.trim()) { setError('Ingresá el email que usaste en Cafecito'); return }
     const ars = parseInt(amount)
     if (!ars || ars < 5000) { setError('La donación mínima es $5.000 ARS'); return }
     setSubmitting(true); setError('')
     const res = await fetch('/api/qr/donate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ method, amount_ars: ars, reference }),
+      body: JSON.stringify({ method: 'cafecito', amount_ars: ars, reference }),
     })
     const data = await res.json()
     setSubmitting(false)
@@ -118,33 +99,15 @@ function DonationModal({ onClose, onSent }: { onClose: () => void; onSent: () =>
                 href={CAFECITO_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 w-full bg-[#FFF0D3] hover:bg-[#FFE4B0] border border-[#F5C880] text-[#8B5E00] font-bold py-3.5 px-5 rounded-2xl transition-colors mb-3"
+                className="flex items-center gap-3 w-full bg-[#FFF0D3] hover:bg-[#FFE4B0] border border-[#F5C880] text-[#8B5E00] font-bold py-4 px-5 rounded-2xl transition-colors mb-5"
               >
-                <span className="text-2xl">☕</span>
+                <span className="text-3xl">☕</span>
                 <div className="text-left">
-                  <p className="font-bold text-sm">Donar con Cafecito</p>
+                  <p className="font-bold text-sm">Donar en Cafecito</p>
                   <p className="text-xs font-normal text-[#A07020]">Mercado Pago · tarjeta · efectivo</p>
                 </div>
-                <span className="ml-auto text-sm">→</span>
+                <span className="ml-auto text-lg">→</span>
               </a>
-
-              {/* Cripto */}
-              <div className="border border-gray-100 rounded-2xl overflow-hidden mb-5">
-                {Object.entries(wallets).map(([key, w]) => (
-                  <div key={key} className="px-4 py-3 flex items-center justify-between border-b border-gray-50 last:border-0">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{w.label}</p>
-                      <p className="text-[10px] text-gray-400">{w.note}</p>
-                    </div>
-                    <button
-                      onClick={() => copyWallet(w.address, key)}
-                      className="text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0 ml-3"
-                    >
-                      {copiedWallet === key ? '✓ Copiado' : 'Copiar wallet'}
-                    </button>
-                  </div>
-                ))}
-              </div>
 
               <button
                 onClick={() => setStep('confirm')}
@@ -167,30 +130,18 @@ function DonationModal({ onClose, onSent }: { onClose: () => void; onSent: () =>
               <button onClick={onClose} className="ml-auto text-gray-400 hover:text-gray-700">✕</button>
             </div>
             <div className="px-6 py-5 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Método de pago</label>
-                <select
-                  value={method}
-                  onChange={e => setMethod(e.target.value as typeof method)}
-                  className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900"
-                >
-                  <option value="">— Seleccioná —</option>
-                  <option value="cafecito">Cafecito</option>
-                  <option value="usdt">USDT (TRC-20)</option>
-                  <option value="eth">ETH (ERC-20)</option>
-                  <option value="btc">BTC (Bitcoin)</option>
-                </select>
+              <div className="bg-[#FFF8EC] border border-[#F5C880] rounded-xl px-4 py-3 flex items-center gap-2 text-[#8B5E00] text-xs font-semibold">
+                <span>☕</span> Donación vía Cafecito
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-                  {method === 'cafecito' ? 'Email que usaste en Cafecito' : 'Hash / ID de la transacción'}
-                </label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Email que usaste en Cafecito</label>
                 <input
-                  type="text"
+                  type="email"
                   value={reference}
                   onChange={e => setReference(e.target.value)}
-                  placeholder={method === 'cafecito' ? 'ejemplo@mail.com' : '0xabc123...'}
+                  placeholder="ejemplo@mail.com"
                   className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
+                  autoFocus
                 />
               </div>
               <div>
