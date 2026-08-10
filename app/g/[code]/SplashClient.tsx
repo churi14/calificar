@@ -63,7 +63,7 @@ export default function SplashClient({
         <h1 className="text-white text-2xl font-extrabold tracking-tight mb-1">
           {businessName}
         </h1>
-        <p className="text-gray-500 text-sm">Redirigiendo a Google Maps…</p>
+        <p className="text-gray-500 text-sm">Redirigiendo…</p>
       </div>
 
       {/* Barra de progreso */}

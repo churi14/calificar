@@ -13,5 +13,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/sobre-calificar`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/preguntas-frecuentes`,            lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/links`,                           lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE}/qr`,                              lastModified: now, changeFrequency: 'weekly',  priority: 0.9 },
   ]
 }

@@ -18,6 +18,7 @@ export default function robots(): MetadataRoute.Robots {
           '/recuperar/',
           '/nueva-contrasenia/',
           '/demo/dashboard/',
+          '/qr/dashboard/',
         ],
       },
     ],
