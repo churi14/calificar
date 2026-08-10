@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 const CHARSET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+const FREE_LIMIT = 30
 
 function generateCode(length = 6): string {
   let code = ''
@@ -20,6 +21,21 @@ export async function POST(req: NextRequest) {
   if (!destination_url) return NextResponse.json({ error: 'Falta la URL de destino' }, { status: 400 })
 
   const serviceClient = createServiceClient()
+
+  // Verificar límite según plan
+  const { data: profile } = await serviceClient
+    .from('profiles').select('qr_unlimited').eq('id', user.id).single()
+  const isUnlimited = profile?.qr_unlimited === true
+
+  if (!isUnlimited) {
+    const { count } = await serviceClient
+      .from('qr_redirects')
+      .select('*', { count: 'exact', head: true })
+      .eq('owner_id', user.id)
+    if ((count ?? 0) >= FREE_LIMIT) {
+      return NextResponse.json({ error: 'Límite alcanzado', code: 'LIMIT_REACHED' }, { status: 403 })
+    }
+  }
 
   // Generar código único
   let code = generateCode()
