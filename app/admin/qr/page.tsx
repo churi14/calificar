@@ -85,6 +85,7 @@ export default function AdminQRPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(10)
+  const [generateClientId, setGenerateClientId] = useState('')
   const [generating, setGenerating] = useState(false)
   const [generated, setGenerated] = useState<string[] | null>(null)
   const [filter, setFilter] = useState<'all' | 'pending' | 'active'>('all')
@@ -116,7 +117,7 @@ export default function AdminQRPage() {
     const res = await fetch('/api/admin/qr/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ quantity }),
+      body: JSON.stringify({ quantity, client_id: generateClientId || undefined }),
     })
     const data = await res.json()
     setGenerated(data.codes ?? [])
@@ -208,6 +209,18 @@ export default function AdminQRPage() {
               className="w-20 bg-transparent text-sm font-bold text-gray-900 focus:outline-none"
             />
           </div>
+          {clients.length > 0 && (
+            <select
+              value={generateClientId}
+              onChange={e => setGenerateClientId(e.target.value)}
+              className="text-sm bg-gray-50 border-0 rounded-xl px-4 py-2.5 text-gray-600 font-medium focus:outline-none focus:ring-2 focus:ring-violet-300"
+            >
+              <option value="">— Sin cliente —</option>
+              {clients.map(cl => (
+                <option key={cl.id} value={cl.id}>{cl.name}</option>
+              ))}
+            </select>
+          )}
           <button
             onClick={handleGenerate}
             disabled={generating}

@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
+  const searchParams = useSearchParams()
+  const next = searchParams.get('next') ?? '/onboarding'
   const [name, setName]       = useState('')
   const [email, setEmail]     = useState('')
   const [password, setPass]   = useState('')
@@ -21,7 +24,7 @@ export default function RegisterPage() {
       email, password,
       options: {
         data: { name },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'}/auth/callback?next=/onboarding`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'}/auth/callback?next=${encodeURIComponent(next)}`,
       }
     })
     if (error) { setError(error.message); setLoading(false) }

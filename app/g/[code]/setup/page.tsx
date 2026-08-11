@@ -1,18 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+
+type Step = 'auth-check' | 'choose' | 'form' | 'done'
 
 export default function SetupPage() {
   const params = useParams()
   const router = useRouter()
   const code = (params.code as string).toUpperCase()
 
+  const [step, setStep] = useState<Step>('auth-check')
+  const [userId, setUserId] = useState<string | null>(null)
   const [businessName, setBusinessName] = useState('')
   const [googleUrl, setGoogleUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [done, setDone] = useState(false)
+
+  // Verificar sesión al cargar
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setUserId(data.user.id)
+        setStep('form')
+      } else {
+        setStep('choose')
+      }
+    })
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -27,7 +44,12 @@ export default function SetupPage() {
     const res = await fetch('/api/g/activate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, business_name: businessName.trim(), google_url: googleUrl.trim() }),
+      body: JSON.stringify({
+        code,
+        business_name: businessName.trim(),
+        google_url: googleUrl.trim(),
+        owner_id: userId ?? undefined,
+      }),
     })
     const data = await res.json()
 
@@ -37,11 +59,21 @@ export default function SetupPage() {
       return
     }
 
-    setDone(true)
+    setStep('done')
     setTimeout(() => router.push(`/g/${code}`), 2500)
   }
 
-  if (done) {
+  // ─── Loading ───────────────────────────────────────────────
+  if (step === 'auth-check') {
+    return (
+      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // ─── Hecho ─────────────────────────────────────────────────
+  if (step === 'done') {
     return (
       <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center px-6 text-center">
         <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-6">
@@ -50,15 +82,75 @@ export default function SetupPage() {
           </svg>
         </div>
         <h1 className="text-white text-2xl font-extrabold mb-2">¡Cartel activado!</h1>
-        <p className="text-gray-400 text-sm">Probando el redirect a Google ahora…</p>
+        <p className="text-gray-400 text-sm mb-4">Probando el redirect ahora…</p>
+        {userId && (
+          <p className="text-gray-600 text-xs">
+            Podés gestionar tu QR desde{' '}
+            <a href="/qr/dashboard" className="text-[#FBCAD8] underline underline-offset-2">tu panel</a>
+          </p>
+        )}
       </div>
     )
   }
 
+  // ─── Elegir: crear cuenta o iniciar sesión ─────────────────
+  if (step === 'choose') {
+    const next = encodeURIComponent(`/g/${code}/setup`)
+    return (
+      <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center px-6 py-12">
+        <div className="mb-8 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBCAD8">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
+          <h1 className="text-white text-xl font-extrabold mb-1">Activá tu cartel</h1>
+          <p className="text-gray-500 text-sm">Código: <span className="text-gray-300 font-mono font-bold">{code}</span></p>
+        </div>
+
+        <div className="w-full max-w-sm space-y-3">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
+            <p className="text-white font-bold mb-1">¿Primera vez?</p>
+            <p className="text-gray-500 text-xs mb-4">Creá una cuenta gratis para activar tu cartel y poder cambiar el link cuando quieras.</p>
+            <a
+              href={`/register?next=${next}`}
+              className="block w-full bg-[#FBCAD8] text-[#0F172A] font-extrabold py-3 rounded-xl text-sm hover:bg-white transition-colors"
+            >
+              Crear cuenta gratis
+            </a>
+          </div>
+
+          <div className="text-center">
+            <span className="text-gray-600 text-xs">¿Ya tenés cuenta?{' '}
+              <a href={`/login?next=${next}`} className="text-gray-400 underline underline-offset-2 hover:text-white transition-colors">
+                Iniciar sesión
+              </a>
+            </span>
+          </div>
+
+          {/* Activar sin cuenta */}
+          <div className="text-center pt-2">
+            <button
+              onClick={() => setStep('form')}
+              className="text-gray-700 text-xs hover:text-gray-500 transition-colors underline underline-offset-2"
+            >
+              Activar sin crear cuenta
+            </button>
+          </div>
+        </div>
+
+        <div className="absolute bottom-8 left-0 right-0 text-center">
+          <a href="https://calificar.com.ar" className="text-xs text-gray-700 hover:text-gray-500 transition-colors">
+            ★ Calificar
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  // ─── Formulario de activación ──────────────────────────────
   return (
     <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center px-6 py-12">
-
-      {/* Logo */}
       <div className="mb-8 text-center">
         <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="#FBCAD8">
@@ -67,11 +159,12 @@ export default function SetupPage() {
         </div>
         <h1 className="text-white text-xl font-extrabold mb-1">Activá tu cartel</h1>
         <p className="text-gray-500 text-sm">Código: <span className="text-gray-300 font-mono font-bold">{code}</span></p>
+        {userId && (
+          <p className="text-green-500 text-xs mt-1.5 font-medium">✓ Sesión iniciada — el cartel quedará en tu cuenta</p>
+        )}
       </div>
 
-      {/* Formulario */}
       <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-
         <div>
           <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             Nombre de tu negocio
@@ -98,7 +191,7 @@ export default function SetupPage() {
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#FBCAD8]/50 transition"
           />
           <p className="text-[11px] text-gray-600 mt-1.5">
-            Encontralo en Google Business Profile → Reseñas → "Obtener más reseñas"
+            Encontralo en Google Business Profile → Reseñas → &quot;Obtener más reseñas&quot;
           </p>
         </div>
 
@@ -114,12 +207,6 @@ export default function SetupPage() {
           {saving ? 'Activando…' : 'Activar cartel ★'}
         </button>
       </form>
-
-      {/* ¿Ya lo activaste? */}
-      <p className="text-gray-600 text-xs mt-8 text-center">
-        ¿Ya activaste este cartel?{' '}
-        <a href={`/g/${code}`} className="text-gray-400 underline underline-offset-2">Ir al redirect</a>
-      </p>
 
       <div className="absolute bottom-8 left-0 right-0 text-center">
         <a href="https://calificar.com.ar" className="text-xs text-gray-700 hover:text-gray-500 transition-colors">

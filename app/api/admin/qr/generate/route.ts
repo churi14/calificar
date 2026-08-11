@@ -25,13 +25,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
 
-  const { quantity = 10 } = await req.json()
+  const { quantity = 10, client_id } = await req.json()
   const qty = Math.min(Math.max(parseInt(quantity), 1), 500)
 
   const serviceClient = createServiceClient()
 
   // Generar códigos únicos
-  const codes: { code: string }[] = []
+  const codes: { code: string; client_id?: string }[] = []
   let attempts = 0
   while (codes.length < qty && attempts < qty * 5) {
     attempts++
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       .select('code')
       .eq('code', code)
       .single()
-    if (!data) codes.push({ code })
+    if (!data) codes.push({ code, ...(client_id ? { client_id } : {}) })
   }
 
   const { data, error } = await serviceClient
