@@ -109,34 +109,38 @@ export default function SetupPage() {
         </div>
 
         <div className="w-full max-w-sm space-y-3">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
-            <p className="text-white font-bold mb-1">¿Primera vez?</p>
-            <p className="text-gray-500 text-xs mb-4">Creá una cuenta gratis para activar tu cartel y poder cambiar el link cuando quieras.</p>
-            <a
-              href={`/register?next=${next}`}
-              className="block w-full bg-[#FBCAD8] text-[#0F172A] font-extrabold py-3 rounded-xl text-sm hover:bg-white transition-colors"
-            >
-              Crear cuenta gratis
-            </a>
-          </div>
+          <a
+            href={`/register?next=${next}`}
+            className="flex items-center gap-4 bg-[#FBCAD8] text-[#0F172A] rounded-2xl px-5 py-4 hover:bg-white transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#0F172A]/10 flex items-center justify-center flex-shrink-0 text-lg">✨</div>
+            <div className="text-left">
+              <p className="font-extrabold text-sm leading-tight">Crear cuenta gratis</p>
+              <p className="text-[11px] text-[#0F172A]/60 mt-0.5 leading-tight">Activá y cambiá el link cuando quieras</p>
+            </div>
+          </a>
 
-          <div className="text-center">
-            <span className="text-gray-600 text-xs">¿Ya tenés cuenta?{' '}
-              <a href={`/login?next=${next}`} className="text-gray-400 underline underline-offset-2 hover:text-white transition-colors">
-                Iniciar sesión
-              </a>
-            </span>
-          </div>
+          <a
+            href={`/login?next=${next}`}
+            className="flex items-center gap-4 bg-white/8 border border-white/10 text-white rounded-2xl px-5 py-4 hover:bg-white/12 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 text-lg">👤</div>
+            <div className="text-left">
+              <p className="font-extrabold text-sm leading-tight">Ya tengo cuenta</p>
+              <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Iniciá sesión para vincular el cartel</p>
+            </div>
+          </a>
 
-          {/* Activar sin cuenta */}
-          <div className="text-center pt-2">
-            <button
-              onClick={() => setStep('form')}
-              className="text-gray-700 text-xs hover:text-gray-500 transition-colors underline underline-offset-2"
-            >
-              Activar sin crear cuenta
-            </button>
-          </div>
+          <button
+            onClick={() => setStep('form')}
+            className="flex items-center gap-4 w-full bg-white/5 border border-white/8 text-gray-400 rounded-2xl px-5 py-4 hover:bg-white/8 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 text-lg">⚡</div>
+            <div className="text-left">
+              <p className="font-extrabold text-sm leading-tight text-gray-300">Activar sin cuenta</p>
+              <p className="text-[11px] text-gray-600 mt-0.5 leading-tight">Rápido, sin registro</p>
+            </div>
+          </button>
         </div>
 
         <div className="absolute bottom-8 left-0 right-0 text-center">
