@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function RegisterPage() {
+function RegisterForm() {
   const searchParams = useSearchParams()
   const next = searchParams.get('next') ?? '/onboarding'
   const [name, setName]       = useState('')
@@ -31,7 +31,6 @@ export default function RegisterPage() {
     else setDone(true)
   }
 
-  // Pantalla de confirmación
   if (done) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -116,3 +115,10 @@ export default function RegisterPage() {
   )
 }
 
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  )
+}
