@@ -35,9 +35,10 @@ export default function SetupPage() {
     e.preventDefault()
     setError('')
 
-    if (!googleUrl.includes('google') && !googleUrl.includes('g.page') && !googleUrl.includes('maps')) {
-      setError('El link debe ser de Google Maps o Google Business.')
-      return
+    // Auto-agregar https:// si no tiene protocolo
+    let url = googleUrl.trim()
+    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url
     }
 
     setSaving(true)
@@ -47,7 +48,7 @@ export default function SetupPage() {
       body: JSON.stringify({
         code,
         business_name: businessName.trim(),
-        google_url: googleUrl.trim(),
+        google_url: url,
         owner_id: userId ?? undefined,
       }),
     })
@@ -190,12 +191,12 @@ export default function SetupPage() {
             value={googleUrl}
             onChange={e => setGoogleUrl(e.target.value)}
             required
-            type="url"
-            placeholder="https://g.page/r/tu-negocio/review"
+            type="text"
+            placeholder="google.com/maps/... o cualquier link"
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#FBCAD8]/50 transition"
           />
           <p className="text-[11px] text-gray-600 mt-1.5">
-            Encontralo en Google Business Profile → Reseñas → &quot;Obtener más reseñas&quot;
+            Podés pegar cualquier link — Google Maps, tu web, Instagram, WhatsApp, etc.
           </p>
         </div>
 

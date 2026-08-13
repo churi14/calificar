@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 export async function POST(req: NextRequest) {
   const { code, business_name, google_url, owner_id } = await req.json()
 
-  if (!code || !business_name || !google_url) {
+  if (!code || !business_name || !google_url || typeof google_url !== 'string') {
     return NextResponse.json({ error: 'Faltan datos.' }, { status: 400 })
   }
 
