@@ -2,11 +2,12 @@
 
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 function RegisterForm() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const next = searchParams.get('next') ?? '/onboarding'
   const [name, setName]       = useState('')
   const [email, setEmail]     = useState('')
@@ -20,7 +21,7 @@ function RegisterForm() {
     if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres'); return }
     setLoading(true); setError('')
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
         data: { name },
@@ -28,7 +29,13 @@ function RegisterForm() {
       }
     })
     if (error) { setError(error.message); setLoading(false) }
-    else setDone(true)
+    else if (data.session) {
+      // Email confirmation desactivado — sesión inmediata, redirigir directo
+      router.push(next)
+    } else {
+      // Email confirmation activado — mostrar pantalla de email
+      setDone(true)
+    }
   }
 
   if (done) {
