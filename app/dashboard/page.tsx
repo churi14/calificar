@@ -36,6 +36,13 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(5)
 
+  const { data: myQRs } = await supabase
+    .from('qr_redirects')
+    .select('code, business_name, google_url, activated, scan_count')
+    .eq('owner_id', user!.id)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
   const totalScans    = businesses?.reduce((s, b) => s + (b.total_scans ?? 0), 0) ?? 0
   const totalPositive = businesses?.reduce((s, b) => s + (b.positive_scans ?? 0), 0) ?? 0
   const totalNegative = businesses?.reduce((s, b) => s + (b.negative_scans ?? 0), 0) ?? 0
@@ -68,6 +75,34 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* QRS DINÁMICOS */}
+      {myQRs && myQRs.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-bold text-gray-900">Mis QRs dinámicos</h2>
+              <p className="text-xs text-gray-400 mt-0.5">{myQRs.length} cartel{myQRs.length !== 1 ? 'es' : ''} activo{myQRs.length !== 1 ? 's' : ''}</p>
+            </div>
+            <Link href="/qr/dashboard" className="text-xs bg-violet-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-violet-700 transition-colors">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {myQRs.map(qr => (
+              <div key={qr.code} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-violet-200 transition-colors">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm ${qr.activated ? 'bg-green-100' : 'bg-orange-100'}`}>
+                  {qr.activated ? '✓' : '○'}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-gray-900 truncate">{qr.business_name ?? qr.code}</p>
+                  <p className="text-[11px] text-gray-400">{qr.scan_count ?? 0} scans · <span className="font-mono">{qr.code}</span></p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* MIS LOCALES */}

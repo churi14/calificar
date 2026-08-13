@@ -24,6 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     { href: '/dashboard', icon: '📊', label: 'Inicio' },
     { href: '/dashboard/negocios', icon: '🏪', label: 'Mis locales' },
     { href: '/dashboard/feedback', icon: '💬', label: 'Feedback recibido' },
+    { href: '/qr/dashboard', icon: '🔲', label: 'QRs dinámicos' },
     ...(profile?.role === 'admin' ? [{ href: '/admin', icon: '⚙️', label: 'Admin' }] : [])
   ]
 
