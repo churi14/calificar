@@ -111,7 +111,7 @@ export default function SetupPage() {
 
         <div className="w-full max-w-sm space-y-3">
           <a
-            href={`/register?next=${next}`}
+            href={`/qr/register?next=${next}`}
             className="flex items-center gap-4 bg-[#FBCAD8] text-[#0F172A] rounded-2xl px-5 py-4 hover:bg-white transition-colors"
           >
             <div className="w-10 h-10 rounded-xl bg-[#0F172A]/10 flex items-center justify-center flex-shrink-0 text-lg">✨</div>
@@ -122,7 +122,7 @@ export default function SetupPage() {
           </a>
 
           <a
-            href={`/login?next=${next}`}
+            href={`/qr/login?next=${next}`}
             className="flex items-center gap-4 bg-white/8 border border-white/10 text-white rounded-2xl px-5 py-4 hover:bg-white/12 transition-colors"
           >
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 text-lg">👤</div>

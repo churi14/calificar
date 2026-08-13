@@ -19,6 +19,8 @@ export default function robots(): MetadataRoute.Robots {
           '/nueva-contrasenia/',
           '/demo/dashboard/',
           '/qr/dashboard/',
+          '/qr/login/',
+          '/qr/register/',
         ],
       },
     ],
