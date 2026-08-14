@@ -20,6 +20,99 @@ type QREntry = {
 
 type DonateStep = 'options' | 'confirm' | 'sent'
 
+// ── Vista Vendedor (sub-usuario) ─────────────────────────────────
+function VendedorView({ userEmail }: { userEmail: string }) {
+  const [codes, setCodes] = useState<QREntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [parentName, setParentName] = useState('')
+
+  useEffect(() => {
+    fetch('/api/qr/my-codes').then(r => r.json()).then(d => {
+      setCodes(d.codes ?? [])
+      setParentName(d.parentName ?? '')
+      setLoading(false)
+    })
+  }, [])
+
+  const totalScans = codes.reduce((s, c) => s + (c.scan_count ?? 0), 0)
+  const activated = codes.filter(c => c.activated).length
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = '/qr'
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
+        <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" />
+            <span className="font-extrabold text-lg text-gray-900">Calificar</span>
+            <span className="text-xs font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full ml-1">Vendedor</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-400 hidden sm:block">{userEmail}</span>
+            <button onClick={handleSignOut} className="text-sm text-gray-400 hover:text-gray-700 font-medium">Salir</button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-3xl mx-auto px-6 py-10">
+        <div className="mb-8">
+          <h1 className="text-2xl font-extrabold text-gray-900">Mis activaciones</h1>
+          {parentName && <p className="text-sm text-gray-400 mt-0.5">Equipo de {parentName}</p>}
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          {[
+            { label: 'QRs activados', value: activated, icon: '✅' },
+            { label: 'Total scans', value: totalScans, icon: '📱' },
+            { label: 'QRs asignados', value: codes.length, icon: '🔲' },
+          ].map(s => (
+            <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
+              <div className="text-2xl mb-1">{s.icon}</div>
+              <p className="text-3xl font-extrabold text-gray-900">{s.value}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Lista */}
+        {loading ? (
+          <div className="text-center py-20 text-gray-400 text-sm">Cargando…</div>
+        ) : codes.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="text-5xl mb-4">🔲</div>
+            <p className="font-bold text-gray-900 mb-2">Sin QRs asignados todavía</p>
+            <p className="text-gray-400 text-sm">Cuando actives un cartel aparece acá.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {codes.map(c => (
+              <div key={c.code} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-bold ${c.activated ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-600'}`}>
+                  {c.activated ? '✓' : '○'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm truncate">{c.label ?? c.code}</p>
+                  <p className="text-xs text-gray-400 font-mono">{c.code}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="font-extrabold text-gray-900">{c.scan_count}</p>
+                  <p className="text-[10px] text-gray-400">scans</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}
+
 type TeamMember = {
   id: string
   name: string | null
@@ -291,6 +384,7 @@ export default function QRDashboard() {
   const [copied, setCopied] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [showDonation, setShowDonation] = useState(false)
+  const [isVendedor, setIsVendedor] = useState<boolean | null>(null)
   const [members, setMembers] = useState<TeamMember[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
   const [expandedMember, setExpandedMember] = useState<string | null>(null)
@@ -315,9 +409,16 @@ export default function QRDashboard() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { window.location.href = '/login'; return }
       setUserEmail(data.user.email ?? '')
+      // Detectar si es sub-usuario (vendedor)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('parent_user_id')
+        .eq('id', data.user.id)
+        .single()
+      setIsVendedor(!!(profile?.parent_user_id))
     })
     load()
     loadMembers()
@@ -388,6 +489,10 @@ export default function QRDashboard() {
 
   const canCreate = unlimited || codes.length < FREE_LIMIT
   const remaining = FREE_LIMIT - codes.length
+
+  // Sub-usuario: mostrar vista restringida
+  if (isVendedor === null) return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-400 text-sm">Cargando…</div>
+  if (isVendedor) return <VendedorView userEmail={userEmail} />
 
   return (
     <div className="min-h-screen bg-gray-50">
