@@ -20,6 +20,91 @@ type QREntry = {
 
 type DonateStep = 'options' | 'confirm' | 'sent'
 
+type TeamMember = {
+  id: string
+  name: string | null
+  email: string
+  created_at: string
+  qr_count: number
+  activated_count: number
+  total_scans: number
+  qrs: Array<{ code: string; business_name: string | null; activated: boolean; scan_count: number }>
+}
+
+// ── Modal Agregar Miembro ────────────────────────────────────────
+function AddMemberModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit() {
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setError('Completá todos los campos'); return
+    }
+    if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres'); return }
+    setLoading(true); setError('')
+    const res = await fetch('/api/qr/team/create-member', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    })
+    const data = await res.json()
+    setLoading(false)
+    if (!res.ok) { setError(data.error ?? 'Error al crear el usuario'); return }
+    onCreated()
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in slide-in-from-bottom-8 duration-300">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+          <h2 className="font-bold text-gray-900">Agregar vendedor</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors">✕</button>
+        </div>
+        <div className="px-6 py-5 space-y-4">
+          <p className="text-xs text-gray-500">El vendedor va a poder activar QRs en su propia cuenta y vos vas a ver sus estadísticas acá.</p>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Nombre</label>
+            <input
+              type="text" value={name} onChange={e => setName(e.target.value)} autoFocus
+              placeholder="Pablo López"
+              className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Email</label>
+            <input
+              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="pablo@mail.com"
+              className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">Contraseña</label>
+            <input
+              type="password" value={password} onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+              placeholder="Mínimo 6 caracteres"
+              className="w-full text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
+            />
+          </div>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <button
+            onClick={handleSubmit} disabled={loading}
+            className="w-full bg-violet-600 text-white font-bold py-3 rounded-2xl hover:bg-violet-700 transition-colors disabled:opacity-50 text-sm"
+          >
+            {loading ? 'Creando…' : 'Crear vendedor'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Toast ────────────────────────────────────────────────────────
 function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t) }, [onClose])
@@ -206,6 +291,17 @@ export default function QRDashboard() {
   const [copied, setCopied] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [showDonation, setShowDonation] = useState(false)
+  const [members, setMembers] = useState<TeamMember[]>([])
+  const [showAddMember, setShowAddMember] = useState(false)
+  const [expandedMember, setExpandedMember] = useState<string | null>(null)
+
+  const loadMembers = useCallback(async () => {
+    const res = await fetch('/api/qr/team/members')
+    if (res.ok) {
+      const data = await res.json()
+      setMembers(data.members ?? [])
+    }
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -224,7 +320,8 @@ export default function QRDashboard() {
       setUserEmail(data.user.email ?? '')
     })
     load()
-  }, [load])
+    loadMembers()
+  }, [load, loadMembers])
 
   async function handleCreate() {
     if (!newUrl.trim()) { setCreateError('Ingresá la URL de destino'); return }
@@ -335,6 +432,13 @@ export default function QRDashboard() {
               </button>
             )}
             <button
+              onClick={() => setShowAddMember(true)}
+              className="text-sm text-gray-500 font-semibold hover:text-gray-800 transition-colors hidden sm:block"
+              title="Agregar vendedor"
+            >
+              👥
+            </button>
+            <button
               onClick={() => { setShowCreate(true); setCreateError('') }}
               disabled={!canCreate}
               className="bg-violet-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-violet-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -401,6 +505,94 @@ export default function QRDashboard() {
               </button>
               <button onClick={() => setShowCreate(false)} className="text-sm text-gray-400 hover:text-gray-600 transition-colors">Cancelar</button>
             </div>
+          </div>
+        )}
+
+        {/* Mi equipo */}
+        {members.length > 0 && (
+          <div className="mb-8 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h2 className="font-bold text-gray-900">Mi equipo</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{members.length} vendedor{members.length !== 1 ? 'es' : ''}</p>
+              </div>
+              <button
+                onClick={() => setShowAddMember(true)}
+                className="bg-violet-600 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-violet-700 transition-colors"
+              >
+                + Agregar
+              </button>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {members.map(m => (
+                <div key={m.id}>
+                  <button
+                    onClick={() => setExpandedMember(expandedMember === m.id ? null : m.id)}
+                    className="w-full flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0 font-bold text-violet-600 text-sm">
+                      {(m.name ?? m.email).charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{m.name ?? '—'}</p>
+                      <p className="text-xs text-gray-400 truncate">{m.email}</p>
+                    </div>
+                    <div className="flex items-center gap-6 flex-shrink-0">
+                      <div className="text-center hidden sm:block">
+                        <p className="font-extrabold text-lg text-gray-900">{m.activated_count}</p>
+                        <p className="text-[10px] text-gray-400">activados</p>
+                      </div>
+                      <div className="text-center hidden sm:block">
+                        <p className="font-extrabold text-lg text-gray-900">{m.total_scans}</p>
+                        <p className="text-[10px] text-gray-400">scans</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-extrabold text-lg text-gray-900">{m.qr_count}</p>
+                        <p className="text-[10px] text-gray-400">QRs</p>
+                      </div>
+                      <span className="text-gray-300 text-sm">{expandedMember === m.id ? '▲' : '▼'}</span>
+                    </div>
+                  </button>
+                  {expandedMember === m.id && m.qrs.length > 0 && (
+                    <div className="px-6 pb-4 bg-gray-50">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-3">
+                        {m.qrs.map(q => (
+                          <div key={q.code} className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 p-3">
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] flex-shrink-0 ${q.activated ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-600'}`}>
+                              {q.activated ? '✓' : '○'}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-gray-900 truncate">{q.business_name ?? q.code}</p>
+                              <p className="text-[10px] text-gray-400">{q.scan_count} scans · <span className="font-mono">{q.code}</span></p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {m.qrs.length === 0 && (
+                        <p className="text-xs text-gray-400 py-3 text-center">Sin QRs todavía</p>
+                      )}
+                    </div>
+                  )}
+                  {expandedMember === m.id && m.qrs.length === 0 && (
+                    <div className="px-6 pb-4 bg-gray-50">
+                      <p className="text-xs text-gray-400 py-3 text-center">Sin QRs todavía</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Botón agregar miembro si no hay ninguno */}
+        {members.length === 0 && (
+          <div className="mb-8 flex justify-end">
+            <button
+              onClick={() => setShowAddMember(true)}
+              className="flex items-center gap-2 text-sm text-violet-600 font-semibold hover:text-violet-800 transition-colors"
+            >
+              👥 Agregar vendedor al equipo
+            </button>
           </div>
         )}
 
@@ -493,6 +685,14 @@ export default function QRDashboard() {
 
       {/* Toast */}
       {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
+
+      {/* Modal agregar vendedor */}
+      {showAddMember && (
+        <AddMemberModal
+          onClose={() => setShowAddMember(false)}
+          onCreated={() => { loadMembers(); setToast('Vendedor creado ✓') }}
+        />
+      )}
 
       {/* Modal donación */}
       {showDonation && (
