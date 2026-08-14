@@ -25,10 +25,25 @@ export async function POST(req: NextRequest) {
   })
 
   if (authError) {
-    const msg = authError.message.includes('already registered')
-      ? 'Ya existe una cuenta con ese email'
-      : authError.message
-    return NextResponse.json({ error: msg }, { status: 400 })
+    const isAlreadyExists =
+      authError.message.toLowerCase().includes('already') ||
+      authError.message.toLowerCase().includes('registered') ||
+      authError.message.toLowerCase().includes('exists')
+
+    if (isAlreadyExists) {
+      // El usuario ya existe — buscarlo y vincularlo al equipo
+      const { data: { users } } = await service.auth.admin.listUsers({ perPage: 1000 })
+      const existing = users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
+      if (existing) {
+        await service
+          .from('profiles')
+          .update({ parent_user_id: user.id, ...(name ? { name } : {}) })
+          .eq('id', existing.id)
+        return NextResponse.json({ ok: true, user_id: existing.id, linked: true })
+      }
+    }
+
+    return NextResponse.json({ error: 'No se pudo crear el usuario. Verificá los datos.' }, { status: 400 })
   }
 
   // Vincular al padre (puede tardar un momento en crearse el perfil por el trigger)
