@@ -30,7 +30,6 @@ const PRODUCTS: Product[] = [
     icon: '🪧',
     badge: 'Más vendido',
     photos: [
-      '/mayorista/a5-3.png',
       '/mayorista/a5-4.jpg',
       '/mayorista/a5-1.png',
     ],
