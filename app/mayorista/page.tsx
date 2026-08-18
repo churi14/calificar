@@ -30,8 +30,8 @@ const PRODUCTS: Product[] = [
     icon: '🪧',
     badge: 'Más vendido',
     photos: [
-      '/mayorista/a5-2.png',
       '/mayorista/a5-3.png',
+      '/mayorista/a5-4.jpg',
       '/mayorista/a5-1.png',
     ],
     tiers: [
@@ -95,7 +95,6 @@ const PRODUCTS: Product[] = [
     photos: [
       '/mayorista/tarjeta-1.jpg',
       '/mayorista/tarjeta-2.jpg',
-      '/mayorista/tarjeta-3.jpg',
     ],
     name: 'Tarjeta para mozos',
     size: 'Tamaño tarjeta',
