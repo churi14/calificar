@@ -21,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
           '/qr/dashboard/',
           '/qr/login/',
           '/qr/register/',
+          '/g/',
         ],
       },
     ],
