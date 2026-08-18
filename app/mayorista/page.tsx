@@ -151,8 +151,31 @@ export default function MayoristaPage() {
         </p>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-gray-500">
           <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-green-400 rounded-full inline-block"></span>Stock disponible</span>
-          <span>·</span><span>Envío a todo el país</span>
+          <span>·</span><span>Entrega en 24 hs</span>
           <span>·</span><span>Pago por transferencia</span>
+        </div>
+
+        {/* Info logística */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
+          {[
+            { icon: '📍', title: 'Retiro en Merlo', desc: 'Gratis. Coordinamos día y horario por WhatsApp.' },
+            { icon: '🚚', title: 'Envío a domicilio', desc: 'Disponible con costo según destino. Consultá.' },
+            { icon: '⏱️', title: 'Entrega en 24 hs', desc: 'De un día para el otro una vez confirmado el pedido.' },
+          ].map(i => (
+            <div key={i.title} className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-left">
+              <div className="text-xl mb-2">{i.icon}</div>
+              <p className="font-bold text-sm text-white mb-0.5">{i.title}</p>
+              <p className="text-xs text-gray-400">{i.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Aviso anticipo */}
+        <div className="mt-4 max-w-3xl mx-auto bg-amber-400/10 border border-amber-400/30 rounded-2xl px-5 py-3 flex items-center gap-3 text-left">
+          <span className="text-xl flex-shrink-0">💳</span>
+          <p className="text-sm text-amber-200">
+            <strong>Primer pedido:</strong> se requiere el 50% del total por anticipado para confirmar la producción.
+          </p>
         </div>
       </section>
 
