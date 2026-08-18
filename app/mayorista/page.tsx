@@ -30,6 +30,8 @@ const PRODUCTS: Product[] = [
     icon: '🪧',
     badge: 'Más vendido',
     photos: [
+      '/mayorista/a5-2.png',
+      '/mayorista/a5-3.png',
       '/mayorista/a5-1.png',
     ],
     tiers: [
@@ -280,6 +282,9 @@ export default function MayoristaPage() {
                       </button>
                     ))}
                   </div>
+                  <p className="text-[10px] text-gray-600 mt-2">
+                    * Las imágenes son de muestra. Los QR y datos de cada cartel se personalizan para tu negocio. No representan errores de impresión.
+                  </p>
                 </div>
               )}
 
