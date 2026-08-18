@@ -189,35 +189,28 @@ export default function MayoristaPage() {
           <span>·</span><span>Pago por transferencia</span>
         </div>
 
-        {/* Aviso personalización */}
-        <div className="mt-8 max-w-3xl mx-auto bg-violet-500/10 border border-violet-400/30 rounded-2xl px-5 py-4 flex items-start gap-3 text-left">
-          <span className="text-xl flex-shrink-0">🎨</span>
-          <p className="text-sm text-violet-200 leading-relaxed">
-            <strong className="text-white">Diseño 100% personalizable.</strong> Los carteles se imprimen con el diseño de tu marca, colores, logo e información de tu negocio. Coordinamos el arte con vos antes de imprimir.
+        {/* Aviso anticipo — bien visible */}
+        <div className="mt-8 max-w-3xl mx-auto bg-yellow-400 rounded-2xl px-5 py-4 flex items-center gap-3 text-left">
+          <span className="text-xl flex-shrink-0">💳</span>
+          <p className="text-sm text-yellow-900 font-semibold leading-relaxed">
+            <strong className="font-extrabold">Primer pedido:</strong> se requiere el 50% del total por anticipado para confirmar la producción.
           </p>
         </div>
 
-        {/* Info logística */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
+        {/* Info logística + diseño */}
+        <div className="mt-4 max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-4 gap-3">
           {[
+            { icon: '🎨', title: 'Diseño personalizable', desc: 'Tu marca, colores y logo. Coordinamos el arte antes de imprimir.' },
             { icon: '📍', title: 'Retiro en Merlo', desc: 'Gratis. Coordinamos día y horario por WhatsApp.' },
             { icon: '🚚', title: 'Envío a domicilio', desc: 'Disponible con costo según destino. Consultá.' },
             { icon: '⏱️', title: 'Entrega en 24 hs', desc: 'De un día para el otro una vez confirmado el pedido.' },
           ].map(i => (
-            <div key={i.title} className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-left">
+            <div key={i.title} className="bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-left">
               <div className="text-xl mb-2">{i.icon}</div>
-              <p className="font-bold text-sm text-white mb-0.5">{i.title}</p>
-              <p className="text-xs text-gray-400">{i.desc}</p>
+              <p className="font-bold text-xs text-white mb-0.5">{i.title}</p>
+              <p className="text-[11px] text-gray-400">{i.desc}</p>
             </div>
           ))}
-        </div>
-
-        {/* Aviso anticipo */}
-        <div className="mt-4 max-w-3xl mx-auto bg-amber-400/10 border border-amber-400/30 rounded-2xl px-5 py-3 flex items-center gap-3 text-left">
-          <span className="text-xl flex-shrink-0">💳</span>
-          <p className="text-sm text-amber-200">
-            <strong>Primer pedido:</strong> se requiere el 50% del total por anticipado para confirmar la producción.
-          </p>
         </div>
       </section>
 
