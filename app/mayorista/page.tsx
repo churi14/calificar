@@ -189,6 +189,14 @@ export default function MayoristaPage() {
           <span>·</span><span>Pago por transferencia</span>
         </div>
 
+        {/* Aviso personalización */}
+        <div className="mt-8 max-w-3xl mx-auto bg-violet-500/10 border border-violet-400/30 rounded-2xl px-5 py-4 flex items-start gap-3 text-left">
+          <span className="text-xl flex-shrink-0">🎨</span>
+          <p className="text-sm text-violet-200 leading-relaxed">
+            <strong className="text-white">Diseño 100% personalizable.</strong> Los carteles se imprimen con el diseño de tu marca, colores, logo e información de tu negocio. Coordinamos el arte con vos antes de imprimir.
+          </p>
+        </div>
+
         {/* Info logística */}
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
           {[
