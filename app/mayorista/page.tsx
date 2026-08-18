@@ -16,19 +16,8 @@ type Product = {
   tiers: Tier[]
   icon: string
   badge?: string
+  photos?: string[] // Agregá las URLs de fotos acá, ej: ['/mayorista/a5-1.jpg', '/mayorista/a5-2.jpg']
 }
-
-// ── Agregá las URLs de tus fotos acá ──────────────────────────────
-// Podés subir imágenes a /public/mayorista/ y referenciarlas como '/mayorista/foto1.jpg'
-// O usar URLs externas (Google Drive compartido, etc.)
-const PHOTOS: string[] = [
-  // '/mayorista/foto1.jpg',
-  // '/mayorista/foto2.jpg',
-  // '/mayorista/foto3.jpg',
-  // '/mayorista/foto4.jpg',
-  // '/mayorista/foto5.jpg',
-  // '/mayorista/foto6.jpg',
-]
 
 const PRODUCTS: Product[] = [
   {
@@ -40,6 +29,9 @@ const PRODUCTS: Product[] = [
     minQty: 5,
     icon: '🪧',
     badge: 'Más vendido',
+    photos: [
+      '/mayorista/a5-1.png',
+    ],
     tiers: [
       { qty: 5,  price: 8000 },
       { qty: 10, price: 7000 },
@@ -48,6 +40,10 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 'a6',
+    photos: [
+      '/mayorista/a6-1.png',
+      '/mayorista/a6-2.png',
+    ],
     name: 'Cartel de mostrador A6',
     size: '10,5 × 14,8 cm',
     material: 'PVC 2mm · vinilo + laminado mate',
@@ -61,7 +57,27 @@ const PRODUCTS: Product[] = [
     ],
   },
   {
+    id: 'sticker15',
+    photos: [
+      '/mayorista/sticker-1.png',
+      '/mayorista/sticker-2.png',
+    ],
+    name: 'Cartel cuadrado 15×15 cm',
+    size: '15 × 15 cm',
+    material: 'PVC 2mm · vinilo + laminado mate',
+    nfc: true,
+    minQty: 10,
+    icon: '🟪',
+    tiers: [
+      { qty: 10, price: 6000 },
+      { qty: 20, price: 5000 },
+    ],
+  },
+  {
     id: 'sticker',
+    photos: [
+      '/mayorista/sticker-3.jpg',
+    ],
     name: 'Sticker de mesa / barra',
     size: 'Redondo o rectangular',
     material: 'PVC adhesivo · vinilo + laminado mate',
@@ -74,6 +90,11 @@ const PRODUCTS: Product[] = [
   },
   {
     id: 'tarjeta',
+    photos: [
+      '/mayorista/tarjeta-1.jpg',
+      '/mayorista/tarjeta-2.jpg',
+      '/mayorista/tarjeta-3.jpg',
+    ],
     name: 'Tarjeta para mozos',
     size: 'Tamaño tarjeta',
     material: 'PVC 2mm · vinilo + laminado mate',
@@ -98,6 +119,7 @@ export default function MayoristaPage() {
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
   const [sent, setSent] = useState(false)
+  const [lightbox, setLightbox] = useState<string | null>(null)
 
   function selectTier(product: Product, tier: Tier) {
     setSelection({ product, qty: tier.qty, price: tier.price })
@@ -191,20 +213,6 @@ export default function MayoristaPage() {
         </div>
       </section>
 
-      {/* Galería de fotos */}
-      {PHOTOS.length > 0 && (
-        <section className="max-w-5xl mx-auto px-6 pb-10">
-          <h2 className="text-xl font-extrabold mb-4 text-center">Nuestros productos</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {PHOTOS.map((src, i) => (
-              <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10">
-                <img src={src} alt={`Producto ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Lo que incluye */}
       <section className="max-w-5xl mx-auto px-6 pb-10">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -257,6 +265,23 @@ export default function MayoristaPage() {
                   <p className="text-xs text-gray-500 mt-0.5">Compra mínima: {product.minQty} unidades</p>
                 </div>
               </div>
+
+              {/* Fotos del producto */}
+              {product.photos && product.photos.length > 0 && (
+                <div className="px-6 pb-4">
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {product.photos.map((src, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setLightbox(src)}
+                        className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-white/10 hover:border-violet-400 transition-all"
+                      >
+                        <img src={src} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Tiers de precio */}
               <div className="px-6 pb-5">
@@ -359,6 +384,14 @@ export default function MayoristaPage() {
           )}
         </div>
       </section>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setLightbox(null)}>
+          <img src={lightbox} alt="" className="max-w-full max-h-full rounded-2xl shadow-2xl" />
+          <button className="absolute top-4 right-4 text-white text-2xl font-bold">✕</button>
+        </div>
+      )}
 
       <footer className="border-t border-white/10 py-6 text-center text-xs text-gray-600">
         <Link href="/" className="hover:text-gray-400 transition-colors">calificar.com.ar</Link>
