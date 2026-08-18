@@ -18,6 +18,18 @@ type Product = {
   badge?: string
 }
 
+// ── Agregá las URLs de tus fotos acá ──────────────────────────────
+// Podés subir imágenes a /public/mayorista/ y referenciarlas como '/mayorista/foto1.jpg'
+// O usar URLs externas (Google Drive compartido, etc.)
+const PHOTOS: string[] = [
+  // '/mayorista/foto1.jpg',
+  // '/mayorista/foto2.jpg',
+  // '/mayorista/foto3.jpg',
+  // '/mayorista/foto4.jpg',
+  // '/mayorista/foto5.jpg',
+  // '/mayorista/foto6.jpg',
+]
+
 const PRODUCTS: Product[] = [
   {
     id: 'a5',
@@ -178,6 +190,20 @@ export default function MayoristaPage() {
           </p>
         </div>
       </section>
+
+      {/* Galería de fotos */}
+      {PHOTOS.length > 0 && (
+        <section className="max-w-5xl mx-auto px-6 pb-10">
+          <h2 className="text-xl font-extrabold mb-4 text-center">Nuestros productos</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {PHOTOS.map((src, i) => (
+              <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10">
+                <img src={src} alt={`Producto ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Lo que incluye */}
       <section className="max-w-5xl mx-auto px-6 pb-10">
