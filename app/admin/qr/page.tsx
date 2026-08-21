@@ -18,7 +18,8 @@ type QRCode = {
   notes: string | null
   buyer_name: string | null
   buyer_phone: string | null
-  profiles: { name: string; email: string } | null
+  owner_id: string | null
+  label: string | null
 }
 
 function QRCanvas({ url, size = 120 }: { url: string; size?: number }) {
@@ -307,9 +308,9 @@ export default function AdminQRPage() {
                       <p className="text-sm text-gray-300 italic">Sin activar</p>
                     )}
                     {/* Comprador asignado */}
-                    {(c.buyer_name || c.profiles?.name) && (
+                    {(c.buyer_name || c.label) && (
                       <p className="text-[11px] text-violet-600 font-semibold mt-0.5 truncate flex items-center gap-1">
-                        👤 {c.buyer_name || c.profiles?.name}
+                        👤 {c.buyer_name || c.label}
                         {c.buyer_phone && <span className="text-gray-400 font-normal">· {c.buyer_phone}</span>}
                       </p>
                     )}

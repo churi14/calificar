@@ -20,7 +20,7 @@ export async function GET() {
   const serviceClient = createServiceClient()
   const { data } = await serviceClient
     .from('qr_redirects')
-    .select('code, business_name, google_url, activated, scan_count, created_at, activated_at, client_id, notes, buyer_name, buyer_phone, profiles(name, email)')
+    .select('code, business_name, google_url, activated, scan_count, created_at, activated_at, client_id, notes, buyer_name, buyer_phone, owner_id, label')
     .order('created_at', { ascending: false })
     .limit(500)
 
