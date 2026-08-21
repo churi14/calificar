@@ -303,6 +303,11 @@ export default function AdminQRPage() {
                       <>
                         <p className="text-sm font-semibold text-gray-800 truncate">{c.business_name}</p>
                         <p className="text-xs text-gray-400 truncate">{c.google_url}</p>
+                        {c.activated_at && (
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            ⏱ {new Date(c.activated_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        )}
                       </>
                     ) : (
                       <p className="text-sm text-gray-300 italic">Sin activar</p>
