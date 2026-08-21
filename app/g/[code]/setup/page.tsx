@@ -18,16 +18,14 @@ export default function SetupPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  // Verificar sesión al cargar
+  // Verificar sesión al cargar — siempre mostrar 'choose' primero
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUserId(data.user.id)
-        setStep('form')
-      } else {
-        setStep('choose')
       }
+      setStep('choose')
     })
   }, [])
 
@@ -110,16 +108,29 @@ export default function SetupPage() {
         </div>
 
         <div className="w-full max-w-sm space-y-3">
-          <a
-            href={`/qr/register?next=${next}`}
-            className="flex items-center gap-4 bg-[#FBCAD8] text-[#0F172A] rounded-2xl px-5 py-4 hover:bg-white transition-colors"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#0F172A]/10 flex items-center justify-center flex-shrink-0 text-lg">✨</div>
-            <div className="text-left">
-              <p className="font-extrabold text-sm leading-tight">Crear cuenta gratis</p>
-              <p className="text-[11px] text-[#0F172A]/60 mt-0.5 leading-tight">Activá y cambiá el link cuando quieras</p>
-            </div>
-          </a>
+          {userId ? (
+            <button
+              onClick={() => setStep('form')}
+              className="flex items-center gap-4 w-full bg-[#FBCAD8] text-[#0F172A] rounded-2xl px-5 py-4 hover:bg-white transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl bg-[#0F172A]/10 flex items-center justify-center flex-shrink-0 text-lg">✅</div>
+              <div className="text-left">
+                <p className="font-extrabold text-sm leading-tight">Activar con mi cuenta</p>
+                <p className="text-[11px] text-[#0F172A]/60 mt-0.5 leading-tight">Sesión iniciada — el cartel queda vinculado</p>
+              </div>
+            </button>
+          ) : (
+            <a
+              href={`/qr/register?next=${next}`}
+              className="flex items-center gap-4 bg-[#FBCAD8] text-[#0F172A] rounded-2xl px-5 py-4 hover:bg-white transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl bg-[#0F172A]/10 flex items-center justify-center flex-shrink-0 text-lg">✨</div>
+              <div className="text-left">
+                <p className="font-extrabold text-sm leading-tight">Crear cuenta gratis</p>
+                <p className="text-[11px] text-[#0F172A]/60 mt-0.5 leading-tight">Activá y cambiá el link cuando quieras</p>
+              </div>
+            </a>
+          )}
 
           <a
             href={`/qr/login?next=${next}`}
@@ -127,7 +138,7 @@ export default function SetupPage() {
           >
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 text-lg">👤</div>
             <div className="text-left">
-              <p className="font-extrabold text-sm leading-tight">Ya tengo cuenta</p>
+              <p className="font-extrabold text-sm leading-tight">{userId ? 'Usar otra cuenta' : 'Ya tengo cuenta'}</p>
               <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Iniciá sesión para vincular el cartel</p>
             </div>
           </a>

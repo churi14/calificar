@@ -33,6 +33,9 @@ export default function HeroNav() {
         <Link href="/blog" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-50 transition-colors">
           Blog
         </Link>
+        <Link href="/mayorista" className="px-4 py-2 text-sm font-semibold text-violet-600 hover:text-violet-800 rounded-full hover:bg-violet-50 transition-colors">
+          Mayorista
+        </Link>
         <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1.5">
           <IconUser/> Entrar
         </Link>
@@ -68,6 +71,7 @@ export default function HeroNav() {
             <Link href="/tienda" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-gray-50">Carteles</Link>
             <a href="/precios" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-gray-50">Precios</a>
             <Link href="/blog" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-gray-50">Blog</Link>
+            <Link href="/mayorista" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-violet-50 text-violet-600 font-semibold">Mayorista</Link>
             <Link href="/login" onClick={() => setOpen(false)} className="px-3 py-3 rounded-xl hover:bg-gray-50 flex items-center gap-2">
               <IconUser/> Entrar
             </Link>
