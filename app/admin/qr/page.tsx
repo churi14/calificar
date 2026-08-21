@@ -95,16 +95,23 @@ export default function AdminQRPage() {
   const [editState, setEditState] = useState<EditState>({ business_name: '', google_url: '', client_id: '', notes: '', buyer_name: '', buyer_phone: '' })
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
+    setLoadError(null)
     const [codesRes, clientsRes] = await Promise.all([
       fetch('/api/admin/qr/list'),
       fetch('/api/admin/qr/clients'),
     ])
     const codesData = await codesRes.json()
     const clientsData = await clientsRes.json()
-    setCodes(codesData.codes ?? [])
+    if (!codesRes.ok) {
+      setLoadError(codesData.error ?? `Error ${codesRes.status}`)
+      setCodes([])
+    } else {
+      setCodes(codesData.codes ?? [])
+    }
     setClients(clientsData.clients ?? [])
     setLoading(false)
   }, [])
@@ -268,6 +275,11 @@ export default function AdminQRPage() {
 
         {loading ? (
           <div className="p-12 text-center text-gray-400 text-sm">Cargando…</div>
+        ) : loadError ? (
+          <div className="p-12 text-center">
+            <p className="text-red-500 font-semibold text-sm mb-2">Error al cargar: {loadError}</p>
+            <p className="text-gray-400 text-xs">Asegurate de tener <code className="bg-gray-100 px-1 rounded">role = admin</code> en tu perfil de Supabase.</p>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-gray-400 text-sm">No hay códigos todavía.</div>
         ) : (

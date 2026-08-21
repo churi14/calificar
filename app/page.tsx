@@ -278,6 +278,146 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* QR DINÁMICO — Sección destacada */}
+      <section className="bg-[#0F172A] py-24 lg:py-32 px-6 overflow-hidden relative">
+        {/* Glow decorativo */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none"/>
+
+        <div className="max-w-6xl mx-auto relative">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+            {/* Texto */}
+            <div>
+              <span className="inline-flex items-center gap-2 bg-violet-500/10 text-violet-400 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-widest mb-6">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3" rx="0.5"/><rect x="19" y="14" width="2" height="2" rx="0.5"/><rect x="14" y="19" width="2" height="2" rx="0.5"/><rect x="19" y="19" width="2" height="2" rx="0.5"/></svg>
+                QR Dinámico con NFC
+              </span>
+              <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-white leading-[1.1] mb-6">
+                Un código QR que podés cambiar cuando quieras
+              </h2>
+              <p className="text-gray-400 text-base sm:text-lg leading-relaxed mb-8">
+                El cartel físico no cambia nunca. Pero el link adonde lleva, sí. Actualizalo desde tu celular en segundos — sin cambiar el impreso.
+              </p>
+
+              <div className="space-y-4 mb-10">
+                {[
+                  { icon: '🔄', title: 'Link siempre actualizable', desc: 'Cambiá el destino del QR sin tocar el cartel.' },
+                  { icon: '📡', title: 'NFC incluido', desc: 'Tus clientes también pueden apoyar el celular.' },
+                  { icon: '📊', title: 'Ves quién escanea', desc: 'Conteo de scans en tiempo real desde tu panel.' },
+                  { icon: '⚡', title: 'Activación desde el celular', desc: 'El cliente final activa su cartel sin ayuda.' },
+                ].map(f => (
+                  <div key={f.title} className="flex items-start gap-4">
+                    <span className="text-2xl flex-shrink-0 mt-0.5">{f.icon}</span>
+                    <div>
+                      <p className="text-white font-semibold text-sm">{f.title}</p>
+                      <p className="text-gray-500 text-sm">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Link href="/tienda"
+                  className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold px-7 py-4 rounded-full transition-colors text-sm shadow-lg shadow-violet-900/40">
+                  Ver carteles con QR Dinámico →
+                </Link>
+                <Link href="/r/demo"
+                  className="inline-flex items-center gap-2 bg-white/8 border border-white/10 hover:bg-white/12 text-white font-semibold px-7 py-4 rounded-full transition-colors text-sm">
+                  Probalo en demo
+                </Link>
+              </div>
+            </div>
+
+            {/* Visual — tarjeta tipo cartel */}
+            <div className="flex justify-center lg:justify-end">
+              <div className="relative">
+                {/* Glow */}
+                <div className="absolute inset-0 bg-violet-500/20 rounded-[2.5rem] blur-2xl scale-110"/>
+
+                <div className="relative bg-gradient-to-br from-[#1E293B] to-[#0F172A] border border-white/10 rounded-[2.5rem] p-8 w-72 shadow-2xl">
+                  {/* QR visual */}
+                  <div className="bg-white rounded-2xl p-5 mb-6 flex items-center justify-center">
+                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      {/* QR simulado */}
+                      <rect width="120" height="120" fill="white"/>
+                      {/* Top-left finder */}
+                      <rect x="8" y="8" width="34" height="34" rx="4" fill="#0F172A"/>
+                      <rect x="14" y="14" width="22" height="22" rx="2" fill="white"/>
+                      <rect x="19" y="19" width="12" height="12" rx="1" fill="#0F172A"/>
+                      {/* Top-right finder */}
+                      <rect x="78" y="8" width="34" height="34" rx="4" fill="#0F172A"/>
+                      <rect x="84" y="14" width="22" height="22" rx="2" fill="white"/>
+                      <rect x="89" y="19" width="12" height="12" rx="1" fill="#0F172A"/>
+                      {/* Bottom-left finder */}
+                      <rect x="8" y="78" width="34" height="34" rx="4" fill="#0F172A"/>
+                      <rect x="14" y="84" width="22" height="22" rx="2" fill="white"/>
+                      <rect x="19" y="89" width="12" height="12" rx="1" fill="#0F172A"/>
+                      {/* Data modules */}
+                      <rect x="50" y="8" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="60" y="8" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="50" y="18" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="64" y="18" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="54" y="28" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="8" y="50" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="18" y="50" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="28" y="56" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="8" y="62" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="20" y="62" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="50" y="50" width="6" height="6" rx="1" fill="#7C3AED"/>
+                      <rect x="60" y="50" width="6" height="6" rx="1" fill="#7C3AED"/>
+                      <rect x="70" y="50" width="6" height="6" rx="1" fill="#7C3AED"/>
+                      <rect x="50" y="60" width="6" height="6" rx="1" fill="#7C3AED"/>
+                      <rect x="64" y="60" width="6" height="6" rx="1" fill="#7C3AED"/>
+                      <rect x="50" y="70" width="6" height="6" rx="1" fill="#7C3AED"/>
+                      <rect x="60" y="70" width="6" height="6" rx="1" fill="#7C3AED"/>
+                      <rect x="70" y="70" width="6" height="6" rx="1" fill="#7C3AED"/>
+                      <rect x="78" y="50" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="90" y="50" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="100" y="50" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="84" y="60" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="96" y="60" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="78" y="70" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="90" y="70" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="50" y="78" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="60" y="84" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="50" y="90" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="64" y="90" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="54" y="100" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="78" y="84" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="90" y="84" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="78" y="96" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="90" y="96" width="6" height="6" rx="1" fill="#0F172A"/>
+                      <rect x="100" y="96" width="6" height="6" rx="1" fill="#0F172A"/>
+                    </svg>
+                  </div>
+
+                  <p className="text-white font-extrabold text-center text-lg mb-1">Mi Negocio</p>
+                  <p className="text-gray-500 text-center text-xs mb-5 font-mono">calificar.com.ar/g/A8FX2K</p>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white/5 rounded-2xl p-3 text-center">
+                      <p className="text-white font-extrabold text-2xl">47</p>
+                      <p className="text-gray-500 text-[10px] mt-0.5">scans</p>
+                    </div>
+                    <div className="bg-green-500/10 rounded-2xl p-3 text-center">
+                      <p className="text-green-400 font-extrabold text-2xl">12</p>
+                      <p className="text-gray-500 text-[10px] mt-0.5">reseñas ★</p>
+                    </div>
+                  </div>
+
+                  {/* NFC badge */}
+                  <div className="absolute -top-3 -right-3 bg-violet-600 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full shadow-lg">
+                    📡 NFC
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       <Footer/>
 
       {/* POPUP — Reventa por mayor */}
