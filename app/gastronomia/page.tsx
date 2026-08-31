@@ -83,7 +83,7 @@ export default function GastronomiaPage() {
 
       {/* ── HERO: Asymmetric Split ─────────────────────────────── */}
       <section className="min-h-[100dvh] flex items-center pt-16">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center py-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12">
 
           {/* Left: copy */}
           <div>
@@ -180,12 +180,12 @@ export default function GastronomiaPage() {
       </section>
 
       {/* ── PROBLEMA: Dark editorial ────────────────────────────── */}
-      <section className="bg-zinc-950 py-24 px-6 md:px-10">
+      <section className="bg-zinc-950 py-16 px-6 md:px-10">
         <div className="max-w-4xl mx-auto">
           <blockquote className="text-2xl md:text-4xl font-bold text-white leading-snug mb-6 text-center">
             "El cliente comió bien, pagó la cuenta, y se fue sin dejar reseña."
           </blockquote>
-          <p className="text-zinc-400 text-lg leading-relaxed max-w-2xl mx-auto text-center mb-14">
+          <p className="text-zinc-400 text-lg leading-relaxed max-w-2xl mx-auto text-center mb-10">
             No porque no le gustó. Sino porque nadie se lo pidió en el momento justo. Las reseñas se pierden en ese minuto en que el cliente está saliendo.
           </p>
 
@@ -205,31 +205,31 @@ export default function GastronomiaPage() {
       </section>
 
       {/* ── COMO FUNCIONA: 3-step flow ──────────────────────────── */}
-      <section id="como-funciona" className="py-24 px-6 md:px-10 bg-white">
+      <section id="como-funciona" className="py-16 px-6 md:px-10 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-16 max-w-lg">
+          <div className="mb-10 max-w-lg">
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 mb-3">
               Tres pasos. Nada más.
             </h2>
             <p className="text-zinc-500 text-lg">
-              No requiere wifi del local, apps ni que el personal tenga que acordarse de pedirlo.
+              Sin wifi del local, sin apps, sin que nadie tenga que acordarse.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 relative">
             {/* Connector (desktop) */}
             <div className="hidden md:block absolute top-5 left-[calc(16.66%+2.5rem)] right-[calc(16.66%+2.5rem)] h-px bg-zinc-100" />
 
             {[
               {
                 num: '1',
-                title: 'Pedís tu cartel QR',
-                body: 'Te enviamos el cartel personalizado con el nombre de tu local. Podés imprimirlo, laminarlo y ponerlo en la mesa.',
+                title: 'Pedís tu cartel',
+                body: 'Te mandamos el cartel personalizado según tus necesidades, listo para usar. Puede ser solo QR o también NFC para celulares que no escanean con cámara. Pago único, es tuyo para siempre.',
               },
               {
                 num: '2',
-                title: 'Lo ponés en la mesa',
-                body: 'El cliente lo ve al sentarse o al terminar. Un solo QR para todo: menú, calificación del mozo y reseña en Maps.',
+                title: 'Lo ponés en la mesa. O cada mozo tiene el suyo.',
+                body: 'Un QR por mesa, o uno por mozo para ver las reseñas y escaneos de cada uno por separado. Podés o no avisarle al mozo. Si se va, el código se reasigna a otro.',
               },
               {
                 num: '3',
@@ -238,7 +238,7 @@ export default function GastronomiaPage() {
               },
             ].map(({ num, title, body }) => (
               <div key={num} className="relative">
-                <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold mb-5 relative z-10">
+                <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold mb-4 relative z-10">
                   {num}
                 </div>
                 <h3 className="font-bold text-xl text-zinc-900 mb-2">{title}</h3>
@@ -250,9 +250,9 @@ export default function GastronomiaPage() {
       </section>
 
       {/* ── QR LINKTREE: Bento 3 tiles ──────────────────────────── */}
-      <section className="py-24 px-6 md:px-10 bg-zinc-50">
+      <section className="py-16 px-6 md:px-10 bg-zinc-50">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-12 max-w-lg">
+          <div className="mb-8 max-w-lg">
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 mb-3">
               Tres opciones en un solo QR.
             </h2>
@@ -315,6 +315,67 @@ export default function GastronomiaPage() {
         </div>
       </section>
 
+      {/* ── PRECIOS ─────────────────────────────────────────────── */}
+      <section className="py-16 px-6 md:px-10 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8 max-w-lg">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 mb-3">
+              Simple y sin sorpresas.
+            </h2>
+            <p className="text-zinc-500 text-lg">
+              Una cuota mensual por el sistema. El cartel lo pagás una vez y es tuyo para siempre.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+
+            {/* Plan base */}
+            <div className="bg-zinc-50 rounded-3xl p-8 border border-zinc-100 flex flex-col">
+              <p className="font-bold text-xl text-zinc-900 mb-1">Sistema Calificar</p>
+              <p className="text-zinc-500 text-sm mb-4">Panel, filtro inteligente, QR, estadísticas y calificacion de mozos.</p>
+              <p className="text-3xl font-extrabold text-zinc-900 mb-1 tabular-nums">
+                $5.000<span className="text-base font-semibold text-zinc-400">/mes</span>
+              </p>
+              <p className="text-xs text-zinc-400 mb-6">Sin setup. Cancelás cuando querés.</p>
+              <Link
+                href="/auth/register"
+                className="mt-auto border border-violet-600 text-violet-600 hover:bg-violet-50 font-semibold px-5 py-3 rounded-full text-sm text-center transition-colors duration-150"
+              >
+                Empezar gratis
+              </Link>
+            </div>
+
+            {/* Plan dominio */}
+            <div className="bg-violet-600 rounded-3xl p-8 flex flex-col relative overflow-hidden">
+              <span className="absolute top-4 right-4 bg-white/20 text-white text-[11px] font-bold px-3 py-1 rounded-full">Recomendado</span>
+              <p className="font-bold text-xl text-white mb-1">Dominio Propio</p>
+              <p className="text-violet-200 text-sm mb-4">Todo lo anterior mas tu URL propia. El QR apunta a tu dominio para siempre, sin depender de Calificar.</p>
+              <p className="text-3xl font-extrabold text-white mb-1 tabular-nums">
+                $5.000<span className="text-base font-semibold text-violet-300">/mes</span>
+              </p>
+              <p className="text-xs text-violet-300 mb-6">+ $30.000 setup unico (dominio + config)</p>
+              <a
+                href="https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-auto bg-white hover:bg-violet-50 text-violet-700 font-bold px-5 py-3 rounded-full text-sm text-center transition-colors duration-150"
+              >
+                Consultar por WhatsApp
+              </a>
+            </div>
+          </div>
+
+          {/* Nota cartel */}
+          <div className="mt-6 max-w-3xl bg-zinc-50 rounded-2xl px-6 py-4 border border-zinc-100 flex items-start gap-3">
+            <span className="text-lg mt-0.5">📦</span>
+            <div>
+              <p className="font-semibold text-zinc-900 text-sm">El cartel fisico se compra aparte</p>
+              <p className="text-zinc-500 text-sm mt-0.5">Los carteles NFC + QR son pago unico, tuyos para siempre. <Link href="/precios" className="text-violet-600 underline underline-offset-2">Ver opciones de carteles</Link></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── RUBROS: Chip cloud ──────────────────────────────────── */}
       <section className="py-16 px-6 md:px-10 bg-white border-t border-zinc-100">
         <div className="max-w-7xl mx-auto">
@@ -335,7 +396,7 @@ export default function GastronomiaPage() {
       </section>
 
       {/* ── FAQ: Accordion ──────────────────────────────────────── */}
-      <section className="py-24 px-6 md:px-10 bg-zinc-50">
+      <section className="py-16 px-6 md:px-10 bg-zinc-50">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 mb-10">
             Preguntas frecuentes
@@ -345,7 +406,7 @@ export default function GastronomiaPage() {
       </section>
 
       {/* ── CTA FINAL ───────────────────────────────────────────── */}
-      <section className="py-24 px-6 md:px-10 bg-violet-600">
+      <section className="py-16 px-6 md:px-10 bg-violet-600">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-4">
             Tu local puede tener 10 reseñas nuevas este mes.
