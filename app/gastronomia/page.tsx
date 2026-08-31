@@ -82,8 +82,8 @@ export default function GastronomiaPage() {
       </nav>
 
       {/* ── HERO: Asymmetric Split ─────────────────────────────── */}
-      <section className="min-h-[100dvh] flex items-center pt-16">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12">
+      <section className="pt-16">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-14">
 
           {/* Left: copy */}
           <div>
@@ -315,6 +315,54 @@ export default function GastronomiaPage() {
         </div>
       </section>
 
+      {/* ── SERVICIOS ADICIONALES ───────────────────────────────── */}
+      <section className="py-16 px-6 md:px-10 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-10 max-w-lg">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 mb-3">
+              Más que reseñas.
+            </h2>
+            <p className="text-zinc-500 text-lg">
+              Servicios adicionales que podés sumar según lo que necesite tu local.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                icon: '📅',
+                title: 'Reservas online',
+                desc: 'Tu propio sistema de turnos y reservas con confirmación automática por WhatsApp. Sin comisiones por cubierto.',
+              },
+              {
+                icon: '📱',
+                title: 'Redes sociales',
+                desc: 'Generamos posts semanales para Instagram y Facebook basados en tu menú, reseñas y promociones del local.',
+              },
+              {
+                icon: '💬',
+                title: 'Respuestas a reseñas',
+                desc: 'Respondemos cada reseña nueva en Google Maps en menos de 24 horas, con el tono que vos elegís.',
+              },
+              {
+                icon: '📊',
+                title: 'Reportes mensuales',
+                desc: 'Informe de rendimiento: reseñas ganadas, puntaje promedio, escaneos por mesa y evolución en Maps.',
+              },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="bg-zinc-50 rounded-2xl p-6 border border-zinc-100">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-xl mb-4 border border-zinc-100 shadow-sm">
+                  {icon}
+                </div>
+                <h3 className="font-bold text-zinc-900 mb-2 text-base">{title}</h3>
+                <p className="text-zinc-500 text-sm leading-relaxed">{desc}</p>
+                <p className="mt-4 text-xs font-semibold text-violet-600">A consultar</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── PRECIOS ─────────────────────────────────────────────── */}
       <section className="py-16 px-6 md:px-10 bg-white">
         <div className="max-w-7xl mx-auto">
@@ -332,9 +380,9 @@ export default function GastronomiaPage() {
             {/* Plan base */}
             <div className="bg-zinc-50 rounded-3xl p-8 border border-zinc-100 flex flex-col">
               <p className="font-bold text-xl text-zinc-900 mb-1">Sistema Calificar</p>
-              <p className="text-zinc-500 text-sm mb-4">Panel, filtro inteligente, QR, estadísticas y calificacion de mozos.</p>
+              <p className="text-zinc-500 text-sm mb-4">Panel, filtro inteligente, QR, estadísticas y calificación de mozos.</p>
               <p className="text-3xl font-extrabold text-zinc-900 mb-1 tabular-nums">
-                $5.000<span className="text-base font-semibold text-zinc-400">/mes</span>
+                $15.000<span className="text-base font-semibold text-zinc-400">/mes</span>
               </p>
               <p className="text-xs text-zinc-400 mb-6">Sin setup. Cancelás cuando querés.</p>
               <Link
@@ -351,9 +399,9 @@ export default function GastronomiaPage() {
               <p className="font-bold text-xl text-white mb-1">Dominio Propio</p>
               <p className="text-violet-200 text-sm mb-4">Todo lo anterior mas tu URL propia. El QR apunta a tu dominio para siempre, sin depender de Calificar.</p>
               <p className="text-3xl font-extrabold text-white mb-1 tabular-nums">
-                $5.000<span className="text-base font-semibold text-violet-300">/mes</span>
+                $15.000<span className="text-base font-semibold text-violet-300">/mes</span>
               </p>
-              <p className="text-xs text-violet-300 mb-6">+ $30.000 setup unico (dominio + config)</p>
+              <p className="text-xs text-violet-300 mb-6">+ $50.000 setup único (dominio + configuración)</p>
               <a
                 href="https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local."
                 target="_blank"
@@ -369,8 +417,8 @@ export default function GastronomiaPage() {
           <div className="mt-6 max-w-3xl bg-zinc-50 rounded-2xl px-6 py-4 border border-zinc-100 flex items-start gap-3">
             <span className="text-lg mt-0.5">📦</span>
             <div>
-              <p className="font-semibold text-zinc-900 text-sm">El cartel fisico se compra aparte</p>
-              <p className="text-zinc-500 text-sm mt-0.5">Los carteles NFC + QR son pago unico, tuyos para siempre. <Link href="/precios" className="text-violet-600 underline underline-offset-2">Ver opciones de carteles</Link></p>
+              <p className="font-semibold text-zinc-900 text-sm">El cartel físico se compra aparte</p>
+              <p className="text-zinc-500 text-sm mt-0.5">Los carteles NFC + QR son pago único, tuyos para siempre. <Link href="/precios" className="text-violet-600 underline underline-offset-2">Ver opciones de carteles</Link></p>
             </div>
           </div>
         </div>
