@@ -159,6 +159,7 @@ function QRCard({ code }: { code: string }) {
 type EditState = {
   business_name: string
   google_url: string
+  menu_url: string
   client_id: string
   notes: string
   buyer_name: string
@@ -178,7 +179,7 @@ export default function AdminQRPage() {
   const [showQR, setShowQR] = useState<string | null>(null)
   const [editing, setEditing] = useState<string | null>(null)
   const [qrStyle, setQrStyle] = useState({ fg: '#000000', bg: '#FFFFFF', transparent: false, size: 800 })
-  const [editState, setEditState] = useState<EditState>({ business_name: '', google_url: '', client_id: '', notes: '', buyer_name: '', buyer_phone: '' })
+  const [editState, setEditState] = useState<EditState>({ business_name: '', google_url: '', menu_url: '', client_id: '', notes: '', buyer_name: '', buyer_phone: '' })
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -231,6 +232,7 @@ export default function AdminQRPage() {
     setEditState({
       business_name: c.business_name ?? '',
       google_url: c.google_url ?? '',
+      menu_url: (c as any).menu_url ?? '',
       client_id: c.client_id ?? '',
       notes: c.notes ?? '',
       buyer_name: c.buyer_name ?? '',
@@ -606,6 +608,21 @@ export default function AdminQRPage() {
                           placeholder="https://g.page/..."
                           className="w-full text-sm bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
                         />
+                      </div>
+
+                      {/* URL del menú */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                          URL del menú <span className="text-violet-500 font-normal">(activa el Linktree en /l/{editing})</span>
+                        </label>
+                        <input
+                          type="url"
+                          value={editState.menu_url}
+                          onChange={e => setEditState(s => ({ ...s, menu_url: e.target.value }))}
+                          placeholder="https://... (PDF, página, Instagram, etc.)"
+                          className="w-full text-sm bg-white border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-400 text-gray-900 placeholder-gray-300"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1">Si completás este campo, el QR puede apuntar a <code className="bg-gray-100 px-1 rounded">calificar.com.ar/l/{editing}</code> — menú + calificar mozo + reseña Google.</p>
                       </div>
 
                       {/* Notas internas */}

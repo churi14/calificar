@@ -103,9 +103,9 @@ const ECOSYSTEM = [
   {
     tag: 'Opcional',
     color: 'bg-green-100 text-green-700',
-    title: 'Social Media con IA',
-    desc: 'Cada reseña positiva que genera Calificar se puede convertir en un post de Instagram. Contenido real, del local, generado con IA.',
-    bullets: ['3 posts semanales', 'Diseño con identidad del local', 'Reseñas → contenido automático', 'Metricool + Canva IA'],
+    title: 'Página web del local',
+    desc: 'Tu local con su propia página: menú, fotos, horarios y el sistema de reservas de LetsGather embebido. Sin depender de Instagram para que te encuentren.',
+    bullets: ['Menú digital actualizable', 'Reservas integradas', 'SEO local en Google', 'Diseño profesional'],
   },
 ]
 
