@@ -1,381 +1,382 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-
-const WA = 'https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20Calificar%20para%20mi%20local%20gastron%C3%B3mico.'
+import FaqAccordion from './FaqAccordion'
 
 export const metadata: Metadata = {
-  title: 'Calificar para Gastronomía — Más reseñas en Google para tu local',
+  title: 'Calificar para Gastronomía | Más reseñas en Google para tu local',
   description:
-    'Sistema de carteles QR y NFC para restaurantes, bares, cafeterías, panaderías y todo local con atención al público. Cada cliente satisfecho va directo a Google. Los problemas te llegan a vos, en privado.',
+    'Sistema de cartel QR para restaurantes, bares y cafeterías. El cliente escanea, ve el menú, califica al mozo y te deja una reseña en Google. Sin apps, sin fricciones.',
   keywords: [
-    'reseñas Google restaurante',
-    'reseñas Google bar',
-    'reseñas Google cafetería',
-    'carteles QR gastronomía Argentina',
-    'aumentar reseñas Google local gastronómico',
-    'sistema reseñas gastronomía',
-    'QR NFC restaurante bar cafetería',
-    'calificar gastronomía',
+    'reseñas Google restaurante Argentina',
+    'cartel QR bar cafetería',
+    'calificar mozo QR',
+    'gastronomía Google Maps reseñas',
+    'más reseñas Google negocio gastronómico',
   ],
   openGraph: {
-    title: 'Calificar para Gastronomía — Más reseñas en Google para tu local',
+    title: 'Calificar para Gastronomía',
     description:
-      'Carteles QR y NFC para restaurantes, bares, cafeterías y más. Tus clientes satisfechos van directo a Google. Los problemas te llegan a vos, en privado.',
+      'Convertí cada mesa en una reseña de Google. Cartel QR con menú digital, calificación del mozo y link directo a Maps.',
     url: 'https://calificar.com.ar/gastronomia',
-    siteName: 'Calificar',
-    locale: 'es_AR',
     type: 'website',
   },
   alternates: { canonical: 'https://calificar.com.ar/gastronomia' },
 }
 
 const RUBROS = [
-  'Restaurantes', 'Bares', 'Cafeterías', 'Panaderías',
-  'Heladerías', 'Rotiserías', 'Pizzerías', 'Hamburgueserías',
-  'Cervecerías', 'Confiterías', 'Sushi', 'Comida rápida',
-]
-
-const STEPS = [
-  {
-    n: '01',
-    title: 'El cliente escanea el QR o toca el NFC',
-    desc: 'Con el celular, sin descargar nada. Aparece una pantalla simple que le pregunta cómo estuvo su experiencia.',
-  },
-  {
-    n: '02',
-    title: 'Los satisfechos van directo a Google',
-    desc: 'Si la experiencia fue buena, el sistema los lleva automáticamente a tu ficha de Google para que dejen la estrella. Sin fricciones.',
-  },
-  {
-    n: '03',
-    title: 'Los insatisfechos te escriben a vos',
-    desc: 'Si algo salió mal, en vez de irse a quejarse en Google, te mandan un mensaje privado. Podés resolverlo antes de que se convierta en una mala reseña pública.',
-  },
-  {
-    n: '04',
-    title: 'Vos ves todo desde el panel',
-    desc: 'Cuántos scans hubo, cuántas reseñas generaste, qué carteles están funcionando. Todo en un panel limpio y claro.',
-  },
-]
-
-const PROBLEMS = [
-  {
-    emoji: '😤',
-    title: 'Clientes satisfechos que no dejan reseña',
-    desc: 'El 90% de tus clientes se va conforme pero no hace nada. Calificar les pone el link de Google directo en la mano, en el momento justo.',
-  },
-  {
-    emoji: '💀',
-    title: 'Una mala reseña arruina semanas de trabajo',
-    desc: 'Un solo comentario negativo puede bajar tu promedio y ahuyentar clientes. Con Calificar, los problemas te llegan a vos antes de llegar a Google.',
-  },
-  {
-    emoji: '📉',
-    title: 'Sin reseñas, tu local es invisible en Google',
-    desc: 'Los locales con más de 100 reseñas y 4.5+ estrellas aparecen primero en Maps. Sin reseñas, no existís para quien busca dónde comer.',
-  },
-]
-
-const FEATURES = [
-  { icon: '📍', title: 'Cartel físico A5 o A4', desc: 'Impreso en alta calidad, laminado, listo para poner en mesa, mostrador o entrada.' },
-  { icon: '📡', title: 'Chip NFC incluido', desc: 'Un toque del celular y el cliente ya está en tu sistema. Sin escanear nada.' },
-  { icon: '🔄', title: 'QR dinámico', desc: 'Si tu local cambia de nombre, dirección o link de Google, el QR se actualiza sin reimprimir nada.' },
-  { icon: '📊', title: 'Panel de control', desc: 'Ves cuántos scans tuvo cada cartel, qué días hay más actividad y cuántas reseñas generaste.' },
-  { icon: '🔒', title: 'Filtro de reseñas negativas', desc: 'Los clientes insatisfechos te escriben a vos en privado. Tu reputación pública queda protegida.' },
-  { icon: '⚡', title: 'Activación en minutos', desc: 'El cartel llega a tu local. Escaneás, completás el link de Google y listo. No necesitás saber de tecnología.' },
-]
-
-const ECOSYSTEM = [
-  {
-    tag: 'Incluido',
-    color: 'bg-violet-100 text-violet-700',
-    title: 'Calificar QR + NFC',
-    desc: 'El sistema de reseñas. Carteles físicos que generan reseñas en Google automáticamente. El núcleo del servicio.',
-    bullets: ['Cartel A5 o A4 laminado', 'Chip NFC incluido', 'QR dinámico modificable', 'Panel de estadísticas'],
-  },
-  {
-    tag: 'Opcional',
-    color: 'bg-blue-100 text-blue-700',
-    title: 'LetsGather — Reservas online',
-    desc: 'Tu local toma reservas por WhatsApp y llamadas todo el tiempo. LetsGather las automatiza. El cliente elige día, hora y cantidad de personas desde tu página.',
-    bullets: ['Sin llamadas para reservar', 'Recordatorios automáticos', 'Gestión de capacidad', 'Gratis hasta 50 reservas/mes'],
-  },
-  {
-    tag: 'Opcional',
-    color: 'bg-green-100 text-green-700',
-    title: 'Página web del local',
-    desc: 'Tu local con su propia página: menú, fotos, horarios y el sistema de reservas de LetsGather embebido. Sin depender de Instagram para que te encuentren.',
-    bullets: ['Menú digital actualizable', 'Reservas integradas', 'SEO local en Google', 'Diseño profesional'],
-  },
+  'Restaurantes', 'Bares', 'Cafeterías', 'Panaderías', 'Heladerías',
+  'Rotiserías', 'Pizzerías', 'Hamburgueserías', 'Cervecerías', 'Confiterías',
+  'Sushi', 'Comida rápida', 'Sandwicherías', 'Parrillas', 'Bodegones',
+  'Empanaderías', 'Boulangeries', 'Creperies', 'Taquerías', 'Bares de vinos',
 ]
 
 const FAQS = [
   {
-    q: '¿Sirve para cualquier tipo de local gastronómico?',
-    a: 'Sí. Funciona igual para un restaurante, un bar, una cafetería, una panadería o cualquier local con atención al público. El sistema es el mismo — cambia el link de Google de tu ficha.',
+    q: '¿Necesito instalar algo en el local?',
+    a: 'No. Recibís un cartel impreso con el QR. El cliente lo escanea con cualquier celular y accede a tu página directamente. Sin app, sin wifi del local.',
   },
   {
-    q: '¿El cliente necesita descargar alguna app?',
-    a: 'No. Escanea el QR con la cámara del celular o toca el NFC y ya está. Sin descargas, sin registros.',
+    q: '¿Cómo llega la reseña a mi perfil de Google?',
+    a: 'Al tocar "Calificar en Google Maps", el cliente es redirigido directo a tu ficha en Google. La reseña la escribe ahí con su propia cuenta. Es 100% genuina.',
   },
   {
-    q: '¿Qué pasa si cambio el link de Google de mi local?',
-    a: 'El QR es dinámico. Entrás al panel, actualizás el link y listo. El cartel físico sigue funcionando sin reimprimir nada.',
+    q: '¿Puedo ver las calificaciones del mozo?',
+    a: 'Sí. Desde tu panel en calificar.com.ar podés ver todas las estrellas y comentarios que dejaron los clientes sobre el servicio, por fecha.',
   },
   {
-    q: '¿Cuántos carteles necesito?',
-    a: 'Depende del tamaño del local. Un local chico con 2 carteles (uno en mesa o mostrador y uno en la entrada) ya nota la diferencia. Para locales más grandes recomendamos uno por cada 4-5 mesas.',
+    q: '¿El menú digital tiene costo extra?',
+    a: 'No. Cargás la URL de tu carta (PDF, Instagram, carta digital, delivery) y aparece automáticamente como primera opción cuando el cliente escanea.',
   },
   {
-    q: '¿Realmente funciona el filtro de reseñas negativas?',
-    a: 'Sí. Si el cliente elige una experiencia negativa, el sistema le muestra un formulario para que te cuente qué pasó. No lo lleva a Google. Vos recibís el mensaje y podés responder.',
+    q: '¿Funciona si el cliente no tiene cuenta de Google?',
+    a: 'Puede igual calificar al mozo y ver el menú. La opción de Google Maps requiere que el cliente tenga cuenta, pero las otras dos funcionan sin ningún login.',
   },
   {
-    q: '¿Cuánto tiempo tarda en llegar el cartel?',
-    a: 'Zona GBA: 24-48 hs. Interior del país: 3-5 días hábiles. Lo activás vos mismo en minutos desde el panel.',
+    q: '¿Puedo personalizar el color del cartel QR?',
+    a: 'Sí. Desde el panel podés elegir el color del QR, el fondo y el tamaño. También podés descargarlo sin fondo para imprimir sobre cualquier soporte.',
   },
 ]
 
 export default function GastronomiaPage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <main className="bg-white text-zinc-900 antialiased">
 
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Calificar" className="h-6 w-auto" />
-            <span className="font-extrabold text-lg text-gray-900">Calificar</span>
+      <nav className="fixed top-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm border-b border-zinc-100 h-16 flex items-center">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 w-full flex items-center justify-between">
+          <Link href="/" className="font-bold text-violet-600 text-lg tracking-tight">
+            Calificar
           </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors hidden sm:block">
-              Inicio
-            </Link>
-            <a href={WA}
-              className="bg-violet-600 hover:bg-violet-700 text-white font-semibold text-sm px-5 py-2.5 rounded-full transition-colors">
-              Contactar
-            </a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500">
+            <Link href="/precios" className="hover:text-zinc-900 transition-colors duration-150">Precios</Link>
+            <Link href="/blog" className="hover:text-zinc-900 transition-colors duration-150">Blog</Link>
+            <Link href="/auth/login" className="hover:text-zinc-900 transition-colors duration-150">Ingresar</Link>
           </div>
+          <Link
+            href="/auth/register"
+            className="bg-violet-600 hover:bg-violet-700 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-full transition-all duration-150"
+          >
+            Empezar gratis
+          </Link>
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 text-orange-700 text-sm font-semibold px-4 py-2 rounded-full mb-8">
-            🍽️ Para restaurantes, bares, cafeterías y más
-          </div>
-          <h1 className="font-extrabold text-4xl sm:text-5xl lg:text-6xl leading-[1.1] text-gray-900 mb-6">
-            Tu local gastronómico necesita{' '}
-            <span className="text-violet-600">más reseñas en Google.</span>{' '}
-            Calificar las consigue solo.
-          </h1>
-          <p className="text-gray-500 text-lg sm:text-xl leading-relaxed mb-8 max-w-2xl mx-auto">
-            Un cartel en la mesa, el mostrador o la entrada. El cliente lo escanea o lo toca. Los que quedaron conformes van directo a Google. Los que tuvieron un problema te escriben a vos, en privado.
-          </p>
+      {/* ── HERO: Asymmetric Split ─────────────────────────────── */}
+      <section className="min-h-[100dvh] flex items-center pt-16">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center py-20">
 
-          {/* Rubros */}
-          <div className="flex flex-wrap gap-2 justify-center mb-10">
-            {RUBROS.map(r => (
-              <span key={r} className="bg-gray-100 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-full">{r}</span>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-4 justify-center">
-            <a href={WA}
-              className="inline-flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-4 rounded-full transition-colors text-base shadow-lg shadow-violet-200">
-              Quiero empezar →
-            </a>
-            <Link href="/como-funciona"
-              className="inline-flex items-center justify-center bg-white border-2 border-gray-200 text-gray-700 font-semibold px-8 py-4 rounded-full hover:border-gray-400 transition-colors text-base">
-              Ver cómo funciona
-            </Link>
-          </div>
-
-          <div className="mt-10 flex flex-wrap gap-6 justify-center text-sm text-gray-400">
-            <span>⭐ Reseñas reales en Google</span>
-            <span>📡 QR + NFC incluido</span>
-            <span>🔄 Sin reimprimir si cambiás el link</span>
-            <span>⚡ Activo en minutos</span>
-          </div>
-        </div>
-      </section>
-
-      {/* PROBLEMAS */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-extrabold text-3xl sm:text-4xl text-gray-900 mb-4">
-              Los problemas que tiene todo local en Google
-            </h2>
-            <p className="text-gray-500 text-lg max-w-xl mx-auto">
-              Y que Calificar resuelve sin que tengas que hacer nada extra.
+          {/* Left: copy */}
+          <div>
+            <span className="inline-block text-xs font-semibold tracking-widest uppercase text-violet-600 bg-violet-50 px-3 py-1.5 rounded-full mb-6">
+              Para gastronomía
+            </span>
+            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight leading-[1.06] text-zinc-900 mb-6">
+              Cada mesa,<br />una reseña<br />en Google.
+            </h1>
+            <p className="text-lg text-zinc-500 leading-relaxed max-w-sm mb-8">
+              Un cartel QR en la mesa. El cliente escanea, ve el menú, califica al mozo y te deja una reseña. Sin apps ni fricciones.
             </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/auth/register"
+                className="bg-violet-600 hover:bg-violet-700 active:scale-95 text-white font-bold px-6 py-3.5 rounded-full text-base transition-all duration-150 text-center"
+              >
+                Empezar gratis
+              </Link>
+              <Link
+                href="#como-funciona"
+                className="border border-zinc-200 hover:border-zinc-400 text-zinc-700 font-semibold px-6 py-3.5 rounded-full text-base transition-all duration-150 text-center"
+              >
+                Ver cómo funciona
+              </Link>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PROBLEMS.map(p => (
-              <div key={p.title} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-3xl mb-4">{p.emoji}</div>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">{p.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{p.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* CÓMO FUNCIONA */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-extrabold text-3xl sm:text-4xl text-gray-900 mb-4">
-              Cómo funciona
-            </h2>
-            <p className="text-gray-500 text-lg max-w-xl mx-auto">
-              Cuatro pasos. El único que tiene que hacer algo es tu cliente — y es un escaneo.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {STEPS.map(s => (
-              <div key={s.n} className="flex gap-5 p-6 rounded-2xl border border-gray-100 hover:border-violet-200 hover:bg-violet-50/30 transition-colors">
-                <span className="font-extrabold text-4xl text-violet-200 leading-none flex-shrink-0">{s.n}</span>
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">{s.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
+          {/* Right: Phone with linktree preview */}
+          <div className="flex justify-center lg:justify-end">
+            <div className="relative">
+              {/* Phone shell */}
+              <div className="w-[272px] bg-zinc-900 rounded-[2.75rem] p-[10px] shadow-2xl shadow-zinc-300/60">
+                <div className="bg-white rounded-[2.25rem] overflow-hidden">
+
+                  {/* Notch */}
+                  <div className="relative bg-violet-50 px-5 pt-3 pb-2 flex justify-between items-center text-[10px] text-zinc-400 font-medium">
+                    <span>9:41</span>
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[72px] h-[18px] bg-zinc-900 rounded-full" />
+                    <span>●●●</span>
+                  </div>
+
+                  {/* Linktree content */}
+                  <div className="bg-gradient-to-b from-violet-50 to-white px-5 pb-7 pt-5 space-y-3">
+                    {/* Avatar + name */}
+                    <div className="text-center mb-5">
+                      <div className="w-14 h-14 bg-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-2.5 shadow-lg shadow-violet-200">
+                        <span className="text-white text-2xl font-extrabold">P</span>
+                      </div>
+                      <p className="font-bold text-sm text-zinc-900">La Parrilla de Omar</p>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">¿Qué querés hacer?</p>
+                    </div>
+
+                    {/* Opciones */}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center gap-3 bg-white border border-zinc-100 rounded-xl px-3 py-2.5 shadow-sm">
+                        <span className="text-lg leading-none">🍽️</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-zinc-900">Ver el menú</p>
+                          <p className="text-[10px] text-zinc-400">Carta completa del local</p>
+                        </div>
+                        <span className="text-zinc-300 text-xs">→</span>
+                      </div>
+
+                      <div className="flex items-center gap-3 bg-white border border-yellow-200 rounded-xl px-3 py-2.5 shadow-sm">
+                        <span className="text-lg leading-none">⭐</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-zinc-900">Calificar al mozo</p>
+                          <p className="text-[10px] text-zinc-400">Dejá tu opinión</p>
+                        </div>
+                        <span className="text-yellow-400 text-xs">→</span>
+                      </div>
+
+                      <div className="flex items-center gap-3 bg-white border border-blue-100 rounded-xl px-3 py-2.5 shadow-sm">
+                        <span className="text-lg leading-none">🗺️</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-zinc-900">Reseña en Google</p>
+                          <p className="text-[10px] text-zinc-400">Google Maps</p>
+                        </div>
+                        <span className="text-blue-400 text-xs">→</span>
+                      </div>
+                    </div>
+
+                    <p className="text-center text-[9px] text-zinc-300 pt-1">Powered by Calificar.com.ar</p>
+                  </div>
                 </div>
               </div>
-            ))}
+
+              {/* Glow */}
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-40 h-5 bg-violet-300 blur-2xl rounded-full opacity-50 pointer-events-none" />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-extrabold text-3xl sm:text-4xl text-gray-900 mb-4">
-              Todo lo que incluye el sistema
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map(f => (
-              <div key={f.title} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-2xl mb-3">{f.icon}</div>
-                <h3 className="font-bold text-gray-900 mb-2">{f.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+      {/* ── PROBLEMA: Dark editorial ────────────────────────────── */}
+      <section className="bg-zinc-950 py-24 px-6 md:px-10">
+        <div className="max-w-4xl mx-auto">
+          <blockquote className="text-2xl md:text-4xl font-bold text-white leading-snug mb-6 text-center">
+            "El cliente comió bien, pagó la cuenta, y se fue sin dejar reseña."
+          </blockquote>
+          <p className="text-zinc-400 text-lg leading-relaxed max-w-2xl mx-auto text-center mb-14">
+            No porque no le gustó. Sino porque nadie se lo pidió en el momento justo. Las reseñas se pierden en ese minuto en que el cliente está saliendo.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-zinc-800 rounded-2xl overflow-hidden">
+            {[
+              { n: '93%', label: 'de los clientes miran reseñas antes de elegir dónde comer' },
+              { n: '7 de 10', label: 'clientes satisfechos no dejan reseña si nadie se los pide en el momento' },
+              { n: '4.4★', label: 'es el mínimo que los clientes exigen para entrar a un local nuevo' },
+            ].map(({ n, label }) => (
+              <div key={n} className="bg-zinc-900 px-8 py-8 text-center">
+                <p className="text-3xl md:text-4xl font-extrabold text-violet-400 mb-2 tabular-nums">{n}</p>
+                <p className="text-zinc-400 text-sm leading-relaxed">{label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ECOSISTEMA */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="font-extrabold text-3xl sm:text-4xl text-gray-900 mb-4">
-              Un ecosistema completo para tu local
+      {/* ── COMO FUNCIONA: 3-step flow ──────────────────────────── */}
+      <section id="como-funciona" className="py-24 px-6 md:px-10 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-16 max-w-lg">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 mb-3">
+              Tres pasos. Nada más.
             </h2>
-            <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-              Calificar es el núcleo. Pero si querés, podés sumar reservas online y presencia en redes — todo integrado, todo desde el mismo proveedor.
+            <p className="text-zinc-500 text-lg">
+              No requiere wifi del local, apps ni que el personal tenga que acordarse de pedirlo.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {ECOSYSTEM.map(e => (
-              <div key={e.title} className="rounded-2xl border border-gray-200 p-6 flex flex-col">
-                <span className={`text-xs font-bold px-3 py-1 rounded-full w-fit mb-4 ${e.color}`}>{e.tag}</span>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">{e.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed mb-5">{e.desc}</p>
-                <ul className="space-y-2 mt-auto">
-                  {e.bullets.map(b => (
-                    <li key={b} className="flex items-center gap-2 text-sm text-gray-600">
-                      <span className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                      </span>
-                      {b}
-                    </li>
-                  ))}
-                </ul>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 relative">
+            {/* Connector (desktop) */}
+            <div className="hidden md:block absolute top-5 left-[calc(16.66%+2.5rem)] right-[calc(16.66%+2.5rem)] h-px bg-zinc-100" />
+
+            {[
+              {
+                num: '1',
+                title: 'Pedís tu cartel QR',
+                body: 'Te enviamos el cartel personalizado con el nombre de tu local. Podés imprimirlo, laminarlo y ponerlo en la mesa.',
+              },
+              {
+                num: '2',
+                title: 'Lo ponés en la mesa',
+                body: 'El cliente lo ve al sentarse o al terminar. Un solo QR para todo: menú, calificación del mozo y reseña en Maps.',
+              },
+              {
+                num: '3',
+                title: 'Las reseñas llegan',
+                body: 'El cliente escanea y elige en 10 segundos. Sin buscar tu local en Google, sin excusas, sin fricción.',
+              },
+            ].map(({ num, title, body }) => (
+              <div key={num} className="relative">
+                <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold mb-5 relative z-10">
+                  {num}
+                </div>
+                <h3 className="font-bold text-xl text-zinc-900 mb-2">{title}</h3>
+                <p className="text-zinc-500 text-base leading-relaxed">{body}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA MEDIO */}
-      <section className="py-16 px-6 bg-violet-600">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-extrabold text-3xl sm:text-4xl text-white mb-4">
-            ¿Cuántas reseñas nuevas podría tener tu local este mes?
-          </h2>
-          <p className="text-violet-200 text-lg mb-8">
-            Un local con 30 clientes por día puede conseguir entre 5 y 15 reseñas nuevas por semana con Calificar. Sin pedirle nada al cliente.
-          </p>
-          <a href={WA}
-            className="inline-flex items-center justify-center bg-white text-violet-700 font-bold px-8 py-4 rounded-full hover:bg-violet-50 transition-colors text-base">
-            Hablar por WhatsApp →
-          </a>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="py-20 px-6">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-extrabold text-3xl sm:text-4xl text-gray-900 mb-4">
-              Preguntas frecuentes
+      {/* ── QR LINKTREE: Bento 3 tiles ──────────────────────────── */}
+      <section className="py-24 px-6 md:px-10 bg-zinc-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 max-w-lg">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 mb-3">
+              Tres opciones en un solo QR.
             </h2>
+            <p className="text-zinc-500 text-lg">
+              El cliente escanea y elige. Sin cuenta, sin app, sin login.
+            </p>
           </div>
-          <div className="space-y-4">
-            {FAQS.map(f => (
-              <div key={f.q} className="border border-gray-200 rounded-2xl p-6">
-                <h3 className="font-bold text-gray-900 mb-2">{f.q}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{f.a}</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            {/* Tile 1: Menú (blanco) */}
+            <div className="bg-white rounded-3xl p-8 border border-zinc-100 flex flex-col justify-between min-h-[280px]">
+              <div>
+                <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-2xl mb-5">
+                  🍽️
+                </div>
+                <h3 className="font-bold text-xl text-zinc-900 mb-2">Ver el menú</h3>
+                <p className="text-zinc-500 text-sm leading-relaxed">
+                  Cargás la URL de tu carta y aparece como primera opción. PDF, Instagram, carta digital o delivery. El cliente la abre en el celular al instante.
+                </p>
               </div>
+              <p className="mt-6 text-xs font-semibold text-zinc-400 uppercase tracking-widest">Incluido</p>
+            </div>
+
+            {/* Tile 2: Mozo (amarillo) */}
+            <div className="bg-yellow-400 rounded-3xl p-8 flex flex-col justify-between min-h-[280px]">
+              <div>
+                <div className="w-12 h-12 bg-white/30 rounded-2xl flex items-center justify-center text-2xl mb-5">
+                  👨‍🍳
+                </div>
+                <h3 className="font-bold text-xl text-zinc-900 mb-2">Calificar al mozo</h3>
+                <p className="text-zinc-800 text-sm leading-relaxed">
+                  El cliente deja 1 a 5 estrellas y un comentario opcional. Vos lo ves desde tu panel. Después lo redirigimos directo a Google Maps.
+                </p>
+              </div>
+              {/* Stars display */}
+              <div className="flex gap-1 mt-6">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <svg key={s} viewBox="0 0 24 24" className="w-5 h-5 fill-zinc-900" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                ))}
+              </div>
+            </div>
+
+            {/* Tile 3: Google (azul) */}
+            <div className="bg-blue-600 rounded-3xl p-8 flex flex-col justify-between min-h-[280px]">
+              <div>
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl mb-5">
+                  🗺️
+                </div>
+                <h3 className="font-bold text-xl text-white mb-2">Reseña en Google</h3>
+                <p className="text-blue-100 text-sm leading-relaxed">
+                  Después de calificar al mozo, el cliente llega directo a tu ficha de Google Maps. Ya sabe qué puntaje poner. Solo escribe y publica.
+                </p>
+              </div>
+              <p className="mt-6 text-xs font-semibold text-blue-200 uppercase tracking-widest">Directo a Maps</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── RUBROS: Chip cloud ──────────────────────────────────── */}
+      <section className="py-16 px-6 md:px-10 bg-white border-t border-zinc-100">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-6 text-center">
+            Para todo tipo de local gastronómico
+          </p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {RUBROS.map(rubro => (
+              <span
+                key={rubro}
+                className="bg-zinc-100 text-zinc-600 text-sm font-medium px-4 py-2 rounded-full"
+              >
+                {rubro}
+              </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA FINAL */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="font-extrabold text-3xl sm:text-4xl text-gray-900 mb-4">
-            Empezá hoy
+      {/* ── FAQ: Accordion ──────────────────────────────────────── */}
+      <section className="py-24 px-6 md:px-10 bg-zinc-50">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 mb-10">
+            Preguntas frecuentes
           </h2>
-          <p className="text-gray-500 text-lg mb-8">
-            El cartel llega a tu local en 24 a 48 hs en GBA. Lo activás vos en minutos. Sin contratos, sin permanencia.
+          <FaqAccordion faqs={FAQS} />
+        </div>
+      </section>
+
+      {/* ── CTA FINAL ───────────────────────────────────────────── */}
+      <section className="py-24 px-6 md:px-10 bg-violet-600">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-4">
+            Tu local puede tener 10 reseñas nuevas este mes.
+          </h2>
+          <p className="text-violet-200 text-lg mb-8 max-w-xl mx-auto leading-relaxed">
+            Sin pedírselas en persona. Sin recordar mandar el link. Un cartel QR en la mesa hace el trabajo.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <a href={WA}
-              className="inline-flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-4 rounded-full transition-colors text-base shadow-lg shadow-violet-200">
-              Contactar por WhatsApp →
-            </a>
-            <Link href="/tienda"
-              className="inline-flex items-center justify-center bg-white border-2 border-gray-200 text-gray-700 font-semibold px-8 py-4 rounded-full hover:border-gray-400 transition-colors text-base">
-              Ver la tienda
-            </Link>
-          </div>
+          <Link
+            href="/auth/register"
+            className="inline-block bg-white hover:bg-violet-50 active:scale-95 text-violet-700 font-bold px-8 py-4 rounded-full text-lg transition-all duration-150"
+          >
+            Empezar gratis
+          </Link>
+          <p className="text-violet-300 text-sm mt-4">Sin tarjeta. Sin contrato.</p>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-gray-100 py-8 px-6">
-        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Calificar" className="h-5 w-auto" />
-            <span className="font-bold text-gray-900">Calificar</span>
-          </Link>
-          <div className="flex gap-6 text-sm text-gray-400">
-            <Link href="/gastronomia" className="font-semibold text-violet-600">Gastronomía</Link>
-            <Link href="/precios" className="hover:text-gray-600 transition-colors">Precios</Link>
-            <Link href="/blog" className="hover:text-gray-600 transition-colors">Blog</Link>
-            <Link href="/como-funciona" className="hover:text-gray-600 transition-colors">Cómo funciona</Link>
+      <footer className="bg-zinc-950 py-10 px-6 md:px-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <Link href="/" className="font-bold text-violet-400 text-lg">Calificar</Link>
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-zinc-500">
+            <Link href="/precios" className="hover:text-zinc-300 transition-colors">Precios</Link>
+            <Link href="/blog" className="hover:text-zinc-300 transition-colors">Blog</Link>
+            <Link href="/gastronomia" className="hover:text-zinc-300 transition-colors">Gastronomía</Link>
+            <Link href="/qr" className="hover:text-zinc-300 transition-colors">Mis QRs</Link>
           </div>
-          <p className="text-sm text-gray-400">© 2026 Calificar · Buenos Aires, Argentina</p>
+          <p className="text-zinc-600 text-sm">2026 Calificar.com.ar</p>
         </div>
       </footer>
 
-    </div>
+    </main>
   )
 }
