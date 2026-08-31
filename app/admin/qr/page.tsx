@@ -49,17 +49,19 @@ function QRCanvas({ url, size = 120, fg = '#0F172A', bg = '#FFFFFF', transparent
   return <canvas ref={canvasRef} className="rounded-lg block"/>
 }
 
-function QRCard({ code, fg = '#000000', bg = '#FFFFFF', transparent = false }: { code: string; fg?: string; bg?: string; transparent?: boolean }) {
+function QRCard({ code }: { code: string }) {
   const url = `${BASE}/g/${code}`
+  const [style, setStyle] = useState({ fg: '#000000', bg: '#FFFFFF', transparent: false, size: 800 })
+  const [showOpts, setShowOpts] = useState(false)
 
   async function download() {
     const QRCode = await import('qrcode')
     const canvas = document.createElement('canvas')
     await QRCode.toCanvas(canvas, url, {
-      width: 800, margin: 2,
-      color: { dark: fg, light: transparent ? '#FFFFFF' : bg },
+      width: style.size, margin: 2,
+      color: { dark: style.fg, light: style.transparent ? '#FFFFFF' : style.bg },
     })
-    if (transparent) {
+    if (style.transparent) {
       const ctx = canvas.getContext('2d')!
       const img = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const d = img.data
@@ -71,22 +73,84 @@ function QRCard({ code, fg = '#000000', bg = '#FFFFFF', transparent = false }: {
     }
     const a = document.createElement('a')
     a.href = canvas.toDataURL('image/png')
-    a.download = `qr-calificar-${code}${transparent ? '-transparent' : ''}.png`
+    a.download = `qr-${code}${style.transparent ? '-transparent' : ''}.png`
     a.click()
   }
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] flex flex-col items-center gap-3 border border-gray-100">
-      <QRCanvas url={url} size={120} fg={fg} bg={bg} transparent={transparent} />
+      {/* Preview */}
+      <div className={`rounded-xl p-2 ${style.transparent ? 'bg-[repeating-conic-gradient(#ccc_0%_25%,#fff_0%_50%)] bg-[length:12px_12px]' : ''}`}
+        style={style.transparent ? {} : { backgroundColor: style.bg }}>
+        <QRCanvas url={url} size={120} fg={style.fg} bg={style.bg} transparent={style.transparent} />
+      </div>
+
       <div className="text-center">
         <p className="font-mono font-bold text-gray-900 text-sm">{code}</p>
         <p className="text-[10px] text-gray-400 mt-0.5">{BASE}/g/{code}</p>
       </div>
-      <button
-        onClick={download}
-        className="w-full text-xs font-semibold bg-gray-900 text-white py-2 rounded-xl hover:bg-gray-700 transition-colors"
-      >
-        ↓ Descargar PNG
+
+      {/* Toggle opciones */}
+      <button onClick={() => setShowOpts(o => !o)}
+        className="w-full text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors">
+        {showOpts ? '▲ Ocultar opciones' : '▼ Personalizar color y fondo'}
+      </button>
+
+      {showOpts && (
+        <div className="w-full space-y-3 pt-1 border-t border-gray-100">
+          {/* Color del QR */}
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 mb-1.5">Color QR</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {['#000000','#FFFFFF','#7C3AED','#DC2626','#2563EB','#059669','#F59E0B'].map(c2 => (
+                <button key={c2} onClick={() => setStyle(s => ({ ...s, fg: c2 }))}
+                  className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 flex-shrink-0"
+                  style={{ backgroundColor: c2, borderColor: style.fg === c2 ? '#6366f1' : c2 === '#FFFFFF' ? '#d1d5db' : c2 }}
+                />
+              ))}
+              <input type="color" value={style.fg}
+                onChange={e => setStyle(s => ({ ...s, fg: e.target.value }))}
+                className="w-6 h-6 rounded-full cursor-pointer border border-gray-200 flex-shrink-0"
+                title="Color personalizado"
+              />
+            </div>
+          </div>
+
+          {/* Fondo */}
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 mb-1.5">Fondo</p>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setStyle(s => ({ ...s, transparent: !s.transparent }))}
+                className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-colors ${style.transparent ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200'}`}>
+                Sin fondo
+              </button>
+              {!style.transparent && (
+                <input type="color" value={style.bg}
+                  onChange={e => setStyle(s => ({ ...s, bg: e.target.value }))}
+                  className="w-6 h-6 rounded-full cursor-pointer border border-gray-200"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Tamaño */}
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 mb-1.5">Tamaño</p>
+            <div className="flex gap-1">
+              {[{ l: 'S', v: 400 }, { l: 'M', v: 800 }, { l: 'L', v: 1200 }, { l: 'XL', v: 2000 }].map(o => (
+                <button key={o.v} onClick={() => setStyle(s => ({ ...s, size: o.v }))}
+                  className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition-colors ${style.size === o.v ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-400 border-gray-200'}`}>
+                  {o.l}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button onClick={download}
+        className="w-full text-xs font-semibold bg-gray-900 text-white py-2 rounded-xl hover:bg-gray-700 transition-colors">
+        ↓ Descargar PNG {showOpts ? `${style.size}px` : ''}
       </button>
     </div>
   )
