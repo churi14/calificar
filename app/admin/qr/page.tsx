@@ -22,42 +22,62 @@ type QRCode = {
   label: string | null
 }
 
-function QRCanvas({ url, size = 120 }: { url: string; size?: number }) {
+function QRCanvas({ url, size = 120, fg = '#0F172A', bg = '#FFFFFF', transparent = false }: { url: string; size?: number; fg?: string; bg?: string; transparent?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     import('qrcode').then(QRCode => {
-      if (canvasRef.current) {
-        QRCode.toCanvas(canvasRef.current, url, {
-          width: size,
-          margin: 1,
-          color: { dark: '#0F172A', light: '#FFFFFF' },
-        })
-      }
+      if (!canvasRef.current) return
+      QRCode.toCanvas(canvasRef.current, url, {
+        width: size,
+        margin: 1,
+        color: { dark: fg, light: transparent ? '#FFFFFF' : bg },
+      }).then(() => {
+        if (!transparent || !canvasRef.current) return
+        const ctx = canvasRef.current.getContext('2d')!
+        const img = ctx.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
+        const d = img.data
+        for (let i = 0; i < d.length; i += 4) {
+          if (d[i] > 200 && d[i + 1] > 200 && d[i + 2] > 200) d[i + 3] = 0
+        }
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+        ctx.putImageData(img, 0, 0)
+      })
     })
-  }, [url, size])
+  }, [url, size, fg, bg, transparent])
 
   return <canvas ref={canvasRef} className="rounded-lg block"/>
 }
 
-function QRCard({ code }: { code: string }) {
+function QRCard({ code, fg = '#000000', bg = '#FFFFFF', transparent = false }: { code: string; fg?: string; bg?: string; transparent?: boolean }) {
   const url = `${BASE}/g/${code}`
 
   async function download() {
     const QRCode = await import('qrcode')
-    const dataUrl = await QRCode.toDataURL(url, {
+    const canvas = document.createElement('canvas')
+    await QRCode.toCanvas(canvas, url, {
       width: 800, margin: 2,
-      color: { dark: '#0F172A', light: '#FFFFFF' },
+      color: { dark: fg, light: transparent ? '#FFFFFF' : bg },
     })
+    if (transparent) {
+      const ctx = canvas.getContext('2d')!
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const d = img.data
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i] > 200 && d[i + 1] > 200 && d[i + 2] > 200) d[i + 3] = 0
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.putImageData(img, 0, 0)
+    }
     const a = document.createElement('a')
-    a.href = dataUrl
-    a.download = `qr-calificar-${code}.png`
+    a.href = canvas.toDataURL('image/png')
+    a.download = `qr-calificar-${code}${transparent ? '-transparent' : ''}.png`
     a.click()
   }
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] flex flex-col items-center gap-3 border border-gray-100">
-      <QRCanvas url={url} size={120} />
+      <QRCanvas url={url} size={120} fg={fg} bg={bg} transparent={transparent} />
       <div className="text-center">
         <p className="font-mono font-bold text-gray-900 text-sm">{code}</p>
         <p className="text-[10px] text-gray-400 mt-0.5">{BASE}/g/{code}</p>
@@ -93,6 +113,7 @@ export default function AdminQRPage() {
   const [copied, setCopied] = useState<string | null>(null)
   const [showQR, setShowQR] = useState<string | null>(null)
   const [editing, setEditing] = useState<string | null>(null)
+  const [qrStyle, setQrStyle] = useState({ fg: '#000000', bg: '#FFFFFF', transparent: false, size: 800 })
   const [editState, setEditState] = useState<EditState>({ business_name: '', google_url: '', client_id: '', notes: '', buyer_name: '', buyer_phone: '' })
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -350,24 +371,123 @@ export default function AdminQRPage() {
                   </div>
                 </div>
 
-                {/* Panel QR expandido */}
+                {/* Panel QR expandido con customizador */}
                 {showQR === c.code && (
-                  <div className="px-6 py-5 bg-gray-50 border-t border-gray-100 flex items-center gap-6">
-                    <QRCanvas url={`${BASE}/g/${c.code}`} size={100} />
-                    <div>
-                      <p className="font-mono font-bold text-gray-900 mb-1">{c.code}</p>
-                      <p className="text-xs text-gray-400 mb-3">{BASE}/g/{c.code}</p>
-                      <button
-                        onClick={async () => {
-                          const QRCode = await import('qrcode')
-                          const dataUrl = await QRCode.toDataURL(`${BASE}/g/${c.code}`, { width: 800, margin: 2 })
-                          const a = document.createElement('a')
-                          a.href = dataUrl; a.download = `qr-${c.code}.png`; a.click()
-                        }}
-                        className="text-xs font-semibold bg-gray-900 text-white px-4 py-2 rounded-xl hover:bg-gray-700 transition-colors"
-                      >
-                        ↓ Descargar PNG
-                      </button>
+                  <div className="px-6 py-5 bg-gray-50 border-t border-gray-100">
+                    <div className="flex flex-wrap items-start gap-8">
+                      {/* Preview */}
+                      <div className={`rounded-2xl p-3 flex-shrink-0 ${qrStyle.transparent ? 'bg-[repeating-conic-gradient(#ccc_0%_25%,#fff_0%_50%)] bg-[length:16px_16px]' : ''}`} style={qrStyle.transparent ? {} : { backgroundColor: qrStyle.bg }}>
+                        <QRCanvas url={`${BASE}/g/${c.code}`} size={140} fg={qrStyle.fg} bg={qrStyle.bg} transparent={qrStyle.transparent} />
+                      </div>
+
+                      {/* Controles */}
+                      <div className="flex-1 min-w-[260px]">
+                        <p className="font-mono font-bold text-gray-700 text-sm mb-4">{BASE}/g/{c.code}</p>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          {/* Color del QR */}
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 mb-2">Color del QR</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={qrStyle.fg}
+                                onChange={e => setQrStyle(s => ({ ...s, fg: e.target.value }))}
+                                className="w-10 h-10 rounded-lg cursor-pointer border border-gray-200"
+                              />
+                              <input
+                                type="text"
+                                value={qrStyle.fg}
+                                onChange={e => setQrStyle(s => ({ ...s, fg: e.target.value }))}
+                                className="w-24 text-xs font-mono bg-white border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-gray-400"
+                              />
+                            </div>
+                            {/* Colores rápidos */}
+                            <div className="flex gap-1.5 mt-2">
+                              {['#000000','#FFFFFF','#7C3AED','#0F172A','#DC2626','#2563EB','#059669'].map(c2 => (
+                                <button key={c2} onClick={() => setQrStyle(s => ({ ...s, fg: c2 }))}
+                                  className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110"
+                                  style={{ backgroundColor: c2, borderColor: qrStyle.fg === c2 ? '#6366f1' : '#e5e7eb' }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Fondo */}
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 mb-2">Fondo</label>
+                            <div className="flex items-center gap-2 mb-2">
+                              <button
+                                onClick={() => setQrStyle(s => ({ ...s, transparent: !s.transparent }))}
+                                className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${qrStyle.transparent ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}
+                              >
+                                {qrStyle.transparent ? '✓ Sin fondo' : 'Sin fondo'}
+                              </button>
+                            </div>
+                            {!qrStyle.transparent && (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="color"
+                                  value={qrStyle.bg}
+                                  onChange={e => setQrStyle(s => ({ ...s, bg: e.target.value }))}
+                                  className="w-10 h-10 rounded-lg cursor-pointer border border-gray-200"
+                                />
+                                <input
+                                  type="text"
+                                  value={qrStyle.bg}
+                                  onChange={e => setQrStyle(s => ({ ...s, bg: e.target.value }))}
+                                  className="w-24 text-xs font-mono bg-white border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-gray-400"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Tamaño */}
+                        <div className="mb-5">
+                          <label className="block text-xs font-semibold text-gray-500 mb-2">Tamaño PNG</label>
+                          <div className="flex gap-2">
+                            {[{ label: 'S', val: 400 }, { label: 'M', val: 800 }, { label: 'L', val: 1200 }, { label: 'XL', val: 2000 }].map(o => (
+                              <button key={o.val} onClick={() => setQrStyle(s => ({ ...s, size: o.val }))}
+                                className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${qrStyle.size === o.val ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'}`}
+                              >
+                                {o.label} <span className="font-normal opacity-60">{o.val}px</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Descargar */}
+                        <button
+                          onClick={async () => {
+                            const QRCode = await import('qrcode')
+                            const url = `${BASE}/g/${c.code}`
+                            const canvas = document.createElement('canvas')
+                            await QRCode.toCanvas(canvas, url, {
+                              width: qrStyle.size,
+                              margin: 2,
+                              color: { dark: qrStyle.fg, light: qrStyle.transparent ? '#FFFFFF' : qrStyle.bg },
+                            })
+                            if (qrStyle.transparent) {
+                              const ctx = canvas.getContext('2d')!
+                              const img = ctx.getImageData(0, 0, canvas.width, canvas.height)
+                              const d = img.data
+                              for (let i = 0; i < d.length; i += 4) {
+                                if (d[i] > 200 && d[i + 1] > 200 && d[i + 2] > 200) d[i + 3] = 0
+                              }
+                              ctx.clearRect(0, 0, canvas.width, canvas.height)
+                              ctx.putImageData(img, 0, 0)
+                            }
+                            const a = document.createElement('a')
+                            a.href = canvas.toDataURL('image/png')
+                            a.download = `qr-${c.code}${qrStyle.transparent ? '-transparent' : ''}.png`
+                            a.click()
+                          }}
+                          className="bg-gray-900 text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-gray-700 transition-colors"
+                        >
+                          ↓ Descargar PNG {qrStyle.size}px
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
