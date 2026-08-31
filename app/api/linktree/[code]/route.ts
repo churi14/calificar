@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 
-export async function GET(_req: Request, { params }: { params: { code: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ code: string }> }) {
+  const { code } = await params
   const supabase = createServiceClient()
 
   const { data, error } = await supabase
     .from('qr_redirects')
     .select('code, business_name, google_url, menu_url, activated')
-    .eq('code', params.code.toUpperCase())
+    .eq('code', code.toUpperCase())
     .single()
 
   if (error || !data || !data.activated) {
