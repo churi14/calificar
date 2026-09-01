@@ -204,47 +204,79 @@ export default function GastronomiaPage() {
         </div>
       </section>
 
-      {/* ── COMO FUNCIONA: 3-step flow ──────────────────────────── */}
+      {/* ── COMO FUNCIONA: full flow ────────────────────────────── */}
       <section id="como-funciona" className="py-16 px-6 md:px-10 bg-white">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="mb-10 max-w-lg">
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 mb-3">
-              Tres pasos. Nada más.
+              Cómo funciona.
             </h2>
             <p className="text-zinc-500 text-lg">
-              Sin apps, sin que nadie tenga que acordarse.
+              Desde el cartel físico hasta que tu local aparece primero cuando alguien busca en Google o le pregunta a ChatGPT.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 relative">
-            {/* Connector (desktop) */}
-            <div className="hidden md:block absolute top-5 left-[calc(16.66%+2.5rem)] right-[calc(16.66%+2.5rem)] h-px bg-zinc-100" />
+          <div className="relative">
+            {/* Vertical line */}
+            <div className="absolute left-5 top-5 bottom-5 w-px bg-zinc-100 hidden md:block" />
 
-            {[
-              {
-                num: '1',
-                title: 'Pedís tu cartel o agendamos una reunión',
-                body: 'Te mandamos un cartel personalizado listo para usar, o si querés, coordinamos una reunión para asesorarte mejor según tu local. Puede ser solo QR o también NFC. Pago único, es tuyo para siempre.',
-              },
-              {
-                num: '2',
-                title: 'El QR va en la mesa o cada mozo tiene el suyo',
-                body: 'Con un QR por mozo podés ver cuántas veces escanearon su código, sus calificaciones y en qué fallan. No necesitás avisarle al mozo. Cuando se va, el código se reasigna a otro.',
-              },
-              {
-                num: '3',
-                title: 'Las reseñas llegan',
-                body: 'El cliente escanea y elige en 10 segundos. Sin buscar tu local en Google, sin excusas, sin fricción.',
-              },
-            ].map(({ num, title, body }) => (
-              <div key={num} className="relative">
-                <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold mb-4 relative z-10">
-                  {num}
+            <div className="space-y-10">
+              {[
+                {
+                  num: '1',
+                  tag: 'El cartel',
+                  title: 'Pedís tu cartel o agendamos una reunión',
+                  body: 'Te mandamos un cartel personalizado listo para usar, o coordinamos una reunión para asesorarte según tu local. Puede ser solo QR o también NFC para celulares que no escanean. Pago único, es tuyo para siempre.',
+                },
+                {
+                  num: '2',
+                  tag: 'La mesa o el mozo',
+                  title: 'El QR va en la mesa o cada mozo tiene el suyo',
+                  body: 'Con un QR por mozo podés ver cuántas veces escanearon su código, sus calificaciones y en qué están fallando. No hace falta avisarle al mozo. Si se va, el código se reasigna a otro.',
+                },
+                {
+                  num: '3',
+                  tag: 'Las reseñas',
+                  title: 'Las reseñas llegan solas',
+                  body: 'El cliente escanea y elige en 10 segundos. Sin buscar tu local en Google, sin excusas, sin fricción. Cada escaneo es una oportunidad de reseña real.',
+                },
+                {
+                  num: '4',
+                  tag: 'Presencia en Google',
+                  title: 'Optimizamos tu Perfil de Empresa en Google',
+                  body: 'Categorías, fotos, horarios, descripción, link directo a reseñas. Todo lo que hace que tu local aparezca primero cuando alguien busca tu rubro en Maps.',
+                },
+                {
+                  num: '5',
+                  tag: 'Social Media',
+                  title: 'Posicionamos tu local en redes',
+                  body: 'Nos encargamos de todo lo necesario: contenido, publicaciones, historias y gestión de comentarios. Vos te ocupás del local, nosotros de que te vean.',
+                },
+                {
+                  num: '6',
+                  tag: 'Visibilidad en IA',
+                  title: 'Tu local en las respuestas de ChatGPT y Gemini',
+                  body: 'Cada vez más personas preguntan a la IA dónde comer. Trabajamos para que tu local aparezca cuando buscan tu rubro en tu ciudad, y medimos lo que contestan hoy.',
+                },
+                {
+                  num: '7',
+                  tag: 'El cliente vuelve',
+                  title: 'Reservas online y fidelización',
+                  body: 'Sistema de turnos con confirmación por WhatsApp, campañas para que el cliente vuelva y seguimiento post-visita. El local crece solo.',
+                },
+              ].map(({ num, tag, title, body }) => (
+                <div key={num} className="flex gap-6 md:gap-10 items-start">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold relative z-10">
+                    {num}
+                  </div>
+                  <div className="pb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-violet-400 mb-1 block">{tag}</span>
+                    <h3 className="font-bold text-lg text-zinc-900 mb-1.5">{title}</h3>
+                    <p className="text-zinc-500 text-sm leading-relaxed max-w-xl">{body}</p>
+                  </div>
                 </div>
-                <h3 className="font-bold text-xl text-zinc-900 mb-2">{title}</h3>
-                <p className="text-zinc-500 text-base leading-relaxed">{body}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -311,64 +343,6 @@ export default function GastronomiaPage() {
               </div>
               <p className="mt-6 text-xs font-semibold text-blue-200 uppercase tracking-widest">Directo a Maps</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── SERVICIOS ADICIONALES ───────────────────────────────── */}
-      <section className="py-16 px-6 md:px-10 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-10 max-w-lg">
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900 mb-3">
-              Más que reseñas.
-            </h2>
-            <p className="text-zinc-500 text-lg">
-              Servicios adicionales que podés sumar según lo que necesite tu local.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              {
-                icon: '📅',
-                title: 'Reservas online',
-                desc: 'Tu propio sistema de turnos con confirmación automática por WhatsApp. El cliente reserva cuando lo decide, incluso fuera de tu horario.',
-              },
-              {
-                icon: '📱',
-                title: 'Social Media',
-                desc: 'Nos encargamos de todo lo necesario para posicionar tu local en redes: contenido, publicaciones, historias y gestión de comentarios.',
-              },
-              {
-                icon: '🗺️',
-                title: 'Presencia en Google',
-                desc: 'Optimizamos tu Perfil de Empresa en Google: categorías, fotos, horarios, descripción y todo lo que hace que aparezcas primero cuando buscan tu rubro.',
-              },
-              {
-                icon: '🤖',
-                title: 'Visibilidad en IA',
-                desc: 'Trabajamos para que tu local aparezca cuando alguien le pregunta a ChatGPT o Gemini "mejor restaurante en [tu ciudad]". Medimos lo que contestan hoy.',
-              },
-              {
-                icon: '💬',
-                title: 'Respuestas a reseñas',
-                desc: 'Respondemos cada reseña nueva en Google Maps en menos de 24 horas, con el tono que vos elegís.',
-              },
-              {
-                icon: '🔁',
-                title: 'Fidelización',
-                desc: 'Campañas para que el cliente vuelva: recordatorios, promociones por cumpleaños o inactividad, y seguimiento post-visita.',
-              },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="bg-zinc-50 rounded-2xl p-6 border border-zinc-100">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-xl mb-4 border border-zinc-100 shadow-sm">
-                  {icon}
-                </div>
-                <h3 className="font-bold text-zinc-900 mb-2 text-base">{title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed">{desc}</p>
-                <p className="mt-4 text-xs font-semibold text-violet-600">A consultar</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
