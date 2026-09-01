@@ -60,6 +60,41 @@ const FAQS = [
 export default function GastronomiaPage() {
   return (
     <main className="bg-white text-zinc-900 antialiased">
+      <style>{`
+        @property --angle {
+          syntax: '<angle>';
+          initial-value: 0deg;
+          inherits: false;
+        }
+        .step-card {
+          position: relative;
+          isolation: isolate;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .step-card::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: 1.1rem;
+          background: conic-gradient(from var(--angle), #7c3aed, #d946ef, #818cf8, #7c3aed);
+          opacity: 0;
+          z-index: -1;
+          transition: opacity 0.35s ease;
+          animation: step-card-spin 3s linear infinite paused;
+          filter: blur(0.5px);
+        }
+        .step-card:hover::before {
+          opacity: 1;
+          animation-play-state: running;
+        }
+        .step-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(124, 58, 237, 0.15);
+        }
+        @keyframes step-card-spin {
+          to { --angle: 360deg; }
+        }
+      `}</style>
 
       {/* NAV */}
       <nav className="fixed top-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm border-b border-zinc-100 h-16 flex items-center">
@@ -235,7 +270,7 @@ export default function GastronomiaPage() {
                 body: 'El cliente escanea y elige en 10 segundos. Sin buscar tu local en Google, sin excusas, sin fricción. Cada escaneo es una reseña real.',
               },
             ].map(({ num, title, body }) => (
-              <div key={num} className="bg-zinc-50 rounded-2xl p-7 border border-zinc-100">
+              <div key={num} className="step-card bg-zinc-50 rounded-2xl p-7 border border-zinc-100">
                 <div className="w-9 h-9 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold mb-5">
                   {num}
                 </div>
