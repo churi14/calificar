@@ -124,50 +124,33 @@ export default function LandingPage() {
           </p>
 
           {/* Verticales */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
             <Link href="/gastronomia"
-              className="group bg-white border-2 border-zinc-100 hover:border-violet-300 rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
-              <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.svg" alt="" className="h-6 w-auto" />
-                <span className="font-extrabold text-[#0F172A] text-base leading-none">
-                  Calificar <em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>gastronomía</em>
-                </span>
-              </div>
-              <p className="text-sm text-zinc-500 leading-relaxed">Restaurantes, bares, cafeterías y más</p>
-              <p className="mt-4 text-violet-600 text-xs font-bold group-hover:underline">Ver más →</p>
+              className="group bg-white border-2 border-zinc-100 hover:border-violet-300 rounded-2xl p-8 text-center transition-all duration-200 hover:shadow-xl hover:-translate-y-1 flex flex-col items-center">
+              <img src="/logo.svg" alt="" className="h-10 w-auto mb-3" />
+              <p className="font-extrabold text-[#0F172A] text-lg leading-snug mb-1">
+                Calificar<br/><em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>gastronomía</em>
+              </p>
+              <p className="text-sm text-zinc-500 leading-relaxed mt-2">Restaurantes, bares, cafeterías y más</p>
+              <p className="mt-5 text-violet-600 text-sm font-bold group-hover:underline">Ver más →</p>
             </Link>
             <Link href="/beauty"
-              className="group bg-white border-2 border-zinc-100 hover:border-pink-300 rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
-              <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.svg" alt="" className="h-6 w-auto" style={{ filter: 'hue-rotate(280deg) saturate(1.5)' }} />
-                <span className="font-extrabold text-[#0F172A] text-base leading-none">
-                  Calificar <em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400, color: '#ec4899' }}>beauty</em>
-                </span>
-              </div>
-              <p className="text-sm text-zinc-500 leading-relaxed">Peluquerías, estéticas y spas</p>
-              <p className="mt-4 text-pink-500 text-xs font-bold group-hover:underline">Próximamente →</p>
+              className="group bg-white border-2 border-zinc-100 hover:border-pink-300 rounded-2xl p-8 text-center transition-all duration-200 hover:shadow-xl hover:-translate-y-1 flex flex-col items-center">
+              <img src="/logo.svg" alt="" className="h-10 w-auto mb-3" style={{ filter: 'hue-rotate(280deg) saturate(1.5)' }} />
+              <p className="font-extrabold text-[#0F172A] text-lg leading-snug mb-1">
+                Calificar<br/><em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400, color: '#ec4899' }}>beauty</em>
+              </p>
+              <p className="text-sm text-zinc-500 leading-relaxed mt-2">Peluquerías, estéticas y spas</p>
+              <p className="mt-5 text-pink-500 text-sm font-bold group-hover:underline">Próximamente →</p>
             </Link>
             <Link href="/tienda"
-              className="group bg-white border-2 border-zinc-100 hover:border-emerald-300 rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
-              <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.svg" alt="" className="h-6 w-auto" style={{ filter: 'hue-rotate(130deg) saturate(1.2)' }} />
-                <span className="font-extrabold text-[#0F172A] text-base leading-none">
-                  Calificar <em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400, color: '#059669' }}>carteles</em>
-                </span>
-              </div>
-              <p className="text-sm text-zinc-500 leading-relaxed">QR + NFC para cualquier negocio</p>
-              <p className="mt-4 text-emerald-600 text-xs font-bold group-hover:underline">Ver tienda →</p>
-            </Link>
-          </div>
-
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/r/demo"
-              className="inline-flex items-center justify-center bg-white border-2 border-gray-200 text-gray-900 font-semibold px-7 py-3.5 rounded-full hover:border-gray-400 transition-colors text-sm">
-              Ver demo
-            </Link>
-            <Link href="/como-funciona"
-              className="inline-flex items-center justify-center bg-[#1A1A2E] text-white font-semibold px-7 py-3.5 rounded-full hover:bg-[#2A2A45] transition-colors text-sm shadow-lg shadow-[#1A1A2E]/20">
-              Cómo funciona
+              className="group bg-white border-2 border-zinc-100 hover:border-emerald-300 rounded-2xl p-8 text-center transition-all duration-200 hover:shadow-xl hover:-translate-y-1 flex flex-col items-center">
+              <img src="/logo.svg" alt="" className="h-10 w-auto mb-3" style={{ filter: 'hue-rotate(130deg) saturate(1.2)' }} />
+              <p className="font-extrabold text-[#0F172A] text-lg leading-snug mb-1">
+                Calificar<br/><em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400, color: '#059669' }}>carteles</em>
+              </p>
+              <p className="text-sm text-zinc-500 leading-relaxed mt-2">QR + NFC para cualquier negocio</p>
+              <p className="mt-5 text-emerald-600 text-sm font-bold group-hover:underline">Ver tienda →</p>
             </Link>
           </div>
         </div>
