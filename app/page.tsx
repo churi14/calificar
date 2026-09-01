@@ -99,60 +99,75 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
 
-      {/* HERO */}
-      <section className="relative grid grid-cols-1 lg:grid-cols-2 lg:min-h-[800px]">
-
-        <div className="fixed top-6 left-6 sm:left-10 z-50">
-          <Link href="/" className="font-display font-extrabold text-xl text-gray-900 flex items-center gap-1.5">
-            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
+      {/* HEADER sticky */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-1.5 font-extrabold text-xl text-[#0F172A]">
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" />
+            Calificar
+          </Link>
+          <HeroNav />
         </div>
+      </header>
 
-        {/* Texto */}
-        <div className="flex items-center px-6 sm:px-10 lg:px-16 py-24">
-          <div className="max-w-md mx-auto text-center">
-            <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl leading-[1.1] text-violet-600 mb-6">
-              Todo lo que necesitás para cuidar las reseñas de tu local
-            </h1>
-            <p className="text-gray-500 text-base sm:text-lg leading-relaxed mb-8">
-              Cada cliente que escanea el cartel califica su experiencia. Los conformes van
-              directo a Google. Los que tuvieron un problema te escriben a vos, en privado,
-              antes de que se convierta en una mala reseña.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link href="/r/demo"
-                className="inline-flex items-center justify-center bg-white border-2 border-gray-300 text-gray-900 font-semibold px-8 py-4 rounded-full hover:border-gray-400 hover:bg-gray-50 transition-colors text-base">
-                Ver demo
-              </Link>
-              <Link href="/como-funciona"
-                className="inline-flex items-center justify-center bg-[#1A1A2E] text-white font-semibold px-8 py-4 rounded-full hover:bg-[#2A2A45] transition-colors text-base shadow-lg shadow-[#1A1A2E]/20">
-                Cómo funciona
-              </Link>
-            </div>
+      {/* HERO — centrado */}
+      <section className="relative bg-white py-20 lg:py-28 px-6 text-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-50/50 to-white pointer-events-none" />
+        <div className="relative max-w-4xl mx-auto">
+          <h1 className="font-display font-extrabold text-5xl sm:text-6xl lg:text-7xl leading-[1.05] text-violet-600 mb-6">
+            Todo lo que necesitás<br className="hidden sm:block"/> para cuidar las<br className="hidden sm:block"/> reseñas de tu local
+          </h1>
+          <p className="text-gray-500 text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto mb-12">
+            Cada cliente que escanea el cartel califica su experiencia. Los conformes van
+            directo a Google. Los que tuvieron un problema te escriben a vos, en privado,
+            antes de que se convierta en una mala reseña.
+          </p>
 
-            {/* QR Dinámico pill */}
-            <div className="mt-6 flex justify-center">
-              <Link href="/qr"
-                className="inline-flex items-center gap-2.5 bg-violet-50 border border-violet-200 text-violet-700 font-semibold text-sm px-5 py-2.5 rounded-full hover:bg-violet-100 hover:border-violet-300 transition-colors group">
-                <span className="w-5 h-5 bg-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="15" y="15" width="2.5" height="2.5" rx="0.5"/><rect x="19" y="15" width="2.5" height="2.5" rx="0.5"/><rect x="15" y="19" width="2.5" height="2.5" rx="0.5"/><rect x="19" y="19" width="2.5" height="2.5" rx="0.5"/></svg>
-                </span>
-                Carteles QR Dinámico + NFC disponibles
-                <span className="group-hover:translate-x-0.5 transition-transform">→</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Panel rosa */}
-        <div className="relative bg-[#F4CCD8] min-h-[520px] sm:min-h-[600px] lg:min-h-[800px] flex items-center justify-center px-6 py-10">
-
-          <div className="fixed top-6 right-6 lg:right-10 z-50">
-            <HeroNav/>
+          {/* Verticales */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
+            <Link href="/gastronomia"
+              className="group bg-white border-2 border-zinc-100 hover:border-violet-300 rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+              <span className="text-3xl mb-4 block">🍽️</span>
+              <p className="font-extrabold text-zinc-900 text-base mb-1">Calificar Gastronomía</p>
+              <p className="text-sm text-zinc-500 leading-relaxed">Restaurantes, bares, cafeterías y más</p>
+              <p className="mt-4 text-violet-600 text-xs font-bold group-hover:underline">Ver más →</p>
+            </Link>
+            <Link href="/beauty"
+              className="group bg-white border-2 border-zinc-100 hover:border-pink-300 rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+              <span className="text-3xl mb-4 block">💅</span>
+              <p className="font-extrabold text-zinc-900 text-base mb-1">Calificar Beauty</p>
+              <p className="text-sm text-zinc-500 leading-relaxed">Peluquerías, estéticas y spas</p>
+              <p className="mt-4 text-pink-500 text-xs font-bold group-hover:underline">Próximamente →</p>
+            </Link>
+            <Link href="/tienda"
+              className="group bg-white border-2 border-zinc-100 hover:border-emerald-300 rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
+              <span className="text-3xl mb-4 block">📦</span>
+              <p className="font-extrabold text-zinc-900 text-base mb-1">Calificar Carteles</p>
+              <p className="text-sm text-zinc-500 leading-relaxed">QR + NFC para cualquier negocio</p>
+              <p className="mt-4 text-emerald-600 text-xs font-bold group-hover:underline">Ver tienda →</p>
+            </Link>
           </div>
 
-          <div className="absolute z-20 left-1/2 bottom-0 -translate-x-28 sm:-translate-x-40 lg:-translate-x-64 xl:-translate-x-72 pointer-events-none
-            translate-y-16 sm:translate-y-24 lg:translate-y-[12rem]
-            w-[280px] h-[380px] sm:w-[380px] sm:h-[480px] lg:w-[480px] lg:h-[600px] xl:w-[550px] xl:h-[700px]">
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Link href="/r/demo"
+              className="inline-flex items-center justify-center bg-white border-2 border-gray-200 text-gray-900 font-semibold px-7 py-3.5 rounded-full hover:border-gray-400 transition-colors text-sm">
+              Ver demo
+            </Link>
+            <Link href="/como-funciona"
+              className="inline-flex items-center justify-center bg-[#1A1A2E] text-white font-semibold px-7 py-3.5 rounded-full hover:bg-[#2A2A45] transition-colors text-sm shadow-lg shadow-[#1A1A2E]/20">
+              Cómo funciona
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* APP SHOWCASE — panel rosa */}
+      <section className="relative bg-[#F4CCD8] py-16 overflow-hidden">
+        <div className="max-w-5xl mx-auto px-6 flex flex-col items-center">
+          <p className="text-[#0F172A]/50 text-xs font-bold uppercase tracking-widest mb-10">
+            Lo que ve el cliente cuando escanea
+          </p>
+          <div className="relative w-[280px] h-[380px] sm:w-[360px] sm:h-[460px]">
             {HERO_IMAGES.map((src, i) => {
               const isHeroApp = src === '/hero-app.png'
               return (
@@ -162,31 +177,24 @@ export default function LandingPage() {
                   alt="Calificar — vista del cliente"
                   fill
                   priority={i === 0}
-                  className={`object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.3)] transition-all duration-1000 ease-in-out ${i === activeImage ? 'opacity-100' : 'opacity-0'} ${isHeroApp ? 'scale-[1.1] sm:scale-[1.15] lg:scale-[1.18] origin-bottom' : 'scale-100'}`}
+                  className={`object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.25)] transition-all duration-1000 ease-in-out ${i === activeImage ? 'opacity-100' : 'opacity-0'} ${isHeroApp ? 'scale-[1.08] origin-bottom' : 'scale-100'}`}
                 />
               )
             })}
           </div>
-
-          {/* Tarjetas apiladas */}
-          <div className="hidden sm:flex absolute z-30 bottom-8 right-6 lg:right-14 flex-col gap-3 w-60">
-            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3 hover:shadow-xl hover:-translate-x-1 transition-all duration-300">
+          {/* Tarjetas flotantes */}
+          <div className="flex flex-wrap justify-center gap-3 mt-8">
+            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3">
               <span className="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0">
                 <IconCheck/>
               </span>
-              <p className="text-sm font-semibold text-gray-900 leading-tight">Reseña enviada a Google</p>
+              <p className="text-sm font-semibold text-gray-900">Reseña enviada a Google</p>
             </div>
-            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3 hover:shadow-xl hover:-translate-x-1 transition-all duration-300">
-              <span className="w-7 h-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                M
-              </span>
-              <p className="text-sm font-semibold text-gray-900 leading-tight">María recibió una reseña</p>
-            </div>
-            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3 hover:shadow-xl hover:-translate-x-1 transition-all duration-300">
+            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3">
               <span className="relative inline-flex h-5 w-9 items-center rounded-full bg-violet-600 flex-shrink-0">
                 <span className="inline-block h-3.5 w-3.5 translate-x-[18px] rounded-full bg-white"/>
               </span>
-              <p className="text-sm font-semibold text-gray-900 leading-tight">Filtro anti-haters</p>
+              <p className="text-sm font-semibold text-gray-900">Filtro anti-haters</p>
             </div>
           </div>
         </div>
