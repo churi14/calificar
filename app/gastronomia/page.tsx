@@ -64,8 +64,8 @@ export default function GastronomiaPage() {
       {/* NAV */}
       <nav className="fixed top-0 inset-x-0 z-40 bg-white/90 backdrop-blur-sm border-b border-zinc-100 h-16 flex items-center">
         <div className="max-w-7xl mx-auto px-6 md:px-10 w-full flex items-center justify-between">
-          <Link href="/" className="font-bold text-violet-600 text-lg tracking-tight">
-            Calificar
+          <Link href="/" className="text-lg tracking-tight font-bold text-violet-600">
+            Calificar <em className="font-normal not-italic" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>gastronomía</em>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500">
             <Link href="/precios" className="hover:text-zinc-900 transition-colors duration-150">Precios</Link>
@@ -94,7 +94,7 @@ export default function GastronomiaPage() {
               Cada mesa,<br />una reseña<br />en Google.
             </h1>
             <p className="text-lg text-zinc-500 leading-relaxed max-w-sm mb-8">
-              Un cartel QR en la mesa. El cliente escanea, ve el menú, califica al mozo y te deja una reseña. Sin apps ni fricciones.
+              Un cartel QR en la mesa o con el mozo. El cliente escanea, ve el menú, califica al servicio y te deja una reseña. Sin apps ni fricciones.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
@@ -116,7 +116,7 @@ export default function GastronomiaPage() {
           <div className="flex justify-center lg:justify-end">
             <div className="relative">
               {/* Phone shell */}
-              <div className="w-[272px] bg-zinc-900 rounded-[2.75rem] p-[10px] shadow-2xl shadow-zinc-300/60">
+              <div className="w-[300px] bg-zinc-900 rounded-[2.75rem] p-[10px] shadow-2xl shadow-zinc-300/60">
                 <div className="bg-white rounded-[2.25rem] overflow-hidden">
 
                   {/* Notch */}
@@ -127,7 +127,7 @@ export default function GastronomiaPage() {
                   </div>
 
                   {/* Linktree content */}
-                  <div className="bg-gradient-to-b from-violet-50 to-white px-5 pb-7 pt-5 space-y-3">
+                  <div className="bg-gradient-to-b from-violet-50 to-white px-5 pb-10 pt-5 space-y-3">
                     {/* Avatar + name */}
                     <div className="text-center mb-5">
                       <div className="w-14 h-14 bg-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-2.5 shadow-lg shadow-violet-200">
@@ -212,7 +212,7 @@ export default function GastronomiaPage() {
               Tres pasos. Nada más.
             </h2>
             <p className="text-zinc-500 text-lg">
-              Sin wifi del local, sin apps, sin que nadie tenga que acordarse.
+              Sin apps, sin que nadie tenga que acordarse.
             </p>
           </div>
 
@@ -223,13 +223,13 @@ export default function GastronomiaPage() {
             {[
               {
                 num: '1',
-                title: 'Pedís tu cartel',
-                body: 'Te mandamos el cartel personalizado según tus necesidades, listo para usar. Puede ser solo QR o también NFC para celulares que no escanean con cámara. Pago único, es tuyo para siempre.',
+                title: 'Pedís tu cartel o agendamos una reunión',
+                body: 'Te mandamos un cartel personalizado listo para usar, o si querés, coordinamos una reunión para asesorarte mejor según tu local. Puede ser solo QR o también NFC. Pago único, es tuyo para siempre.',
               },
               {
                 num: '2',
-                title: 'Lo ponés en la mesa. O cada mozo tiene el suyo.',
-                body: 'Un QR por mesa, o uno por mozo para ver las reseñas y escaneos de cada uno por separado. Podés o no avisarle al mozo. Si se va, el código se reasigna a otro.',
+                title: 'El QR va en la mesa o cada mozo tiene el suyo',
+                body: 'Con un QR por mozo podés ver cuántas veces escanearon su código, sus calificaciones y en qué fallan. No necesitás avisarle al mozo. Cuando se va, el código se reasigna a otro.',
               },
               {
                 num: '3',
@@ -327,17 +327,27 @@ export default function GastronomiaPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               {
                 icon: '📅',
                 title: 'Reservas online',
-                desc: 'Tu propio sistema de turnos y reservas con confirmación automática por WhatsApp. Sin comisiones por cubierto.',
+                desc: 'Tu propio sistema de turnos con confirmación automática por WhatsApp. El cliente reserva cuando lo decide, incluso fuera de tu horario.',
               },
               {
                 icon: '📱',
-                title: 'Redes sociales',
-                desc: 'Generamos posts semanales para Instagram y Facebook basados en tu menú, reseñas y promociones del local.',
+                title: 'Social Media',
+                desc: 'Nos encargamos de todo lo necesario para posicionar tu local en redes: contenido, publicaciones, historias y gestión de comentarios.',
+              },
+              {
+                icon: '🗺️',
+                title: 'Presencia en Google',
+                desc: 'Optimizamos tu Perfil de Empresa en Google: categorías, fotos, horarios, descripción y todo lo que hace que aparezcas primero cuando buscan tu rubro.',
+              },
+              {
+                icon: '🤖',
+                title: 'Visibilidad en IA',
+                desc: 'Trabajamos para que tu local aparezca cuando alguien le pregunta a ChatGPT o Gemini "mejor restaurante en [tu ciudad]". Medimos lo que contestan hoy.',
               },
               {
                 icon: '💬',
@@ -345,9 +355,9 @@ export default function GastronomiaPage() {
                 desc: 'Respondemos cada reseña nueva en Google Maps en menos de 24 horas, con el tono que vos elegís.',
               },
               {
-                icon: '📊',
-                title: 'Reportes mensuales',
-                desc: 'Informe de rendimiento: reseñas ganadas, puntaje promedio, escaneos por mesa y evolución en Maps.',
+                icon: '🔁',
+                title: 'Fidelización',
+                desc: 'Campañas para que el cliente vuelva: recordatorios, promociones por cumpleaños o inactividad, y seguimiento post-visita.',
               },
             ].map(({ icon, title, desc }) => (
               <div key={title} className="bg-zinc-50 rounded-2xl p-6 border border-zinc-100">
