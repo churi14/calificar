@@ -22,6 +22,34 @@ type QRCode = {
   label: string | null
 }
 
+const SWATCHES = ['#000000','#FFFFFF','#7C3AED','#0F172A','#DC2626','#2563EB','#059669','#F59E0B']
+
+type QRStyle = { fg: string; bg: string; transparent: boolean; size: number }
+
+function ColorRow({ label, value, onChange, swatches = SWATCHES }: { label: string; value: string; onChange: (v: string) => void; swatches?: string[] }) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold text-gray-400 mb-1.5">{label}</p>
+      <div className="flex items-center gap-2 flex-wrap">
+        {swatches.map(c2 => (
+          <button key={c2} onClick={() => onChange(c2)}
+            className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 flex-shrink-0"
+            style={{ backgroundColor: c2, borderColor: value === c2 ? '#6366f1' : c2 === '#FFFFFF' ? '#d1d5db' : c2 }}
+          />
+        ))}
+        <input
+          type="text"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-24 text-xs font-mono bg-white border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-violet-400"
+          placeholder="#000000"
+          maxLength={9}
+        />
+      </div>
+    </div>
+  )
+}
+
 function QRCanvas({ url, size = 120, fg = '#0F172A', bg = '#FFFFFF', transparent = false }: { url: string; size?: number; fg?: string; bg?: string; transparent?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -49,9 +77,9 @@ function QRCanvas({ url, size = 120, fg = '#0F172A', bg = '#FFFFFF', transparent
   return <canvas ref={canvasRef} className="rounded-lg block"/>
 }
 
-function QRCard({ code }: { code: string }) {
+function QRCard({ code, initialStyle }: { code: string; initialStyle?: QRStyle }) {
   const url = `${BASE}/g/${code}`
-  const [style, setStyle] = useState({ fg: '#000000', bg: '#FFFFFF', transparent: false, size: 800 })
+  const [style, setStyle] = useState<QRStyle>(initialStyle ?? { fg: '#000000', bg: '#FFFFFF', transparent: false, size: 800 })
   const [showOpts, setShowOpts] = useState(false)
 
   async function download() {
@@ -79,61 +107,35 @@ function QRCard({ code }: { code: string }) {
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.08)] flex flex-col items-center gap-3 border border-gray-100">
-      {/* Preview */}
       <div className={`rounded-xl p-2 ${style.transparent ? 'bg-[repeating-conic-gradient(#ccc_0%_25%,#fff_0%_50%)] bg-[length:12px_12px]' : ''}`}
         style={style.transparent ? {} : { backgroundColor: style.bg }}>
         <QRCanvas url={url} size={120} fg={style.fg} bg={style.bg} transparent={style.transparent} />
       </div>
-
       <div className="text-center">
         <p className="font-mono font-bold text-gray-900 text-sm">{code}</p>
         <p className="text-[10px] text-gray-400 mt-0.5">{BASE}/g/{code}</p>
       </div>
 
-      {/* Toggle opciones */}
       <button onClick={() => setShowOpts(o => !o)}
         className="w-full text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors">
-        {showOpts ? '▲ Ocultar opciones' : '▼ Personalizar color y fondo'}
+        {showOpts ? '▲ Ocultar' : '▼ Ajustar'}
       </button>
 
       {showOpts && (
         <div className="w-full space-y-3 pt-1 border-t border-gray-100">
-          {/* Color del QR */}
-          <div>
-            <p className="text-[10px] font-semibold text-gray-400 mb-1.5">Color QR</p>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {['#000000','#FFFFFF','#7C3AED','#DC2626','#2563EB','#059669','#F59E0B'].map(c2 => (
-                <button key={c2} onClick={() => setStyle(s => ({ ...s, fg: c2 }))}
-                  className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 flex-shrink-0"
-                  style={{ backgroundColor: c2, borderColor: style.fg === c2 ? '#6366f1' : c2 === '#FFFFFF' ? '#d1d5db' : c2 }}
-                />
-              ))}
-              <input type="color" value={style.fg}
-                onChange={e => setStyle(s => ({ ...s, fg: e.target.value }))}
-                className="w-6 h-6 rounded-full cursor-pointer border border-gray-200 flex-shrink-0"
-                title="Color personalizado"
-              />
-            </div>
-          </div>
-
-          {/* Fondo */}
+          <ColorRow label="Color QR" value={style.fg} onChange={v => setStyle(s => ({ ...s, fg: v }))} />
           <div>
             <p className="text-[10px] font-semibold text-gray-400 mb-1.5">Fondo</p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button onClick={() => setStyle(s => ({ ...s, transparent: !s.transparent }))}
                 className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-colors ${style.transparent ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200'}`}>
                 Sin fondo
               </button>
               {!style.transparent && (
-                <input type="color" value={style.bg}
-                  onChange={e => setStyle(s => ({ ...s, bg: e.target.value }))}
-                  className="w-6 h-6 rounded-full cursor-pointer border border-gray-200"
-                />
+                <ColorRow label="" value={style.bg} onChange={v => setStyle(s => ({ ...s, bg: v }))} />
               )}
             </div>
           </div>
-
-          {/* Tamaño */}
           <div>
             <p className="text-[10px] font-semibold text-gray-400 mb-1.5">Tamaño</p>
             <div className="flex gap-1">
@@ -150,7 +152,7 @@ function QRCard({ code }: { code: string }) {
 
       <button onClick={download}
         className="w-full text-xs font-semibold bg-gray-900 text-white py-2 rounded-xl hover:bg-gray-700 transition-colors">
-        ↓ Descargar PNG {showOpts ? `${style.size}px` : ''}
+        ↓ Descargar {style.size}px
       </button>
     </div>
   )
@@ -174,6 +176,7 @@ export default function AdminQRPage() {
   const [generateClientId, setGenerateClientId] = useState('')
   const [generating, setGenerating] = useState(false)
   const [generated, setGenerated] = useState<string[] | null>(null)
+  const [generateStyle, setGenerateStyle] = useState<QRStyle>({ fg: '#000000', bg: '#FFFFFF', transparent: false, size: 800 })
   const [filter, setFilter] = useState<'all' | 'pending' | 'active'>('all')
   const [copied, setCopied] = useState<string | null>(null)
   const [showQR, setShowQR] = useState<string | null>(null)
@@ -291,36 +294,26 @@ export default function AdminQRPage() {
 
       {/* Generar */}
       <div className="bg-white rounded-2xl p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] mb-6">
-        <h2 className="font-bold text-gray-900 mb-4">Generar nuevos códigos</h2>
-        <div className="flex items-center gap-3 flex-wrap">
+        <h2 className="font-bold text-gray-900 mb-5">Generar nuevos códigos</h2>
+
+        {/* Fila superior: cantidad + cliente + botón */}
+        <div className="flex items-center gap-3 flex-wrap mb-6">
           <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2.5">
             <label className="text-sm text-gray-500 font-medium">Cantidad:</label>
-            <input
-              type="number"
-              min={1}
-              max={500}
-              value={quantity}
+            <input type="number" min={1} max={500} value={quantity}
               onChange={e => setQuantity(parseInt(e.target.value) || 1)}
               className="w-20 bg-transparent text-sm font-bold text-gray-900 focus:outline-none"
             />
           </div>
           {clients.length > 0 && (
-            <select
-              value={generateClientId}
-              onChange={e => setGenerateClientId(e.target.value)}
-              className="text-sm bg-gray-50 border-0 rounded-xl px-4 py-2.5 text-gray-600 font-medium focus:outline-none focus:ring-2 focus:ring-violet-300"
-            >
+            <select value={generateClientId} onChange={e => setGenerateClientId(e.target.value)}
+              className="text-sm bg-gray-50 border-0 rounded-xl px-4 py-2.5 text-gray-600 font-medium focus:outline-none focus:ring-2 focus:ring-violet-300">
               <option value="">— Sin cliente —</option>
-              {clients.map(cl => (
-                <option key={cl.id} value={cl.id}>{cl.name}</option>
-              ))}
+              {clients.map(cl => <option key={cl.id} value={cl.id}>{cl.name}</option>)}
             </select>
           )}
-          <button
-            onClick={handleGenerate}
-            disabled={generating}
-            className="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl text-sm hover:bg-gray-700 transition-colors disabled:opacity-50"
-          >
+          <button onClick={handleGenerate} disabled={generating}
+            className="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl text-sm hover:bg-gray-700 transition-colors disabled:opacity-50">
             {generating ? 'Generando…' : `Generar ${quantity} código${quantity !== 1 ? 's' : ''}`}
           </button>
           {generated && (
@@ -330,14 +323,50 @@ export default function AdminQRPage() {
           )}
         </div>
 
+        {/* Personalización de estilo del QR */}
+        <div className="border-t border-gray-100 pt-5">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Estilo del QR generado</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {/* Color QR */}
+            <ColorRow label="Color del QR" value={generateStyle.fg} onChange={v => setGenerateStyle(s => ({ ...s, fg: v }))} />
+
+            {/* Fondo */}
+            <div>
+              <p className="text-[10px] font-semibold text-gray-400 mb-1.5">Fondo</p>
+              <div className="flex flex-col gap-2">
+                <button onClick={() => setGenerateStyle(s => ({ ...s, transparent: !s.transparent }))}
+                  className={`self-start text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${generateStyle.transparent ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200'}`}>
+                  {generateStyle.transparent ? '✓ Sin fondo' : 'Sin fondo'}
+                </button>
+                {!generateStyle.transparent && (
+                  <ColorRow label="" value={generateStyle.bg} onChange={v => setGenerateStyle(s => ({ ...s, bg: v }))} />
+                )}
+              </div>
+            </div>
+
+            {/* Tamaño */}
+            <div>
+              <p className="text-[10px] font-semibold text-gray-400 mb-1.5">Tamaño PNG</p>
+              <div className="flex gap-2 flex-wrap">
+                {[{ l: 'S · 400px', v: 400 }, { l: 'M · 800px', v: 800 }, { l: 'L · 1200px', v: 1200 }, { l: 'XL · 2000px', v: 2000 }].map(o => (
+                  <button key={o.v} onClick={() => setGenerateStyle(s => ({ ...s, size: o.v }))}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${generateStyle.size === o.v ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'}`}>
+                    {o.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {generated && generated.length > 0 && (
-          <div className="mt-6">
+          <div className="mt-6 border-t border-gray-100 pt-6">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
               QR listos para imprimir o programar en NFC:
             </p>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
               {generated.map(code => (
-                <QRCard key={code} code={code} />
+                <QRCard key={code} code={code} initialStyle={generateStyle} />
               ))}
             </div>
           </div>
@@ -451,60 +480,15 @@ export default function AdminQRPage() {
                         <p className="font-mono font-bold text-gray-700 text-sm mb-4">{BASE}/g/{c.code}</p>
 
                         <div className="grid grid-cols-2 gap-4 mb-4">
-                          {/* Color del QR */}
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-2">Color del QR</label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="color"
-                                value={qrStyle.fg}
-                                onChange={e => setQrStyle(s => ({ ...s, fg: e.target.value }))}
-                                className="w-10 h-10 rounded-lg cursor-pointer border border-gray-200"
-                              />
-                              <input
-                                type="text"
-                                value={qrStyle.fg}
-                                onChange={e => setQrStyle(s => ({ ...s, fg: e.target.value }))}
-                                className="w-24 text-xs font-mono bg-white border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-gray-400"
-                              />
-                            </div>
-                            {/* Colores rápidos */}
-                            <div className="flex gap-1.5 mt-2">
-                              {['#000000','#FFFFFF','#7C3AED','#0F172A','#DC2626','#2563EB','#059669'].map(c2 => (
-                                <button key={c2} onClick={() => setQrStyle(s => ({ ...s, fg: c2 }))}
-                                  className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-110"
-                                  style={{ backgroundColor: c2, borderColor: qrStyle.fg === c2 ? '#6366f1' : '#e5e7eb' }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Fondo */}
+                          <ColorRow label="Color del QR" value={qrStyle.fg} onChange={v => setQrStyle(s => ({ ...s, fg: v }))} />
                           <div>
                             <label className="block text-xs font-semibold text-gray-500 mb-2">Fondo</label>
-                            <div className="flex items-center gap-2 mb-2">
-                              <button
-                                onClick={() => setQrStyle(s => ({ ...s, transparent: !s.transparent }))}
-                                className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${qrStyle.transparent ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}
-                              >
-                                {qrStyle.transparent ? '✓ Sin fondo' : 'Sin fondo'}
-                              </button>
-                            </div>
+                            <button onClick={() => setQrStyle(s => ({ ...s, transparent: !s.transparent }))}
+                              className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors mb-2 ${qrStyle.transparent ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'}`}>
+                              {qrStyle.transparent ? '✓ Sin fondo' : 'Sin fondo'}
+                            </button>
                             {!qrStyle.transparent && (
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="color"
-                                  value={qrStyle.bg}
-                                  onChange={e => setQrStyle(s => ({ ...s, bg: e.target.value }))}
-                                  className="w-10 h-10 rounded-lg cursor-pointer border border-gray-200"
-                                />
-                                <input
-                                  type="text"
-                                  value={qrStyle.bg}
-                                  onChange={e => setQrStyle(s => ({ ...s, bg: e.target.value }))}
-                                  className="w-24 text-xs font-mono bg-white border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-gray-400"
-                                />
-                              </div>
+                              <ColorRow label="" value={qrStyle.bg} onChange={v => setQrStyle(s => ({ ...s, bg: v }))} />
                             )}
                           </div>
                         </div>
