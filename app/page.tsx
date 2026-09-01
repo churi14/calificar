@@ -114,7 +114,7 @@ export default function LandingPage() {
       <section className="relative bg-white py-20 lg:py-28 px-6 text-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-violet-50/50 to-white pointer-events-none" />
         <div className="relative max-w-4xl mx-auto">
-          <h1 className="font-display font-extrabold text-5xl sm:text-6xl lg:text-7xl leading-[1.05] text-violet-600 mb-6">
+          <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-[3.5rem] leading-[1.08] text-violet-600 mb-6">
             Todo lo que necesitás<br className="hidden sm:block"/> para cuidar las<br className="hidden sm:block"/> reseñas de tu local
           </h1>
           <p className="text-gray-500 text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto mb-12">
@@ -127,22 +127,34 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
             <Link href="/gastronomia"
               className="group bg-white border-2 border-zinc-100 hover:border-violet-300 rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
-              <span className="text-3xl mb-4 block">🍽️</span>
-              <p className="font-extrabold text-zinc-900 text-base mb-1">Calificar Gastronomía</p>
+              <div className="flex items-center gap-2 mb-4">
+                <img src="/logo.svg" alt="" className="h-6 w-auto" />
+                <span className="font-extrabold text-[#0F172A] text-base leading-none">
+                  Calificar <em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400 }}>gastronomía</em>
+                </span>
+              </div>
               <p className="text-sm text-zinc-500 leading-relaxed">Restaurantes, bares, cafeterías y más</p>
               <p className="mt-4 text-violet-600 text-xs font-bold group-hover:underline">Ver más →</p>
             </Link>
             <Link href="/beauty"
               className="group bg-white border-2 border-zinc-100 hover:border-pink-300 rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
-              <span className="text-3xl mb-4 block">💅</span>
-              <p className="font-extrabold text-zinc-900 text-base mb-1">Calificar Beauty</p>
+              <div className="flex items-center gap-2 mb-4">
+                <img src="/logo.svg" alt="" className="h-6 w-auto" style={{ filter: 'hue-rotate(280deg) saturate(1.5)' }} />
+                <span className="font-extrabold text-[#0F172A] text-base leading-none">
+                  Calificar <em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400, color: '#ec4899' }}>beauty</em>
+                </span>
+              </div>
               <p className="text-sm text-zinc-500 leading-relaxed">Peluquerías, estéticas y spas</p>
               <p className="mt-4 text-pink-500 text-xs font-bold group-hover:underline">Próximamente →</p>
             </Link>
             <Link href="/tienda"
               className="group bg-white border-2 border-zinc-100 hover:border-emerald-300 rounded-2xl p-6 text-left transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
-              <span className="text-3xl mb-4 block">📦</span>
-              <p className="font-extrabold text-zinc-900 text-base mb-1">Calificar Carteles</p>
+              <div className="flex items-center gap-2 mb-4">
+                <img src="/logo.svg" alt="" className="h-6 w-auto" style={{ filter: 'hue-rotate(130deg) saturate(1.2)' }} />
+                <span className="font-extrabold text-[#0F172A] text-base leading-none">
+                  Calificar <em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400, color: '#059669' }}>carteles</em>
+                </span>
+              </div>
               <p className="text-sm text-zinc-500 leading-relaxed">QR + NFC para cualquier negocio</p>
               <p className="mt-4 text-emerald-600 text-xs font-bold group-hover:underline">Ver tienda →</p>
             </Link>
@@ -161,44 +173,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* APP SHOWCASE — panel rosa */}
-      <section className="relative bg-[#F4CCD8] py-16 overflow-hidden">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col items-center">
-          <p className="text-[#0F172A]/50 text-xs font-bold uppercase tracking-widest mb-10">
-            Lo que ve el cliente cuando escanea
-          </p>
-          <div className="relative w-[280px] h-[380px] sm:w-[360px] sm:h-[460px]">
-            {HERO_IMAGES.map((src, i) => {
-              const isHeroApp = src === '/hero-app.png'
-              return (
-                <Image
-                  key={src}
-                  src={src}
-                  alt="Calificar — vista del cliente"
-                  fill
-                  priority={i === 0}
-                  className={`object-contain drop-shadow-[0_25px_35px_rgba(0,0,0,0.25)] transition-all duration-1000 ease-in-out ${i === activeImage ? 'opacity-100' : 'opacity-0'} ${isHeroApp ? 'scale-[1.08] origin-bottom' : 'scale-100'}`}
-                />
-              )
-            })}
-          </div>
-          {/* Tarjetas flotantes */}
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
-            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3">
-              <span className="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0">
-                <IconCheck/>
-              </span>
-              <p className="text-sm font-semibold text-gray-900">Reseña enviada a Google</p>
-            </div>
-            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-md px-4 py-3">
-              <span className="relative inline-flex h-5 w-9 items-center rounded-full bg-violet-600 flex-shrink-0">
-                <span className="inline-block h-3.5 w-3.5 translate-x-[18px] rounded-full bg-white"/>
-              </span>
-              <p className="text-sm font-semibold text-gray-900">Filtro anti-haters</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Sección navy */}
       <section className="relative bg-[#0F172A] py-32 lg:py-48">
