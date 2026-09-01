@@ -66,33 +66,39 @@ export default function GastronomiaPage() {
           initial-value: 0deg;
           inherits: false;
         }
-        .step-card {
-          position: relative;
-          isolation: isolate;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .step-card::before {
-          content: '';
-          position: absolute;
-          inset: -2px;
-          border-radius: 1.1rem;
-          background: conic-gradient(from var(--angle), #7c3aed, #d946ef, #818cf8, #7c3aed);
-          opacity: 0;
-          z-index: -1;
-          transition: opacity 0.35s ease;
-          animation: step-card-spin 3s linear infinite paused;
-          filter: blur(0.5px);
-        }
-        .step-card:hover::before {
-          opacity: 1;
-          animation-play-state: running;
-        }
-        .step-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 30px rgba(124, 58, 237, 0.15);
-        }
         @keyframes step-card-spin {
           to { --angle: 360deg; }
+        }
+        .step-card-wrap {
+          position: relative;
+          padding: 2px;
+          border-radius: 1.1rem;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .step-card-wrap::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: conic-gradient(from var(--angle), #7c3aed, #d946ef, #818cf8, #7c3aed);
+          animation: step-card-spin 3s linear infinite;
+          opacity: 0;
+          transition: opacity 0.35s ease;
+        }
+        .step-card-wrap:hover::before {
+          opacity: 1;
+        }
+        .step-card-wrap:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 30px rgba(124, 58, 237, 0.2);
+        }
+        .step-card-inner {
+          position: relative;
+          z-index: 1;
+          background: rgb(250 250 249);
+          border-radius: 1rem;
+          padding: 1.75rem;
+          height: 100%;
         }
       `}</style>
 
@@ -270,12 +276,14 @@ export default function GastronomiaPage() {
                 body: 'El cliente escanea y elige en 10 segundos. Sin buscar tu local en Google, sin excusas, sin fricción. Cada escaneo es una reseña real.',
               },
             ].map(({ num, title, body }) => (
-              <div key={num} className="step-card bg-zinc-50 rounded-2xl p-7 border border-zinc-100">
-                <div className="w-9 h-9 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold mb-5">
-                  {num}
+              <div key={num} className="step-card-wrap">
+                <div className="step-card-inner">
+                  <div className="w-9 h-9 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold mb-5">
+                    {num}
+                  </div>
+                  <h3 className="font-bold text-base text-zinc-900 mb-2 leading-snug">{title}</h3>
+                  <p className="text-zinc-500 text-sm leading-relaxed">{body}</p>
                 </div>
-                <h3 className="font-bold text-base text-zinc-900 mb-2 leading-snug">{title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed">{body}</p>
               </div>
             ))}
           </div>
