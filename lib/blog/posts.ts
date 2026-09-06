@@ -360,6 +360,256 @@ export const posts: Post[] = [
     ctaText: 'Conocer Calificar',
     ctaHref: '/',
   },
+  {
+    slug: 'carteles-nfc-para-resenas-google',
+    title: 'Carteles NFC para reseñas de Google: cómo funcionan y dónde comprarlos',
+    description: 'Todo lo que necesitás saber sobre los carteles NFC para conseguir reseñas en Google. Cómo funcionan, cuánto cuestan y cómo elegir el mejor para tu negocio.',
+    keywords: ['carteles nfc', 'carteles google', 'cartel nfc reseñas', 'venta carteles nfc', 'carteles nfc argentina', 'comprar cartel nfc google'],
+    date: '2026-08-10',
+    category: 'Reseñas Google',
+    readingTime: 7,
+    emoji: '📲',
+    intro: 'Los carteles NFC son la forma más simple y efectiva de conseguir reseñas en Google. El cliente apoya el celular, llega directo a la página de tu negocio y deja su opinión en segundos. Sin apps, sin QR que escanear, sin fricción. En esta guía te explicamos cómo funcionan, qué opciones hay en Argentina y cómo elegir el que más le conviene a tu negocio.',
+    sections: [
+      {
+        h2: '¿Qué es un cartel NFC y cómo funciona?',
+        paragraphs: [
+          'NFC significa Near Field Communication, la misma tecnología que usás cuando pagás con el celular o tarjeta sin contacto. Un cartel NFC contiene un chip pequeño que, al acercarse un smartphone, abre automáticamente una URL programada. En el caso de los carteles para reseñas, esa URL es directamente la ficha de tu negocio en Google Maps.',
+          'No requiere que el cliente descargue nada ni escanee nada: solo acerca el teléfono al cartel (la mayoría funciona desde 2-4 cm) y en menos de dos segundos ya está en la página de reseñas. Es la experiencia más rápida posible.',
+        ],
+        highlight: 'NFC es la misma tecnología del pago sin contacto. El cliente apoya el celular y llega directo a Google en menos de 2 segundos.',
+      },
+      {
+        h2: 'Diferencia entre cartel NFC, cartel QR y cartel NFC+QR',
+        paragraphs: [
+          '**Cartel QR solamente:** el cliente tiene que abrir la cámara, apuntar al código, esperar que lo detecte y tocar el link. Son 4-5 pasos. Funciona pero tiene más fricción que NFC.',
+          '**Cartel NFC solamente:** acercar el teléfono y listo. El problema es que los iPhones más viejos (antes del iPhone 7) y algunos Android de gama baja no leen NFC de manera nativa. Es una minoría, pero existe.',
+          '**Cartel NFC + QR combinado:** la opción más recomendada. El cliente usa lo que prefiera o lo que tenga disponible. Los carteles de Calificar incluyen ambas tecnologías en el mismo soporte.',
+        ],
+      },
+      {
+        h2: '¿Qué teléfonos leen NFC?',
+        paragraphs: [
+          'La gran mayoría de smartphones actuales ya tienen NFC. En iPhone, desde el modelo 7 en adelante lee etiquetas NFC de manera nativa (no necesita app). En Android, prácticamente todos los modelos desde 2018 tienen NFC activado por defecto.',
+          'En la Argentina, dado el parque de celulares que hay, se estima que más del 85% de los clientes en locales gastronómicos y de servicios tienen un smartphone compatible con NFC. El QR cubre al resto.',
+        ],
+      },
+      {
+        h2: 'Tipos de carteles NFC para negocios',
+        paragraphs: [
+          '**Acrílico de mesa:** el más popular para restaurantes y cafeterías. Se para solo, resiste líquidos y tiene buena visibilidad. Suele incluir el logo del negocio y un mensaje tipo "Dejanos tu opinión".',
+          '**Tarjeta de PVC:** del tamaño de una tarjeta de crédito. Ideal para mozos, delivery o para dejar en la caja. Fácil de llevar encima.',
+          '**Sticker:** para pegar en vidrieras, mesas, o junto al menú. El más económico, pero menos visible y más fácil de despegar.',
+          '**Soporte de mostrador con base:** para peluquerías, estéticas y comercios donde el cliente pasa por la caja al irse.',
+        ],
+      },
+      {
+        h2: 'Carteles NFC dinámicos vs. estáticos',
+        paragraphs: [
+          'Un cartel NFC estático tiene la URL grabada de forma fija. Si querés cambiar a dónde apunta (porque cambiaste de negocio o querés alternar entre reseñas de Google y Tripadvisor), tenés que comprar un cartel nuevo.',
+          'Un cartel NFC dinámico se conecta a un sistema como Calificar: podés cambiar el destino desde el panel de administración, ver cuántos escaneos tuvo, qué calificación promedio recibiste y filtrar las experiencias negativas antes de que lleguen a Google. Es la opción que más valor le aporta al negocio.',
+        ],
+        highlight: 'Con un sistema dinámico podés ver cuántas veces escanearon tu cartel, el promedio de calificaciones y redirigir a los clientes insatisfechos a un canal privado en lugar de Google.',
+      },
+      {
+        h2: 'Cuánto cuesta un cartel NFC en Argentina',
+        paragraphs: [
+          'Los precios varían según el tipo de soporte y si es estático o dinámico. Un sticker NFC sin sistema cuesta entre $3.000 y $8.000. Un acrílico de mesa de calidad, entre $15.000 y $30.000 dependiendo del acabado.',
+          'Los sistemas con cartel incluido y plataforma de gestión como Calificar tienen un costo de configuración inicial y una suscripción mensual que cubre el soporte, los cambios de destino y el panel de estadísticas. A diferencia de comprar un cartel estático, el sistema dinámico se paga solo si convertís aunque sea una o dos reseñas negativas en feedback privado.',
+        ],
+      },
+    ],
+    conclusion: 'Los carteles NFC son la forma más efectiva de reducir la fricción entre el momento en que el cliente tiene ganas de dejar una reseña y el momento en que realmente la deja. Combinados con un sistema dinámico que filtra experiencias negativas, son una de las mejores inversiones que puede hacer un local que quiere mejorar su presencia en Google.',
+    ctaText: 'Pedir mi cartel NFC',
+    ctaHref: '/gastronomia',
+  },
+  {
+    slug: 'como-hacer-qr-dinamico-gratis',
+    title: 'Cómo hacer un QR dinámico gratis (y para qué sirve en tu negocio)',
+    description: 'Guía paso a paso para crear un QR dinámico gratis. Qué diferencia tiene con un QR estático, cómo editarlo sin imprimirlo de nuevo y cómo usarlo para conseguir más reseñas en Google.',
+    keywords: ['como hacer qr dinamico', 'qr dinamico gratis', 'crear qr dinamico', 'qr dinamicos', 'qr dinamico para negocio', 'qr editable'],
+    date: '2026-08-20',
+    category: 'QR Dinámicos',
+    readingTime: 6,
+    emoji: '🔲',
+    intro: 'Un QR dinámico te permite cambiar el link al que apunta sin tener que reimprimir nada. Podés hacer uno gratis en minutos y usarlo para mandar a tus clientes directo a tus reseñas de Google, a tu menú, a tu Instagram o a donde quieras. Te explicamos cómo hacerlo y por qué los negocios que los usan consiguen muchas más reseñas.',
+    sections: [
+      {
+        h2: '¿Qué es un QR dinámico y en qué se diferencia del estático?',
+        paragraphs: [
+          'Un QR estático tiene la información (la URL o el texto) grabada directamente en el código. Una vez impreso, no se puede cambiar. Si el link cambia o cometiste un error, hay que hacer uno nuevo e imprimirlo de nuevo.',
+          'Un QR dinámico, en cambio, apunta a una URL intermedia que vos controlás. El código impreso siempre es el mismo, pero desde un panel podés cambiar el destino final cuantas veces quieras. Podés tener el mismo cartel hace dos años y hoy apuntarlo a tu nueva carta, mañana a tu Google, pasado a una promo.',
+        ],
+        highlight: 'El QR dinámico siempre se ve igual impreso, pero el destino lo cambiás vos desde el panel, sin reimprimir nada.',
+      },
+      {
+        h2: 'Ventajas de usar QR dinámicos en tu negocio',
+        paragraphs: [
+          'La principal ventaja es la flexibilidad. Podés usar el mismo cartel para diferentes propósitos según el día o la temporada. Pero hay más: los QR dinámicos también te dan estadísticas de escaneos (cuántas veces se escaneó, desde qué dispositivo, a qué hora), algo que los estáticos no pueden ofrecer.',
+          'Para un restaurante, eso significa saber si los clientes del almuerzo escanean más que los de la cena. Para una peluquería, saber qué días tienen más movimiento. Es información de negocio real que viene de un simple cartel.',
+        ],
+      },
+      {
+        h2: 'Cómo crear un QR dinámico gratis en Calificar',
+        paragraphs: [
+          'En Calificar podés generar un QR dinámico sin costo en menos de dos minutos. Solo necesitás crear una cuenta, pegar la URL a la que querés apuntar (tu Google Business, tu menú, tu perfil de Instagram) y el sistema genera el código automáticamente.',
+          'Desde el panel podés editarlo en cualquier momento, ver cuántas veces fue escaneado y, si usás el sistema completo, activar el filtro de reseñas para que los clientes satisfechos vayan a Google y los insatisfechos te escriban a vos primero.',
+        ],
+        list: {
+          intro: 'Pasos para crear tu QR dinámico:',
+          items: [
+            'Creá tu cuenta en calificar.com.ar (gratis)',
+            'Pegá la URL de tu negocio en Google Maps',
+            'Descargá el QR generado en PNG o SVG',
+            'Imprimilo o pedí el cartel físico',
+            'Cambiá el destino cuando quieras desde el panel',
+          ],
+        },
+      },
+      {
+        h2: 'QR dinámico para reseñas de Google: cómo configurarlo',
+        paragraphs: [
+          'Para apuntar el QR directo a la página de reseñas de tu negocio, necesitás el link específico de tu ficha de Google Business. Para encontrarlo: abrí Google Maps, buscá tu negocio, hacé clic en "Reseñas" y copiá la URL del navegador.',
+          'Ese link lo pegás en el panel de Calificar como destino de tu QR. Cuando el cliente escanee, va directo a ese link y puede dejar la reseña sin buscar nada. Cuantos menos pasos, más reseñas.',
+        ],
+        highlight: 'Un QR que lleva directo a la página de reseñas de Google convierte entre 3 y 5 veces más que uno que lleva a la home del negocio.',
+      },
+      {
+        h2: 'Personalización: color, tamaño y logo en el QR',
+        paragraphs: [
+          'Los QR dinámicos de Calificar se pueden personalizar con los colores de tu marca y el logo en el centro. Esto hace que el cartel quede más profesional y que los clientes confíen más en escanearlo (un QR genérico negro sobre blanco genera más dudas que uno con el logo del negocio).',
+          'Para que el QR siga siendo legible, hay que mantener el contraste suficiente entre el color del código y el fondo, y no poner el logo en más del 30% del área central. El sistema de Calificar ya controla eso automáticamente.',
+        ],
+      },
+      {
+        h2: 'Dónde poner el cartel QR para conseguir más escaneos',
+        paragraphs: [
+          'La ubicación importa tanto como el diseño. Los mejores lugares son: en el centro de la mesa (en un soporte de acrílico), junto a la cuenta o en la caja, pegado en la vidriera a la salida, o uno por mesa junto al menú.',
+          'Lo que no funciona: el cartel detrás del mostrador donde el cliente no lo ve, pegado muy alto o en un lugar de paso donde no hay tiempo de escanear. La regla es simple: tiene que estar en el lugar donde el cliente está tranquilo y ya terminó de consumir.',
+        ],
+      },
+    ],
+    conclusion: 'Crear un QR dinámico gratis es el primer paso. Lo que marca la diferencia es dónde lo ponés, qué le pedís al cliente que haga cuando lo escanea y si tenés un sistema que filtre las experiencias negativas antes de que lleguen a Google. Calificar lo hace todo junto.',
+    ctaText: 'Crear mi QR dinámico gratis',
+    ctaHref: '/login',
+  },
+  {
+    slug: 'venta-carteles-nfc-qr-argentina',
+    title: 'Dónde comprar carteles NFC y QR para tu negocio en Argentina',
+    description: 'Guía para comprar carteles NFC y QR en Argentina. Qué buscar, cuánto pagar y por qué un sistema dinámico con filtro de reseñas vale mucho más que un cartel estático.',
+    keywords: ['venta carteles nfc', 'comprar cartel nfc argentina', 'carteles qr para negocios', 'cartel google reviews argentina', 'donde comprar cartel nfc'],
+    date: '2026-08-28',
+    category: 'Reseñas Google',
+    readingTime: 5,
+    emoji: '🪧',
+    intro: 'Cada vez más negocios en Argentina están usando carteles NFC y QR para conseguir reseñas en Google. La demanda creció mucho y con eso también las opciones disponibles. Pero no todos los carteles son iguales: hay una diferencia enorme entre un chip estático de $5.000 y un sistema dinámico que filtra reseñas negativas y te da estadísticas. Te explicamos qué tener en cuenta antes de comprar.',
+    sections: [
+      {
+        h2: 'Qué opciones de carteles NFC hay en Argentina',
+        paragraphs: [
+          'En el mercado local hay principalmente tres tipos de proveedores. Primero, los vendedores de MercadoLibre que ofrecen stickers y tarjetas NFC estáticas, pre-programadas con el link que le indicás. Son baratos (entre $3.000 y $15.000) pero sin panel de administración ni estadísticas.',
+          'Segundo, imprentas y diseñadores gráficos que hacen el cartel con tu marca pero igual usan chips estáticos: el cartel queda lindo pero el link no se puede cambiar después.',
+          'Tercero, plataformas como Calificar que ofrecen el cartel físico con un sistema dinámico detrás: podés cambiar el destino, ver estadísticas de escaneos y activar el filtro de reseñas.',
+        ],
+      },
+      {
+        h2: 'Qué preguntar antes de comprar un cartel NFC',
+        paragraphs: [
+          '**¿Es estático o dinámico?** Si es estático, el link está grabado para siempre. Si mañana cambia la URL de tu Google Business, el cartel queda obsoleto.',
+          '**¿Incluye panel de estadísticas?** Un cartel sin estadísticas es ciego: no sabés cuántos clientes lo usaron ni si está funcionando.',
+          '**¿Tiene filtro de reseñas?** Esta es la pregunta más importante. Un cartel que manda a todos por igual a Google también manda a los clientes insatisfechos. Un sistema con filtro le pregunta primero cómo estuvo su experiencia y solo redirige a Google a los que tuvieron una buena.',
+          '**¿Qué pasa si se me rompe o se desgasta?** Los carteles de acrílico duran años, pero los chips NFC en stickers pueden fallar si los doblan o mojan. Preguntá por la garantía.',
+        ],
+      },
+      {
+        h2: 'El costo real de un cartel "barato"',
+        paragraphs: [
+          'Un sticker NFC de $5.000 parece una ganga hasta que lo analizás en profundidad. Sin estadísticas, no sabés si funciona. Sin filtro de reseñas, cada cliente insatisfecho que lo usa puede ir directo a Google a bajarte la calificación. Sin panel dinámico, si cambia el link tenés que comprar otro.',
+          'El costo de una sola reseña negativa en Google es difícil de calcular, pero está bien documentado que los negocios con 4.0 estrellas pierden entre 20% y 30% de los clientes potenciales respecto a los que tienen 4.5 o más.',
+        ],
+        highlight: 'Una reseña negativa en Google puede costar mucho más que la diferencia de precio entre un cartel estático y uno con sistema de filtrado.',
+      },
+      {
+        h2: 'Carteles NFC de Calificar: qué incluyen',
+        paragraphs: [
+          'Los carteles de Calificar son de acrílico con chip NFC y QR combinado, personalizados con el nombre de tu negocio. Incluyen acceso al panel de administración donde podés cambiar el destino, ver estadísticas de escaneos y activar el flujo de calificación previa.',
+          'El flujo funciona así: el cliente escanea el cartel, se le pregunta si tuvo una buena experiencia. Si dijo que sí, va directo a Google Maps a dejar su reseña. Si tuvo algún inconveniente, se le abre un formulario privado que llega a vos, no a Google.',
+        ],
+      },
+      {
+        h2: 'Cuántos carteles necesito para mi negocio',
+        paragraphs: [
+          'Depende del tamaño y el tipo de negocio. Para un restaurante o bar, lo recomendable es uno por mesa más uno en la caja. Un local de 20 mesas necesitaría 21-22 unidades. Pero si el presupuesto es acotado, arrancá con 3-5 en las mesas más concurridas y la caja: ya vas a ver un aumento significativo.',
+          'Para peluquerías, estéticas y comercios, alcanza con uno en la caja o en el mostrador, donde el cliente pasa siempre al terminar.',
+        ],
+      },
+    ],
+    conclusion: 'Antes de comprar, definí si querés un cartel que simplemente mande a Google o un sistema que filtre las malas experiencias y te dé datos. La diferencia de precio entre las dos opciones es pequeña comparada con el impacto que tiene en tu reputación online a largo plazo.',
+    ctaText: 'Consultar carteles NFC',
+    ctaHref: '/gastronomia',
+  },
+  {
+    slug: 'resenas-google-para-restaurantes',
+    title: 'Reseñas en Google para restaurantes: la guía completa 2026',
+    description: 'Cómo conseguir más reseñas en Google para tu restaurante, bar o cafetería en Argentina. Estrategias probadas, errores comunes y herramientas que automatizan el proceso.',
+    keywords: ['reseñas google restaurante', 'reseñas google bar', 'como conseguir reseñas restaurante', 'google reviews gastronomia', 'mejorar reseñas google local'],
+    date: '2026-09-01',
+    category: 'Reseñas Google',
+    readingTime: 8,
+    emoji: '🍽️',
+    intro: 'El 90% de los comensales lee las reseñas de Google antes de elegir dónde comer. Si tu restaurante tiene pocas reseñas o una calificación por debajo de 4.3, estás perdiendo clientes todos los días sin saberlo. Esta guía es específicamente para negocios gastronómicos en Argentina: restaurantes, bares, cafeterías, rotiserías y todo lo que sea comida.',
+    sections: [
+      {
+        h2: 'Por qué los restaurantes necesitan reseñas más que cualquier otro negocio',
+        paragraphs: [
+          'La gastronomía es la categoría donde más se consultan las reseñas antes de ir. Según datos de Google, el 94% de los comensales dice que las reseñas online influyeron en su elección de restaurante. Es más que en hoteles, comercios o servicios.',
+          'Además, Google Maps da más exposición a los negocios con más reseñas recientes. Un restaurante que consigue 5 reseñas por semana aparece mucho más seguido en los resultados de "restaurantes cerca de mí" que uno que tiene las mismas 20 reseñas hace dos años.',
+        ],
+        highlight: 'El 94% de los comensales lee reseñas antes de elegir restaurante. Las reseñas recientes pesan más que las antiguas en el algoritmo de Google Maps.',
+      },
+      {
+        h2: 'Los errores más comunes de los restaurantes con sus reseñas',
+        paragraphs: [
+          '**No pedir la reseña en el momento correcto.** El mejor momento es cuando el cliente está pagando la cuenta o justo antes de irse, con la experiencia fresca. No días después por email.',
+          '**Mandar a todos a Google sin filtrar.** El cliente que tuvo algún inconveniente con el pedido, la demora o la temperatura del plato también recibe el pedido de reseña. Y si está molesto, lo más probable es que vaya y lo escriba.',
+          '**No responder las reseñas existentes.** Google valora que el dueño responda, y los potenciales clientes también. Un restaurante que responde a las críticas negativas con profesionalismo genera más confianza que uno que no lo hace.',
+          '**Depender de que el personal lo pida de palabra.** El mozo que está atendiendo cinco mesas no siempre se acuerda o no siempre quiere hacerlo. El sistema tiene que funcionar solo, sin depender de que alguien se acuerde.',
+        ],
+      },
+      {
+        h2: 'El sistema de cartel QR o NFC en la mesa: por qué funciona',
+        paragraphs: [
+          'El cartel en la mesa hace el trabajo que el mozo no puede hacer siempre. El cliente lo ve mientras espera el cambio, termina de comer o espera que su acompañante vuelva del baño. Es el momento ideal: acaba de comer, está satisfecho (si la experiencia fue buena) y tiene el teléfono en la mano.',
+          'Los restaurantes que usan el sistema de Calificar con cartel en cada mesa ven un aumento de entre 3 y 8 reseñas nuevas por semana desde el primer mes. El promedio de calificación también sube porque el sistema filtra las experiencias negativas antes de que lleguen a Google.',
+        ],
+      },
+      {
+        h2: 'Cómo manejar las reseñas negativas en gastronomía',
+        paragraphs: [
+          'Las reseñas negativas en gastronomía suelen venir de tres situaciones: demoras en el servicio, problemas con el pedido (plato equivocado, temperatura, porción) y trato del personal. Todas son recuperables si se interceptan a tiempo.',
+          'El sistema de filtro de Calificar le pregunta al cliente cómo estuvo su experiencia antes de mandarlo a Google. Si tuvo un problema, se abre un canal privado donde puede contártelo a vos. Eso te da la oportunidad de compensarlo, aprender del error y evitar que esa queja llegue como reseña pública.',
+        ],
+      },
+      {
+        h2: 'Qué hacer con la ficha de Google Business de tu restaurante',
+        paragraphs: [
+          'La ficha de Google Business es gratuita y tiene mucho impacto. Asegurate de que esté completa: fotos actualizadas (el interior, los platos, el exterior), horarios correctos, menú cargado, y categoría bien elegida ("Restaurante argentino", "Pizzería", "Bar", etc.).',
+          'Respondé todas las reseñas, las positivas y las negativas. Para las positivas, un agradecimiento breve y personalizado alcanza. Para las negativas, reconocé el problema sin ponerte a la defensiva, ofrecé una solución y cerrá con un dato de contacto para seguir la conversación en privado.',
+        ],
+        highlight: 'Los restaurantes que responden el 100% de sus reseñas tienen en promedio 0.2 estrellas más que los que no responden ninguna. Parece poco, pero la diferencia entre 4.1 y 4.3 es enorme para el algoritmo de Google.',
+      },
+      {
+        h2: 'Cómo medir si el sistema está funcionando',
+        paragraphs: [
+          'Las métricas que importan son: cantidad de reseñas nuevas por semana, calificación promedio y cantidad de escaneos del cartel. Con el panel de Calificar podés ver todo eso en tiempo real.',
+          'Un restaurante que arranca con 20 reseñas y 4.0 estrellas debería apuntar a tener 60-80 reseñas y 4.4+ en los primeros tres meses con el sistema activo. Esos números no son difíciles de alcanzar si el servicio es bueno y el sistema está bien ubicado.',
+        ],
+      },
+    ],
+    conclusion: 'Las reseñas en Google ya no son opcionales para un restaurante que quiere crecer. Son el factor que decide si un cliente elige tu local o el de enfrente. La buena noticia es que con el sistema correcto se pueden conseguir de manera consistente sin cambiar nada de tu operación diaria.',
+    ctaText: 'Empezar a conseguir reseñas',
+    ctaHref: '/gastronomia',
+  },
 ]
 
 export function getPost(slug: string): Post | undefined {
