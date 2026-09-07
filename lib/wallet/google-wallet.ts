@@ -6,11 +6,15 @@
 import { GoogleAuth } from 'google-auth-library'
 import * as jwt from 'jsonwebtoken'
 
-const ISSUER_ID = process.env.GOOGLE_WALLET_ISSUER_ID!
-const BASE_CLASS_ID = process.env.GOOGLE_WALLET_CLASS_ID!        // la_cocina_fidelidad (demo)
-const SERVICE_EMAIL = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL!
-const PRIVATE_KEY = process.env.GOOGLE_WALLET_PRIVATE_KEY!.replace(/\\n/g, '\n')
-const PRIVATE_KEY_ID = process.env.GOOGLE_WALLET_PRIVATE_KEY_ID!
+const ISSUER_ID = process.env.GOOGLE_WALLET_ISSUER_ID ?? ''
+const BASE_CLASS_ID = process.env.GOOGLE_WALLET_CLASS_ID ?? ''
+const SERVICE_EMAIL = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL ?? ''
+const PRIVATE_KEY_ID = process.env.GOOGLE_WALLET_PRIVATE_KEY_ID ?? ''
+
+// Lazy — no evaluar en module scope para evitar crash cuando la var no existe en build time
+function getPrivateKey() {
+  return (process.env.GOOGLE_WALLET_PRIVATE_KEY ?? '').replace(/\\n/g, '\n')
+}
 
 const WALLET_API = 'https://walletobjects.googleapis.com/walletobjects/v1'
 
@@ -21,7 +25,7 @@ function getAuth() {
     credentials: {
       type: 'service_account',
       client_email: SERVICE_EMAIL,
-      private_key: PRIVATE_KEY,
+      private_key: getPrivateKey(),
     },
     scopes: ['https://www.googleapis.com/auth/wallet_object.issuer'],
   })
@@ -197,7 +201,7 @@ export function generateWalletJwt(objectId: string, classId: string): string {
     },
   }
 
-  return jwt.sign(payload, PRIVATE_KEY, {
+  return jwt.sign(payload, getPrivateKey(), {
     algorithm: 'RS256',
     keyid: PRIVATE_KEY_ID,
   })
