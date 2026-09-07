@@ -1,20 +1,12 @@
 'use client'
 
-/**
- * /fidelizacion/stamp?program=<program_id>&card=<card_id>
- *
- * El NFC del mostrador apunta a esta URL.
- * Si el cliente ya tiene tarjeta (card param), suma el sello directamente.
- * Si no, lo manda a registrarse.
- */
-
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 type Status = 'loading' | 'success' | 'reward' | 'error' | 'no-card'
 
-export default function StampPage() {
+function StampContent() {
   const params = useSearchParams()
   const router = useRouter()
   const programId = params.get('program')
@@ -129,5 +121,17 @@ export default function StampPage() {
         </div>
       )}
     </main>
+  )
+}
+
+export default function StampPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+      </main>
+    }>
+      <StampContent />
+    </Suspense>
   )
 }

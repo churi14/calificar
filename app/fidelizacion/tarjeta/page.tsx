@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 type CardData = {
@@ -18,7 +18,7 @@ type CardData = {
   }
 }
 
-export default function TarjetaPage() {
+function TarjetaContent() {
   const params = useSearchParams()
   const cardId = params.get('card')
   const programId = params.get('program')
@@ -150,5 +150,17 @@ export default function TarjetaPage() {
         Guardá este link o escaneá el cartel NFC del local para sumar sellos.
       </p>
     </main>
+  )
+}
+
+export default function TarjetaPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+      </main>
+    }>
+      <TarjetaContent />
+    </Suspense>
   )
 }
