@@ -50,12 +50,12 @@ export default function AdminFidelizacionPage() {
     setLoading(true)
     const [progRes, bizRes] = await Promise.all([
       fetch('/api/fidelizacion/admin'),
-      fetch('/api/admin/clients'),
+      fetch('/api/fidelizacion/admin/businesses'),
     ])
     const { programs: p } = await progRes.json()
-    const bizData = await bizRes.json()
+    const { businesses: b } = await bizRes.json()
     setPrograms(p ?? [])
-    setBusinesses(bizData?.clients ?? bizData ?? [])
+    setBusinesses(b ?? [])
     setLoading(false)
   }
 
