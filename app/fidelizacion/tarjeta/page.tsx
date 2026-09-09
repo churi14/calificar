@@ -153,6 +153,27 @@ function TarjetaContent() {
         </div>
       </div>
 
+      {/* QR personal para que el negocio escanee */}
+      {cardId && programId && (
+        <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-sm border border-zinc-100 mb-4 text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">
+            Mostrá este QR en el local para sumar tu sello
+          </p>
+          <div className="flex justify-center">
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                `https://calificar.com.ar/fidelizacion/stamp?program=${programId}&card=${cardId}`
+              )}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+              alt="Tu QR personal"
+              width={160}
+              height={160}
+              className="rounded-xl"
+            />
+          </div>
+          <p className="text-[11px] text-zinc-400 mt-3">El encargado escanea este QR y se suma automáticamente</p>
+        </div>
+      )}
+
       {/* Botones de acción */}
       <div className="w-full max-w-sm flex flex-col gap-3 mb-4">
         {walletLink && (

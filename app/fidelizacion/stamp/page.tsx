@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-type Status = 'loading' | 'phone-input' | 'success' | 'reward' | 'error' | 'no-card'
+type Status = 'loading' | 'phone-input' | 'success' | 'reward' | 'error' | 'no-card' | 'cooldown'
 
 function StampContent() {
   const params = useSearchParams()
@@ -35,6 +35,7 @@ function StampContent() {
         body: JSON.stringify({ card_id: cid, program_id: programId, registered_by: 'nfc' }),
       })
       const data = await res.json()
+      if (data.cooldown) { setStatus('cooldown'); return }
       if (data.error) { setStatus('error'); return }
       setStamps(data.stamps)
       setStampsGoal(data.stamps_goal)
@@ -149,6 +150,14 @@ function StampContent() {
           </div>
           <p className="text-zinc-500 text-sm">Mostrá esta pantalla al encargado para canjear tu premio.</p>
           <p className="text-xs text-zinc-400">Tu tarjeta fue reiniciada. ¡A juntar más sellos!</p>
+        </div>
+      )}
+
+      {status === 'cooldown' && (
+        <div className="flex flex-col items-center gap-4 max-w-xs">
+          <div className="text-5xl">⏳</div>
+          <h1 className="text-xl font-bold text-zinc-900">Ya sumaste un sello hoy</h1>
+          <p className="text-zinc-500 text-sm">Podés sumar un sello por visita. Volvé mañana o pedile al encargado que te lo sume desde el panel.</p>
         </div>
       )}
 

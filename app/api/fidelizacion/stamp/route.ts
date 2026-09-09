@@ -45,6 +45,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
     }
 
+    // Anti-abuso: máximo 1 sello por cliente cada 4 horas (excepto 'manual' desde el panel del negocio)
+    if (registered_by !== 'manual') {
+      const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+      const { data: recentStamp } = await supabase
+        .from('loyalty_transactions')
+        .select('id')
+        .eq('card_id', card_id)
+        .eq('type', 'stamp')
+        .gte('created_at', fourHoursAgo)
+        .limit(1)
+        .single()
+
+      if (recentStamp) {
+        return NextResponse.json({
+          error: 'Ya sumaste un sello en las últimas 4 horas.',
+          cooldown: true,
+        }, { status: 429 })
+      }
+    }
+
     const newStamps = card.stamps + 1
     const goalReached = newStamps >= program.stamps_goal
     const finalStamps = goalReached ? 0 : newStamps  // reset al canjear
