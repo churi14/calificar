@@ -1,0 +1,18 @@
+{
+  "name": "Calificar Fidelización",
+  "short_name": "Calificar",
+  "description": "Tu tarjeta de puntos digital",
+  "start_url": "/fidelizacion/tarjeta",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7C3AED",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
