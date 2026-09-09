@@ -43,6 +43,10 @@ export default function AdminFidelizacionPage() {
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null)
   const [cards, setCards] = useState<Record<string, unknown>[]>([])
   const [loadingCards, setLoadingCards] = useState(false)
+  const [promoModal, setPromoModal] = useState<string | null>(null) // program_id
+  const [promoForm, setPromoForm] = useState({ title: '', body: '' })
+  const [promoSending, setPromoSending] = useState(false)
+  const [promoResult, setPromoResult] = useState<string | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -111,6 +115,20 @@ export default function AdminFidelizacionPage() {
     setSaving(false)
     setShowForm(false)
     load()
+  }
+
+  async function sendPromo() {
+    if (!promoModal || !promoForm.title || !promoForm.body) return
+    setPromoSending(true)
+    setPromoResult(null)
+    const res = await fetch('/api/fidelizacion/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ program_id: promoModal, ...promoForm }),
+    })
+    const data = await res.json()
+    setPromoSending(false)
+    setPromoResult(data.sent !== undefined ? `✓ Enviado a ${data.sent} de ${data.total} clientes` : '❌ Error al enviar')
   }
 
   const selectedProgramData = programs.find(p => p.id === selectedProgram)
@@ -268,6 +286,62 @@ export default function AdminFidelizacionPage() {
         </div>
       )}
 
+      {/* Modal enviar promoción */}
+      {promoModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-1">Enviar promoción 🔔</h2>
+            <p className="text-xs text-gray-400 mb-5">
+              Se enviará una notificación push a todos los clientes del programa que la tengan activada.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Título</label>
+                <input
+                  value={promoForm.title}
+                  onChange={e => setPromoForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="¡Oferta especial hoy!"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Mensaje</label>
+                <textarea
+                  value={promoForm.body}
+                  onChange={e => setPromoForm(f => ({ ...f, body: e.target.value }))}
+                  placeholder="Hoy 2x1 en postres. ¡Vení a verlo!"
+                  rows={3}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none"
+                />
+              </div>
+            </div>
+
+            {promoResult && (
+              <p className={`text-sm font-semibold mt-4 ${promoResult.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>
+                {promoResult}
+              </p>
+            )}
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => { setPromoModal(null); setPromoForm({ title: '', body: '' }); setPromoResult(null) }}
+                className="flex-1 border border-gray-200 text-gray-600 font-semibold py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+              >
+                Cerrar
+              </button>
+              <button
+                onClick={sendPromo}
+                disabled={promoSending || !promoForm.title || !promoForm.body}
+                className="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50"
+              >
+                {promoSending ? 'Enviando...' : 'Enviar notificación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Lista de programas */}
       {loading ? (
         <div className="flex items-center justify-center h-40">
@@ -349,6 +423,12 @@ export default function AdminFidelizacionPage() {
                     className="bg-gray-100 text-gray-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     {selectedProgram === p.id ? '▲ Ocultar clientes' : '▼ Ver clientes'}
+                  </button>
+                  <button
+                    onClick={() => { setPromoModal(p.id); setPromoForm({ title: '', body: '' }); setPromoResult(null) }}
+                    className="bg-violet-50 text-violet-700 font-semibold px-3 py-1.5 rounded-lg hover:bg-violet-100 transition-colors"
+                  >
+                    🔔 Enviar promo
                   </button>
                 </div>
 
