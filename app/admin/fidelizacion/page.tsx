@@ -498,6 +498,31 @@ export default function AdminFidelizacionPage() {
                   </button>
                 </div>
 
+                {/* QR de registro para imprimir */}
+                <div className="mt-3 border-t border-gray-100 pt-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">QR de registro</p>
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${p.id}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+                      alt="QR registro"
+                      width={100}
+                      height={100}
+                      className="rounded-xl border border-gray-100"
+                    />
+                    <div className="text-xs text-gray-500">
+                      <p className="font-semibold text-gray-700 mb-1">Escaneá para unirte</p>
+                      <p className="text-[11px] break-all text-gray-400">{`calificar.com.ar/fidelizacion/unirse?program=${p.id}`}</p>
+                      <a
+                        href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${p.id}`)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+                        download={`qr-registro-${p.id}.png`}
+                        className="inline-block mt-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold px-3 py-1 rounded-lg text-[11px] transition-colors"
+                      >
+                        ⬇ Descargar QR
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Tabla de clientes */}
                 {selectedProgram === p.id && (
                   <div className="mt-4 border-t border-gray-100 pt-4">
