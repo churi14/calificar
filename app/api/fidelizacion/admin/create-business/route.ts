@@ -24,9 +24,23 @@ export async function POST(req: NextRequest) {
   const { name } = await req.json()
   if (!name?.trim()) return NextResponse.json({ error: 'Nombre requerido' }, { status: 400 })
 
+  // Generar slug único
+  const base = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  const slug = `${base}-${Date.now().toString(36)}`
+
   const { data, error } = await admin
     .from('businesses')
-    .insert({ name: name.trim(), owner_id: user.id })
+    .insert({
+      name: name.trim(),
+      owner_id: user.id,
+      slug,
+      google_review_url: '',
+      whatsapp_number: '',
+      negative_redirect: 'whatsapp',
+      threshold: 3,
+      primary_color: '#111111',
+      accent_color: '#F59E0B',
+    })
     .select('id, name')
     .single()
 
