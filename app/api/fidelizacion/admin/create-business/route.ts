@@ -1,0 +1,36 @@
+/**
+ * POST /api/fidelizacion/admin/create-business
+ * Crea un negocio nuevo rápidamente desde el panel admin.
+ * Body: { name }
+ */
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdmin } from '@supabase/supabase-js'
+
+const admin = createAdmin(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+export async function POST(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const { data: profile } = await admin
+    .from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') return NextResponse.json({ error: 'Sin acceso' }, { status: 403 })
+
+  const { name } = await req.json()
+  if (!name?.trim()) return NextResponse.json({ error: 'Nombre requerido' }, { status: 400 })
+
+  const { data, error } = await admin
+    .from('businesses')
+    .insert({ name: name.trim(), owner_id: user.id })
+    .select('id, name')
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ business: data })
+}

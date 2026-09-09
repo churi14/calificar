@@ -18,6 +18,8 @@ type Program = {
 
 type Business = { id: string; name: string }
 
+
+
 const EMPTY_FORM = {
   business_id: '',
   name: '',
@@ -43,6 +45,9 @@ export default function AdminFidelizacionPage() {
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null)
   const [cards, setCards] = useState<Record<string, unknown>[]>([])
   const [loadingCards, setLoadingCards] = useState(false)
+  const [newBizName, setNewBizName] = useState('')
+  const [creatingBiz, setCreatingBiz] = useState(false)
+  const [showNewBiz, setShowNewBiz] = useState(false)
   const [promoModal, setPromoModal] = useState<string | null>(null) // program_id
   const [promoForm, setPromoForm] = useState({ title: '', body: '' })
   const [promoSending, setPromoSending] = useState(false)
@@ -117,6 +122,24 @@ export default function AdminFidelizacionPage() {
     load()
   }
 
+  async function createBusiness() {
+    if (!newBizName.trim()) return
+    setCreatingBiz(true)
+    const res = await fetch('/api/fidelizacion/admin/create-business', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newBizName.trim() }),
+    })
+    const data = await res.json()
+    if (data.business) {
+      setBusinesses(prev => [...prev, data.business])
+      setForm(f => ({ ...f, business_id: data.business.id }))
+      setNewBizName('')
+      setShowNewBiz(false)
+    }
+    setCreatingBiz(false)
+  }
+
   async function sendPromo() {
     if (!promoModal || !promoForm.title || !promoForm.body) return
     setPromoSending(true)
@@ -169,6 +192,41 @@ export default function AdminFidelizacionPage() {
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>
+                {!showNewBiz ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewBiz(true)}
+                    className="mt-1.5 text-xs text-violet-600 font-semibold hover:underline"
+                  >
+                    + Crear negocio nuevo
+                  </button>
+                ) : (
+                  <div className="mt-2 flex gap-2">
+                    <input
+                      autoFocus
+                      value={newBizName}
+                      onChange={e => setNewBizName(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && createBusiness()}
+                      placeholder="Nombre del negocio"
+                      className="flex-1 border border-violet-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={createBusiness}
+                      disabled={creatingBiz || !newBizName.trim()}
+                      className="bg-violet-600 text-white text-xs font-bold px-3 py-2 rounded-xl disabled:opacity-50"
+                    >
+                      {creatingBiz ? '...' : 'Crear'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowNewBiz(false); setNewBizName('') }}
+                      className="text-gray-400 text-xs px-2"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>
