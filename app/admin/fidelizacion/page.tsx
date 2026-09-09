@@ -428,11 +428,11 @@ export default function AdminFidelizacionPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm"
+                      className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-sm overflow-hidden flex-shrink-0"
                       style={{ backgroundColor: p.color_primary }}
                     >
                       {p.logo_url ? (
-                        <img src={p.logo_url} alt="" className="w-full h-full rounded-xl object-cover" />
+                        <img src={p.logo_url} alt="" className="w-full h-full object-contain p-1" />
                       ) : '★'}
                     </div>
                     <div>
