@@ -116,9 +116,9 @@ function TarjetaContent() {
             <p className="font-extrabold text-lg leading-tight">{program.name}</p>
           </div>
           {program.logo_url ? (
-            <img src={program.logo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
+            <img src={program.logo_url} alt="" className="w-20 h-20 rounded-2xl object-contain bg-white/10 p-1" />
           ) : (
-            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl">★</div>
+            <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center text-3xl">★</div>
           )}
         </div>
 
