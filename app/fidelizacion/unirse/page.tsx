@@ -21,6 +21,7 @@ function UnirseContent() {
   const [program, setProgram] = useState<Program | null>(null)
   const [phone, setPhone] = useState('')
   const [name, setName] = useState('')
+  const [birthDate, setBirthDate] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -41,7 +42,7 @@ function UnirseContent() {
     const res = await fetch('/api/fidelizacion/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ program_id: programId, phone, name }),
+      body: JSON.stringify({ program_id: programId, phone, name, birth_date: birthDate || null }),
     })
     const data = await res.json()
     setLoading(false)
@@ -108,6 +109,16 @@ function UnirseContent() {
               className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
             <p className="text-xs text-zinc-400 mt-1">Usamos el teléfono para identificar tu tarjeta.</p>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-zinc-500 mb-1.5">Fecha de cumpleaños <span className="text-zinc-300">(opcional)</span></label>
+            <input
+              type="date"
+              value={birthDate}
+              onChange={e => setBirthDate(e.target.value)}
+              className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            />
+            <p className="text-xs text-zinc-400 mt-1">Te mandamos un regalo el día de tu cumple 🎂</p>
           </div>
 
           {error && <p className="text-red-500 text-xs text-center">{error}</p>}

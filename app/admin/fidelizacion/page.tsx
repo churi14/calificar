@@ -150,14 +150,21 @@ export default function AdminFidelizacionPage() {
     if (!promoModal || !promoForm.title || !promoForm.body) return
     setPromoSending(true)
     setPromoResult(null)
+
+    // promoModal puede ser "program_id" o "card:card_id:program_id"
+    const isIndividual = promoModal.startsWith('card:')
+    const body = isIndividual
+      ? { card_id: promoModal.split(':')[1], program_id: promoModal.split(':')[2], ...promoForm }
+      : { program_id: promoModal, ...promoForm }
+
     const res = await fetch('/api/fidelizacion/push/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ program_id: promoModal, ...promoForm }),
+      body: JSON.stringify(body),
     })
     const data = await res.json()
     setPromoSending(false)
-    setPromoResult(data.sent !== undefined ? `✓ Enviado a ${data.sent} de ${data.total} clientes` : '❌ Error al enviar')
+    setPromoResult(data.sent !== undefined ? `✓ Enviado a ${data.sent} destinatario${data.sent !== 1 ? 's' : ''}` : '❌ Error al enviar')
   }
 
   const selectedProgramData = programs.find(p => p.id === selectedProgram)
@@ -550,7 +557,9 @@ export default function AdminFidelizacionPage() {
                             <th className="text-left pb-2">Teléfono</th>
                             <th className="text-center pb-2">Sellos</th>
                             <th className="text-center pb-2">Visitas</th>
+                            <th className="text-left pb-2">Cumple</th>
                             <th className="text-left pb-2">Desde</th>
+                            <th className="pb-2"></th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -564,7 +573,18 @@ export default function AdminFidelizacionPage() {
                               </td>
                               <td className="py-2 text-center text-gray-500">{c.total_visits as number}</td>
                               <td className="py-2 text-gray-400">
+                                {c.birth_date ? new Date(c.birth_date as string).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : '—'}
+                              </td>
+                              <td className="py-2 text-gray-400">
                                 {new Date(c.created_at as string).toLocaleDateString('es-AR')}
+                              </td>
+                              <td className="py-2">
+                                <button
+                                  onClick={() => { setPromoModal(`card:${c.id as string}:${p.id}`); setPromoForm({ title: '', body: '' }); setPromoResult(null) }}
+                                  className="text-[10px] bg-violet-50 hover:bg-violet-100 text-violet-600 font-semibold px-2 py-1 rounded-lg transition-colors"
+                                >
+                                  📣
+                                </button>
                               </td>
                             </tr>
                           ))}

@@ -21,7 +21,7 @@ const supabase = createClient(
 )
 
 export async function POST(req: NextRequest) {
-  const { program_id, title, body, url } = await req.json()
+  const { program_id, card_id, title, body, url } = await req.json()
 
   if (!program_id || !title || !body) {
     return NextResponse.json({ error: 'program_id, title y body son requeridos' }, { status: 400 })
@@ -30,11 +30,10 @@ export async function POST(req: NextRequest) {
   const vapid = getVapidConfig()
   webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey)
 
-  // Traer todas las suscripciones del programa
-  const { data: subs, error } = await supabase
-    .from('push_subscriptions')
-    .select('*')
-    .eq('program_id', program_id)
+  // Traer suscripciones: individual (card_id) o todas las del programa
+  let query = supabase.from('push_subscriptions').select('*').eq('program_id', program_id)
+  if (card_id) query = query.eq('card_id', card_id)
+  const { data: subs, error } = await query
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!subs || subs.length === 0) {
