@@ -421,6 +421,27 @@ export default function AdminFidelizacionPage() {
                 Las coordenadas GPS permiten que Google Wallet notifique al cliente cuando está cerca del local.
                 Buscá la dirección en Google Maps, clic derecho → "¿Qué hay aquí?" para copiar lat/lng.
               </p>
+
+              {/* Preview del mapa */}
+              {form.lat && form.lng && (
+                <div className="rounded-xl overflow-hidden border border-gray-100 mt-1">
+                  <iframe
+                    width="100%"
+                    height="180"
+                    loading="lazy"
+                    style={{ border: 0 }}
+                    src={`https://maps.google.com/maps?q=${form.lat},${form.lng}&z=16&output=embed`}
+                  />
+                  <a
+                    href={`https://maps.google.com/?q=${form.lat},${form.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-center text-xs text-violet-600 font-semibold py-2 hover:bg-gray-50 transition-colors"
+                  >
+                    Ver en Google Maps →
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 mt-6">
