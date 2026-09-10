@@ -111,18 +111,19 @@ function TarjetaContent() {
         className="w-full max-w-sm rounded-3xl p-6 text-white shadow-2xl mb-6"
         style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }}
       >
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest opacity-70 mb-0.5">
-              {program.businesses?.name ?? 'Calificar'}
-            </p>
-            <p className="font-extrabold text-lg leading-tight">{program.name}</p>
-          </div>
+        <div className="flex flex-col items-center mb-5">
           {program.logo_url ? (
-            <img src={program.logo_url} alt="" className="w-20 h-20 rounded-2xl object-contain bg-white/10 p-1" />
+            <img
+              src={program.logo_url}
+              alt={program.businesses?.name ?? 'Logo'}
+              className="h-16 max-w-[180px] object-contain mb-3"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
           ) : (
-            <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center text-3xl">★</div>
+            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl mb-3">★</div>
           )}
+          <p className="font-extrabold text-lg leading-tight text-center opacity-95">{program.name}</p>
+          <p className="text-xs opacity-60 mt-0.5">{program.businesses?.name ?? 'Calificar'}</p>
         </div>
 
         <p className="text-sm font-semibold opacity-80 mb-3">{card.name}</p>

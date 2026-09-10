@@ -42,6 +42,17 @@ export default function AdminFidelizacionPage() {
   const [editId, setEditId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+
+  async function handleLogoUpload(file: File) {
+    setUploadingLogo(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/fidelizacion/admin/upload-logo', { method: 'POST', body: fd })
+    const data = await res.json()
+    if (data.url) setForm(f => ({ ...f, logo_url: data.url }))
+    setUploadingLogo(false)
+  }
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null)
   const [cards, setCards] = useState<Record<string, unknown>[]>([])
   const [loadingCards, setLoadingCards] = useState(false)
@@ -301,13 +312,32 @@ export default function AdminFidelizacionPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">URL del logo</label>
-                <input
-                  value={form.logo_url}
-                  onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
-                />
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Logo del negocio</label>
+                <div className="flex items-center gap-3">
+                  {form.logo_url && (
+                    <img src={form.logo_url} alt="" className="w-14 h-14 rounded-xl object-contain bg-gray-50 border border-gray-100 p-1 flex-shrink-0" />
+                  )}
+                  <label className={`flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-xl py-3 px-4 cursor-pointer transition-colors ${uploadingLogo ? 'border-violet-300 bg-violet-50' : 'border-gray-200 hover:border-violet-400 hover:bg-violet-50'}`}>
+                    <span className="text-xs font-semibold text-gray-500">
+                      {uploadingLogo ? 'Subiendo...' : form.logo_url ? '📁 Cambiar logo' : '📁 Subir logo (.png, .svg, .jpg)'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/png,image/svg+xml,image/jpeg,image/webp"
+                      className="sr-only"
+                      onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f) }}
+                      disabled={uploadingLogo}
+                    />
+                  </label>
+                </div>
+                {form.logo_url && (
+                  <input
+                    value={form.logo_url}
+                    onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))}
+                    placeholder="https://..."
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-400 mt-2 focus:outline-none focus:ring-1 focus:ring-violet-400"
+                  />
+                )}
               </div>
 
               <div>
