@@ -92,8 +92,9 @@ export async function POST(req: NextRequest) {
         .from('loyalty_cards')
         .update({ wallet_object_id: objectId })
         .eq('id', card.id)
-    } catch (walletErr) {
-      console.error('Error creando objeto Wallet (no crítico):', walletErr)
+    } catch (walletErr: unknown) {
+      const msg = walletErr instanceof Error ? walletErr.message : JSON.stringify(walletErr)
+      console.error('Error creando objeto Wallet:', msg)
     }
 
     const walletLink = getWalletLink(objectId, program.id)

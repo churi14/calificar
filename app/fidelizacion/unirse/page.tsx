@@ -62,8 +62,22 @@ function UnirseContent() {
 
   const color = program?.color_primary ?? '#7C3AED'
 
+  // Calcular luminosidad del color primario para elegir fondo contrastante
+  function hexToRgb(hex: string) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16)
+    return { r, g, b }
+  }
+  const { r, g, b } = hexToRgb(color.startsWith('#') ? color : '#7C3AED')
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  // Si el color es oscuro → fondo claro (tinte suave); si es claro → fondo oscuro
+  const bgColor = lum < 0.4
+    ? `${color}15`   // tinte muy suave del color primario
+    : lum < 0.7
+      ? `${color}20`
+      : '#1a1a1a'    // fondo oscuro si el color es muy claro
+
   return (
-    <main className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
+    <main className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: bgColor }}>
       <div className="w-full max-w-sm">
 
         {/* Header del programa */}

@@ -83,6 +83,7 @@ export async function createOrUpdateLoyaltyClass(cfg: LoyaltyProgramConfig) {
     rewardsTierPoints: `Meta: ${cfg.stampsGoal} sellos`,
     rewardsTier: cfg.rewardDescription,
     reviewStatus: 'UNDER_REVIEW',
+    enableSmartTap: false,
     multipleDevicesAndHoldersAllowedStatus: 'ONE_USER_ALL_DEVICES',
   }
 
