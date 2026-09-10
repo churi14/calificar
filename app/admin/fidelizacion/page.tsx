@@ -101,6 +101,12 @@ export default function AdminFidelizacionPage() {
     setShowForm(true)
   }
 
+  async function handleDelete(id: string, name: string) {
+    if (!confirm(`¿Borrar "${name}"? Se eliminarán todos los clientes y sellos. Esta acción no se puede deshacer.`)) return
+    await fetch(`/api/fidelizacion/admin?id=${id}`, { method: 'DELETE' })
+    load()
+  }
+
   async function handleSave() {
     setSaving(true)
     const payload = {
@@ -449,6 +455,12 @@ export default function AdminFidelizacionPage() {
                       className="text-xs text-violet-600 font-semibold hover:underline"
                     >
                       Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id, p.name)}
+                      className="text-xs text-red-400 font-semibold hover:underline"
+                    >
+                      Borrar
                     </button>
                   </div>
                 </div>
