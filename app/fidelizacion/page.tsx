@@ -1,108 +1,398 @@
-import type { Metadata } from 'next'
+'use client'
+
 import Link from 'next/link'
+import { useState } from 'react'
 
-export const metadata: Metadata = {
-  title: 'Calificar Fidelización — Próximamente',
-  description: 'Tarjetas de fidelidad digitales para tu negocio. Google Wallet, notificaciones push y sellos NFC. Próximamente.',
-  robots: { index: false },
-}
+const features = [
+  {
+    icon: '📱',
+    title: 'Tarjeta digital en Google Wallet',
+    desc: 'Tus clientes guardan la tarjeta en el celular. Sin apps, sin papel, sin fricción.',
+  },
+  {
+    icon: '📡',
+    title: 'NFC + QR en el mostrador',
+    desc: 'El cliente acerca el celular o escanea el QR y suma su sello automáticamente.',
+  },
+  {
+    icon: '🎂',
+    title: 'Notificaciones de cumpleaños',
+    desc: 'Mandá un regalo automático el día del cumpleaños de cada cliente.',
+  },
+  {
+    icon: '🔔',
+    title: 'Push notifications',
+    desc: 'Avisá de promos, novedades o días especiales directo al celular.',
+  },
+  {
+    icon: '🏆',
+    title: 'Premios y cupones únicos',
+    desc: 'Al completar la tarjeta se genera un cupón irrepetible listo para canjear.',
+  },
+  {
+    icon: '📊',
+    title: 'Panel de gestión',
+    desc: 'Ves tus clientes, sellos y canjes en tiempo real desde cualquier dispositivo.',
+  },
+]
 
-export default function FidelizacionPage() {
+const steps = [
+  { num: '01', title: 'Configurás tu programa', desc: 'Subís el logo, elegís cuántos sellos necesita el cliente y qué premio se lleva.' },
+  { num: '02', title: 'El cliente se registra', desc: 'Escanea el QR del local, completa nombre y teléfono, listo. La tarjeta aparece en su Wallet.' },
+  { num: '03', title: 'Suma sellos con NFC o QR', desc: 'Cada visita, el cliente acerca el celular al cartel del mostrador o escanea el QR.' },
+  { num: '04', title: 'Canjea el premio', desc: 'Al llegar a la meta recibe un cupón único. Lo muestra, lo canjeás, se reinicia la tarjeta.' },
+]
+
+const plans = [
+  {
+    name: 'Básico',
+    price: '$14.990',
+    period: '/mes',
+    desc: 'Para negocios que arrancan',
+    features: ['1 programa de fidelidad', 'Hasta 200 clientes', 'Google Wallet', 'QR + NFC', 'Panel de gestión', 'Push notifications'],
+    cta: 'Empezar gratis',
+    highlight: false,
+  },
+  {
+    name: 'Pro',
+    price: '$29.990',
+    period: '/mes',
+    desc: 'El más elegido',
+    features: ['Hasta 3 programas', 'Clientes ilimitados', 'Google Wallet', 'QR + NFC', 'Notificaciones cumpleaños', 'Cupones automáticos', 'Exportar clientes'],
+    cta: 'Empezar gratis',
+    highlight: true,
+  },
+  {
+    name: 'Agencia',
+    price: 'A consultar',
+    period: '',
+    desc: 'Para gestionar múltiples locales',
+    features: ['Programas ilimitados', 'Multi-local', 'Panel por negocio', 'Soporte dedicado', 'Personalización completa'],
+    cta: 'Contactarnos',
+    highlight: false,
+  },
+]
+
+const faqs = [
+  { q: '¿El cliente necesita descargar una app?', a: 'No. La tarjeta se guarda directo en Google Wallet, que ya viene instalado en todos los Android.' },
+  { q: '¿Cómo suma el cliente su sello?', a: 'Hay dos formas: acerca el celular al cartelito NFC del mostrador, o escanea el QR que está en el local.' },
+  { q: '¿Puedo personalizar el diseño de la tarjeta?', a: 'Sí. Subís el logo, elegís el color y configurás el nombre del programa. La tarjeta adopta tu identidad visual.' },
+  { q: '¿Qué pasa si el cliente cambia de celular?', a: 'La tarjeta vive en la nube. Al loguearse de nuevo a su cuenta Google, recupera todo.' },
+  { q: '¿Puedo probar antes de pagar?', a: 'Sí. Tenés 14 días gratis sin tarjeta de crédito.' },
+]
+
+export default function FidelizacionLanding() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+
   return (
-    <main className="min-h-screen bg-white text-zinc-900 antialiased flex flex-col">
+    <div className="bg-white text-zinc-900 font-sans">
 
       {/* NAV */}
-      <nav className="border-b border-zinc-100 h-16 flex items-center px-6 md:px-10">
-        <Link href="/" className="flex items-center gap-1.5 font-bold text-lg text-[#0F172A]">
-          <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" />
-          Calificar
-        </Link>
+      <nav className="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur border-b border-zinc-100">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="font-extrabold text-lg tracking-tight text-zinc-900">
+            calificar <span className="text-violet-600">fidelización</span>
+          </Link>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500">
+            <a href="#como-funciona" className="hover:text-zinc-900 transition-colors">Cómo funciona</a>
+            <a href="#funcionalidades" className="hover:text-zinc-900 transition-colors">Funcionalidades</a>
+            <a href="#precios" className="hover:text-zinc-900 transition-colors">Precios</a>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/admin/fidelizacion" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors hidden md:block">
+              Ingresar
+            </Link>
+            <Link
+              href="#precios"
+              className="bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+            >
+              Empezar gratis
+            </Link>
+          </div>
+        </div>
       </nav>
 
       {/* HERO */}
-      <div className="flex-1 flex items-center justify-center px-6 py-20">
-        <div className="text-center max-w-xl">
-
-          {/* Badge */}
-          <span className="inline-block bg-amber-50 text-amber-500 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-8">
-            Próximamente
-          </span>
-
-          {/* Logo + título */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <img
-              src="/logo.svg"
-              alt=""
-              className="h-10 w-auto"
-              style={{ filter: 'hue-rotate(30deg) saturate(1.4)' }}
-            />
-            <p className="font-extrabold text-2xl text-[#0F172A]">
-              Calificar{' '}
-              <em style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 400, color: '#d97706' }}>
-                fidelización
-              </em>
+      <section className="min-h-[100dvh] flex items-center pt-16">
+        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center py-20">
+          <div>
+            <p className="text-violet-600 font-semibold text-sm uppercase tracking-widest mb-4">Programa de fidelidad digital</p>
+            <h1 className="text-5xl md:text-6xl font-extrabold leading-[1.05] tracking-tight mb-6">
+              Tus clientes vuelven.
+              <br />
+              <span className="text-violet-600">Siempre.</span>
+            </h1>
+            <p className="text-zinc-500 text-lg leading-relaxed mb-8 max-w-md">
+              Reemplazá las tarjetitas de papel con una tarjeta digital en Google Wallet. NFC, QR, notificaciones y premios automáticos.
             </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="#precios"
+                className="bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-2xl text-base transition-colors text-center"
+              >
+                Empezar 14 días gratis
+              </Link>
+              <a
+                href="#como-funciona"
+                className="border-2 border-zinc-200 hover:border-violet-300 text-zinc-700 font-semibold px-8 py-4 rounded-2xl text-base transition-colors text-center"
+              >
+                Ver cómo funciona
+              </a>
+            </div>
+            <p className="text-zinc-400 text-xs mt-4">Sin tarjeta de crédito. Sin compromiso.</p>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-zinc-900 leading-tight mb-5">
-            Tus clientes vuelven solos,<br />con su tarjeta en el celular.
-          </h1>
-
-          <p className="text-zinc-500 text-lg leading-relaxed mb-10">
-            Tarjetas de fidelidad digitales en Google Wallet. El cliente suma puntos con un tap NFC,
-            vos mandás promociones con un clic y Google le avisa cuando está cerca de tu local.
-          </p>
-
-          {/* Features chips */}
-          <div className="flex flex-wrap justify-center gap-2 mb-10">
-            {[
-              '📲 Google Wallet',
-              '🪙 Puntos y sellos',
-              '📡 Sello NFC',
-              '🔔 Push notifications',
-              '📍 Geo-alertas',
-              '🎟️ Promociones',
-            ].map(f => (
-              <span key={f} className="bg-amber-50 text-amber-600 text-xs font-semibold px-3 py-1.5 rounded-full border border-amber-100">
-                {f}
-              </span>
-            ))}
+          {/* Card mockup */}
+          <div className="flex justify-center">
+            <div className="relative">
+              {/* Phone frame */}
+              <div className="w-[280px] bg-zinc-900 rounded-[48px] p-3 shadow-2xl">
+                <div className="bg-zinc-800 rounded-[40px] overflow-hidden">
+                  {/* Status bar */}
+                  <div className="flex justify-between items-center px-6 pt-4 pb-2">
+                    <span className="text-white text-xs font-semibold">9:41</span>
+                    <div className="flex gap-1">
+                      <div className="w-4 h-2 bg-white rounded-sm opacity-80" />
+                      <div className="w-4 h-2 bg-white rounded-sm opacity-80" />
+                    </div>
+                  </div>
+                  {/* Wallet card */}
+                  <div className="mx-3 mb-3">
+                    <div className="bg-gradient-to-br from-violet-600 to-violet-800 rounded-3xl p-5 text-white">
+                      <div className="flex flex-col items-center mb-4">
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl mb-2">★</div>
+                        <p className="font-extrabold text-sm">La Cocina Fidelidad</p>
+                        <p className="text-xs opacity-60">La Cocina</p>
+                      </div>
+                      <p className="text-xs font-semibold opacity-80 mb-2">María García</p>
+                      <div className="grid grid-cols-5 gap-1.5 mb-3">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-xs font-bold border-2 ${i < 3 ? 'bg-white text-violet-700 border-white' : 'bg-white/10 border-white/30 text-white/40'}`}>
+                            {i < 3 ? '★' : '○'}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bg-white/20 rounded-full h-1.5">
+                        <div className="bg-white h-1.5 rounded-full" style={{ width: '60%' }} />
+                      </div>
+                      <div className="flex justify-between text-[10px] opacity-70 mt-1">
+                        <span>3 de 5 sellos</span>
+                        <span>Premio: Café gratis</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Google Wallet button */}
+                  <div className="mx-3 mb-4">
+                    <div className="bg-black rounded-2xl px-4 py-2.5 flex items-center justify-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                        <path d="M21.56 10.738l-9.52-9.52A1.5 1.5 0 0010.978.5H3.5A3 3 0 00.5 3.5v7.478c0 .398.158.78.44 1.062l9.52 9.52a3 3 0 004.242 0l6.858-6.858a3 3 0 000-4.243zM5.5 8a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
+                      </svg>
+                      <span className="text-white text-xs font-semibold">Guardar en Google Wallet</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Floating badges */}
+              <div className="absolute -right-8 top-16 bg-white rounded-2xl shadow-xl px-4 py-3 border border-zinc-100">
+                <p className="text-xs text-zinc-400 font-medium">Nuevos clientes hoy</p>
+                <p className="text-2xl font-extrabold text-zinc-900">+12</p>
+              </div>
+              <div className="absolute -left-8 bottom-20 bg-violet-600 rounded-2xl shadow-xl px-4 py-3">
+                <p className="text-xs text-white/80 font-medium">Sellos sumados</p>
+                <p className="text-2xl font-extrabold text-white">847</p>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
 
-          {/* CTA */}
-          <a
-            href="https://wa.me/5491123867934?text=Hola!%20Me%20interesa%20Calificar%20Fidelización%20para%20mi%20negocio."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold px-8 py-4 rounded-full text-base transition-all duration-150 shadow-lg shadow-amber-200"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            Anotarme para cuando salga
-          </a>
-
-          <p className="mt-4 text-zinc-400 text-sm">
-            O volvé al{' '}
-            <Link href="/" className="text-zinc-600 underline underline-offset-2 hover:text-zinc-900">
-              inicio
-            </Link>
-          </p>
-
-          {/* Rubros */}
-          <div className="flex flex-wrap justify-center gap-2 mt-12">
-            {['Restaurantes', 'Cafeterías', 'Peluquerías', 'Estéticas', 'Gimnasios', 'Tiendas', 'Farmacias', 'Panaderías'].map(r => (
-              <span key={r} className="bg-zinc-50 text-zinc-400 text-xs font-medium px-3 py-1.5 rounded-full border border-zinc-100">
-                {r}
-              </span>
+      {/* SOCIAL PROOF */}
+      <div className="border-y border-zinc-100 bg-zinc-50 py-8">
+        <div className="max-w-6xl mx-auto px-6">
+          <p className="text-center text-zinc-400 text-sm font-medium mb-6">Negocios que ya usan Calificar fidelización</p>
+          <div className="flex flex-wrap justify-center gap-8 text-zinc-400 font-semibold text-sm">
+            {['La Cocina', 'Café Central', 'Peluquería Nova', 'Sushi Haus', 'El Rincón'].map(b => (
+              <span key={b} className="opacity-60">{b}</span>
             ))}
           </div>
         </div>
       </div>
 
-      <footer className="border-t border-zinc-100 py-6 px-6 text-center text-xs text-zinc-400">
-        © 2026 Calificar.com.ar
+      {/* COMO FUNCIONA */}
+      <section id="como-funciona" className="py-24">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold tracking-tight mb-4">Listo en 10 minutos</h2>
+            <p className="text-zinc-500 text-lg max-w-xl mx-auto">Sin instalar nada. Sin contratos. Sin paper de papel.</p>
+          </div>
+          <div className="grid md:grid-cols-4 gap-8">
+            {steps.map((s) => (
+              <div key={s.num} className="relative">
+                <div className="w-12 h-12 bg-violet-100 text-violet-700 font-extrabold rounded-2xl flex items-center justify-center text-sm mb-4">
+                  {s.num}
+                </div>
+                <h3 className="font-bold text-lg mb-2">{s.title}</h3>
+                <p className="text-zinc-500 text-sm leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FUNCIONALIDADES */}
+      <section id="funcionalidades" className="py-24 bg-zinc-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold tracking-tight mb-4">Todo lo que necesitás</h2>
+            <p className="text-zinc-500 text-lg max-w-xl mx-auto">
+              Cada herramienta pensada para que el cliente vuelva y vos lo sepas en tiempo real.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {features.map((f) => (
+              <div key={f.title} className="bg-white rounded-2xl p-6 border border-zinc-100 hover:border-violet-200 hover:shadow-md transition-all">
+                <div className="text-3xl mb-4">{f.icon}</div>
+                <h3 className="font-bold text-lg mb-2">{f.title}</h3>
+                <p className="text-zinc-500 text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* DIFERENCIADOR NFC */}
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+          <div className="bg-gradient-to-br from-violet-600 to-violet-800 rounded-3xl p-10 text-white text-center">
+            <div className="text-6xl mb-4">📡</div>
+            <h3 className="text-2xl font-extrabold mb-3">Tap. Sello sumado.</h3>
+            <p className="opacity-80 text-sm leading-relaxed">
+              El cliente acerca el celular al cartelito NFC del mostrador y el sello se suma solo. Sin apps, sin escanear, sin fricción.
+            </p>
+            <div className="mt-6 bg-white/20 rounded-2xl px-6 py-4">
+              <p className="text-xs opacity-70 font-semibold uppercase tracking-widest mb-1">Tiempo para sumar un sello</p>
+              <p className="text-4xl font-extrabold">2 seg</p>
+            </div>
+          </div>
+          <div>
+            <h2 className="text-4xl font-extrabold tracking-tight mb-6">
+              La tecnología que solo tiene Calificar
+            </h2>
+            <div className="space-y-5">
+              {[
+                { t: 'NFC físico integrado', d: 'Cartelito de mostrador con chip NFC. El cliente tap y listo, no necesita abrir ninguna app.' },
+                { t: 'Sin fricciones para el cliente', d: 'El flujo más corto del mercado. Registro en 30 segundos, sello en 2 segundos.' },
+                { t: 'QR de respaldo', d: 'Si el cliente no tiene NFC, escanea el QR que también está en el cartelito.' },
+              ].map(({ t, d }) => (
+                <div key={t} className="flex gap-4">
+                  <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-2 h-2 rounded-full bg-violet-600" />
+                  </div>
+                  <div>
+                    <p className="font-bold mb-1">{t}</p>
+                    <p className="text-zinc-500 text-sm leading-relaxed">{d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRECIOS */}
+      <section id="precios" className="py-24 bg-zinc-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold tracking-tight mb-4">Precios simples</h2>
+            <p className="text-zinc-500 text-lg">14 días gratis en todos los planes. Sin tarjeta de crédito.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {plans.map((p) => (
+              <div
+                key={p.name}
+                className={`rounded-3xl p-8 flex flex-col ${p.highlight ? 'bg-violet-600 text-white shadow-2xl shadow-violet-200 scale-[1.02]' : 'bg-white border border-zinc-200'}`}
+              >
+                <p className={`text-sm font-semibold mb-1 ${p.highlight ? 'text-violet-200' : 'text-zinc-400'}`}>{p.name}</p>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-4xl font-extrabold">{p.price}</span>
+                  <span className={`text-sm ${p.highlight ? 'text-violet-200' : 'text-zinc-400'}`}>{p.period}</span>
+                </div>
+                <p className={`text-sm mb-6 ${p.highlight ? 'text-violet-200' : 'text-zinc-500'}`}>{p.desc}</p>
+                <ul className="space-y-3 mb-8 flex-1">
+                  {p.features.map(f => (
+                    <li key={f} className={`flex items-center gap-2 text-sm ${p.highlight ? 'text-white' : 'text-zinc-700'}`}>
+                      <span className={`text-xs font-bold ${p.highlight ? 'text-violet-200' : 'text-violet-600'}`}>✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/admin/fidelizacion"
+                  className={`text-center font-bold py-3.5 rounded-2xl text-sm transition-colors ${p.highlight ? 'bg-white text-violet-700 hover:bg-violet-50' : 'bg-violet-600 text-white hover:bg-violet-500'}`}
+                >
+                  {p.cta}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-24">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="text-4xl font-extrabold tracking-tight text-center mb-12">Preguntas frecuentes</h2>
+          <div className="space-y-3">
+            {faqs.map((f, i) => (
+              <div key={i} className="border border-zinc-200 rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between px-6 py-5 text-left font-semibold text-zinc-900 hover:bg-zinc-50 transition-colors"
+                >
+                  {f.q}
+                  <span className={`text-zinc-400 transition-transform ${openFaq === i ? 'rotate-180' : ''}`}>▼</span>
+                </button>
+                {openFaq === i && (
+                  <div className="px-6 pb-5 text-zinc-500 text-sm leading-relaxed border-t border-zinc-100 pt-4">
+                    {f.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="py-24 bg-violet-600">
+        <div className="max-w-3xl mx-auto px-6 text-center text-white">
+          <h2 className="text-4xl font-extrabold tracking-tight mb-4">
+            Empezá hoy, gratis.
+          </h2>
+          <p className="text-violet-200 text-lg mb-8">
+            14 días de prueba. Sin tarjeta de crédito. El cartelito NFC incluido en todos los planes pagos.
+          </p>
+          <Link
+            href="/admin/fidelizacion"
+            className="inline-block bg-white text-violet-700 font-bold px-10 py-4 rounded-2xl text-base hover:bg-violet-50 transition-colors"
+          >
+            Crear mi programa gratis
+          </Link>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-zinc-100 py-10">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+          <Link href="/" className="font-extrabold text-zinc-900">calificar</Link>
+          <div className="flex gap-6 text-sm text-zinc-400">
+            <Link href="/" className="hover:text-zinc-900 transition-colors">Inicio</Link>
+            <a href="mailto:hola@calificar.com.ar" className="hover:text-zinc-900 transition-colors">Contacto</a>
+            <Link href="/admin/fidelizacion" className="hover:text-zinc-900 transition-colors">Ingresar</Link>
+          </div>
+          <p className="text-zinc-400 text-sm">2026 Calificar</p>
+        </div>
       </footer>
-    </main>
+    </div>
   )
 }
