@@ -69,6 +69,11 @@ export async function POST(req: NextRequest) {
     const goalReached = newStamps >= program.stamps_goal
     const finalStamps = goalReached ? 0 : newStamps  // reset al canjear
 
+    // Generar cupón único si llega a la meta
+    const couponCode = goalReached
+      ? `${(program.reward_description ?? 'PREMIO').substring(0,4).toUpperCase().replace(/\s/g,'')}-${Math.random().toString(36).substring(2,6).toUpperCase()}-${Math.random().toString(36).substring(2,6).toUpperCase()}`
+      : null
+
     // Actualizar tarjeta
     await supabase
       .from('loyalty_cards')
@@ -89,7 +94,7 @@ export async function POST(req: NextRequest) {
       registered_by,
     })
 
-    // Si llegó a la meta, registrar el canje
+    // Si llegó a la meta, registrar el canje con cupón
     if (goalReached) {
       await supabase.from('loyalty_transactions').insert({
         card_id,
@@ -98,6 +103,7 @@ export async function POST(req: NextRequest) {
         amount: -program.stamps_goal,
         note: program.reward_description,
         registered_by: 'system',
+        coupon_code: couponCode,
       })
     }
 
@@ -116,6 +122,7 @@ export async function POST(req: NextRequest) {
       stamps_goal: program.stamps_goal,
       goal_reached: goalReached,
       reward: goalReached ? program.reward_description : null,
+      coupon_code: couponCode,
     })
   } catch (err) {
     console.error('Error en /api/fidelizacion/stamp:', err)
