@@ -45,30 +45,56 @@ const steps = [
 
 const plans = [
   {
-    name: 'Básico',
-    price: '$14.990',
-    period: '/mes',
-    desc: 'Para negocios que arrancan',
-    features: ['1 programa de fidelidad', 'Hasta 200 clientes', 'Google Wallet', 'QR + NFC', 'Panel de gestión', 'Push notifications'],
-    cta: 'Empezar gratis',
+    label: 'PARA TU NEGOCIO',
+    name: 'Starter',
+    price: '$9.99',
+    perDay: '$0.33 al día',
+    perDaySub: 'menos que un café',
+    features: [
+      '1 programa de fidelidad con tu logo y colores',
+      'Notificaciones ilimitadas al celular de tus clientes',
+      'Cartelito NFC + QR para el mostrador',
+      'Panel: quién volvió, cuándo y cuántos sellos',
+      'Exportá tus clientes: nombre y teléfono',
+      'Soporte en español',
+    ],
+    cta: 'Crear mi programa gratis',
     highlight: false,
   },
   {
+    label: 'PARA DESTACAR',
     name: 'Pro',
-    price: '$29.990',
-    period: '/mes',
-    desc: 'El más elegido',
-    features: ['Hasta 3 programas', 'Clientes ilimitados', 'Google Wallet', 'QR + NFC', 'Notificaciones cumpleaños', 'Cupones automáticos', 'Exportar clientes'],
-    cta: 'Empezar gratis',
+    price: '$19.99',
+    perDay: '$0.66 al día',
+    perDaySub: 'menos que dos cafés',
+    features: [
+      'Todo lo de Starter',
+      'Hasta 3 programas de fidelidad',
+      'Campañas de cumpleaños automáticas',
+      'Formulario de registro personalizable',
+      'Cupones únicos al completar la tarjeta',
+      'Zonas de notificación por geolocalización',
+      'Soporte prioritario',
+    ],
+    cta: 'Crear mi programa gratis',
     highlight: true,
   },
   {
-    name: 'Agencia',
-    price: 'A consultar',
-    period: '',
-    desc: 'Para gestionar múltiples locales',
-    features: ['Programas ilimitados', 'Multi-local', 'Panel por negocio', 'Soporte dedicado', 'Personalización completa'],
-    cta: 'Contactarnos',
+    label: 'SIN LÍMITES',
+    name: 'Ultimate',
+    price: '$49.99',
+    perDay: '$1.66 al día',
+    perDaySub: 'para todas tus sucursales',
+    features: [
+      'Todo lo de Pro',
+      'Programas ilimitados',
+      'Sucursales ilimitadas',
+      'Múltiples usuarios por local',
+      'Zonas de notificación ilimitadas',
+      'Exportación detallada con historial',
+      'API + integración con tu sistema',
+    ],
+    cta: 'Crear mi programa gratis',
     highlight: false,
   },
 ]
@@ -300,35 +326,68 @@ export default function FidelizacionLanding() {
       </section>
 
       {/* PRECIOS */}
-      <section id="precios" className="py-24 bg-zinc-50">
+      <section id="precios" className="py-24 bg-zinc-950">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold tracking-tight mb-4">Precios simples</h2>
-            <p className="text-zinc-500 text-lg">14 días gratis en todos los planes. Sin tarjeta de crédito.</p>
+          <div className="text-center mb-10">
+            <h2 className="text-4xl font-extrabold tracking-tight text-white mb-3">Precios simples</h2>
+            <p className="text-zinc-400 text-lg">14 días gratis. Cambiá de plan o cancelá cuando quieras.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+
+          {/* Promo banner */}
+          <div className="border border-violet-500/40 rounded-2xl px-6 py-4 text-center mb-10 max-w-xl mx-auto bg-violet-950/30">
+            <span className="bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-2">14 días gratis</span>
+            <p className="text-white font-bold text-lg">Probá gratis y empezá a fidelizar desde el primer día.</p>
+            <p className="text-zinc-400 text-sm mt-1">Sin tarjeta de crédito. Sin compromiso.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-5">
             {plans.map((p) => (
               <div
                 key={p.name}
-                className={`rounded-3xl p-8 flex flex-col ${p.highlight ? 'bg-violet-600 text-white shadow-2xl shadow-violet-200 scale-[1.02]' : 'bg-white border border-zinc-200'}`}
+                className={`rounded-3xl p-7 flex flex-col relative ${
+                  p.highlight
+                    ? 'bg-white text-zinc-900 shadow-2xl shadow-violet-500/20 scale-[1.03]'
+                    : 'bg-zinc-900 text-white'
+                }`}
               >
-                <p className={`text-sm font-semibold mb-1 ${p.highlight ? 'text-violet-200' : 'text-zinc-400'}`}>{p.name}</p>
-                <div className="flex items-baseline gap-1 mb-1">
+                {p.highlight && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                    <span className="bg-violet-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest whitespace-nowrap">Recomendado</span>
+                  </div>
+                )}
+
+                <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${p.highlight ? 'text-violet-600' : 'text-zinc-400'}`}>{p.label}</p>
+                <h3 className="text-3xl font-extrabold mb-1">{p.name}</h3>
+
+                <div className="flex items-baseline gap-1.5 mb-3">
                   <span className="text-4xl font-extrabold">{p.price}</span>
-                  <span className={`text-sm ${p.highlight ? 'text-violet-200' : 'text-zinc-400'}`}>{p.period}</span>
+                  <span className={`text-sm ${p.highlight ? 'text-zinc-400' : 'text-zinc-400'}`}>USD / mes</span>
                 </div>
-                <p className={`text-sm mb-6 ${p.highlight ? 'text-violet-200' : 'text-zinc-500'}`}>{p.desc}</p>
-                <ul className="space-y-3 mb-8 flex-1">
+
+                {/* Per day pill */}
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold w-fit mb-4 ${p.highlight ? 'bg-zinc-100 text-zinc-600' : 'bg-zinc-800 text-zinc-400'}`}>
+                  <span className="font-bold">{p.perDay}</span>
+                  <span className="opacity-70">{p.perDaySub}</span>
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-wrap gap-2 mb-5">
+                  <span className="bg-violet-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Tarjetas ilimitadas</span>
+                  <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${p.highlight ? 'border-zinc-200 text-zinc-600' : 'border-zinc-700 text-zinc-400'}`}>Notificaciones ilimitadas</span>
+                </div>
+
+                <ul className="space-y-2.5 mb-7 flex-1">
                   {p.features.map(f => (
-                    <li key={f} className={`flex items-center gap-2 text-sm ${p.highlight ? 'text-white' : 'text-zinc-700'}`}>
-                      <span className={`text-xs font-bold ${p.highlight ? 'text-violet-200' : 'text-violet-600'}`}>✓</span>
+                    <li key={f} className={`flex items-start gap-2.5 text-sm leading-snug ${p.highlight ? 'text-zinc-600' : 'text-zinc-300'}`}>
+                      <span className="text-violet-500 font-bold mt-0.5 flex-shrink-0">✓</span>
                       {f}
                     </li>
                   ))}
                 </ul>
+
                 <Link
                   href="/admin/fidelizacion"
-                  className={`text-center font-bold py-3.5 rounded-2xl text-sm transition-colors ${p.highlight ? 'bg-white text-violet-700 hover:bg-violet-50' : 'bg-violet-600 text-white hover:bg-violet-500'}`}
+                  className="text-center font-bold py-3.5 rounded-2xl text-sm transition-all bg-violet-600 hover:bg-violet-500 text-white active:scale-[0.98]"
                 >
                   {p.cta}
                 </Link>
