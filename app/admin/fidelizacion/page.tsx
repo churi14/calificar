@@ -44,13 +44,57 @@ export default function AdminFidelizacionPage() {
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
+  function extractDominantColor(file: File): Promise<string | null> {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file)
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = 60; canvas.height = 60
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { resolve(null); return }
+        ctx.drawImage(img, 0, 0, 60, 60)
+        const { data } = ctx.getImageData(0, 0, 60, 60)
+        const colorMap: Record<string, number> = {}
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3]
+          if (a < 128) continue                          // transparente
+          if (r > 235 && g > 235 && b > 235) continue   // blanco
+          if (r < 20 && g < 20 && b < 20) continue      // negro
+          const qr = Math.round(r / 40) * 40
+          const qg = Math.round(g / 40) * 40
+          const qb = Math.round(b / 40) * 40
+          const key = `${qr},${qg},${qb}`
+          colorMap[key] = (colorMap[key] ?? 0) + 1
+        }
+        URL.revokeObjectURL(url)
+        const top = Object.entries(colorMap).sort((a, b) => b[1] - a[1])[0]
+        if (!top) { resolve(null); return }
+        const [r, g, b] = top[0].split(',').map(Number)
+        resolve('#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join(''))
+      }
+      img.onerror = () => resolve(null)
+      img.src = url
+    })
+  }
+
   async function handleLogoUpload(file: File) {
     setUploadingLogo(true)
+
+    // Extraer color dominante antes de subir
+    const dominantColor = await extractDominantColor(file)
+
     const fd = new FormData()
     fd.append('file', file)
     const res = await fetch('/api/fidelizacion/admin/upload-logo', { method: 'POST', body: fd })
     const data = await res.json()
-    if (data.url) setForm(f => ({ ...f, logo_url: data.url }))
+    if (data.url) {
+      setForm(f => ({
+        ...f,
+        logo_url: data.url,
+        ...(dominantColor ? { color_primary: dominantColor } : {}),
+      }))
+    }
     setUploadingLogo(false)
   }
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null)
