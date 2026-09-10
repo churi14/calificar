@@ -70,7 +70,10 @@ export default function AdminFidelizacionPage() {
         URL.revokeObjectURL(url)
         const top = Object.entries(colorMap).sort((a, b) => b[1] - a[1])[0]
         if (!top) { resolve(null); return }
-        const [r, g, b] = top[0].split(',').map(Number)
+        let [r, g, b] = top[0].split(',').map(Number)
+        // Si el color es muy claro (luminosidad > 0.6), oscurecerlo para que contraste
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        if (lum > 0.6) { r = Math.round(r * 0.5); g = Math.round(g * 0.5); b = Math.round(b * 0.5) }
         resolve('#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join(''))
       }
       img.onerror = () => resolve(null)

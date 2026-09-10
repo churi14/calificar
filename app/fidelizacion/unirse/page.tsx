@@ -69,7 +69,7 @@ function UnirseContent() {
         {/* Header del programa */}
         <div className="text-center mb-8">
           {program?.logo_url ? (
-            <img src={program.logo_url} alt="" className="h-20 w-20 rounded-2xl mx-auto mb-4 object-contain bg-gray-50 p-1" />
+            <img src={program.logo_url} alt="" className="h-20 max-w-[200px] mx-auto mb-4 object-contain" />
           ) : (
             <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold"
               style={{ backgroundColor: color }}>
