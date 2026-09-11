@@ -1,8 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
+
+// ─── Tracking ─────────────────────────────────────────────────────────────────
+const STEP_NAMES = [
+  'tipo_negocio', 'tipo_programa', 'diseno_tarjeta', 'donde_vendes',
+  'datos_clientes', 'cantidad_sellos', 'premio_final', 'premios_intermedios',
+  'cumpleanios', 'nombre_negocio', 'colores', 'registro',
+]
+
+function getOrCreateSessionId(): string {
+  try {
+    let sid = localStorage.getItem('cal_ob_session')
+    if (!sid) {
+      sid = crypto.randomUUID()
+      localStorage.setItem('cal_ob_session', sid)
+    }
+    return sid
+  } catch {
+    return 'unknown'
+  }
+}
+
+function track(step: number, event: string, data?: Record<string, unknown>) {
+  const session_id = getOrCreateSessionId()
+  // Fire and forget — no await, no blocker
+  fetch('/api/fidelizacion/onboarding/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_id, step, step_name: STEP_NAMES[step], event, data }),
+  }).catch(() => {})
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TOTAL_STEPS = 12
@@ -144,6 +174,11 @@ export default function OnboardingPage() {
   const [animKey, setAnimKey] = useState(0)
   const [animDir, setAnimDir] = useState<'fwd' | 'back'>('fwd')
 
+  // Track step views (drop-off detection)
+  useEffect(() => {
+    track(step, 'step_view')
+  }, [step])
+
   // Form data
   const [businessType, setBusinessType] = useState('')
   const [cardDesign, setCardDesign] = useState<'template' | 'custom'>('template')
@@ -200,6 +235,7 @@ export default function OnboardingPage() {
   async function handleGoogle() {
     setAuthLoading(true)
     setAuthError('')
+    track(11, 'auth_click', { method: 'google' })
     saveConfig()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -213,6 +249,7 @@ export default function OnboardingPage() {
     if (!email.trim()) return
     setAuthLoading(true)
     setAuthError('')
+    track(11, 'auth_click', { method: 'email' })
     saveConfig()
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
@@ -280,7 +317,7 @@ export default function OnboardingPage() {
                 {BUSINESS_TYPES.map(t => (
                   <button
                     key={t.id}
-                    onClick={() => { setBusinessType(t.id); next() }}
+                    onClick={() => { setBusinessType(t.id); track(0, 'select', { value: t.id }); next() }}
                     className="bg-white rounded-2xl p-3.5 flex flex-col items-center gap-2 text-center border-2 transition-all duration-150 hover:shadow-sm active:scale-95"
                     style={{ borderColor: businessType === t.id ? '#7C3AED' : '#E4E4E7' }}
                   >
@@ -290,7 +327,7 @@ export default function OnboardingPage() {
                 ))}
               </div>
               <button
-                onClick={() => { setBusinessType('otro'); next() }}
+                onClick={() => { setBusinessType('otro'); track(0, 'select', { value: 'otro' }); next() }}
                 className="w-full bg-white border-2 border-dashed border-zinc-300 rounded-2xl p-3 flex items-center gap-3 text-left hover:border-violet-400 transition-colors"
               >
                 <span className="w-9 h-9 rounded-xl bg-zinc-100 flex items-center justify-center text-lg flex-shrink-0">🔗</span>
@@ -363,7 +400,7 @@ export default function OnboardingPage() {
               <p className="text-zinc-500 text-sm mb-5">Tocá una — se cambia cuando quieras.</p>
 
               <button
-                onClick={() => { setCardDesign('template'); next() }}
+                onClick={() => { setCardDesign('template'); track(2, 'select', { value: 'template' }); next() }}
                 className="w-full text-left mb-3 rounded-2xl overflow-hidden border-2 transition-all hover:shadow-md active:scale-[0.99]"
                 style={{ borderColor: cardDesign === 'template' ? '#7C3AED' : '#E4E4E7' }}
               >
@@ -386,7 +423,7 @@ export default function OnboardingPage() {
               </button>
 
               <button
-                onClick={() => { setCardDesign('custom'); next() }}
+                onClick={() => { setCardDesign('custom'); track(2, 'select', { value: 'custom' }); next() }}
                 className="w-full text-left rounded-2xl overflow-hidden border-2 border-zinc-200 transition-all hover:shadow-md active:scale-[0.99]"
               >
                 <div className="p-4 pb-2" style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)' }}>
@@ -425,7 +462,7 @@ export default function OnboardingPage() {
               ].map(opt => (
                 <button
                   key={opt.n}
-                  onClick={() => { setLocations(opt.n); next() }}
+                  onClick={() => { setLocations(opt.n); track(3, 'select', { value: opt.n, label: opt.label }); next() }}
                   className="w-full bg-white rounded-2xl p-4 border-2 mb-2 flex items-center gap-3 text-left transition-all hover:shadow-sm active:scale-[0.99]"
                   style={{ borderColor: locations === opt.n ? '#7C3AED' : '#E4E4E7' }}
                 >
@@ -454,7 +491,7 @@ export default function OnboardingPage() {
               <div className="grid grid-cols-2 gap-3">
                 {/* Basic */}
                 <button
-                  onClick={() => { setClientData('basic'); next() }}
+                  onClick={() => { setClientData('basic'); track(4, 'select', { value: 'basic' }); next() }}
                   className="bg-white rounded-2xl p-4 border-2 text-left transition-all hover:shadow-sm active:scale-[0.99]"
                   style={{ borderColor: clientData === 'basic' ? '#7C3AED' : '#E4E4E7' }}
                 >
@@ -477,7 +514,7 @@ export default function OnboardingPage() {
 
                 {/* Full */}
                 <button
-                  onClick={() => { setClientData('full'); next() }}
+                  onClick={() => { setClientData('full'); track(4, 'select', { value: 'full' }); next() }}
                   className="bg-white rounded-2xl p-4 border-2 text-left transition-all hover:shadow-sm active:scale-[0.99]"
                   style={{ borderColor: clientData === 'full' ? '#7C3AED' : '#E4E4E7' }}
                 >
@@ -536,7 +573,7 @@ export default function OnboardingPage() {
               <StampGrid total={stampsGoal} color={primaryColor} />
 
               <button
-                onClick={next}
+                onClick={() => { track(5, 'step_complete', { stamps_goal: stampsGoal }); next() }}
                 className="mt-5 w-full text-white font-bold py-4 rounded-2xl text-sm transition-all active:scale-[0.98]"
                 style={{ background: primaryColor }}
               >
@@ -588,7 +625,7 @@ export default function OnboardingPage() {
 
               <button
                 disabled={!reward.trim()}
-                onClick={next}
+                onClick={() => { track(6, 'step_complete', { reward, is_quick_pick: QUICK_REWARDS.includes(reward) }); next() }}
                 className="w-full text-white font-bold py-4 rounded-2xl text-sm transition-all disabled:opacity-40 active:scale-[0.98]"
                 style={{ background: primaryColor }}
               >Se ve bien →</button>
@@ -646,7 +683,7 @@ export default function OnboardingPage() {
 
               {/* No option */}
               <button
-                onClick={() => { setHasMilestone(false); next() }}
+                onClick={() => { setHasMilestone(false); track(7, 'select', { value: 'none' }); next() }}
                 className="w-full bg-white/60 rounded-2xl p-4 border-2 border-zinc-200 flex items-center gap-3 text-left hover:bg-white transition-all"
               >
                 <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center text-lg flex-shrink-0">🎯</div>
@@ -677,7 +714,7 @@ export default function OnboardingPage() {
 
               {/* Yes */}
               <button
-                onClick={() => { setBirthdayAction('celebrate'); next() }}
+                onClick={() => { setBirthdayAction('celebrate'); track(8, 'select', { value: 'celebrate' }); next() }}
                 className="w-full bg-white rounded-2xl p-4 border-2 mb-3 text-left transition-all hover:shadow-sm active:scale-[0.99]"
                 style={{ borderColor: birthdayAction === 'celebrate' ? primaryColor : '#E4E4E7', borderWidth: '2px' }}
               >
@@ -698,7 +735,7 @@ export default function OnboardingPage() {
 
               {/* No */}
               <button
-                onClick={() => { setBirthdayAction('skip'); next() }}
+                onClick={() => { setBirthdayAction('skip'); track(8, 'select', { value: 'skip' }); next() }}
                 className="w-full bg-white/60 rounded-2xl p-4 border-2 border-zinc-200 flex items-center gap-3 text-left hover:bg-white transition-all"
               >
                 <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center text-lg flex-shrink-0">📅</div>
@@ -805,7 +842,7 @@ export default function OnboardingPage() {
                 {COLORS.map(c => (
                   <button
                     key={c.id}
-                    onClick={() => { setPrimaryColor(c.hex) }}
+                    onClick={() => { setPrimaryColor(c.hex); track(10, 'select', { color: c.id, hex: c.hex }) }}
                     className="rounded-xl overflow-hidden border-2 transition-all active:scale-95"
                     style={{ borderColor: primaryColor === c.hex ? c.hex : 'transparent' }}
                   >

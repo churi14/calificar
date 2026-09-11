@@ -72,6 +72,13 @@ function CompleteContent() {
         }
 
         localStorage.removeItem('cal_onboarding')
+        // Track conversión final
+        const sid = localStorage.getItem('cal_ob_session') ?? 'unknown'
+        fetch('/api/fidelizacion/onboarding/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sid, step: 11, step_name: 'registro', event: 'registered', data: { business_name: config.businessName } }),
+        }).catch(() => {})
         setStatus('done')
         setTimeout(() => router.replace('/negocio/fidelizacion'), 1500)
       } catch (err: unknown) {
