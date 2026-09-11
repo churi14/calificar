@@ -386,7 +386,7 @@ export default function FidelizacionLanding() {
                 </ul>
 
                 <Link
-                  href="/admin/fidelizacion"
+                  href="/fidelizacion/onboarding"
                   className="text-center font-bold py-3.5 rounded-2xl text-sm transition-all bg-violet-600 hover:bg-violet-500 text-white active:scale-[0.98]"
                 >
                   {p.cta}
@@ -432,7 +432,7 @@ export default function FidelizacionLanding() {
             14 días de prueba. Sin tarjeta de crédito. El cartelito NFC incluido en todos los planes pagos.
           </p>
           <Link
-            href="/admin/fidelizacion"
+            href="/fidelizacion/onboarding"
             className="inline-block bg-white text-violet-700 font-bold px-10 py-4 rounded-2xl text-base hover:bg-violet-50 transition-colors"
           >
             Crear mi programa gratis
