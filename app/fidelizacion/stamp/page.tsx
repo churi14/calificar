@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-type Status = 'loading' | 'phone-input' | 'success' | 'reward' | 'error' | 'no-card' | 'cooldown'
+type Status = 'loading' | 'phone-input' | 'success' | 'reward' | 'milestone' | 'error' | 'no-card' | 'cooldown'
 
 function StampContent() {
   const params = useSearchParams()
@@ -16,6 +16,7 @@ function StampContent() {
   const [stampsGoal, setStampsGoal] = useState(10)
   const [reward, setReward] = useState('')
   const [couponCode, setCouponCode] = useState('')
+  const [milestoneLabel, setMilestoneLabel] = useState('')
   const [resolvedCardId, setResolvedCardId] = useState<string | null>(cardId)
   const [phone, setPhone] = useState('')
   const [phoneLoading, setPhoneLoading] = useState(false)
@@ -45,6 +46,10 @@ function StampContent() {
         setReward(data.reward ?? '¡Premio!')
         setCouponCode(data.coupon_code ?? '')
         setStatus('reward')
+      } else if (data.milestone_reached) {
+        setMilestoneLabel(data.milestone_label ?? '¡Descuento ganado!')
+        setCouponCode(data.coupon_code ?? '')
+        setStatus('milestone')
       } else {
         setStatus('success')
       }
@@ -154,6 +159,45 @@ function StampContent() {
           </div>
         )
       })()}
+
+      {status === 'milestone' && (
+        <div className="flex flex-col items-center gap-5 max-w-xs w-full text-center">
+          <style>{`
+            @keyframes confetti-fall {
+              0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+              100% { transform: translateY(80px) rotate(360deg); opacity: 0; }
+            }
+            .confetti-piece { animation: confetti-fall 1.2s ease-in forwards; }
+          `}</style>
+          <div className="relative">
+            <div className="text-7xl">🎁</div>
+            <div className="absolute -top-2 left-0 right-0 flex justify-around pointer-events-none">
+              {['🎊','⭐','✨','🎉','🎊'].map((e, i) => (
+                <span key={i} className="confetti-piece text-lg" style={{ animationDelay: `${i * 0.15}s` }}>{e}</span>
+              ))}
+            </div>
+          </div>
+          <h1 className="text-2xl font-extrabold text-zinc-900">¡Ganaste un descuento!</h1>
+          <div className="bg-violet-50 border-2 border-violet-300 rounded-2xl px-6 py-4 w-full">
+            <p className="text-xs font-bold uppercase tracking-widest text-violet-500 mb-1">Tu descuento</p>
+            <p className="text-lg font-bold text-zinc-900">{milestoneLabel}</p>
+          </div>
+          {couponCode && (
+            <div className="bg-zinc-900 rounded-2xl px-6 py-4 w-full">
+              <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">Código de descuento</p>
+              <p className="text-xl font-mono font-extrabold text-white tracking-widest">{couponCode}</p>
+              <p className="text-xs text-zinc-500 mt-1">Mostralo al encargado — un solo uso</p>
+            </div>
+          )}
+          <p className="text-zinc-500 text-sm">Tu tarjeta se reinició. ¡Seguí acumulando sellos!</p>
+          <Link
+            href={`/fidelizacion/tarjeta?card=${resolvedCardId}&program=${programId}`}
+            className="text-violet-600 text-sm font-semibold underline underline-offset-2"
+          >
+            Ver mi tarjeta →
+          </Link>
+        </div>
+      )}
 
       {status === 'reward' && (
         <div className="flex flex-col items-center gap-5 max-w-xs w-full text-center">

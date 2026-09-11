@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
     lat,
     lng,
     address,
+    milestones = [],
   } = body
 
   if (!business_id || !name || !reward_description) {
@@ -80,6 +81,7 @@ export async function POST(req: NextRequest) {
       lat,
       lng,
       address,
+      milestones,
       active: true,
     })
     .select()

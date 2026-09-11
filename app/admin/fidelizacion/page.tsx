@@ -20,6 +20,8 @@ type Business = { id: string; name: string }
 
 
 
+type Milestone = { at: number; label: string }
+
 const EMPTY_FORM = {
   business_id: '',
   name: '',
@@ -32,6 +34,7 @@ const EMPTY_FORM = {
   address: '',
   lat: '',
   lng: '',
+  milestones: [] as Milestone[],
 }
 
 export default function AdminFidelizacionPage() {
@@ -141,7 +144,7 @@ export default function AdminFidelizacionPage() {
     setShowForm(true)
   }
 
-  function openEdit(p: Program) {
+  function openEdit(p: Program & { milestones?: Milestone[] }) {
     setForm({
       business_id: p.businesses?.id ?? '',
       name: p.name,
@@ -154,6 +157,7 @@ export default function AdminFidelizacionPage() {
       address: p.address ?? '',
       lat: '',
       lng: '',
+      milestones: p.milestones ?? [],
     })
     setEditId(p.id)
     setShowForm(true)
@@ -443,6 +447,64 @@ export default function AdminFidelizacionPage() {
                 </div>
               )}
             </div>
+
+              {/* Milestones intermedios */}
+              <div className="border-t border-gray-100 pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700">Premios intermedios</label>
+                    <p className="text-xs text-gray-400 mt-0.5">El contador se reinicia en cada hito.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, milestones: [...f.milestones, { at: 3, label: '20% OFF' }] }))}
+                    className="text-xs font-bold text-violet-600 hover:text-violet-500 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    + Agregar hito
+                  </button>
+                </div>
+                {form.milestones.length === 0 && (
+                  <p className="text-xs text-gray-400 text-center py-3 bg-gray-50 rounded-xl">
+                    Sin hitos intermedios. El cliente solo recibe el premio al completar todos los sellos.
+                  </p>
+                )}
+                <div className="space-y-2">
+                  {form.milestones.map((m, i) => (
+                    <div key={i} className="flex items-center gap-2 bg-violet-50 rounded-xl px-3 py-2">
+                      <span className="text-xs text-gray-500 font-semibold whitespace-nowrap">Sello</span>
+                      <input
+                        type="number"
+                        value={m.at}
+                        min={1}
+                        max={form.stamps_goal - 1}
+                        onChange={e => setForm(f => ({
+                          ...f,
+                          milestones: f.milestones.map((ms, idx) => idx === i ? { ...ms, at: Number(e.target.value) } : ms)
+                        }))}
+                        className="w-14 border border-violet-200 rounded-lg px-2 py-1 text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                      />
+                      <span className="text-xs text-gray-500 font-semibold">→</span>
+                      <input
+                        type="text"
+                        value={m.label}
+                        onChange={e => setForm(f => ({
+                          ...f,
+                          milestones: f.milestones.map((ms, idx) => idx === i ? { ...ms, label: e.target.value } : ms)
+                        }))}
+                        placeholder="20% OFF, café gratis..."
+                        className="flex-1 border border-violet-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, milestones: f.milestones.filter((_, idx) => idx !== i) }))}
+                        className="text-red-400 hover:text-red-600 text-sm font-bold px-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
             <div className="flex gap-3 mt-6">
               <button

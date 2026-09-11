@@ -67,12 +67,25 @@ export async function POST(req: NextRequest) {
 
     const newStamps = card.stamps + 1
     const goalReached = newStamps >= program.stamps_goal
-    const finalStamps = goalReached ? 0 : newStamps  // reset al canjear
 
-    // Generar cupón único si llega a la meta
+    // Chequear hitos intermedios (milestones)
+    // Formato: [{ at: 3, label: "20% OFF", coupon_prefix: "DESC20" }, ...]
+    const milestones: { at: number; label: string; coupon_prefix?: string }[] = program.milestones ?? []
+    const hitMilestone = !goalReached ? milestones.find(m => m.at === newStamps) ?? null : null
+
+    // Reset de stamps: al llegar a la meta O al alcanzar un hito que tenga reset
+    const finalStamps = goalReached ? 0 : hitMilestone ? 0 : newStamps
+
+    // Generar cupón único para meta final
+    function genCoupon(prefix: string) {
+      return `${prefix.substring(0,6).toUpperCase().replace(/\s/g,'')}-${Math.random().toString(36).substring(2,6).toUpperCase()}-${Math.random().toString(36).substring(2,6).toUpperCase()}`
+    }
+
     const couponCode = goalReached
-      ? `${(program.reward_description ?? 'PREMIO').substring(0,4).toUpperCase().replace(/\s/g,'')}-${Math.random().toString(36).substring(2,6).toUpperCase()}-${Math.random().toString(36).substring(2,6).toUpperCase()}`
-      : null
+      ? genCoupon(program.reward_description ?? 'PREMIO')
+      : hitMilestone
+        ? genCoupon(hitMilestone.coupon_prefix ?? hitMilestone.label)
+        : null
 
     // Actualizar tarjeta
     await supabase
@@ -84,7 +97,7 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', card_id)
 
-    // Registrar transacción
+    // Registrar transacción de sello
     await supabase.from('loyalty_transactions').insert({
       card_id,
       program_id,
@@ -94,7 +107,7 @@ export async function POST(req: NextRequest) {
       registered_by,
     })
 
-    // Si llegó a la meta, registrar el canje con cupón
+    // Si llegó a la meta, registrar canje final
     if (goalReached) {
       await supabase.from('loyalty_transactions').insert({
         card_id,
@@ -102,6 +115,19 @@ export async function POST(req: NextRequest) {
         type: 'reward',
         amount: -program.stamps_goal,
         note: program.reward_description,
+        registered_by: 'system',
+        coupon_code: couponCode,
+      })
+    }
+
+    // Si alcanzó un hito intermedio, registrar milestone
+    if (hitMilestone) {
+      await supabase.from('loyalty_transactions').insert({
+        card_id,
+        program_id,
+        type: 'reward',
+        amount: 0,
+        note: hitMilestone.label,
         registered_by: 'system',
         coupon_code: couponCode,
       })
@@ -123,6 +149,9 @@ export async function POST(req: NextRequest) {
       goal_reached: goalReached,
       reward: goalReached ? program.reward_description : null,
       coupon_code: couponCode,
+      // Milestone intermedio
+      milestone_reached: hitMilestone ? true : false,
+      milestone_label: hitMilestone?.label ?? null,
     })
   } catch (err) {
     console.error('Error en /api/fidelizacion/stamp:', err)
