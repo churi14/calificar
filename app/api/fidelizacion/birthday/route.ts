@@ -96,7 +96,7 @@ export async function PUT(req: NextRequest) {
   // Buscar clientes cuyo cumpleaños es hoy
   const { data: cards } = await admin
     .from('loyalty_cards')
-    .select('id, name, phone')
+    .select('id, name, phone, birth_date')
     .eq('program_id', program_id)
     .not('birth_date', 'is', null)
 
