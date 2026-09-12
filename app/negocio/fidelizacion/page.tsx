@@ -94,8 +94,8 @@ function DiscountPopup({ onClose }: { onClose: () => void }) {
 }
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────
-function Sidebar({ active, onNav, businessName, email }: {
-  active: string; onNav: (id: string) => void; businessName: string; email: string
+function Sidebar({ active, onNav, businessName, email, bdayBadge = 0 }: {
+  active: string; onNav: (id: string) => void; businessName: string; email: string; bdayBadge?: number
 }) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const nav = [
@@ -132,7 +132,12 @@ function Sidebar({ active, onNav, businessName, email }: {
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
               active === item.id ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-zinc-600 hover:bg-zinc-50'}`}>
             <span className="text-base leading-none w-5 text-center">{item.icon}</span>
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {item.id === 'cumple' && bdayBadge > 0 && (
+              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                {bdayBadge}
+              </span>
+            )}
           </button>
         ))}
         <div>
@@ -1168,6 +1173,7 @@ export default function NegocioDashboard() {
   const [showDiscount, setShowDiscount] = useState(false)
   const [businessName, setBusinessName] = useState('Mi negocio')
   const [userEmail, setUserEmail] = useState('')
+  const [todayBdayCount, setTodayBdayCount] = useState(0)
 
   useEffect(() => {
     const seen = localStorage.getItem('cal_discount_seen')
@@ -1199,12 +1205,20 @@ export default function NegocioDashboard() {
       const t: Transaction[] = txData.transactions ?? []
       setCards(c)
       setTransactions(t)
-      const today = new Date().toDateString()
+      const today = new Date()
+      const mm = today.getMonth() + 1
+      const dd = today.getDate()
       setStats({
         total: c.length,
-        stampsToday: t.filter(tx => tx.type === 'stamp' && new Date(tx.created_at).toDateString() === today).length,
+        stampsToday: t.filter(tx => tx.type === 'stamp' && new Date(tx.created_at).toDateString() === today.toDateString()).length,
         rewardsTotal: t.filter(tx => tx.type === 'reward').length,
       })
+      const bdayToday = c.filter(card => {
+        if (!card.birth_date) return false
+        const bd = new Date(card.birth_date)
+        return bd.getMonth() + 1 === mm && bd.getDate() === dd
+      }).length
+      setTodayBdayCount(bdayToday)
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [selectedProgram])
@@ -1247,7 +1261,7 @@ export default function NegocioDashboard() {
   return (
     <div className="flex min-h-screen bg-zinc-50">
       {showDiscount && <DiscountPopup onClose={() => setShowDiscount(false)} />}
-      <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} />
+      <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} bdayBadge={todayBdayCount} />
       <main className="flex-1 overflow-y-auto">
         {activeNav === 'hoy' && (
           <ViewHoy program={program} selectedProgram={selectedProgram} stats={stats}
