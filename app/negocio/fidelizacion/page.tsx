@@ -10,7 +10,7 @@ type Program = {
   reward_description: string
   color_primary: string
   logo_url: string | null
-  businesses?: { name: string }
+  businesses?: { name: string; id: string }
 }
 
 type Card = {
@@ -31,53 +31,42 @@ type Transaction = {
   coupon_code: string | null
 }
 
-// ── Popup de descuento ──────────────────────────────────────────────────────
+// ── Popup descuento ──────────────────────────────────────────────────────────
 function DiscountPopup({ onClose }: { onClose: () => void }) {
-  const DURATION = 10 * 60 // 10 minutos en segundos
   const [secs, setSecs] = useState(() => {
     const saved = localStorage.getItem('cal_discount_timer')
     if (saved) {
-      const remaining = parseInt(saved) - Math.floor(Date.now() / 1000)
-      return remaining > 0 ? remaining : 0
+      const rem = parseInt(saved) - Math.floor(Date.now() / 1000)
+      return rem > 0 ? rem : 0
     }
-    const end = Math.floor(Date.now() / 1000) + DURATION
+    const end = Math.floor(Date.now() / 1000) + 600
     localStorage.setItem('cal_discount_timer', String(end))
-    return DURATION
+    return 600
   })
-
   useEffect(() => {
     if (secs <= 0) return
     const id = setInterval(() => setSecs(s => s - 1), 1000)
     return () => clearInterval(id)
   }, [secs])
-
   const mm = String(Math.floor(secs / 60)).padStart(2, '0')
   const ss = String(secs % 60).padStart(2, '0')
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.65)' }}>
       <div className="bg-[#F5F0E8] rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-        {/* Header oscuro */}
         <div className="px-6 pt-5 pb-4" style={{ background: '#1C1C1C' }}>
-          <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1">TU DESCUENTO ACABA DE BAJAR</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">TU DESCUENTO ACABA DE BAJAR</p>
           <div className="flex items-baseline gap-2">
-            <span className="text-zinc-500 text-xl line-through">100%</span>
+            <span className="text-zinc-500 text-xl line-through">$19.99</span>
             <span className="text-white font-extrabold text-4xl">50% OFF</span>
           </div>
           <p className="text-zinc-400 text-sm mt-0.5">tu primer mes</p>
           <div className="mt-3 inline-flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2">
-            <span className="text-xs text-zinc-500 uppercase tracking-wide">Se acaba en</span>
+            <span className="text-xs text-zinc-500 uppercase tracking-wide">SE ACABA EN</span>
             <span className="font-mono font-bold text-white text-lg">{mm}:{ss}</span>
           </div>
         </div>
-
-        {/* Body */}
         <div className="px-6 py-5">
-          <p className="text-sm text-zinc-600 mb-4">
-            Este es tu período de prueba. Al terminar el reloj, el precio sube.
-            No vuelve a bajar.
-          </p>
-
+          <p className="text-sm text-zinc-600 mb-4">Este es tu período de prueba. Al terminar el reloj, el precio vuelve a su valor normal.</p>
           <div className="bg-white rounded-xl border border-zinc-200 p-4 mb-5">
             <div className="flex items-center justify-between">
               <div>
@@ -91,21 +80,11 @@ function DiscountPopup({ onClose }: { onClose: () => void }) {
               <span className="bg-violet-100 text-violet-700 text-xs font-bold px-2 py-1 rounded-lg">AHORRÁS $10</span>
             </div>
           </div>
-
-          <button
-            onClick={onClose}
-            className="w-full py-3.5 rounded-xl font-bold text-white text-sm transition-all active:scale-95"
-            style={{ background: '#7C3AED' }}
-          >
+          <button onClick={onClose} className="w-full py-3.5 rounded-xl font-bold text-white text-sm" style={{ background: '#7C3AED' }}>
             Asegurar 50% — Actualizar plan
           </button>
-          <button
-            onClick={() => {
-              localStorage.setItem('cal_discount_seen', '1')
-              onClose()
-            }}
-            className="w-full text-center text-xs text-zinc-400 mt-3 hover:text-zinc-600 transition-colors"
-          >
+          <button onClick={() => { localStorage.setItem('cal_discount_seen', '1'); onClose() }}
+            className="w-full text-center text-xs text-zinc-400 mt-3 hover:text-zinc-600 transition-colors">
             Ahora no
           </button>
         </div>
@@ -114,153 +93,526 @@ function DiscountPopup({ onClose }: { onClose: () => void }) {
   )
 }
 
-// ── Sidebar ─────────────────────────────────────────────────────────────────
-const NAV_ITEMS = [
-  { id: 'hoy',         label: 'Hoy',                    icon: '⊞' },
-  { id: 'tarjeta',     label: 'Tarjeta',                icon: '🪪' },
-  { id: 'clientes',    label: 'Clientes',               icon: '👥' },
-  { id: 'push',        label: 'Avisos push',            icon: '🔔' },
-  { id: 'cumple',      label: 'Campañas de cumpleaños', icon: '🎂' },
-  { id: 'imprimir',    label: 'Imprimir y compartir',   icon: '🖨️' },
-]
-
-const SETTINGS_ITEMS = [
-  { id: 'perfil',  label: 'Perfil del negocio' },
-  { id: 'plan',    label: 'Plan' },
-]
-
-function Sidebar({
-  active,
-  onNav,
-  businessName,
-  email,
-  programName,
-}: {
-  active: string
-  onNav: (id: string) => void
-  businessName: string
-  email: string
-  programName: string
+// ── Sidebar ──────────────────────────────────────────────────────────────────
+function Sidebar({ active, onNav, businessName, email }: {
+  active: string; onNav: (id: string) => void; businessName: string; email: string
 }) {
-  const [settingsOpen, setSettingsOpen] = useState(false)
-
+  const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
+  const nav = [
+    { id: 'hoy',      label: 'Hoy',                    icon: '⊞' },
+    { id: 'tarjeta',  label: 'Tarjeta',                icon: '🪪' },
+    { id: 'clientes', label: 'Clientes',               icon: '👥' },
+    { id: 'push',     label: 'Avisos push',            icon: '🔔' },
+    { id: 'cumple',   label: 'Campañas de cumpleaños', icon: '🎂' },
+    { id: 'imprimir', label: 'Imprimir y compartir',   icon: '🖨️' },
+  ]
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-zinc-100 bg-white flex flex-col h-screen sticky top-0 overflow-y-auto">
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-zinc-100">
+    <aside className="w-60 flex-shrink-0 border-r border-zinc-100 bg-white flex flex-col h-screen sticky top-0 overflow-y-auto z-30">
+      <div className="px-5 py-5 border-b border-zinc-50">
         <Link href="/" className="font-extrabold text-xl text-zinc-900 tracking-tight">calificar</Link>
       </div>
-
-      {/* Search */}
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2">
           <span className="text-zinc-400 text-sm">🔍</span>
-          <input
-            type="text"
-            placeholder="Buscar un cliente"
-            className="bg-transparent text-sm text-zinc-700 placeholder-zinc-400 focus:outline-none w-full"
-          />
+          <input type="text" placeholder="Buscar un cliente"
+            className="bg-transparent text-sm text-zinc-700 placeholder-zinc-400 focus:outline-none w-full" />
         </div>
       </div>
-
-      {/* Scan button */}
-      <div className="px-4 pb-4 pt-2">
-        <button
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm text-white transition-all active:scale-95"
-          style={{ background: '#7C3AED' }}
-        >
-          <span>⊙</span> Escanear QR / NFC
+      <div className="px-4 pb-3 pt-1">
+        <button onClick={() => onNav('clientes')}
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl font-semibold text-sm text-white"
+          style={{ background: '#7C3AED' }}>
+          ⊙ Escanear un cliente
         </button>
       </div>
-
-      {/* Nav */}
-      <nav className="flex-1 px-3 space-y-0.5">
-        {NAV_ITEMS.map(item => (
-          <button
-            key={item.id}
-            onClick={() => onNav(item.id)}
+      <nav className="flex-1 px-3 space-y-0.5 pb-2">
+        {nav.map(item => (
+          <button key={item.id} onClick={() => onNav(item.id)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
-              active === item.id
-                ? 'bg-violet-50 text-violet-700 font-semibold'
-                : 'text-zinc-600 hover:bg-zinc-50'
-            }`}
-          >
-            <span className="text-base leading-none">{item.icon}</span>
+              active === item.id ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-zinc-600 hover:bg-zinc-50'}`}>
+            <span className="text-base leading-none w-5 text-center">{item.icon}</span>
             {item.label}
           </button>
         ))}
-
-        {/* Ajustes expandible */}
         <div>
-          <button
-            onClick={() => setSettingsOpen(o => !o)}
-            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-all"
-          >
-            <span className="flex items-center gap-3"><span>⚙️</span>Ajustes</span>
+          <button onClick={() => setSettingsOpen(o => !o)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-all">
+            <span className="flex items-center gap-3"><span className="w-5 text-center">⚙️</span>Ajustes</span>
             <span className="text-zinc-400 text-xs">{settingsOpen ? '▲' : '▼'}</span>
           </button>
           {settingsOpen && (
-            <div className="ml-9 space-y-0.5 mt-0.5">
-              {SETTINGS_ITEMS.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => onNav(s.id)}
-                  className="w-full text-left px-3 py-2 rounded-lg text-xs text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 transition-all"
-                >
-                  {s.label}
+            <div className="ml-8 mt-0.5 space-y-0.5">
+              {[['perfil', 'Perfil del negocio'], ['plan', 'Plan']].map(([id, label]) => (
+                <button key={id} onClick={() => onNav(id)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all ${
+                    active === id ? 'text-violet-700 font-semibold bg-violet-50' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50'}`}>
+                  {label}
                 </button>
               ))}
             </div>
           )}
         </div>
-
-        <button
-          onClick={() => onNav('ayuda')}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-all text-left"
-        >
-          <span>❓</span> Ayuda
+        <button onClick={() => onNav('ayuda')}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 text-left">
+          <span className="w-5 text-center">❓</span> Ayuda
         </button>
-
-        <button
-          onClick={() => onNav('primeros-pasos')}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-all text-left"
-        >
-          <span>🚀</span> Primeros pasos
+        <button onClick={() => onNav('primeros-pasos')}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 text-left">
+          <span className="w-5 text-center">🚀</span> Primeros pasos
         </button>
       </nav>
-
-      {/* Bottom: user info */}
       <div className="border-t border-zinc-100 p-4">
         <div className="flex items-center gap-3 mb-3">
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-            style={{ background: '#7C3AED' }}
-          >
+          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+            style={{ background: '#7C3AED' }}>
             {businessName.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-zinc-900 truncate">{businessName}</p>
-            <p className="text-xs text-zinc-400 truncate">{email}</p>
+            <p className="text-xs font-semibold text-zinc-900 truncate">{businessName}</p>
+            <p className="text-[10px] text-zinc-400 truncate">{email}</p>
           </div>
         </div>
-        <div className="bg-violet-50 rounded-lg px-3 py-2 mb-3">
+        <div className="bg-violet-50 rounded-lg px-3 py-2 mb-2">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-violet-600 font-semibold">● Prueba gratuita</span>
-            <span className="text-xs text-zinc-400">1 programa</span>
+            <span className="text-[10px] text-violet-600 font-semibold">● Prueba gratuita</span>
+            <span className="text-[10px] text-zinc-400">1 programa</span>
           </div>
           <div className="w-full bg-violet-100 rounded-full h-1">
             <div className="bg-violet-500 h-1 rounded-full" style={{ width: '15%' }} />
           </div>
         </div>
-        <button className="w-full text-left text-xs text-zinc-400 hover:text-zinc-600 transition-colors flex items-center gap-2">
-          <span>↩</span> Cerrar sesión
-        </button>
+        <button className="w-full text-left text-[10px] text-zinc-400 hover:text-zinc-600 transition-colors">↩ Cerrar sesión</button>
       </div>
     </aside>
   )
 }
 
-// ── Dashboard principal ──────────────────────────────────────────────────────
+// ── Vista: HOY ───────────────────────────────────────────────────────────────
+function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, businessName, cards }:
+  { program: Program | undefined; selectedProgram: string | null; stats: { total: number; stampsToday: number; rewardsTotal: number }
+    transactions: Transaction[]; notifMsg: string; setNotifMsg: (v: string) => void
+    notifSending: boolean; notifSent: boolean; sendNotif: () => void; businessName: string; cards: Card[] }) {
+  const color = program?.color_primary ?? '#7C3AED'
+  const greeting = (() => { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches' })()
+  return (
+    <div className="p-8 max-w-5xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName.split(' ')[0]}.</h1>
+        <p className="text-zinc-400 text-sm mt-0.5">Esto es lo que está pasando hoy en {businessName}.</p>
+      </div>
+      {/* QR Banner */}
+      {program && (
+        <div className="bg-white border border-zinc-100 rounded-2xl p-4 mb-6 flex items-center gap-4">
+          <div className="bg-zinc-100 rounded-xl p-2 flex-shrink-0">
+            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+              alt="QR" width={64} height={64} className="rounded-lg" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold uppercase tracking-wide text-violet-600 mb-0.5">LISTO PARA COMPARTIR</p>
+            <p className="font-bold text-zinc-900 text-sm">Tarjeta de sellos</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Ponelo en el mostrador o compartí el enlace.</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <a href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+              download="qr-calificar.png" target="_blank" rel="noopener noreferrer"
+              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium">🖨️ Imprimir</a>
+            <button onClick={() => navigator.clipboard.writeText(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}
+              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium">🔗 Copiar</button>
+          </div>
+        </div>
+      )}
+      {/* KPIs */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { label: 'CLIENTES TOTALES', value: stats.total, sub: '— vs ayer' },
+          { label: 'SELLOS HOY', value: stats.stampsToday, sub: '— vs ayer' },
+          { label: 'PREMIOS ENTREGADOS', value: stats.rewardsTotal, sub: '— total' },
+        ].map(k => (
+          <div key={k.label} className="bg-white border border-zinc-100 rounded-2xl p-5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">{k.label}</p>
+            <p className="text-3xl font-extrabold text-zinc-900">{k.value}</p>
+            <div className="w-full h-px bg-zinc-100 my-2" />
+            <p className="text-xs text-zinc-400">{k.sub}</p>
+          </div>
+        ))}
+      </div>
+      {/* Bottom grid */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">LO QUE ESTÁ PASANDO AHORA</p>
+          {transactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <div className="w-10 h-10 bg-zinc-50 rounded-2xl flex items-center justify-center text-xl mb-2">✨</div>
+              <p className="text-xs font-semibold text-zinc-700">La actividad aparecerá aquí.</p>
+              <p className="text-[10px] text-zinc-400 mt-1">Activá tu primer cliente con el QR.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {transactions.slice(0, 5).map(tx => (
+                <div key={tx.id} className="flex items-center gap-2 py-1">
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0 ${tx.type === 'reward' ? 'bg-amber-50' : 'bg-violet-50'}`}>
+                    {tx.type === 'reward' ? '🏆' : '⭐'}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-zinc-800 truncate">{tx.loyalty_cards?.name}</p>
+                    <p className="text-[10px] text-zinc-400">{tx.type === 'reward' ? 'Premio' : 'Sello'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">CLIENTES QUE REGRESAN</p>
+          <div className="flex flex-col items-center justify-center h-28">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-extrabold"
+              style={{ background: `${color}18`, color }}>
+              {stats.total}
+            </div>
+            <p className="text-xs text-zinc-400 mt-2">clientes registrados</p>
+          </div>
+        </div>
+        <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">AVISOS PUSH</p>
+          <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
+            placeholder="Ej: Esta semana 2x1 en café 🎉" rows={3}
+            className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-3 py-2 text-xs focus:outline-none resize-none mb-3" />
+          <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
+            className="w-full py-2.5 rounded-xl font-bold text-white text-xs disabled:opacity-50 transition-colors"
+            style={{ background: notifSent ? '#10B981' : '#7C3AED' }}>
+            {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar tu primer push →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Vista: TARJETA ───────────────────────────────────────────────────────────
+function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
+  { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const color = program?.color_primary ?? '#7C3AED'
+  const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setUploadError('')
+    const form = new FormData()
+    form.append('file', file)
+    form.append('program_id', selectedProgram ?? '')
+    try {
+      const res = await fetch('/api/fidelizacion/upload-logo', { method: 'POST', body: form })
+      const data = await res.json()
+      if (data.url) onLogoUploaded(data.url)
+      else setUploadError(data.error ?? 'Error al subir')
+    } catch {
+      setUploadError('Error de red')
+    }
+    setUploading(false)
+  }
+
+  if (!program) return <div className="p-8 text-zinc-400 text-sm">No hay programa activo.</div>
+
+  return (
+    <div className="p-8 max-w-4xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold text-zinc-900">Tarjeta</h1>
+        <p className="text-zinc-400 text-sm mt-0.5">1 programa activo</p>
+      </div>
+
+      {/* Banner trial */}
+      <div className="border border-violet-200 bg-violet-50 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <span className="text-xl mt-0.5">🪪</span>
+          <div>
+            <p className="text-sm font-semibold text-violet-900">Estás en tu período de prueba gratuita.</p>
+            <p className="text-xs text-violet-600 mt-0.5">Activá el plan Pro para desbloquear todas las funciones y seguir usando Calificar sin límites.</p>
+          </div>
+        </div>
+        <button className="flex-shrink-0 text-xs font-bold text-white px-4 py-2 rounded-xl" style={{ background: '#7C3AED' }}>
+          → Ver planes
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        {[
+          { label: 'PROGRAMAS ACTIVOS', value: '1 / 1' },
+          { label: 'WALLETS ACTIVOS', value: '0' },
+          { label: 'SELLOS OTORGADOS', value: '0' },
+          { label: 'PREMIOS ENTREGADOS', value: '0' },
+        ].map(s => (
+          <div key={s.label} className="bg-white border border-zinc-100 rounded-2xl p-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">{s.label}</p>
+            <p className="text-xl font-extrabold text-zinc-900">{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Programa card */}
+      <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden">
+        {/* Header del programa */}
+        <div className="p-5 border-b border-zinc-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Preview mini de la tarjeta */}
+              <div className="w-14 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }}>
+                {program.logo_url
+                  ? <img src={program.logo_url} alt="" className="w-10 h-8 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+                  : <span className="text-white font-extrabold text-xs">{program.name.charAt(0)}</span>
+                }
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-zinc-900 text-sm">{program.name}</p>
+                  <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">Recompensas</span>
+                </div>
+                <p className="text-xs text-zinc-400 mt-0.5">{program.stamps_goal} sellos para una recompensa</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={joinUrl} target="_blank" rel="noopener noreferrer"
+                className="text-xs border border-zinc-200 text-zinc-600 px-3 py-1.5 rounded-xl hover:bg-zinc-50 font-medium flex items-center gap-1.5">
+                🔗 Enlace
+              </a>
+              <a href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(joinUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+                download="qr-calificar.png" target="_blank" rel="noopener noreferrer"
+                className="text-xs border border-zinc-200 text-zinc-600 px-3 py-1.5 rounded-xl hover:bg-zinc-50 font-medium flex items-center gap-1.5">
+                ⊞ QR
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Logo upload */}
+        <div className="p-5 border-b border-zinc-50">
+          <p className="text-sm font-semibold text-zinc-800 mb-1">Logo del negocio</p>
+          <p className="text-xs text-zinc-400 mb-4">Aparece en la tarjeta digital de tus clientes. PNG o JPG, máx. 2MB.</p>
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center overflow-hidden bg-zinc-50 flex-shrink-0">
+              {program.logo_url
+                ? <img src={program.logo_url} alt="" className="w-full h-full object-contain p-2" />
+                : <span className="text-3xl">🖼️</span>
+              }
+            </div>
+            <div>
+              <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleLogoUpload} />
+              <button onClick={() => fileRef.current?.click()} disabled={uploading}
+                className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
+                {uploading ? 'Subiendo...' : program.logo_url ? 'Cambiar logo' : 'Subir logo'}
+              </button>
+              {uploadError && <p className="text-xs text-red-500 mt-1">{uploadError}</p>}
+              {program.logo_url && (
+                <p className="text-xs text-green-600 mt-1 font-medium">✓ Logo activo</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Preview tarjeta */}
+        <div className="p-5">
+          <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4">PREVIEW DE LA TARJETA</p>
+          <div className="rounded-2xl p-5 text-white max-w-xs" style={{ background: `linear-gradient(135deg, ${color}, ${color}bb)` }}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs opacity-70 font-medium">Tarjeta de sellos</p>
+                <p className="font-extrabold text-lg leading-tight">{program.name.replace('Tarjeta de Sellos — ', '')}</p>
+              </div>
+              {program.logo_url && (
+                <img src={program.logo_url} alt="" className="h-10 w-10 object-contain rounded-xl bg-white/20 p-1" />
+              )}
+            </div>
+            <div className="grid grid-cols-5 gap-1.5 mb-3">
+              {Array.from({ length: program.stamps_goal > 10 ? 10 : program.stamps_goal }).map((_, i) => (
+                <div key={i} className="w-full aspect-square rounded-full border-2 border-white/40 bg-white/10" />
+              ))}
+            </div>
+            <p className="text-xs opacity-60">Meta: {program.stamps_goal} sellos · {program.reward_description}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Vista: CLIENTES ──────────────────────────────────────────────────────────
+function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
+  { cards: Card[]; program: Program | undefined; selectedProgram: string | null; loading: boolean; manualStamp: (id: string) => void }) {
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<'todos' | 'activo' | 'inactivo'>('todos')
+  const color = program?.color_primary ?? '#7C3AED'
+  const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
+
+  const filtered = cards.filter(c => {
+    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search)
+    if (filter === 'activo') return matchSearch && c.stamps > 0
+    if (filter === 'inactivo') return matchSearch && c.stamps === 0
+    return matchSearch
+  })
+
+  return (
+    <div className="p-8 max-w-5xl">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-extrabold text-zinc-900">Clientes</h1>
+          <p className="text-zinc-400 text-sm mt-0.5">
+            {cards.length === 0 ? 'Nadie está inscrito en tu programa todavía.' : `${cards.length} clientes registrados.`}
+          </p>
+        </div>
+        <button className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2.5 rounded-xl" style={{ background: '#7C3AED' }}>
+          + Agregar un cliente
+        </button>
+      </div>
+
+      {cards.length === 0 ? (
+        /* Empty state con QR */
+        <div className="bg-white border border-zinc-100 rounded-2xl p-12 flex flex-col items-center text-center">
+          <h2 className="text-xl font-extrabold text-zinc-900 mb-2">Empieza por que te escaneen.</h2>
+          <p className="text-zinc-400 text-sm mb-8 max-w-sm">
+            Elegí con cuál tarjeta empezás y mostrala en el mostrador. La primera persona que la escanee aparece aquí con su nombre y sus sellos.
+          </p>
+          <div className="bg-zinc-50 rounded-2xl border border-zinc-100 p-6 flex flex-col items-center gap-4">
+            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(joinUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+              alt="QR" width={160} height={160} className="rounded-xl" />
+            <p className="font-semibold text-zinc-800 text-sm">{program?.name?.replace('Tarjeta de Sellos — ', '') ?? 'Tarjeta de sellos'}</p>
+            <div className="flex gap-2">
+              <button onClick={() => window.open(joinUrl, '_blank')}
+                className="text-xs font-bold bg-zinc-900 text-white px-4 py-2 rounded-xl">Ampliar</button>
+              <button onClick={() => navigator.clipboard.writeText(joinUrl)}
+                className="text-xs font-medium border border-zinc-200 text-zinc-600 px-4 py-2 rounded-xl hover:bg-zinc-50">Copiar</button>
+              <a href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(joinUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+                download="qr-calificar.png" target="_blank" rel="noopener noreferrer"
+                className="text-xs font-medium border border-zinc-200 text-zinc-600 px-4 py-2 rounded-xl hover:bg-zinc-50 flex items-center gap-1">
+                🖨️ Imprimir un cartel
+              </a>
+            </div>
+          </div>
+          <p className="text-xs text-zinc-400 mt-4">O agregá a alguien a mano ↑</p>
+        </div>
+      ) : (
+        <>
+          {/* Filters + search */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex gap-1 bg-zinc-100 rounded-xl p-1">
+              {([['todos', 'Todos'], ['activo', 'Activo'], ['inactivo', 'Inactivo']] as const).map(([id, label]) => (
+                <button key={id} onClick={() => setFilter(id)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === id ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}>
+                  {label} {id === 'todos' ? cards.length : id === 'activo' ? cards.filter(c => c.stamps > 0).length : cards.filter(c => c.stamps === 0).length}
+                </button>
+              ))}
+            </div>
+            <div className="flex-1" />
+            <div className="flex items-center gap-2 border border-zinc-200 rounded-xl px-3 py-2 bg-white">
+              <span className="text-zinc-400 text-sm">🔍</span>
+              <input type="text" placeholder="Buscar por nombre, email o teléfono..." value={search} onChange={e => setSearch(e.target.value)}
+                className="text-sm text-zinc-700 placeholder-zinc-400 focus:outline-none w-56" />
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden">
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-12 text-zinc-400">
+                <p className="text-sm font-semibold">Sin resultados</p>
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-100 bg-zinc-50">
+                    {['Cliente', 'Teléfono', 'Sellos', 'Visitas', 'Cumpleaños', 'Acciones'].map(h => (
+                      <th key={h} className="text-left px-5 py-3 font-semibold text-zinc-400 text-[10px] uppercase tracking-wide">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-50">
+                  {filtered.map(c => (
+                    <tr key={c.id} className="hover:bg-zinc-50 transition-colors">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
+                            style={{ backgroundColor: color }}>{c.name.charAt(0).toUpperCase()}</div>
+                          <span className="font-semibold text-zinc-900">{c.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-zinc-500 text-xs">{c.phone}</td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-16 bg-zinc-100 rounded-full h-1.5">
+                            <div className="h-1.5 rounded-full" style={{ width: `${Math.min((c.stamps / (program?.stamps_goal ?? 10)) * 100, 100)}%`, backgroundColor: color }} />
+                          </div>
+                          <span className="text-xs font-bold text-zinc-900">{c.stamps}/{program?.stamps_goal}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-zinc-500 text-xs text-center">{c.total_visits}</td>
+                      <td className="px-5 py-4 text-zinc-500 text-xs">
+                        {c.birth_date ? new Date(c.birth_date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : '—'}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <Link href={`/fidelizacion/tarjeta?card=${c.id}&program=${selectedProgram}`} className="text-xs text-violet-600 hover:underline">Ver</Link>
+                          <button onClick={() => manualStamp(c.id)}
+                            className="text-xs bg-violet-100 text-violet-700 hover:bg-violet-200 px-2.5 py-1 rounded-lg font-semibold transition-colors">
+                            + Sello
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── Vista: PUSH ──────────────────────────────────────────────────────────────
+function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif }:
+  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void }) {
+  return (
+    <div className="p-8 max-w-2xl">
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Avisos push</h1>
+      <p className="text-zinc-400 text-sm mb-8">Mandá mensajes directos a los clientes que activaron notificaciones.</p>
+      <div className="bg-white border border-zinc-100 rounded-2xl p-6">
+        <label className="block text-sm font-semibold text-zinc-700 mb-2">Mensaje</label>
+        <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
+          placeholder="Ej: Esta semana 2x1 en café. ¡Te esperamos!" rows={4}
+          className="w-full border border-zinc-200 focus:border-violet-400 rounded-2xl px-4 py-3 text-sm focus:outline-none resize-none transition-colors" />
+        <p className="text-xs text-zinc-400 mt-1 mb-4">{notifMsg.length}/160 caracteres</p>
+        <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
+          className="font-bold px-6 py-3 rounded-2xl text-sm text-white transition-colors disabled:opacity-50"
+          style={{ background: notifSent ? '#10B981' : '#7C3AED' }}>
+          {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar a todos mis clientes'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Vista: PLACEHOLDER ───────────────────────────────────────────────────────
+function ViewPlaceholder({ title, icon }: { title: string; icon: string }) {
+  return (
+    <div className="p-8 flex flex-col items-center justify-center min-h-[60vh] text-center">
+      <div className="text-5xl mb-4">{icon}</div>
+      <h1 className="text-xl font-extrabold text-zinc-900 mb-2">{title}</h1>
+      <p className="text-zinc-400 text-sm">Esta sección está en desarrollo.</p>
+    </div>
+  )
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
 export default function NegocioDashboard() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null)
@@ -268,7 +620,6 @@ export default function NegocioDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [stats, setStats] = useState({ total: 0, stampsToday: 0, rewardsTotal: 0 })
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [notifMsg, setNotifMsg] = useState('')
   const [notifSending, setNotifSending] = useState(false)
   const [notifSent, setNotifSent] = useState(false)
@@ -278,11 +629,8 @@ export default function NegocioDashboard() {
   const [userEmail, setUserEmail] = useState('')
 
   useEffect(() => {
-    // Mostrar popup de descuento si no lo vio todavía
     const seen = localStorage.getItem('cal_discount_seen')
-    if (!seen) {
-      setTimeout(() => setShowDiscount(true), 1200)
-    }
+    if (!seen) setTimeout(() => setShowDiscount(true), 1200)
 
     fetch('/api/fidelizacion/admin')
       .then(r => r.json())
@@ -311,9 +659,11 @@ export default function NegocioDashboard() {
       setCards(c)
       setTransactions(t)
       const today = new Date().toDateString()
-      const stampsToday = t.filter(tx => tx.type === 'stamp' && new Date(tx.created_at).toDateString() === today).length
-      const rewardsTotal = t.filter(tx => tx.type === 'reward').length
-      setStats({ total: c.length, stampsToday, rewardsTotal })
+      setStats({
+        total: c.length,
+        stampsToday: t.filter(tx => tx.type === 'stamp' && new Date(tx.created_at).toDateString() === today).length,
+        rewardsTotal: t.filter(tx => tx.type === 'reward').length,
+      })
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [selectedProgram])
@@ -322,20 +672,16 @@ export default function NegocioDashboard() {
     if (!notifMsg.trim() || !selectedProgram) return
     setNotifSending(true)
     await fetch('/api/fidelizacion/push/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ program_id: selectedProgram, title: '📣 Novedad del local', body: notifMsg }),
     })
-    setNotifSending(false)
-    setNotifSent(true)
-    setNotifMsg('')
+    setNotifSending(false); setNotifSent(true); setNotifMsg('')
     setTimeout(() => setNotifSent(false), 3000)
   }
 
   async function manualStamp(cardId: string) {
     await fetch('/api/fidelizacion/stamp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ card_id: cardId, program_id: selectedProgram, registered_by: 'manual' }),
     })
     const r = await fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`)
@@ -343,22 +689,15 @@ export default function NegocioDashboard() {
     setCards(d.cards ?? [])
   }
 
-  const program = programs.find(p => p.id === selectedProgram)
-  const color = program?.color_primary ?? '#7C3AED'
-  const filtered = cards.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search)
-  )
+  function handleLogoUploaded(url: string) {
+    setPrograms(ps => ps.map(p => p.id === selectedProgram ? { ...p, logo_url: url } : p))
+  }
 
-  const greeting = (() => {
-    const h = new Date().getHours()
-    if (h < 12) return 'Buenos días'
-    if (h < 20) return 'Buenas tardes'
-    return 'Buenas noches'
-  })()
+  const program = programs.find(p => p.id === selectedProgram)
 
   if (loading && programs.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
       </div>
     )
@@ -366,225 +705,32 @@ export default function NegocioDashboard() {
 
   return (
     <div className="flex min-h-screen bg-zinc-50">
-      {/* Popup */}
       {showDiscount && <DiscountPopup onClose={() => setShowDiscount(false)} />}
-
-      {/* Sidebar */}
-      <Sidebar
-        active={activeNav}
-        onNav={setActiveNav}
-        businessName={businessName}
-        email={userEmail}
-        programName={program?.name ?? ''}
-      />
-
-      {/* Main */}
+      <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} />
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-8 py-8">
-
-          {/* Greeting */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName.split(' ')[0]}.</h1>
-            <p className="text-zinc-400 text-sm mt-0.5">Esto es lo que está pasando hoy en {businessName}.</p>
-          </div>
-
-          {/* QR Banner */}
-          {program && (
-            <div className="bg-white border border-zinc-200 rounded-2xl p-4 mb-6 flex items-center gap-4">
-              <div className="bg-zinc-100 rounded-xl p-2 flex-shrink-0">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
-                  alt="QR"
-                  width={64}
-                  height={64}
-                  className="rounded-lg"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold uppercase tracking-wide text-violet-600 mb-0.5">LISTO PARA COMPARTIR</p>
-                <p className="font-bold text-zinc-900 text-sm">Tarjeta de sellos</p>
-                <p className="text-xs text-zinc-400 mt-0.5">Ponelo en el mostrador o compartí el enlace — el primero en escanearlo aparece aquí con su nombre.</p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <a
-                  href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
-                  download="qr-calificar.png"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 transition-colors font-medium"
-                >
-                  🖨️ Imprimir
-                </a>
-                <button
-                  onClick={() => navigator.clipboard.writeText(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}
-                  className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 transition-colors font-medium"
-                >
-                  🔗 Copiar enlace
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* KPIs */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            {[
-              { label: 'CLIENTES TOTALES',  value: stats.total,       sub: '— vs ayer' },
-              { label: 'SELLOS HOY',        value: stats.stampsToday, sub: '— vs ayer' },
-              { label: 'PREMIOS ENTREGADOS',value: stats.rewardsTotal,sub: '— total' },
-            ].map(k => (
-              <div key={k.label} className="bg-white border border-zinc-100 rounded-2xl p-5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">{k.label}</p>
-                <p className="text-3xl font-extrabold text-zinc-900">{k.value}</p>
-                <div className="w-full h-px bg-zinc-100 my-2" />
-                <p className="text-xs text-zinc-400">{k.sub}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom grid */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            {/* Actividad */}
-            <div className="col-span-1 bg-white border border-zinc-100 rounded-2xl p-5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">LO QUE ESTÁ PASANDO AHORA</p>
-              {transactions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="w-12 h-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-2xl mb-3">✨</div>
-                  <p className="text-sm font-semibold text-zinc-700">La actividad aparecerá aquí.</p>
-                  <p className="text-xs text-zinc-400 mt-1">Activá tu primer cliente con el QR.</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {transactions.slice(0, 5).map(tx => (
-                    <div key={tx.id} className="flex items-center gap-3 py-1">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${tx.type === 'reward' ? 'bg-amber-50' : 'bg-violet-50'}`}>
-                        {tx.type === 'reward' ? '🏆' : '⭐'}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-zinc-800 truncate">{tx.loyalty_cards?.name}</p>
-                        <p className="text-[10px] text-zinc-400">{tx.type === 'reward' ? 'Premio' : 'Sello'}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Clientes que regresan */}
-            <div className="col-span-1 bg-white border border-zinc-100 rounded-2xl p-5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">CLIENTES QUE REGRESAN</p>
-              <div className="flex flex-col items-center justify-center h-32">
-                <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-extrabold text-white"
-                  style={{ background: `linear-gradient(135deg, ${color}22, ${color}44)`, color }}
-                >
-                  {stats.total}
-                </div>
-                <p className="text-xs text-zinc-400 mt-3">clientes registrados</p>
-              </div>
-            </div>
-
-            {/* Pushes recientes / CTA */}
-            <div className="col-span-1 bg-white border border-zinc-100 rounded-2xl p-5">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">AVISOS PUSH</p>
-              <div className="space-y-3 mb-4">
-                <textarea
-                  value={notifMsg}
-                  onChange={e => setNotifMsg(e.target.value)}
-                  placeholder="Ej: Esta semana 2x1 en café 🎉"
-                  rows={3}
-                  className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-3 py-2.5 text-xs focus:outline-none transition-colors resize-none"
-                />
-              </div>
-              <button
-                onClick={sendNotif}
-                disabled={notifSending || !notifMsg.trim() || notifSent}
-                className="w-full py-2.5 rounded-xl font-bold text-white text-xs transition-all disabled:opacity-50"
-                style={{ background: notifSent ? '#10B981' : '#7C3AED' }}
-              >
-                {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar tu primer push →'}
-              </button>
-            </div>
-          </div>
-
-          {/* Clientes tabla */}
-          <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
-            <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">CLIENTES ({cards.length})</p>
-              <input
-                type="text"
-                placeholder="Buscar por nombre o teléfono..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="border border-zinc-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-violet-400 transition-colors w-56"
-              />
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
-              </div>
-            ) : filtered.length === 0 ? (
-              <div className="text-center py-16 text-zinc-400">
-                <p className="text-3xl mb-3">👥</p>
-                <p className="font-semibold text-sm">Sin clientes todavía</p>
-                <p className="text-xs mt-1">Compartí el QR de registro para que empiecen a sumarse.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-zinc-100 bg-zinc-50">
-                      {['Cliente', 'Teléfono', 'Sellos', 'Visitas', 'Cumpleaños', 'Acciones'].map(h => (
-                        <th key={h} className="text-left px-5 py-3 font-semibold text-zinc-400 text-[10px] uppercase tracking-wide first:text-left text-center last:text-center">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-50">
-                    {filtered.map(c => (
-                      <tr key={c.id} className="hover:bg-zinc-50 transition-colors">
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0" style={{ backgroundColor: color }}>
-                              {c.name.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="font-semibold text-zinc-900 text-sm">{c.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-zinc-500 text-xs">{c.phone}</td>
-                        <td className="px-5 py-4 text-center">
-                          <div className="flex items-center gap-1.5">
-                            <div className="flex-1 bg-zinc-100 rounded-full h-1.5">
-                              <div className="h-1.5 rounded-full" style={{ width: `${Math.min((c.stamps / (program?.stamps_goal ?? 10)) * 100, 100)}%`, backgroundColor: color }} />
-                            </div>
-                            <span className="text-xs font-bold text-zinc-900 w-10 text-right">{c.stamps}/{program?.stamps_goal}</span>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-center text-zinc-500 text-xs">{c.total_visits}</td>
-                        <td className="px-5 py-4 text-center text-zinc-500 text-xs">
-                          {c.birth_date ? new Date(c.birth_date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : '-'}
-                        </td>
-                        <td className="px-5 py-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <Link href={`/fidelizacion/tarjeta?card=${c.id}&program=${selectedProgram}`} className="text-xs text-violet-600 hover:underline">
-                              Ver
-                            </Link>
-                            <button
-                              onClick={() => manualStamp(c.id)}
-                              className="text-xs bg-violet-100 text-violet-700 hover:bg-violet-200 px-2.5 py-1 rounded-lg font-semibold transition-colors"
-                            >
-                              + Sello
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-        </div>
+        {activeNav === 'hoy' && (
+          <ViewHoy program={program} selectedProgram={selectedProgram} stats={stats}
+            transactions={transactions} notifMsg={notifMsg} setNotifMsg={setNotifMsg}
+            notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
+            businessName={businessName} cards={cards} />
+        )}
+        {activeNav === 'tarjeta' && (
+          <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} />
+        )}
+        {activeNav === 'clientes' && (
+          <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
+            loading={loading} manualStamp={manualStamp} />
+        )}
+        {activeNav === 'push' && (
+          <ViewPush notifMsg={notifMsg} setNotifMsg={setNotifMsg}
+            notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif} />
+        )}
+        {activeNav === 'cumple' && <ViewPlaceholder title="Campañas de cumpleaños" icon="🎂" />}
+        {activeNav === 'imprimir' && <ViewPlaceholder title="Imprimir y compartir" icon="🖨️" />}
+        {activeNav === 'perfil' && <ViewPlaceholder title="Perfil del negocio" icon="🏢" />}
+        {activeNav === 'plan' && <ViewPlaceholder title="Plan" icon="💳" />}
+        {activeNav === 'ayuda' && <ViewPlaceholder title="Ayuda" icon="❓" />}
+        {activeNav === 'primeros-pasos' && <ViewPlaceholder title="Primeros pasos" icon="🚀" />}
       </main>
     </div>
   )
