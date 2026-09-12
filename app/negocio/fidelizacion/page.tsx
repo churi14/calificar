@@ -289,12 +289,108 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
   )
 }
 
+// ── Modal de planes ──────────────────────────────────────────────────────────
+const PLANS = [
+  {
+    id: 'gratis',
+    name: 'Gratis',
+    price: '$0',
+    period: '',
+    desc: 'Para empezar',
+    color: '#F4F4F5',
+    textColor: '#3F3F46',
+    features: ['1 programa de fidelidad', 'Hasta 50 clientes', 'QR de registro', 'Panel básico'],
+    cta: 'Plan actual',
+    disabled: true,
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: '$9.99',
+    period: '/mes',
+    desc: 'Para negocios activos',
+    color: '#7C3AED',
+    textColor: '#fff',
+    features: ['Programas ilimitados', 'Clientes ilimitados', 'Avisos de proximidad', 'Campañas de cumpleaños', 'Avisos push', 'Logo personalizado', 'Google Wallet'],
+    cta: 'Activar Pro',
+    disabled: false,
+    badge: 'MÁS POPULAR',
+  },
+  {
+    id: 'business',
+    name: 'Business',
+    price: '$24.99',
+    period: '/mes',
+    desc: 'Para múltiples sucursales',
+    color: '#1C1C1C',
+    textColor: '#fff',
+    features: ['Todo lo de Pro', 'Hasta 5 sucursales', 'Equipo de trabajo', 'Reportes avanzados', 'Soporte prioritario'],
+    cta: 'Contactar ventas',
+    disabled: false,
+  },
+]
+
+function PlansModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+      <div className="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-zinc-100">
+          <div>
+            <h2 className="text-xl font-extrabold text-zinc-900">Elegí tu plan</h2>
+            <p className="text-zinc-400 text-sm mt-0.5">Cancelás cuando quieras, sin compromiso.</p>
+          </div>
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600 text-xl leading-none">✕</button>
+        </div>
+        <div className="p-6 grid grid-cols-3 gap-4">
+          {PLANS.map(plan => (
+            <div key={plan.id} className="relative rounded-2xl border flex flex-col overflow-hidden"
+              style={{ borderColor: plan.id === 'pro' ? '#7C3AED' : '#E4E4E7', borderWidth: plan.id === 'pro' ? 2 : 1 }}>
+              {plan.badge && (
+                <div className="absolute top-3 right-3 bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {plan.badge}
+                </div>
+              )}
+              <div className="p-5 flex-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1">{plan.desc}</p>
+                <p className="text-lg font-extrabold text-zinc-900 mb-1">{plan.name}</p>
+                <div className="flex items-baseline gap-0.5 mb-4">
+                  <span className="text-3xl font-extrabold text-zinc-900">{plan.price}</span>
+                  <span className="text-zinc-400 text-sm">{plan.period}</span>
+                </div>
+                <ul className="space-y-2">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-center gap-2 text-xs text-zinc-600">
+                      <span className="text-violet-500 font-bold">✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="px-5 pb-5">
+                <button
+                  disabled={plan.disabled}
+                  className="w-full py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-default"
+                  style={{ background: plan.disabled ? '#F4F4F5' : plan.color, color: plan.disabled ? '#A1A1AA' : plan.textColor }}>
+                  {plan.cta}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="px-7 pb-5 text-center">
+          <p className="text-xs text-zinc-400">¿Tenés dudas? <a href="mailto:hola@calificar.com.ar" className="text-violet-600 underline">Escribinos</a> y te ayudamos.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Vista: TARJETA ───────────────────────────────────────────────────────────
 function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
   { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
+  const [showPlans, setShowPlans] = useState(false)
   const color = program?.color_primary ?? '#7C3AED'
   const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
 
@@ -321,6 +417,8 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
 
   return (
     <div className="p-8 max-w-4xl">
+      {showPlans && <PlansModal onClose={() => setShowPlans(false)} />}
+
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-zinc-900">Tarjeta</h1>
         <p className="text-zinc-400 text-sm mt-0.5">1 programa activo</p>
@@ -335,7 +433,8 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
             <p className="text-xs text-violet-600 mt-0.5">Activá el plan Pro para desbloquear todas las funciones y seguir usando Calificar sin límites.</p>
           </div>
         </div>
-        <button className="flex-shrink-0 text-xs font-bold text-white px-4 py-2 rounded-xl" style={{ background: '#7C3AED' }}>
+        <button onClick={() => setShowPlans(true)}
+          className="flex-shrink-0 text-xs font-bold text-white px-4 py-2 rounded-xl" style={{ background: '#7C3AED' }}>
           → Ver planes
         </button>
       </div>
