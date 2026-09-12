@@ -99,12 +99,13 @@ function Sidebar({ active, onNav, businessName, email }: {
 }) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const nav = [
-    { id: 'hoy',      label: 'Hoy',                    icon: '⊞' },
-    { id: 'tarjeta',  label: 'Tarjeta',                icon: '🪪' },
-    { id: 'clientes', label: 'Clientes',               icon: '👥' },
-    { id: 'push',     label: 'Avisos push',            icon: '🔔' },
-    { id: 'cumple',   label: 'Campañas de cumpleaños', icon: '🎂' },
-    { id: 'imprimir', label: 'Imprimir y compartir',   icon: '🖨️' },
+    { id: 'hoy',         label: 'Hoy',                    icon: '⊞' },
+    { id: 'tarjeta',     label: 'Tarjeta',                icon: '🪪' },
+    { id: 'clientes',    label: 'Clientes',               icon: '👥' },
+    { id: 'push',        label: 'Avisos push',            icon: '🔔' },
+    { id: 'proximidad',  label: 'Avisos de proximidad',   icon: '📍' },
+    { id: 'cumple',      label: 'Campañas de cumpleaños', icon: '🎂' },
+    { id: 'imprimir',    label: 'Imprimir y compartir',   icon: '🖨️' },
   ]
   return (
     <aside className="w-60 flex-shrink-0 border-r border-zinc-100 bg-white flex flex-col h-screen sticky top-0 overflow-y-auto z-30">
@@ -601,6 +602,190 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif }:
   )
 }
 
+// ── Vista: PROXIMIDAD ────────────────────────────────────────────────────────
+function ViewProximidad({ selectedProgram, isPro }: { selectedProgram: string | null; isPro: boolean }) {
+  const [tab, setTab] = useState<'push' | 'proximidad'>('proximidad')
+  const [enabled, setEnabled] = useState(false)
+  const [message, setMessage] = useState('')
+  const [locationLabel, setLocationLabel] = useState('')
+  const [lat, setLat] = useState('')
+  const [lng, setLng] = useState('')
+  const [detecting, setDetecting] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [loadError, setLoadError] = useState('')
+
+  useEffect(() => {
+    if (!selectedProgram) return
+    fetch(`/api/fidelizacion/proximity?program_id=${selectedProgram}`)
+      .then(r => r.json())
+      .then(d => {
+        setEnabled(d.proximity_enabled ?? false)
+        setMessage(d.proximity_message ?? '')
+        setLocationLabel(d.location_label ?? '')
+        if (d.location_lat) setLat(String(d.location_lat))
+        if (d.location_lng) setLng(String(d.location_lng))
+      })
+      .catch(() => setLoadError('No se pudo cargar la configuración.'))
+  }, [selectedProgram])
+
+  function detectLocation() {
+    if (!navigator.geolocation) return
+    setDetecting(true)
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setLat(String(pos.coords.latitude))
+        setLng(String(pos.coords.longitude))
+        setDetecting(false)
+      },
+      () => setDetecting(false)
+    )
+  }
+
+  async function save() {
+    if (!selectedProgram) return
+    setSaving(true)
+    await fetch('/api/fidelizacion/proximity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        program_id: selectedProgram,
+        lat: lat ? parseFloat(lat) : null,
+        lng: lng ? parseFloat(lng) : null,
+        location_label: locationLabel,
+        message,
+        enabled,
+      }),
+    })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  return (
+    <div className="p-8 max-w-2xl">
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Avisos de proximidad</h1>
+      <p className="text-zinc-400 text-sm mb-6">Alguien que guardó tu tarjeta pasa cerca de tu negocio y ve tu recordatorio en la pantalla de bloqueo. Se envía solo — tú no enviás nada.</p>
+
+      {/* Tabs Push / Proximidad */}
+      <div className="flex gap-1 bg-zinc-100 rounded-xl p-1 w-fit mb-6">
+        <button onClick={() => setTab('push')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'push' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'}`}>
+          Push
+          <span className="block text-[10px] font-normal text-zinc-400">Tú escribís y enviás</span>
+        </button>
+        <button onClick={() => setTab('proximidad')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'proximidad' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'}`}>
+          Proximidad
+          <span className="block text-[10px] font-normal text-zinc-400">Se envía solo cuando pasan cerca</span>
+        </button>
+      </div>
+
+      {tab === 'push' && (
+        <div className="bg-white border border-zinc-100 rounded-2xl p-6">
+          <p className="text-sm text-zinc-500">Usá la sección <strong>Avisos push</strong> del menú izquierdo para enviar mensajes manuales.</p>
+        </div>
+      )}
+
+      {tab === 'proximidad' && (
+        <>
+          {!isPro && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
+              <span className="text-xl">🔒</span>
+              <div>
+                <p className="text-sm font-semibold text-amber-800">Función Pro</p>
+                <p className="text-xs text-amber-600 mt-0.5">Los avisos de proximidad están disponibles en el plan Pro. Actualizá tu plan para activarlos.</p>
+              </div>
+            </div>
+          )}
+
+          {loadError && <p className="text-red-500 text-xs mb-4">{loadError}</p>}
+
+          {/* Enable toggle */}
+          <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-zinc-900">Activar avisos de proximidad</p>
+                <p className="text-xs text-zinc-400 mt-0.5">Cuando un cliente con tu tarjeta en Google Wallet pase cerca, recibirá el mensaje.</p>
+              </div>
+              <button
+                onClick={() => isPro && setEnabled(e => !e)}
+                disabled={!isPro}
+                className={`relative w-12 h-6 rounded-full transition-colors ${enabled && isPro ? 'bg-violet-600' : 'bg-zinc-200'} disabled:opacity-50`}
+              >
+                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${enabled && isPro ? 'left-7' : 'left-1'}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Dónde avisas */}
+          <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+            <p className="text-sm font-semibold text-zinc-900 mb-1">Dónde avisás</p>
+            <p className="text-xs text-zinc-400 mb-4">La zona donde el cliente recibe el aviso. Normalmente es tu local.</p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-zinc-600 mb-1">Nombre del lugar</label>
+                <input type="text" value={locationLabel} onChange={e => setLocationLabel(e.target.value)}
+                  placeholder="Ej: Cafetería San Martín 234" disabled={!isPro}
+                  className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-400 disabled:bg-zinc-50 disabled:text-zinc-400" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-600 mb-1">Latitud</label>
+                  <input type="text" value={lat} onChange={e => setLat(e.target.value)} placeholder="-54.8019" disabled={!isPro}
+                    className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm font-mono focus:outline-none focus:border-violet-400 disabled:bg-zinc-50 disabled:text-zinc-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-600 mb-1">Longitud</label>
+                  <input type="text" value={lng} onChange={e => setLng(e.target.value)} placeholder="-68.3030" disabled={!isPro}
+                    className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm font-mono focus:outline-none focus:border-violet-400 disabled:bg-zinc-50 disabled:text-zinc-400" />
+                </div>
+              </div>
+              <button onClick={detectLocation} disabled={detecting || !isPro}
+                className="text-xs font-semibold text-violet-600 hover:text-violet-700 border border-violet-200 px-3 py-1.5 rounded-xl disabled:opacity-50 transition-colors">
+                {detecting ? '📍 Detectando...' : '📍 Usar mi ubicación actual'}
+              </button>
+              {lat && lng && (
+                <div className="text-[10px] text-zinc-400 bg-zinc-50 rounded-lg px-3 py-2">
+                  Coordenadas: {parseFloat(lat).toFixed(5)}, {parseFloat(lng).toFixed(5)} · Radio: ~150 metros
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Qué dice */}
+          <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-5">
+            <p className="text-sm font-semibold text-zinc-900 mb-1">Qué dice</p>
+            <p className="text-xs text-zinc-400 mb-3">El mensaje que aparece en la pantalla de bloqueo de tu cliente.</p>
+            <textarea value={message} onChange={e => setMessage(e.target.value)} rows={3} disabled={!isPro}
+              placeholder="Ej: ¡Pasá a tomar tu café! Te esperamos con tu tarjeta de sellos."
+              className="w-full border border-zinc-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-violet-400 resize-none disabled:bg-zinc-50 disabled:text-zinc-400" />
+            <p className="text-[10px] text-zinc-400 mt-1">{message.length}/100 caracteres recomendados</p>
+
+            {/* Preview pantalla de bloqueo */}
+            {message && (
+              <div className="mt-4 bg-zinc-900 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-bold text-sm"
+                  style={{ background: '#7C3AED' }}>C</div>
+                <div>
+                  <p className="text-white text-xs font-semibold">Calificar · Tarjeta de sellos</p>
+                  <p className="text-zinc-300 text-xs mt-0.5">{message}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button onClick={save} disabled={saving || !isPro}
+            className="font-bold px-6 py-3 rounded-2xl text-sm text-white transition-colors disabled:opacity-50"
+            style={{ background: saved ? '#10B981' : '#7C3AED' }}>
+            {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Vista: PLACEHOLDER ───────────────────────────────────────────────────────
 function ViewPlaceholder({ title, icon }: { title: string; icon: string }) {
   return (
@@ -724,6 +909,9 @@ export default function NegocioDashboard() {
         {activeNav === 'push' && (
           <ViewPush notifMsg={notifMsg} setNotifMsg={setNotifMsg}
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif} />
+        )}
+        {activeNav === 'proximidad' && (
+          <ViewProximidad selectedProgram={selectedProgram} isPro={true} />
         )}
         {activeNav === 'cumple' && <ViewPlaceholder title="Campañas de cumpleaños" icon="🎂" />}
         {activeNav === 'imprimir' && <ViewPlaceholder title="Imprimir y compartir" icon="🖨️" />}
