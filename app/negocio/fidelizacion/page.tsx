@@ -292,92 +292,110 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
 // ── Modal de planes ──────────────────────────────────────────────────────────
 const PLANS = [
   {
-    id: 'gratis',
-    name: 'Gratis',
-    price: '$0',
-    period: '',
-    desc: 'Para empezar',
-    color: '#F4F4F5',
-    textColor: '#3F3F46',
-    features: ['1 programa de fidelidad', 'Hasta 50 clientes', 'QR de registro', 'Panel básico'],
-    cta: 'Plan actual',
-    disabled: true,
+    id: 'starter',
+    name: 'Starter',
+    price: '$9.99',
+    period: 'USD / mes',
+    sub: '$0.33 al día · menos que un café',
+    desc: 'PARA TU NEGOCIO',
+    color: '#7C3AED',
+    textColor: '#fff',
+    features: ['1 programa de fidelidad con tu logo y colores', 'Notificaciones ilimitadas al celular de tus clientes', 'Cartelito NFC + QR para el mostrador', 'Panel: quién volvió, cuándo y cuántos sellos', 'Exportá tus clientes: nombre y teléfono', 'Soporte en español'],
+    pills: ['Tarjetas ilimitadas', 'Notificaciones ilimitadas'],
+    cta: 'Activar Starter',
+    disabled: false,
   },
   {
     id: 'pro',
     name: 'Pro',
-    price: '$9.99',
-    period: '/mes',
-    desc: 'Para negocios activos',
+    price: '$19.99',
+    period: 'USD / mes',
+    sub: '$0.66 al día · menos que dos cafés',
+    desc: 'PARA DESTACAR',
     color: '#7C3AED',
     textColor: '#fff',
-    features: ['Programas ilimitados', 'Clientes ilimitados', 'Avisos de proximidad', 'Campañas de cumpleaños', 'Avisos push', 'Logo personalizado', 'Google Wallet'],
+    features: ['Todo lo de Starter', 'Hasta 3 programas de fidelidad', 'Campañas de cumpleaños automáticas', 'Formulario de registro personalizable', 'Cupones únicos al completar la tarjeta', 'Zonas de notificación por geolocalización', 'Soporte prioritario'],
+    pills: ['Tarjetas ilimitadas', 'Notificaciones ilimitadas'],
     cta: 'Activar Pro',
     disabled: false,
-    badge: 'MÁS POPULAR',
+    badge: 'RECOMENDADO',
+    highlight: true,
   },
   {
-    id: 'business',
-    name: 'Business',
-    price: '$24.99',
-    period: '/mes',
-    desc: 'Para múltiples sucursales',
-    color: '#1C1C1C',
+    id: 'ultimate',
+    name: 'Ultimate',
+    price: '$49.99',
+    period: 'USD / mes',
+    sub: '$1.66 al día · para todas tus sucursales',
+    desc: 'SIN LÍMITES',
+    color: '#7C3AED',
     textColor: '#fff',
-    features: ['Todo lo de Pro', 'Hasta 5 sucursales', 'Equipo de trabajo', 'Reportes avanzados', 'Soporte prioritario'],
-    cta: 'Contactar ventas',
+    features: ['Todo lo de Pro', 'Programas ilimitados', 'Sucursales ilimitadas', 'Múltiples usuarios por local', 'Zonas de notificación ilimitadas', 'Exportación detallada con historial', 'API + integración con tu sistema'],
+    pills: ['Tarjetas ilimitadas', 'Notificaciones ilimitadas'],
+    cta: 'Activar Ultimate',
     disabled: false,
   },
 ]
 
 function PlansModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
-      <div className="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl">
-        <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-zinc-100">
-          <div>
-            <h2 className="text-xl font-extrabold text-zinc-900">Elegí tu plan</h2>
-            <p className="text-zinc-400 text-sm mt-0.5">Cancelás cuando quieras, sin compromiso.</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+      <div className="bg-zinc-950 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="relative px-7 pt-6 pb-5 text-center border-b border-zinc-800">
+          <button onClick={onClose} className="absolute right-5 top-5 text-zinc-500 hover:text-zinc-300 text-xl leading-none">✕</button>
+          <div className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+            14 DÍAS GRATIS
           </div>
-          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600 text-xl leading-none">✕</button>
+          <h2 className="text-xl font-extrabold text-white">Probá gratis y empezá a fidelizar desde el primer día.</h2>
+          <p className="text-zinc-400 text-sm mt-1">Sin tarjeta de crédito. Sin compromiso.</p>
         </div>
-        <div className="p-6 grid grid-cols-3 gap-4">
+
+        {/* Plans grid */}
+        <div className="p-5 grid grid-cols-3 gap-4">
           {PLANS.map(plan => (
-            <div key={plan.id} className="relative rounded-2xl border flex flex-col overflow-hidden"
-              style={{ borderColor: plan.id === 'pro' ? '#7C3AED' : '#E4E4E7', borderWidth: plan.id === 'pro' ? 2 : 1 }}>
+            <div key={plan.id} className={`relative rounded-2xl flex flex-col overflow-visible ${plan.highlight ? 'bg-white shadow-xl' : 'bg-zinc-900 border border-zinc-800'}`}>
+              {/* Badge arriba del card, no dentro */}
               {plan.badge && (
-                <div className="absolute top-3 right-3 bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full whitespace-nowrap z-10">
                   {plan.badge}
                 </div>
               )}
-              <div className="p-5 flex-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1">{plan.desc}</p>
-                <p className="text-lg font-extrabold text-zinc-900 mb-1">{plan.name}</p>
-                <div className="flex items-baseline gap-0.5 mb-4">
-                  <span className="text-3xl font-extrabold text-zinc-900">{plan.price}</span>
-                  <span className="text-zinc-400 text-sm">{plan.period}</span>
+              <div className="p-5 pt-6 flex-1">
+                <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${plan.highlight ? 'text-violet-600' : 'text-zinc-400'}`}>{plan.desc}</p>
+                <p className={`text-xl font-extrabold mb-1 ${plan.highlight ? 'text-zinc-900' : 'text-white'}`}>{plan.name}</p>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className={`text-3xl font-extrabold ${plan.highlight ? 'text-zinc-900' : 'text-white'}`}>{plan.price}</span>
+                  <span className={`text-xs ${plan.highlight ? 'text-zinc-400' : 'text-zinc-500'}`}>{plan.period}</span>
+                </div>
+                <div className={`text-[10px] px-2.5 py-1 rounded-lg inline-block mb-3 ${plan.highlight ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-800 text-zinc-400'}`}>
+                  {plan.sub}
+                </div>
+                {/* Pills */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {plan.pills.map(p => (
+                    <span key={p} className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${plan.highlight ? 'border-violet-300 text-violet-700 bg-violet-50' : 'border-violet-700 text-violet-400 bg-violet-950'}`}>{p}</span>
+                  ))}
                 </div>
                 <ul className="space-y-2">
                   {plan.features.map(f => (
-                    <li key={f} className="flex items-center gap-2 text-xs text-zinc-600">
-                      <span className="text-violet-500 font-bold">✓</span> {f}
+                    <li key={f} className={`flex items-start gap-2 text-xs ${plan.highlight ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                      <span className="text-violet-500 font-bold mt-0.5 flex-shrink-0">✓</span> {f}
                     </li>
                   ))}
                 </ul>
               </div>
               <div className="px-5 pb-5">
-                <button
-                  disabled={plan.disabled}
-                  className="w-full py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-default"
-                  style={{ background: plan.disabled ? '#F4F4F5' : plan.color, color: plan.disabled ? '#A1A1AA' : plan.textColor }}>
+                <button className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all"
+                  style={{ background: '#7C3AED' }}>
                   {plan.cta}
                 </button>
               </div>
             </div>
           ))}
         </div>
-        <div className="px-7 pb-5 text-center">
-          <p className="text-xs text-zinc-400">¿Tenés dudas? <a href="mailto:hola@calificar.com.ar" className="text-violet-600 underline">Escribinos</a> y te ayudamos.</p>
+        <div className="pb-5 text-center">
+          <p className="text-xs text-zinc-500">¿Tenés dudas? <a href="mailto:hola@calificar.com.ar" className="text-violet-400 underline">Escribinos</a> y te ayudamos.</p>
         </div>
       </div>
     </div>
