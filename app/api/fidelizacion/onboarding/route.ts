@@ -79,10 +79,19 @@ export async function POST(req: NextRequest) {
       businessId = existingBusiness.id
     } else {
       // ── Crear negocio ──────────────────────────────────────────────────────
+      // Generar slug único a partir del nombre
+      const baseSlug = businessName
+        .toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+      const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`
+
       const { data: business, error: bizErr } = await adminSupabase
         .from('businesses')
         .insert({
           name: businessName,
+          slug,
           type: businessType ?? 'otro',
           owner_user_id: user.id,
           active: true,
