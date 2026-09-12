@@ -18,13 +18,18 @@ function CompleteContent() {
 
       // Esperar a que la sesión esté lista (OAuth callback puede tardar un tick)
       let user = null
-      for (let i = 0; i < 10; i++) {
-        const { data } = await supabase.auth.getUser()
-        if (data.user) { user = data.user; break }
+      let accessToken: string | null = null
+      for (let i = 0; i < 15; i++) {
+        const { data: sessionData } = await supabase.auth.getSession()
+        if (sessionData.session) {
+          user = sessionData.session.user
+          accessToken = sessionData.session.access_token
+          break
+        }
         await new Promise(r => setTimeout(r, 400))
       }
 
-      if (!user) {
+      if (!user || !accessToken) {
         setErrorMsg('No pudimos verificar tu sesión. Intentá de nuevo.')
         setStatus('error')
         return
@@ -55,7 +60,10 @@ function CompleteContent() {
       try {
         const res = await fetch('/api/fidelizacion/onboarding', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
           body: JSON.stringify({
             businessName: config.businessName,
             businessType: config.businessType,

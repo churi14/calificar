@@ -33,9 +33,23 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    const { data: { user }, error: authErr } = await anonSupabase.auth.getUser()
+    // Intentar auth por header (OAuth browser flow) o por cookie (SSR flow)
+    let user = null
+    const authHeader = req.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      const anonClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data } = await anonClient.auth.getUser(token)
+      user = data.user
+    } else {
+      const { data: { user: cookieUser }, error: authErr } = await anonSupabase.auth.getUser()
+      if (!authErr) user = cookieUser
+    }
 
-    if (authErr || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
