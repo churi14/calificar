@@ -1554,64 +1554,70 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
     if (isFeed45) {
       const qrSize = cw * 0.44
       const qrX = (cw - qrSize) / 2
-      const qrY = ch * 0.38
+      const qrY = ch * 0.40
+      const maxW = cw * 0.82   // safe text width limit
 
-      // Headline — bigger, fewer lines
-      const fs = cw * 0.11
+      const fs = cw * 0.088   // ~95px @ 1080 — each line fits within maxW
       ctx.textAlign = 'center'
       ctx.font = `bold ${fs}px system-ui`
-      ctx.fillStyle = textColor
-      ctx.fillText('Tu pase digital,', cw / 2, ch * 0.1)
-      ctx.fillStyle = accentColor
-      ctx.fillText('guardalo en tu Wallet.', cw / 2, ch * 0.1 + fs * 1.3)
 
-      // Biz name — below headline, clearly above QR
+      ctx.fillStyle = textColor
+      ctx.fillText('Tu pase digital,', cw / 2, ch * 0.10, maxW)
+      ctx.fillStyle = accentColor
+      ctx.fillText('guardalo en', cw / 2, ch * 0.10 + fs * 1.3, maxW)
+      ctx.fillText('tu Wallet.', cw / 2, ch * 0.10 + fs * 2.6, maxW)
+
+      // Biz name between headline and QR
       ctx.fillStyle = dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.45)'
-      ctx.font = `600 ${cw * 0.048}px system-ui`
-      ctx.fillText(bizName, cw / 2, ch * 0.32)
+      ctx.font = `600 ${cw * 0.046}px system-ui`
+      ctx.fillText(bizName, cw / 2, qrY - cw * 0.07, maxW)
 
       await drawQR(ctx, qrX, qrY, qrSize)
 
       // Sub-label below QR
       const pad = qrSize * 0.08
       ctx.fillStyle = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.32)'
-      ctx.font = `${cw * 0.038}px system-ui`
-      ctx.fillText('+ ESCANEA AQUÍ · Guardala en tu Wallet', cw / 2, qrY + qrSize + pad + cw * 0.07)
+      ctx.font = `${cw * 0.036}px system-ui`
+      ctx.fillText('+ ESCANEA AQUÍ · Guardala en tu Wallet', cw / 2, qrY + qrSize + pad + cw * 0.065, maxW)
     }
 
     // ── HORIZONTAL (16:9 Twitter, 4:1 LinkedIn) ───────────────────────────────
     if (isHoriz) {
-      // QR on the right third
-      const qrSize = ch * (ratio < 0.35 ? 0.55 : 0.62)  // smaller for banner 4:1
-      const qrX = cw * 0.68
+      const isBanner = ratio < 0.35   // 4:1
+      // QR on the right — leave 8% margin from right edge
+      const qrSize = ch * (isBanner ? 0.52 : 0.66)
+      const qrX = cw - qrSize - cw * 0.04
       const qrY = (ch - qrSize) / 2
 
       await drawQR(ctx, qrX, qrY, qrSize)
 
-      // Text on the left side
-      const textCX = cw * 0.33
+      // Text on the left — column from 0 to qrX-gap, centered at colCX
+      const colRight = qrX - cw * 0.04
+      const colCX = colRight / 2
+      const colW = colRight * 0.88   // usable text width
       ctx.textAlign = 'center'
 
-      if (ratio < 0.35) {
-        // 4:1 LinkedIn banner — single line compact
-        const fs = ch * 0.28
+      if (isBanner) {
+        // 4:1 — one short headline line + biz name
+        const fs = ch * 0.27
         ctx.font = `bold ${fs}px system-ui`
         ctx.fillStyle = textColor
-        ctx.fillText('Tu pase digital.', textCX, ch * 0.45)
-        ctx.fillStyle = dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)'
-        ctx.font = `${ch * 0.18}px system-ui`
-        ctx.fillText(bizName, textCX, ch * 0.75)
+        ctx.fillText('Tu pase digital.', colCX, ch * 0.48, colW)
+        ctx.fillStyle = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.38)'
+        ctx.font = `${ch * 0.17}px system-ui`
+        ctx.fillText(bizName, colCX, ch * 0.78, colW)
       } else {
-        // 16:9 Twitter — two lines headline
-        const fs = ch * 0.19
+        // 16:9 — three short lines so nothing overflows
+        const fs = ch * 0.13
         ctx.font = `bold ${fs}px system-ui`
         ctx.fillStyle = textColor
-        ctx.fillText('Tu pase digital,', textCX, ch * 0.36)
+        ctx.fillText('Tu pase digital,', colCX, ch * 0.30, colW)
         ctx.fillStyle = accentColor
-        ctx.fillText('guardalo en tu Wallet.', textCX, ch * 0.36 + fs * 1.3)
-        ctx.fillStyle = dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)'
-        ctx.font = `${ch * 0.1}px system-ui`
-        ctx.fillText(bizName, textCX, ch * 0.82)
+        ctx.fillText('guardalo en', colCX, ch * 0.30 + fs * 1.35, colW)
+        ctx.fillText('tu Wallet.', colCX, ch * 0.30 + fs * 2.70, colW)
+        ctx.fillStyle = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.38)'
+        ctx.font = `${ch * 0.075}px system-ui`
+        ctx.fillText(bizName, colCX, ch * 0.84, colW)
       }
     }
 
