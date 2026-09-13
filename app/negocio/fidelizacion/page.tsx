@@ -2377,7 +2377,7 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'plan' && <ViewPlan onNav={setActiveNav} />}
         {activeNav === 'ayuda' && <ViewAyuda onNav={setActiveNav} />}
-        {activeNav === 'primeros-pasos' && <ViewPlaceholder title="Primeros pasos" icon="🚀" />}
+        {activeNav === 'primeros-pasos' && <ViewAyuda onNav={setActiveNav} />}
       </main>
     </div>
   )
