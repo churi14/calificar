@@ -67,5 +67,15 @@ export async function POST(req: NextRequest) {
 
   const sent = results.filter(r => r.status === 'fulfilled').length
 
+  // Guardar log (solo para pushes masivos del negocio, no los de cumpleaños individuales)
+  if (!card_id && sent > 0) {
+    await supabase.from('push_logs').insert({
+      program_id,
+      title,
+      body,
+      sent_to: sent,
+    }).catch(() => {})
+  }
+
   return NextResponse.json({ ok: true, sent, total: subs.length })
 }

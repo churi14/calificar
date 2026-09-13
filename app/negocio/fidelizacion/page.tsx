@@ -94,8 +94,9 @@ function DiscountPopup({ onClose }: { onClose: () => void }) {
 }
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────
-function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, onDarkToggle }: {
-  active: string; onNav: (id: string) => void; businessName: string; email: string; bdayBadge?: number; isDark: boolean; onDarkToggle: () => void
+function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, onDarkToggle, isOpen, onClose }: {
+  active: string; onNav: (id: string) => void; businessName: string; email: string
+  bdayBadge?: number; isDark: boolean; onDarkToggle: () => void; isOpen: boolean; onClose: () => void
 }) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const nav = [
@@ -107,8 +108,15 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
     { id: 'cumple',      label: 'Campañas de cumpleaños', icon: '🎂' },
     { id: 'imprimir',    label: 'Imprimir y compartir',   icon: '🖨️' },
   ]
+  function navigate(id: string) { onNav(id); onClose() }
   return (
-    <aside className="w-60 flex-shrink-0 border-r border-zinc-100 bg-white flex flex-col h-screen sticky top-0 overflow-y-auto z-30">
+    <>
+      {/* Overlay móvil */}
+      {isOpen && (
+        <div className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden" onClick={onClose} />
+      )}
+      <aside className={`w-60 flex-shrink-0 border-r border-zinc-100 bg-white flex flex-col h-screen overflow-y-auto z-50 transition-transform duration-200
+        fixed top-0 left-0 md:static md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div className="px-5 py-5 border-b border-zinc-50">
         <Link href="/" className="font-extrabold text-xl text-zinc-900 tracking-tight">calificar</Link>
       </div>
@@ -120,7 +128,7 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
         </div>
       </div>
       <div className="px-4 pb-3 pt-1">
-        <button onClick={() => onNav('clientes')}
+        <button onClick={() => navigate('clientes')}
           className="w-full flex items-center justify-center gap-2 py-2 rounded-xl font-semibold text-sm text-white"
           style={{ background: '#7C3AED' }}>
           ⊙ Escanear un cliente
@@ -128,7 +136,7 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
       </div>
       <nav className="flex-1 px-3 space-y-0.5 pb-2">
         {nav.map(item => (
-          <button key={item.id} onClick={() => onNav(item.id)}
+          <button key={item.id} onClick={() => navigate(item.id)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
               active === item.id ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-zinc-600 hover:bg-zinc-50'}`}>
             <span className="text-base leading-none w-5 text-center">{item.icon}</span>
@@ -149,7 +157,7 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
           {settingsOpen && (
             <div className="ml-8 mt-0.5 space-y-0.5">
               {[['perfil', 'Perfil del negocio'], ['plan', 'Plan']].map(([id, label]) => (
-                <button key={id} onClick={() => onNav(id)}
+                <button key={id} onClick={() => navigate(id)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all ${
                     active === id ? 'text-violet-700 font-semibold bg-violet-50' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50'}`}>
                   {label}
@@ -158,11 +166,11 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
             </div>
           )}
         </div>
-        <button onClick={() => onNav('ayuda')}
+        <button onClick={() => navigate('ayuda')}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 text-left">
           <span className="w-5 text-center">❓</span> Ayuda
         </button>
-        <button onClick={() => onNav('primeros-pasos')}
+        <button onClick={() => navigate('primeros-pasos')}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 text-left">
           <span className="w-5 text-center">🚀</span> Primeros pasos
         </button>
@@ -196,7 +204,8 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
           </button>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }
 
@@ -341,7 +350,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
   const calificarCost = 9.99
 
   return (
-    <div className="p-8 max-w-5xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
       <div className="mb-5">
         <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName.split(' ')[0]}.</h1>
         <p className="text-zinc-400 text-sm mt-0.5">Esto es lo que está pasando hoy en {businessName}.</p>
@@ -388,23 +397,20 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
             <p className="font-bold text-zinc-900 text-sm">Tarjeta de sellos</p>
             <p className="text-xs text-zinc-400 mt-0.5">Mostrásela al cliente — el primero en escanearlo aparece aquí con su nombre.</p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
             <button onClick={() => setShowQrBig(true)}
               className="text-xs border border-zinc-200 text-zinc-700 px-3 py-2 rounded-xl hover:bg-zinc-50 font-semibold transition-colors">⊞ Ampliar</button>
             <button onClick={() => navigator.clipboard.writeText(qrUrl)}
-              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">🔗 Copiar enlace</button>
-            <a href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
-              download="qr-calificar.png" target="_blank" rel="noopener noreferrer"
-              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">🖨️ Imprimir</a>
+              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors hidden sm:block">🔗 Copiar</button>
             <a href={`https://wa.me/?text=${encodeURIComponent(`Acumulá sellos y ganá premios en ${businessName}! Guardá tu tarjeta digital: ${qrUrl}`)}`}
               target="_blank" rel="noopener noreferrer"
-              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">💬 WhatsApp</a>
+              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">💬 WA</a>
           </div>
         </div>
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'CLIENTES TOTALES',   value: stats.total,          sub: 'registrados' },
           { label: 'SELLOS HOY',         value: stats.stampsToday,    sub: 'en el día' },
@@ -420,7 +426,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
       </div>
 
       {/* Mid grid: actividad + clientes + pushes */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div className="bg-white border border-zinc-100 rounded-2xl p-5">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">LO QUE ESTÁ PASANDO AHORA</p>
           {transactions.length === 0 ? (
@@ -498,8 +504,8 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
       </div>
 
       {/* Gráfico ventas vs costo + histórico */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="col-span-3 bg-white border border-zinc-100 rounded-2xl p-5">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="md:col-span-3 bg-white border border-zinc-100 rounded-2xl p-5">
           <div className="flex items-start justify-between mb-1">
             <div>
               <p className="text-sm font-bold text-zinc-900">Ventas registradas vs costo de Calificar</p>
@@ -675,10 +681,10 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
     setUploading(false)
   }
 
-  if (!program) return <div className="p-8 text-zinc-400 text-sm">No hay programa activo.</div>
+  if (!program) return <div className="p-4 md:p-8 text-zinc-400 text-sm">No hay programa activo.</div>
 
   return (
-    <div className="p-8 max-w-4xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto w-full">
       {showPlans && <PlansModal onClose={() => setShowPlans(false)} />}
 
       <div className="mb-6">
@@ -702,7 +708,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
           { label: 'PROGRAMAS ACTIVOS', value: '1 / 1' },
           { label: 'WALLETS ACTIVOS', value: '0' },
@@ -819,7 +825,7 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
   })
 
   return (
-    <div className="p-8 max-w-5xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-zinc-900">Clientes</h1>
@@ -944,7 +950,7 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
 function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif }:
   { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void }) {
   return (
-    <div className="p-8 max-w-2xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Avisos push</h1>
       <p className="text-zinc-400 text-sm mb-8">Mandá mensajes directos a los clientes que activaron notificaciones.</p>
       <div className="bg-white border border-zinc-100 rounded-2xl p-6">
@@ -1028,7 +1034,7 @@ function ViewProximidad({ selectedProgram, isPro, notifMsg, setNotifMsg, notifSe
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Avisos de proximidad</h1>
       <p className="text-zinc-400 text-sm mb-6">Alguien que guardó tu tarjeta pasa cerca de tu negocio y ve tu recordatorio en la pantalla de bloqueo. Se envía solo — tú no enviás nada.</p>
 
@@ -1231,7 +1237,7 @@ function ViewCumple({ selectedProgram, cards, isPro }:
   const totalWithBdayPct = cards.length > 0 ? Math.round((totalWithBday / cards.length) * 100) : 0
 
   return (
-    <div className="p-8 max-w-3xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Campañas de cumpleaños</h1>
       <p className="text-zinc-400 text-sm mb-6">Felicitá a tus clientes con un código exclusivo válido por 30 días.</p>
 
@@ -1263,7 +1269,7 @@ function ViewCumple({ selectedProgram, cards, isPro }:
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         <div className="bg-white border border-zinc-100 rounded-2xl p-4">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">CON CUMPLEAÑOS</p>
           <p className="text-2xl font-extrabold text-zinc-900">{totalWithBday}</p>
@@ -1748,7 +1754,7 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Compartí tu tarjeta</h1>
       <p className="text-zinc-400 text-sm mb-6">Todos los formatos con tu QR y colores de marca, listos para usar.</p>
 
@@ -1862,7 +1868,7 @@ function ViewPerfil({ program, selectedProgram, businessName, onSaved }: {
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Perfil del negocio</h1>
       <p className="text-zinc-400 text-sm mb-6">Así te ven tus clientes en su wallet y en la app.</p>
 
@@ -1986,11 +1992,11 @@ function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
   ]
 
   return (
-    <div className="p-8 max-w-3xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Tu plan</h1>
       <p className="text-zinc-400 text-sm mb-6">Estás en el período de prueba gratuita. Tu plan actual es Starter.</p>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         {PLANS.map(plan => (
           <div key={plan.id} className={`bg-white border rounded-2xl p-6 flex flex-col relative ${plan.current ? 'border-violet-300' : 'border-zinc-100'}`}>
             {plan.current && (
@@ -2070,7 +2076,7 @@ function ViewAyuda({ onNav }: { onNav: (id: string) => void }) {
   ]
 
   return (
-    <div className="p-8 max-w-2xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Ayuda</h1>
       <p className="text-zinc-400 text-sm mb-6">Respuestas a las preguntas más frecuentes sobre Calificar.</p>
 
@@ -2166,6 +2172,7 @@ export default function NegocioDashboard() {
   const [salesByDay, setSalesByDay] = useState<Record<string, number>>({})
   const [totalSales, setTotalSales] = useState(0)
   const [stampModal, setStampModal] = useState<{ cardId: string; name: string } | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('cal_dark') === '1'
     return false
@@ -2321,6 +2328,8 @@ export default function NegocioDashboard() {
         [data-dark="true"] input::placeholder,
         [data-dark="true"] textarea::placeholder { color: #52525b !important; }
         [data-dark="true"] .focus\\:border-violet-400:focus { border-color: #7c3aed !important; }
+        /* Mobile header dark mode */
+        [data-dark="true"] header { background-color: #18181b !important; border-color: #3f3f46 !important; }
         /* Glow en placeholders / estados vacíos */
         .placeholder-glow {
           box-shadow: 0 0 0 1.5px rgba(124,58,237,0.18), 0 0 28px rgba(124,58,237,0.10);
@@ -2334,7 +2343,18 @@ export default function NegocioDashboard() {
         }
       `}</style>
       {showDiscount && <DiscountPopup onClose={() => setShowDiscount(false)} />}
-      <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} bdayBadge={todayBdayCount} isDark={isDark} onDarkToggle={toggleDark} />
+      {/* Mobile top header */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-4 h-14 bg-white border-b border-zinc-100">
+        <button onClick={() => setMobileMenuOpen(true)} className="p-2 rounded-xl hover:bg-zinc-50 text-zinc-600">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        </button>
+        <span className="font-bold text-zinc-900 text-sm">Calificar</span>
+        <button onClick={toggleDark} className="p-2 rounded-xl hover:bg-zinc-50 text-zinc-500">
+          {isDark ? <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 1.78a1 1 0 011.42 1.42l-.71.7a1 1 0 01-1.41-1.41l.7-.71zM18 9a1 1 0 110 2h-1a1 1 0 110-2h1zM5.49 4.22a1 1 0 010 1.41l-.7.71a1 1 0 01-1.42-1.42l.71-.7a1 1 0 011.41 0zM10 16a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-6.71-2.51a1 1 0 011.41 0l.71.7a1 1 0 01-1.41 1.42l-.71-.71a1 1 0 010-1.41zM4 10a1 1 0 100-2H3a1 1 0 000 2h1zm11.49 3.49a1 1 0 011.41 1.41l-.7.71a1 1 0 11-1.42-1.42l.71-.7zM10 6a4 4 0 100 8 4 4 0 000-8z"/></svg>
+            : <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>}
+        </button>
+      </header>
+      <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} bdayBadge={todayBdayCount} isDark={isDark} onDarkToggle={toggleDark} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
       {stampModal && (
         <StampModal
           cardName={stampModal.name}
@@ -2342,7 +2362,7 @@ export default function NegocioDashboard() {
           onClose={() => setStampModal(null)}
         />
       )}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pt-14 md:pt-0">
         {activeNav === 'hoy' && (
           <ViewHoy program={program} selectedProgram={selectedProgram} stats={stats}
             transactions={transactions} notifMsg={notifMsg} setNotifMsg={setNotifMsg}
