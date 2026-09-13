@@ -194,56 +194,102 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0 }: {
 }
 
 // ── Vista: HOY ───────────────────────────────────────────────────────────────
+function ActivityChart({ transactions, color }: { transactions: Transaction[]; color: string }) {
+  const days = 30
+  const today = new Date()
+  const data = Array.from({ length: days }, (_, i) => {
+    const d = new Date(today); d.setDate(today.getDate() - (days - 1 - i))
+    const key = d.toDateString()
+    return {
+      label: i % 7 === 0 ? `${d.getDate()}/${d.getMonth() + 1}` : '',
+      stamps: transactions.filter(tx => tx.type === 'stamp' && new Date(tx.created_at).toDateString() === key).length,
+    }
+  })
+  const maxVal = Math.max(...data.map(d => d.stamps), 1)
+  const W = 560, H = 90, padL = 4, padR = 4, padT = 8, padB = 20
+  const pts = data.map((d, i) => {
+    const x = padL + (i / (days - 1)) * (W - padL - padR)
+    const y = padT + (1 - d.stamps / maxVal) * (H - padT - padB)
+    return { x, y, ...d }
+  })
+  const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+  const area = `${path} L${pts[pts.length-1].x},${H - padB} L${pts[0].x},${H - padB} Z`
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 90 }}>
+      <defs>
+        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#chartGrad)" />
+      <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {pts.map((p, i) => p.stamps > 0 && (
+        <circle key={i} cx={p.x} cy={p.y} r="3" fill={color} />
+      ))}
+      {pts.map((p, i) => p.label && (
+        <text key={i} x={p.x} y={H - 4} textAnchor="middle" fontSize="9" fill="#a1a1aa">{p.label}</text>
+      ))}
+    </svg>
+  )
+}
+
 function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, businessName, cards }:
   { program: Program | undefined; selectedProgram: string | null; stats: { total: number; stampsToday: number; rewardsTotal: number }
     transactions: Transaction[]; notifMsg: string; setNotifMsg: (v: string) => void
     notifSending: boolean; notifSent: boolean; sendNotif: () => void; businessName: string; cards: Card[] }) {
   const color = program?.color_primary ?? '#7C3AED'
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches' })()
+  const totalStamps = transactions.filter(tx => tx.type === 'stamp').length
+  const returningClients = cards.filter(c => c.total_visits > 1).length
+
   return (
     <div className="p-8 max-w-5xl">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName.split(' ')[0]}.</h1>
         <p className="text-zinc-400 text-sm mt-0.5">Esto es lo que está pasando hoy en {businessName}.</p>
       </div>
+
       {/* QR Banner */}
       {program && (
-        <div className="bg-white border border-zinc-100 rounded-2xl p-4 mb-6 flex items-center gap-4">
+        <div className="bg-white border border-zinc-100 rounded-2xl p-4 mb-5 flex items-center gap-4">
           <div className="bg-zinc-100 rounded-xl p-2 flex-shrink-0">
             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
               alt="QR" width={64} height={64} className="rounded-lg" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-violet-600 mb-0.5">LISTO PARA COMPARTIR</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-0.5" style={{ color }}>LISTO PARA COMPARTIR</p>
             <p className="font-bold text-zinc-900 text-sm">Tarjeta de sellos</p>
             <p className="text-xs text-zinc-400 mt-0.5">Ponelo en el mostrador o compartí el enlace.</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <a href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
               download="qr-calificar.png" target="_blank" rel="noopener noreferrer"
-              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium">🖨️ Imprimir</a>
+              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">🖨️ Imprimir</a>
             <button onClick={() => navigator.clipboard.writeText(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}
-              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium">🔗 Copiar</button>
+              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">🔗 Copiar</button>
           </div>
         </div>
       )}
+
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'CLIENTES TOTALES', value: stats.total, sub: '— vs ayer' },
-          { label: 'SELLOS HOY', value: stats.stampsToday, sub: '— vs ayer' },
-          { label: 'PREMIOS ENTREGADOS', value: stats.rewardsTotal, sub: '— total' },
+          { label: 'CLIENTES TOTALES',   value: stats.total,          sub: 'registrados' },
+          { label: 'SELLOS HOY',         value: stats.stampsToday,    sub: 'en el día' },
+          { label: 'VUELVEN',            value: returningClients,     sub: 'más de 1 visita' },
+          { label: 'PREMIOS ENTREGADOS', value: stats.rewardsTotal,   sub: 'en total' },
         ].map(k => (
-          <div key={k.label} className="bg-white border border-zinc-100 rounded-2xl p-5">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">{k.label}</p>
+          <div key={k.label} className="bg-white border border-zinc-100 rounded-2xl p-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">{k.label}</p>
             <p className="text-3xl font-extrabold text-zinc-900">{k.value}</p>
-            <div className="w-full h-px bg-zinc-100 my-2" />
-            <p className="text-xs text-zinc-400">{k.sub}</p>
+            <p className="text-[11px] text-zinc-400 mt-1">{k.sub}</p>
           </div>
         ))}
       </div>
+
       {/* Bottom grid */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="bg-white border border-zinc-100 rounded-2xl p-5">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">LO QUE ESTÁ PASANDO AHORA</p>
           {transactions.length === 0 ? (
@@ -268,16 +314,18 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
             </div>
           )}
         </div>
+
         <div className="bg-white border border-zinc-100 rounded-2xl p-5">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">CLIENTES QUE REGRESAN</p>
           <div className="flex flex-col items-center justify-center h-28">
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-extrabold"
               style={{ background: `${color}18`, color }}>
-              {stats.total}
+              {returningClients}
             </div>
-            <p className="text-xs text-zinc-400 mt-2">clientes registrados</p>
+            <p className="text-xs text-zinc-400 mt-2">con más de 1 visita</p>
           </div>
         </div>
+
         <div className="bg-white border border-zinc-100 rounded-2xl p-5">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">AVISOS PUSH</p>
           <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
@@ -285,10 +333,31 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
             className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-3 py-2 text-xs focus:outline-none resize-none mb-3" />
           <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
             className="w-full py-2.5 rounded-xl font-bold text-white text-xs disabled:opacity-50 transition-colors"
-            style={{ background: notifSent ? '#10B981' : '#7C3AED' }}>
-            {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar tu primer push →'}
+            style={{ background: notifSent ? '#10B981' : color }}>
+            {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar push →'}
           </button>
         </div>
+      </div>
+
+      {/* Actividad 30 días */}
+      <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <p className="text-sm font-bold text-zinc-900">Actividad últimos 30 días</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Sellos entregados por día</p>
+          </div>
+          <div className="flex gap-5 text-right">
+            <div>
+              <p className="text-xl font-extrabold text-zinc-900">{totalStamps}</p>
+              <p className="text-[10px] text-zinc-400">sellos totales</p>
+            </div>
+            <div>
+              <p className="text-xl font-extrabold text-zinc-900">{stats.rewardsTotal}</p>
+              <p className="text-[10px] text-zinc-400">recompensas</p>
+            </div>
+          </div>
+        </div>
+        <ActivityChart transactions={transactions} color={color} />
       </div>
     </div>
   )
