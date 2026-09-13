@@ -193,6 +193,43 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0 }: {
   )
 }
 
+// ── Modal de sello con monto ─────────────────────────────────────────────────
+function StampModal({ cardName, onConfirm, onClose }: {
+  cardName: string; onConfirm: (amount?: number) => Promise<void>; onClose: () => void
+}) {
+  const [amount, setAmount] = useState('')
+  const [loading, setLoading] = useState(false)
+  async function confirm() {
+    setLoading(true)
+    await onConfirm(amount ? parseFloat(amount) : undefined)
+    setLoading(false)
+  }
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+        <h3 className="text-base font-extrabold text-zinc-900 mb-1">+ Sello para {cardName}</h3>
+        <p className="text-xs text-zinc-400 mb-4">Opcional: ingresá el monto de la venta para registrar el gasto.</p>
+        <div className="relative mb-4">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-semibold">$</span>
+          <input type="number" value={amount} onChange={e => setAmount(e.target.value)}
+            placeholder="0.00" min="0" step="0.01"
+            className="w-full border border-zinc-200 rounded-xl pl-7 pr-3 py-3 text-sm focus:outline-none focus:border-violet-400" />
+        </div>
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-600 hover:bg-zinc-50">
+            Cancelar
+          </button>
+          <button onClick={confirm} disabled={loading}
+            className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ background: '#7C3AED' }}>
+            {loading ? 'Sellando...' : 'Confirmar sello'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Vista: HOY ───────────────────────────────────────────────────────────────
 function ActivityChart({ transactions, color }: { transactions: Transaction[]; color: string }) {
   const days = 30
@@ -234,40 +271,127 @@ function ActivityChart({ transactions, color }: { transactions: Transaction[]; c
   )
 }
 
-function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, businessName, cards }:
+function SalesChart({ salesByDay, cost, color }: { salesByDay: Record<string, number>; cost: number; color: string }) {
+  const days = 30
+  const today = new Date()
+  const data = Array.from({ length: days }, (_, i) => {
+    const d = new Date(today); d.setDate(today.getDate() - (days - 1 - i))
+    const key = d.toISOString().slice(0, 10)
+    return {
+      label: i % 7 === 0 ? `${d.getDate()}/${d.getMonth() + 1}` : '',
+      sales: salesByDay[key] ?? 0,
+    }
+  })
+  const maxVal = Math.max(...data.map(d => d.sales), cost * 2, 1)
+  const W = 560, H = 100, padL = 4, padR = 4, padT = 8, padB = 20
+  const pts = data.map((d, i) => {
+    const x = padL + (i / (days - 1)) * (W - padL - padR)
+    const y = padT + (1 - d.sales / maxVal) * (H - padT - padB)
+    return { x, y, ...d }
+  })
+  const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+  const area = `${path} L${pts[pts.length-1].x},${H - padB} L${pts[0].x},${H - padB} Z`
+  // Línea costo mensual prorrateada diaria acumulativa — simplificamos: línea horizontal en costo/30 por día * días
+  const costLineY = padT + (1 - (cost / days) / maxVal * days) * (H - padT - padB)
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 100 }}>
+      <defs>
+        <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {/* Área ventas */}
+      <path d={area} fill="url(#salesGrad)" />
+      <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Línea costo mensual */}
+      <line x1={padL} y1={costLineY} x2={W - padR} y2={costLineY} stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="4 3" />
+      <text x={W - padR - 2} y={costLineY - 4} textAnchor="end" fontSize="8" fill="#f43f5e">Costo ${cost}/mes</text>
+      {pts.map((p, i) => p.sales > 0 && (
+        <circle key={i} cx={p.x} cy={p.y} r="3" fill={color} />
+      ))}
+      {pts.map((p, i) => p.label && (
+        <text key={i} x={p.x} y={H - 4} textAnchor="middle" fontSize="9" fill="#a1a1aa">{p.label}</text>
+      ))}
+    </svg>
+  )
+}
+
+function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, businessName, cards, pushLogs, salesByDay, totalSales, onLogoNav }:
   { program: Program | undefined; selectedProgram: string | null; stats: { total: number; stampsToday: number; rewardsTotal: number }
     transactions: Transaction[]; notifMsg: string; setNotifMsg: (v: string) => void
-    notifSending: boolean; notifSent: boolean; sendNotif: () => void; businessName: string; cards: Card[] }) {
+    notifSending: boolean; notifSent: boolean; sendNotif: () => void; businessName: string; cards: Card[]
+    pushLogs: { id: string; title: string; body: string; sent_to: number; created_at: string }[]
+    salesByDay: Record<string, number>; totalSales: number; onLogoNav: () => void }) {
   const color = program?.color_primary ?? '#7C3AED'
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches' })()
   const totalStamps = transactions.filter(tx => tx.type === 'stamp').length
   const returningClients = cards.filter(c => c.total_visits > 1).length
+  const hasLogo = !!program?.logo_url
+  const [showQrBig, setShowQrBig] = useState(false)
+  const qrUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
+  // Costo mensual de Calificar (plan starter por defecto)
+  const calificarCost = 9.99
 
   return (
     <div className="p-8 max-w-5xl">
-      <div className="mb-6">
+      <div className="mb-5">
         <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName.split(' ')[0]}.</h1>
         <p className="text-zinc-400 text-sm mt-0.5">Esto es lo que está pasando hoy en {businessName}.</p>
       </div>
 
+      {/* Modal QR ampliado */}
+      {showQrBig && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setShowQrBig(false)}>
+          <div className="bg-white rounded-3xl p-8 flex flex-col items-center gap-4" onClick={e => e.stopPropagation()}>
+            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+              alt="QR grande" width={300} height={300} className="rounded-2xl" />
+            <p className="text-sm font-bold text-zinc-900">{businessName}</p>
+            <p className="text-xs text-zinc-400">Ponélo en el mostrador para que los clientes escaneen</p>
+            <button onClick={() => setShowQrBig(false)} className="text-xs text-zinc-400 hover:text-zinc-600">Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {/* Banner logo */}
+      {!hasLogo && (
+        <div className="bg-white border border-zinc-100 rounded-2xl p-4 mb-4 flex items-center gap-4">
+          <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">☁️</div>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-zinc-900">Poné tu logo en la tarjeta</p>
+            <p className="text-xs text-zinc-400">Subí el logo de tu negocio para que la tarjeta se vea tuya.</p>
+          </div>
+          <button onClick={onLogoNav}
+            className="text-xs font-bold text-white px-4 py-2 rounded-xl flex-shrink-0" style={{ background: color }}>
+            Agregar logo
+          </button>
+        </div>
+      )}
+
       {/* QR Banner */}
       {program && (
         <div className="bg-white border border-zinc-100 rounded-2xl p-4 mb-5 flex items-center gap-4">
-          <div className="bg-zinc-100 rounded-xl p-2 flex-shrink-0">
-            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+          <div className="bg-zinc-100 rounded-xl p-2 flex-shrink-0 cursor-pointer" onClick={() => setShowQrBig(true)}>
+            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
               alt="QR" width={64} height={64} className="rounded-lg" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold uppercase tracking-wide mb-0.5" style={{ color }}>LISTO PARA COMPARTIR</p>
             <p className="font-bold text-zinc-900 text-sm">Tarjeta de sellos</p>
-            <p className="text-xs text-zinc-400 mt-0.5">Ponelo en el mostrador o compartí el enlace.</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Mostrásela al cliente — el primero en escanearlo aparece aquí con su nombre.</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <a href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+            <button onClick={() => setShowQrBig(true)}
+              className="text-xs border border-zinc-200 text-zinc-700 px-3 py-2 rounded-xl hover:bg-zinc-50 font-semibold transition-colors">⊞ Ampliar</button>
+            <button onClick={() => navigator.clipboard.writeText(qrUrl)}
+              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">🔗 Copiar enlace</button>
+            <a href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
               download="qr-calificar.png" target="_blank" rel="noopener noreferrer"
               className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">🖨️ Imprimir</a>
-            <button onClick={() => navigator.clipboard.writeText(`https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`)}
-              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">🔗 Copiar</button>
+            <a href={`https://wa.me/?text=${encodeURIComponent(`Acumulá sellos y ganá premios en ${businessName}! Guardá tu tarjeta digital: ${qrUrl}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">💬 WhatsApp</a>
           </div>
         </div>
       )}
@@ -288,7 +412,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
         ))}
       </div>
 
-      {/* Bottom grid */}
+      {/* Mid grid: actividad + clientes + pushes */}
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="bg-white border border-zinc-100 rounded-2xl p-5">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">LO QUE ESTÁ PASANDO AHORA</p>
@@ -305,7 +429,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0 ${tx.type === 'reward' ? 'bg-amber-50' : 'bg-violet-50'}`}>
                     {tx.type === 'reward' ? '🏆' : '⭐'}
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-zinc-800 truncate">{tx.loyalty_cards?.name}</p>
                     <p className="text-[10px] text-zinc-400">{tx.type === 'reward' ? 'Premio' : 'Sello'}</p>
                   </div>
@@ -327,37 +451,76 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
         </div>
 
         <div className="bg-white border border-zinc-100 rounded-2xl p-5">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">AVISOS PUSH</p>
-          <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
-            placeholder="Ej: Esta semana 2x1 en café 🎉" rows={3}
-            className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-3 py-2 text-xs focus:outline-none resize-none mb-3" />
-          <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
-            className="w-full py-2.5 rounded-xl font-bold text-white text-xs disabled:opacity-50 transition-colors"
-            style={{ background: notifSent ? '#10B981' : color }}>
-            {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar push →'}
-          </button>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">PUSHES RECIENTES</p>
+          {pushLogs.length === 0 ? (
+            <div className="space-y-3 mb-3">
+              <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
+                placeholder="Ej: Esta semana 2x1 en café 🎉" rows={3}
+                className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-3 py-2 text-xs focus:outline-none resize-none" />
+              <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
+                className="w-full py-2.5 rounded-xl font-bold text-white text-xs disabled:opacity-50 transition-colors"
+                style={{ background: notifSent ? '#10B981' : color }}>
+                {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar tu primer push →'}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {pushLogs.map(log => (
+                <div key={log.id} className="py-2 border-b border-zinc-50 last:border-0">
+                  <p className="text-xs font-semibold text-zinc-800 truncate">{log.body}</p>
+                  <div className="flex items-center justify-between mt-0.5">
+                    <p className="text-[10px] text-zinc-400">
+                      {new Date(log.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })} · {log.sent_to} enviados
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div className="pt-2 space-y-2">
+                <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
+                  placeholder="Nuevo push..." rows={2}
+                  className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-3 py-2 text-xs focus:outline-none resize-none" />
+                <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
+                  className="w-full py-2 rounded-xl font-bold text-white text-xs disabled:opacity-50 transition-colors"
+                  style={{ background: notifSent ? '#10B981' : color }}>
+                  {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar push →'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Actividad 30 días */}
-      <div className="bg-white border border-zinc-100 rounded-2xl p-5">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-sm font-bold text-zinc-900">Actividad últimos 30 días</p>
-            <p className="text-xs text-zinc-400 mt-0.5">Sellos entregados por día</p>
+      {/* Gráfico ventas vs costo + histórico */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="col-span-3 bg-white border border-zinc-100 rounded-2xl p-5">
+          <div className="flex items-start justify-between mb-1">
+            <div>
+              <p className="text-sm font-bold text-zinc-900">Ventas registradas vs costo de Calificar</p>
+              <p className="text-xs text-zinc-400 mt-0.5">Últimos 30 días · registrá el monto al sellar para ver el ROI</p>
+            </div>
           </div>
-          <div className="flex gap-5 text-right">
-            <div>
-              <p className="text-xl font-extrabold text-zinc-900">{totalStamps}</p>
-              <p className="text-[10px] text-zinc-400">sellos totales</p>
+          {totalSales === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <p className="text-xs text-zinc-500 font-semibold mb-1">Registrá el gasto de tus clientes al sellar</p>
+              <p className="text-[10px] text-zinc-400">En cada sello manual podés ingresar el monto de la venta</p>
             </div>
-            <div>
-              <p className="text-xl font-extrabold text-zinc-900">{stats.rewardsTotal}</p>
-              <p className="text-[10px] text-zinc-400">recompensas</p>
-            </div>
+          ) : (
+            <SalesChart salesByDay={salesByDay} cost={calificarCost} color={color} />
+          )}
+        </div>
+
+        <div className="bg-white border border-zinc-100 rounded-2xl p-5 flex flex-col justify-center gap-6">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">HISTÓRICO</p>
+          <div className="text-center">
+            <p className="text-4xl font-extrabold text-zinc-900">{totalStamps}</p>
+            <p className="text-xs text-zinc-400 mt-1">Sellos entregados</p>
+          </div>
+          <div className="w-full h-px bg-zinc-100" />
+          <div className="text-center">
+            <p className="text-4xl font-extrabold text-zinc-900">{stats.rewardsTotal}</p>
+            <p className="text-xs text-zinc-400 mt-1">Recompensas entregadas</p>
           </div>
         </div>
-        <ActivityChart transactions={transactions} color={color} />
       </div>
     </div>
   )
@@ -635,7 +798,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
 
 // ── Vista: CLIENTES ──────────────────────────────────────────────────────────
 function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
-  { cards: Card[]; program: Program | undefined; selectedProgram: string | null; loading: boolean; manualStamp: (id: string) => void }) {
+  { cards: Card[]; program: Program | undefined; selectedProgram: string | null; loading: boolean; manualStamp: (id: string, name: string) => void }) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<'todos' | 'activo' | 'inactivo'>('todos')
   const color = program?.color_primary ?? '#7C3AED'
@@ -752,7 +915,7 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           <Link href={`/fidelizacion/tarjeta?card=${c.id}&program=${selectedProgram}`} className="text-xs text-violet-600 hover:underline">Ver</Link>
-                          <button onClick={() => manualStamp(c.id)}
+                          <button onClick={() => manualStamp(c.id, c.name)}
                             className="text-xs bg-violet-100 text-violet-700 hover:bg-violet-200 px-2.5 py-1 rounded-lg font-semibold transition-colors">
                             + Sello
                           </button>
@@ -1548,6 +1711,10 @@ export default function NegocioDashboard() {
   const [businessName, setBusinessName] = useState('Mi negocio')
   const [userEmail, setUserEmail] = useState('')
   const [todayBdayCount, setTodayBdayCount] = useState(0)
+  const [pushLogs, setPushLogs] = useState<{ id: string; title: string; body: string; sent_to: number; created_at: string }[]>([])
+  const [salesByDay, setSalesByDay] = useState<Record<string, number>>({})
+  const [totalSales, setTotalSales] = useState(0)
+  const [stampModal, setStampModal] = useState<{ cardId: string; name: string } | null>(null)
 
   useEffect(() => {
     const seen = localStorage.getItem('cal_discount_seen')
@@ -1595,27 +1762,49 @@ export default function NegocioDashboard() {
       setTodayBdayCount(bdayToday)
       setLoading(false)
     }).catch(() => setLoading(false))
+
+    // Stats extra: push logs + ventas
+    fetch(`/api/fidelizacion/stats?program_id=${selectedProgram}`)
+      .then(r => r.json())
+      .then(d => {
+        setPushLogs(d.push_logs ?? [])
+        setSalesByDay(d.sales_by_day ?? {})
+        setTotalSales(d.total_sales ?? 0)
+      }).catch(() => {})
   }, [selectedProgram])
 
   async function sendNotif() {
     if (!notifMsg.trim() || !selectedProgram) return
     setNotifSending(true)
-    await fetch('/api/fidelizacion/push/send', {
+    const res = await fetch('/api/fidelizacion/push/send', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ program_id: selectedProgram, title: '📣 Novedad del local', body: notifMsg }),
     })
+    const d = await res.json()
     setNotifSending(false); setNotifSent(true); setNotifMsg('')
+    // Refrescar push logs
+    if (d.ok && d.sent > 0) {
+      setPushLogs(prev => [{
+        id: Date.now().toString(), title: '📣 Novedad del local', body: notifMsg,
+        sent_to: d.sent, created_at: new Date().toISOString(),
+      }, ...prev.slice(0, 4)])
+    }
     setTimeout(() => setNotifSent(false), 3000)
   }
 
-  async function manualStamp(cardId: string) {
+  async function manualStamp(cardId: string, purchaseAmount?: number) {
     await fetch('/api/fidelizacion/stamp', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ card_id: cardId, program_id: selectedProgram, registered_by: 'manual' }),
+      body: JSON.stringify({ card_id: cardId, program_id: selectedProgram, registered_by: 'manual', purchase_amount: purchaseAmount ?? null }),
     })
     const r = await fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`)
     const d = await r.json()
     setCards(d.cards ?? [])
+    if (purchaseAmount) {
+      const today = new Date().toISOString().slice(0, 10)
+      setSalesByDay(prev => ({ ...prev, [today]: (prev[today] ?? 0) + purchaseAmount }))
+      setTotalSales(prev => prev + purchaseAmount)
+    }
   }
 
   function handleLogoUploaded(url: string) {
@@ -1636,19 +1825,28 @@ export default function NegocioDashboard() {
     <div className="flex min-h-screen bg-zinc-50">
       {showDiscount && <DiscountPopup onClose={() => setShowDiscount(false)} />}
       <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} bdayBadge={todayBdayCount} />
+      {stampModal && (
+        <StampModal
+          cardName={stampModal.name}
+          onConfirm={async (amount) => { await manualStamp(stampModal.cardId, amount); setStampModal(null) }}
+          onClose={() => setStampModal(null)}
+        />
+      )}
       <main className="flex-1 overflow-y-auto">
         {activeNav === 'hoy' && (
           <ViewHoy program={program} selectedProgram={selectedProgram} stats={stats}
             transactions={transactions} notifMsg={notifMsg} setNotifMsg={setNotifMsg}
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
-            businessName={businessName} cards={cards} />
+            businessName={businessName} cards={cards}
+            pushLogs={pushLogs} salesByDay={salesByDay} totalSales={totalSales}
+            onLogoNav={() => setActiveNav('tarjeta')} />
         )}
         {activeNav === 'tarjeta' && (
           <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} />
         )}
         {activeNav === 'clientes' && (
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
-            loading={loading} manualStamp={manualStamp} />
+            loading={loading} manualStamp={(id, name) => setStampModal({ cardId: id, name })} />
         )}
         {activeNav === 'push' && (
           <ViewPush notifMsg={notifMsg} setNotifMsg={setNotifMsg}
