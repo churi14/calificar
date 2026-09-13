@@ -106,6 +106,19 @@ export async function POST(req: NextRequest) {
       businessId = business.id
     }
 
+    // ── Verificar si el negocio ya tiene un programa de fidelidad ────────────
+    const { data: existingProgram } = await adminSupabase
+      .from('loyalty_programs')
+      .select('id')
+      .eq('business_id', businessId)
+      .limit(1)
+      .single()
+
+    if (existingProgram) {
+      // Ya tiene programa — redirigir al panel sin crear nada nuevo
+      return NextResponse.json({ ok: true, business_id: businessId, program: existingProgram, existing: true })
+    }
+
     // ── Crear programa de fidelidad ──────────────────────────────────────────
     const { data: program, error: progErr } = await adminSupabase
       .from('loyalty_programs')

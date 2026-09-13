@@ -49,6 +49,19 @@ function CompleteContent() {
         if (raw) config = JSON.parse(raw)
       } catch {}
 
+      // Chequear si el usuario ya tiene un negocio registrado
+      const { data: existingCheck } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('owner_user_id', user.id)
+        .maybeSingle()
+
+      if (existingCheck) {
+        // Ya tiene negocio — ir directo al panel
+        router.replace('/negocio/fidelizacion')
+        return
+      }
+
       if (!config.businessName) {
         // Si no hay config, ir al panel igual (el usuario puede haber llegado por otro camino)
         router.replace('/negocio/fidelizacion')
