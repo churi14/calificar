@@ -43,7 +43,7 @@ export async function verifyProgramOwner(
 
   if (!data) return null
 
-  const biz = data.businesses as { owner_user_id: string }
+  const biz = data.businesses as unknown as { owner_user_id: string }
   if (biz.owner_user_id !== user.id) return null
 
   return { userId: user.id }
