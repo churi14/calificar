@@ -1466,6 +1466,31 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
     return (r * 299 + g * 587 + b * 114) / 1000 < 128
   }
 
+  function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath()
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y)
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+    ctx.lineTo(x + w, y + h - r)
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+    ctx.lineTo(x + r, y + h)
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+    ctx.lineTo(x, y + r)
+    ctx.quadraticCurveTo(x, y, x + r, y)
+    ctx.closePath()
+  }
+
+  async function drawQR(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+    if (!qrUrl) return
+    const pad = size * 0.08
+    const rr = size * 0.06
+    ctx.fillStyle = '#ffffff'
+    drawRoundRect(ctx, x - pad, y - pad, size + pad * 2, size + pad * 2, rr)
+    ctx.fill()
+    const img = new Image()
+    await new Promise<void>(res => { img.onload = () => res(); img.src = qrUrl! })
+    ctx.drawImage(img, x, y, size, size)
+  }
+
   async function drawCanvas(
     ctx: CanvasRenderingContext2D,
     cw: number, ch: number,
@@ -1476,100 +1501,126 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
     const textColor = dark ? '#ffffff' : '#1a1a1a'
     const bgColor = dark ? color : '#f5f0eb'
     const accentColor = dark ? '#ffffff' : color
-    const isV = ch > cw
-    const unit = Math.min(cw, ch)
+    const ratio = ch / cw
+    const isStory = ratio > 1.5          // 9:16 → 1080×1920
+    const isFeed45 = ratio > 0.9 && ratio <= 1.5  // 4:5 → 1080×1350
+    const isHoriz = ratio < 0.9          // 16:9 → 1200×675, 4:1 → 1584×396
 
-    // Background
+    // ── Background ───────────────────────────────────────────────────────────
     ctx.fillStyle = bgColor
     ctx.fillRect(0, 0, cw, ch)
 
-    // Deco circle top-right
+    // Deco circle
     ctx.beginPath()
-    ctx.arc(cw * 0.9, isV ? ch * -0.02 : ch * -0.1, cw * 0.4, 0, Math.PI * 2)
-    ctx.fillStyle = dark ? lighten(color, 25) : lighten(color, 170)
+    ctx.arc(cw * 0.88, ch * (isHoriz ? -0.25 : -0.03), cw * (isHoriz ? 0.55 : 0.42), 0, Math.PI * 2)
+    ctx.fillStyle = dark ? lighten(color, 25) : lighten(color, 165)
     ctx.fill()
 
-    // QR — always centered horizontally
-    const qrSize = isV ? cw * 0.5 : unit * 0.52
-    const qrX = (cw - qrSize) / 2
-    const qrY = isV ? ch * 0.4 : (ch - qrSize) / 2
-
-    // White card behind QR
-    const pad = qrSize * 0.08
-    ctx.fillStyle = '#ffffff'
-    const rr = qrSize * 0.06
-    const rx = qrX - pad, ry = qrY - pad, rw = qrSize + pad * 2, rh = qrSize + pad * 2
-    ctx.beginPath()
-    ctx.moveTo(rx + rr, ry); ctx.lineTo(rx + rw - rr, ry)
-    ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rr)
-    ctx.lineTo(rx + rw, ry + rh - rr)
-    ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rr, ry + rh)
-    ctx.lineTo(rx + rr, ry + rh)
-    ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rr)
-    ctx.lineTo(rx, ry + rr)
-    ctx.quadraticCurveTo(rx, ry, rx + rr, ry)
-    ctx.closePath(); ctx.fill()
-
-    // QR image
-    if (qrUrl) {
-      const img = new Image()
-      await new Promise<void>(res => { img.onload = () => res(); img.src = qrUrl })
-      ctx.drawImage(img, qrX, qrY, qrSize, qrSize)
-    }
-
-    ctx.textAlign = 'center'
-    if (isV) {
-      // Headline lines centered
+    // ── STORY / WHATSAPP (9:16) ───────────────────────────────────────────────
+    if (isStory) {
       const fs = cw * 0.1
+      const qrSize = cw * 0.5
+      const qrX = (cw - qrSize) / 2
+      const qrY = ch * 0.42
+
+      // Headline
+      ctx.textAlign = 'center'
       ctx.font = `bold ${fs}px system-ui`
-      if (tpl.id === 'story-activacion' || tpl.id === 'whatsapp') {
-        const lines = [
-          { text: 'Escanealo.',  col: accentColor },
-          { text: 'Guardalo.',   col: accentColor },
-          { text: 'Empieza.',    col: textColor   },
-        ]
-        lines.forEach((l, i) => {
-          ctx.fillStyle = l.col
-          ctx.fillText(l.text, cw / 2, ch * 0.14 + i * fs * 1.25)
-        })
-      } else {
-        const lines = [
-          { text: 'Tu pase digital,', col: textColor   },
-          { text: 'guardalo en',       col: accentColor },
-          { text: 'tu Wallet.',         col: accentColor },
-        ]
-        lines.forEach((l, i) => {
-          ctx.fillStyle = l.col
-          ctx.fillText(l.text, cw / 2, ch * 0.14 + i * fs * 1.25)
-        })
-      }
-      // Business name above QR
-      ctx.fillStyle = dark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.5)'
-      ctx.font = `600 ${cw * 0.046}px system-ui`
-      ctx.fillText(bizName, cw / 2, qrY - pad - cw * 0.04)
-      // Escanea label below QR
-      ctx.fillStyle = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.35)'
-      ctx.font = `${cw * 0.037}px system-ui`
-      ctx.fillText('+ ESCANEA AQUÍ', cw / 2, qrY + qrSize + pad + cw * 0.065)
-      ctx.fillText('Guardala en tu Wallet', cw / 2, qrY + qrSize + pad + cw * 0.115)
-    } else {
-      // Horizontal: text left, QR right (already centered overall — adjust)
-      const textX = cw * 0.27
-      ctx.font = `bold ${ch * 0.18}px system-ui`
-      ctx.fillStyle = textColor
-      ctx.fillText('Tu pase', textX, ch * 0.4)
-      ctx.fillStyle = accentColor
-      ctx.fillText('digital.', textX, ch * 0.65)
-      ctx.fillStyle = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.35)'
-      ctx.font = `${ch * 0.09}px system-ui`
-      ctx.fillText(bizName, textX, ch * 0.84)
+      const isActivacion = tpl.id === 'story-activacion' || tpl.id === 'whatsapp'
+      const lines = isActivacion
+        ? [{ t: 'Escanealo.', c: accentColor }, { t: 'Guardalo.', c: accentColor }, { t: 'Empieza.', c: textColor }]
+        : [{ t: 'Tu pase digital,', c: textColor }, { t: 'guardalo en', c: accentColor }, { t: 'tu Wallet.', c: accentColor }]
+      lines.forEach((l, i) => {
+        ctx.fillStyle = l.c
+        ctx.fillText(l.t, cw / 2, ch * 0.13 + i * fs * 1.25)
+      })
+
+      // Biz name strip
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.45)'
+      ctx.font = `600 ${cw * 0.045}px system-ui`
+      ctx.fillText(bizName, cw / 2, qrY - cw * 0.06)
+
+      await drawQR(ctx, qrX, qrY, qrSize)
+
+      // Sub-label below QR
+      const pad = qrSize * 0.08
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.32)'
+      ctx.font = `${cw * 0.036}px system-ui`
+      ctx.fillText('+ ESCANEA AQUÍ', cw / 2, qrY + qrSize + pad + cw * 0.06)
+      ctx.fillText('Guardala en tu Wallet', cw / 2, qrY + qrSize + pad + cw * 0.11)
     }
 
-    // Footer
+    // ── FEED 4:5 (1080×1350) ─────────────────────────────────────────────────
+    if (isFeed45) {
+      const qrSize = cw * 0.44
+      const qrX = (cw - qrSize) / 2
+      const qrY = ch * 0.38
+
+      // Headline — bigger, fewer lines
+      const fs = cw * 0.11
+      ctx.textAlign = 'center'
+      ctx.font = `bold ${fs}px system-ui`
+      ctx.fillStyle = textColor
+      ctx.fillText('Tu pase digital,', cw / 2, ch * 0.1)
+      ctx.fillStyle = accentColor
+      ctx.fillText('guardalo en tu Wallet.', cw / 2, ch * 0.1 + fs * 1.3)
+
+      // Biz name — below headline, clearly above QR
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.45)'
+      ctx.font = `600 ${cw * 0.048}px system-ui`
+      ctx.fillText(bizName, cw / 2, ch * 0.32)
+
+      await drawQR(ctx, qrX, qrY, qrSize)
+
+      // Sub-label below QR
+      const pad = qrSize * 0.08
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.32)'
+      ctx.font = `${cw * 0.038}px system-ui`
+      ctx.fillText('+ ESCANEA AQUÍ · Guardala en tu Wallet', cw / 2, qrY + qrSize + pad + cw * 0.07)
+    }
+
+    // ── HORIZONTAL (16:9 Twitter, 4:1 LinkedIn) ───────────────────────────────
+    if (isHoriz) {
+      // QR on the right third
+      const qrSize = ch * (ratio < 0.35 ? 0.55 : 0.62)  // smaller for banner 4:1
+      const qrX = cw * 0.68
+      const qrY = (ch - qrSize) / 2
+
+      await drawQR(ctx, qrX, qrY, qrSize)
+
+      // Text on the left side
+      const textCX = cw * 0.33
+      ctx.textAlign = 'center'
+
+      if (ratio < 0.35) {
+        // 4:1 LinkedIn banner — single line compact
+        const fs = ch * 0.28
+        ctx.font = `bold ${fs}px system-ui`
+        ctx.fillStyle = textColor
+        ctx.fillText('Tu pase digital.', textCX, ch * 0.45)
+        ctx.fillStyle = dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)'
+        ctx.font = `${ch * 0.18}px system-ui`
+        ctx.fillText(bizName, textCX, ch * 0.75)
+      } else {
+        // 16:9 Twitter — two lines headline
+        const fs = ch * 0.19
+        ctx.font = `bold ${fs}px system-ui`
+        ctx.fillStyle = textColor
+        ctx.fillText('Tu pase digital,', textCX, ch * 0.36)
+        ctx.fillStyle = accentColor
+        ctx.fillText('guardalo en tu Wallet.', textCX, ch * 0.36 + fs * 1.3)
+        ctx.fillStyle = dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)'
+        ctx.font = `${ch * 0.1}px system-ui`
+        ctx.fillText(bizName, textCX, ch * 0.82)
+      }
+    }
+
+    // ── Footer ────────────────────────────────────────────────────────────────
+    const unit = Math.min(cw, ch)
     ctx.textAlign = 'center'
-    ctx.fillStyle = dark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.22)'
-    ctx.font = `${unit * 0.024}px system-ui`
-    ctx.fillText('powered by calificar.com.ar', cw / 2, ch - unit * 0.028)
+    ctx.fillStyle = dark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.2)'
+    ctx.font = `${unit * 0.022}px system-ui`
+    ctx.fillText('powered by calificar.com.ar', cw / 2, ch - unit * 0.025)
   }
 
   async function renderTemplate(tpl: typeof DIGITAL_TEMPLATES[0]): Promise<string> {
