@@ -1435,6 +1435,7 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
   const [qrUrl, setQrUrl] = useState<string | null>(null)
   const [activeTag, setActiveTag] = useState<string>('Todos')
   const [downloading, setDownloading] = useState<string | null>(null)
+  const [previewTpl, setPreviewTpl] = useState<typeof DIGITAL_TEMPLATES[0] | null>(null)
   const color = program?.color_primary ?? '#7C3AED'
   const bizName = (program as any)?.businesses?.name ?? program?.name ?? 'Tu negocio'
   const scanUrl = selectedProgram
@@ -1637,6 +1638,58 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
       className="rounded-xl block" style={{ maxHeight: 185, width: 'auto' }} />
   }
 
+  // Modal de preview a tamaño grande
+  function PreviewModal({ tpl, onClose }: { tpl: typeof DIGITAL_TEMPLATES[0]; onClose: () => void }) {
+    const ref = useRef<HTMLCanvasElement>(null)
+    useEffect(() => {
+      if (!ref.current || !qrUrl) return
+      const canvas = ref.current
+      const ctx = canvas.getContext('2d')!
+      const sx = canvas.width / tpl.w
+      const sy = canvas.height / tpl.h
+      ctx.setTransform(sx, 0, 0, sy, 0, 0)
+      const doRender = (logoImg: HTMLImageElement | null) => drawCanvas(ctx, tpl.w, tpl.h, tpl, logoImg)
+      if (program?.logo_url) {
+        const logoImg = new Image(); logoImg.crossOrigin = 'anonymous'
+        logoImg.onload = () => doRender(logoImg)
+        logoImg.onerror = () => doRender(null)
+        logoImg.src = program.logo_url
+      } else { doRender(null) }
+    }, [tpl])
+    // Fit dentro de la pantalla: max 80vh
+    const maxH = Math.min(700, Math.round(window.innerHeight * 0.78))
+    const previewH = maxH
+    const previewW = Math.round(previewH * tpl.w / tpl.h)
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+        style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(6px)' }}
+        onClick={onClose}>
+        <div className="flex flex-col items-center gap-4" onClick={e => e.stopPropagation()}>
+          <canvas ref={ref} width={previewW} height={previewH}
+            className="rounded-2xl shadow-2xl block"
+            style={{ maxWidth: '90vw', maxHeight: '78vh', width: 'auto', height: 'auto' }} />
+          <div className="flex items-center gap-3">
+            <div className="text-center">
+              <p className="text-white font-bold text-sm">{tpl.label}</p>
+              <p className="text-zinc-400 text-xs">{tpl.size} · PNG</p>
+            </div>
+            <button onClick={() => { download(tpl); onClose() }}
+              disabled={!qrUrl || downloading === tpl.id}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              style={{ background: color }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Descargar
+            </button>
+            <button onClick={onClose}
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-zinc-300 border border-zinc-600 hover:border-zinc-400 transition-colors">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-8 max-w-4xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Compartí tu tarjeta</h1>
@@ -1662,12 +1715,24 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
           </div>
         )}
 
+        {previewTpl && <PreviewModal tpl={previewTpl} onClose={() => setPreviewTpl(null)} />}
+
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {filtered.map(tpl => (
-            <div key={tpl.id} className="bg-white border border-zinc-100 rounded-2xl overflow-hidden flex flex-col">
-              <div className="flex items-center justify-center bg-zinc-50 py-5 px-4 min-h-[160px]">
+            <div key={tpl.id} className="bg-white border border-zinc-100 rounded-2xl overflow-hidden flex flex-col group">
+              <button onClick={() => qrUrl && setPreviewTpl(tpl)}
+                className="flex items-center justify-center bg-zinc-50 py-5 px-4 min-h-[160px] cursor-pointer relative transition-all hover:bg-zinc-100 w-full">
                 {qrUrl ? <TemplatePreview tpl={tpl} /> : <div className="w-20 h-28 bg-zinc-100 rounded-xl animate-pulse" />}
-              </div>
+                {qrUrl && (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: 'rgba(0,0,0,0.25)' }}>
+                    <div className="bg-white rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs font-semibold text-zinc-800 shadow-lg">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#18181b" strokeWidth="1.2"/><circle cx="6" cy="6" r="2" fill="#18181b"/></svg>
+                      Vista previa
+                    </div>
+                  </div>
+                )}
+              </button>
               <div className="p-3 flex items-start justify-between gap-2">
                 <div>
                   <p className="text-xs font-semibold text-zinc-900">{tpl.label}</p>
