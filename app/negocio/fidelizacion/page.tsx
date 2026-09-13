@@ -1202,44 +1202,48 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
     return (r * 299 + g * 587 + b * 114) / 1000 < 128
   }
 
-  async function renderTemplate(tpl: typeof DIGITAL_TEMPLATES[0]): Promise<string> {
-    const scale = 1
-    const cw = tpl.w * scale
-    const ch = tpl.h * scale
-    const canvas = document.createElement('canvas')
-    canvas.width = cw; canvas.height = ch
-    const ctx = canvas.getContext('2d')!
+  async function drawCanvas(
+    ctx: CanvasRenderingContext2D,
+    cw: number, ch: number,
+    tpl: typeof DIGITAL_TEMPLATES[0],
+    logoImg: HTMLImageElement | null
+  ) {
     const dark = isDark(color)
     const textColor = dark ? '#ffffff' : '#1a1a1a'
     const bgColor = dark ? color : '#f5f0eb'
     const accentColor = dark ? '#ffffff' : color
+    const isV = ch > cw
+    const unit = Math.min(cw, ch)
 
     // Background
     ctx.fillStyle = bgColor
     ctx.fillRect(0, 0, cw, ch)
 
-    // Decorative circle top-right
+    // Deco circle top-right
     ctx.beginPath()
-    ctx.arc(cw * 0.85, ch * -0.05, cw * 0.45, 0, Math.PI * 2)
-    ctx.fillStyle = dark ? lighten(color, 20) : lighten(color, 180)
+    ctx.arc(cw * 0.9, isV ? ch * -0.02 : ch * -0.1, cw * 0.4, 0, Math.PI * 2)
+    ctx.fillStyle = dark ? lighten(color, 25) : lighten(color, 170)
     ctx.fill()
 
-    const isVertical = ch > cw
-    const qrSize = isVertical ? cw * 0.42 : Math.min(cw, ch) * 0.38
-    const qrX = isVertical ? (cw - qrSize) / 2 : cw * 0.55
-    const qrY = isVertical ? ch * 0.38 : (ch - qrSize) / 2
+    // QR — always centered horizontally
+    const qrSize = isV ? cw * 0.5 : unit * 0.52
+    const qrX = (cw - qrSize) / 2
+    const qrY = isV ? ch * 0.4 : (ch - qrSize) / 2
 
-    // QR white card
+    // White card behind QR
     const pad = qrSize * 0.08
     ctx.fillStyle = '#ffffff'
-    const rr = qrSize * 0.07
+    const rr = qrSize * 0.06
     const rx = qrX - pad, ry = qrY - pad, rw = qrSize + pad * 2, rh = qrSize + pad * 2
     ctx.beginPath()
-    ctx.moveTo(rx + rr, ry)
-    ctx.lineTo(rx + rw - rr, ry); ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rr)
-    ctx.lineTo(rx + rw, ry + rh - rr); ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rr, ry + rh)
-    ctx.lineTo(rx + rr, ry + rh); ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rr)
-    ctx.lineTo(rx, ry + rr); ctx.quadraticCurveTo(rx, ry, rx + rr, ry)
+    ctx.moveTo(rx + rr, ry); ctx.lineTo(rx + rw - rr, ry)
+    ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rr)
+    ctx.lineTo(rx + rw, ry + rh - rr)
+    ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rr, ry + rh)
+    ctx.lineTo(rx + rr, ry + rh)
+    ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rr)
+    ctx.lineTo(rx, ry + rr)
+    ctx.quadraticCurveTo(rx, ry, rx + rr, ry)
     ctx.closePath(); ctx.fill()
 
     // QR image
@@ -1249,53 +1253,84 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
       ctx.drawImage(img, qrX, qrY, qrSize, qrSize)
     }
 
-    // Text
-    if (isVertical) {
-      const textX = cw * 0.1
+    // Logo — top-left corner
+    if (logoImg) {
+      const logoSize = isV ? cw * 0.13 : ch * 0.22
+      const lx = cw * 0.07, ly = isV ? ch * 0.05 : ch * 0.08
+      // White circle behind logo
+      ctx.fillStyle = '#ffffff'
+      ctx.beginPath()
+      ctx.arc(lx + logoSize / 2, ly + logoSize / 2, logoSize * 0.65, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.drawImage(logoImg, lx, ly, logoSize, logoSize)
+    }
+
+    ctx.textAlign = 'center'
+    if (isV) {
+      // Headline lines centered
+      const fs = cw * 0.1
+      ctx.font = `bold ${fs}px system-ui`
       if (tpl.id === 'story-activacion' || tpl.id === 'whatsapp') {
-        ctx.fillStyle = accentColor
-        ctx.font = `bold ${cw * 0.1}px system-ui`
-        ctx.fillText('Escanealo.', textX, ch * 0.15)
-        ctx.fillText('Guardalo.', textX, ch * 0.24)
-        ctx.fillStyle = textColor
-        ctx.font = `bold ${cw * 0.1}px system-ui`
-        ctx.fillText('Empieza.', textX, ch * 0.33)
+        const lines = [
+          { text: 'Escanealo.',  col: accentColor },
+          { text: 'Guardalo.',   col: accentColor },
+          { text: 'Empieza.',    col: textColor   },
+        ]
+        lines.forEach((l, i) => {
+          ctx.fillStyle = l.col
+          ctx.fillText(l.text, cw / 2, ch * 0.14 + i * fs * 1.25)
+        })
       } else {
-        ctx.fillStyle = textColor
-        ctx.font = `bold ${cw * 0.09}px system-ui`
-        ctx.fillText('Tu pase digital,', textX, ch * 0.15)
-        ctx.fillStyle = accentColor
-        ctx.fillText('guardalo en', textX, ch * 0.24)
-        ctx.fillText('tu Wallet.', textX, ch * 0.33)
+        const lines = [
+          { text: 'Tu pase digital,', col: textColor   },
+          { text: 'guardalo en',       col: accentColor },
+          { text: 'tu Wallet.',         col: accentColor },
+        ]
+        lines.forEach((l, i) => {
+          ctx.fillStyle = l.col
+          ctx.fillText(l.text, cw / 2, ch * 0.14 + i * fs * 1.25)
+        })
       }
-      // Business name
-      ctx.fillStyle = textColor
-      ctx.font = `${cw * 0.048}px system-ui`
-      ctx.fillText(bizName, textX, ch * 0.78)
-      // Escanea label
-      ctx.fillStyle = dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)'
-      ctx.font = `${cw * 0.038}px system-ui`
-      ctx.textAlign = 'center'
-      ctx.fillText('+ ESCANEA AQUÍ', cw / 2, qrY + qrSize + pad + cw * 0.06)
-      ctx.fillText('Guardala en tu Wallet', cw / 2, qrY + qrSize + pad + cw * 0.11)
+      // Business name above QR
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.5)'
+      ctx.font = `600 ${cw * 0.046}px system-ui`
+      ctx.fillText(bizName, cw / 2, qrY - pad - cw * 0.04)
+      // Escanea label below QR
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.35)'
+      ctx.font = `${cw * 0.037}px system-ui`
+      ctx.fillText('+ ESCANEA AQUÍ', cw / 2, qrY + qrSize + pad + cw * 0.065)
+      ctx.fillText('Guardala en tu Wallet', cw / 2, qrY + qrSize + pad + cw * 0.115)
     } else {
-      ctx.fillStyle = textColor
+      // Horizontal: text left, QR right (already centered overall — adjust)
+      const textX = cw * 0.27
       ctx.font = `bold ${ch * 0.18}px system-ui`
-      ctx.fillText('Tu pase', cw * 0.05, ch * 0.35)
+      ctx.fillStyle = textColor
+      ctx.fillText('Tu pase', textX, ch * 0.4)
       ctx.fillStyle = accentColor
-      ctx.fillText('digital.', cw * 0.05, ch * 0.58)
-      ctx.fillStyle = dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)'
-      ctx.font = `${ch * 0.1}px system-ui`
-      ctx.textAlign = 'left'
-      ctx.fillText(bizName, cw * 0.05, ch * 0.78)
+      ctx.fillText('digital.', textX, ch * 0.65)
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.35)'
+      ctx.font = `${ch * 0.09}px system-ui`
+      ctx.fillText(bizName, textX, ch * 0.84)
     }
 
     // Footer
     ctx.textAlign = 'center'
-    ctx.fillStyle = dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.25)'
-    ctx.font = `${Math.min(cw, ch) * 0.025}px system-ui`
-    ctx.fillText('powered by calificar.com.ar', cw / 2, ch - Math.min(cw, ch) * 0.03)
+    ctx.fillStyle = dark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.22)'
+    ctx.font = `${unit * 0.024}px system-ui`
+    ctx.fillText('powered by calificar.com.ar', cw / 2, ch - unit * 0.028)
+  }
 
+  async function renderTemplate(tpl: typeof DIGITAL_TEMPLATES[0]): Promise<string> {
+    const canvas = document.createElement('canvas')
+    canvas.width = tpl.w; canvas.height = tpl.h
+    const ctx = canvas.getContext('2d')!
+    let logoImg: HTMLImageElement | null = null
+    if (program?.logo_url) {
+      logoImg = new Image()
+      logoImg.crossOrigin = 'anonymous'
+      await new Promise<void>(res => { logoImg!.onload = () => res(); logoImg!.onerror = () => res(); logoImg!.src = program!.logo_url! })
+    }
+    await drawCanvas(ctx, tpl.w, tpl.h, tpl, logoImg)
     return canvas.toDataURL('image/png')
   }
 
@@ -1321,53 +1356,34 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
   const tags = ['Todos', ...Array.from(new Set(DIGITAL_TEMPLATES.map(t => t.tag)))]
   const filtered = activeTag === 'Todos' ? DIGITAL_TEMPLATES : DIGITAL_TEMPLATES.filter(t => t.tag === activeTag)
 
-  // Mini canvas preview per template
+  // Mini canvas preview — same drawCanvas, scaled down
   function TemplatePreview({ tpl }: { tpl: typeof DIGITAL_TEMPLATES[0] }) {
     const ref = useRef<HTMLCanvasElement>(null)
     useEffect(() => {
       if (!ref.current || !qrUrl) return
       const canvas = ref.current
       const ctx = canvas.getContext('2d')!
-      const scale = canvas.width / tpl.w
-      const dark = isDark(color)
-      const bgColor = dark ? color : '#f5f0eb'
-      const accentColor = dark ? '#ffffff' : color
-      const textColor = dark ? '#ffffff' : '#1a1a1a'
-      ctx.fillStyle = bgColor; ctx.fillRect(0, 0, canvas.width, canvas.height)
-      // deco circle
-      ctx.beginPath()
-      ctx.arc(canvas.width * 0.85, canvas.height * -0.05, canvas.width * 0.45, 0, Math.PI * 2)
-      ctx.fillStyle = dark ? lighten(color, 20) : lighten(color, 180); ctx.fill()
-      const isV = tpl.h > tpl.w
-      const qSize = isV ? canvas.width * 0.42 : Math.min(canvas.width, canvas.height) * 0.38
-      const qx = isV ? (canvas.width - qSize) / 2 : canvas.width * 0.55
-      const qy = isV ? canvas.height * 0.38 : (canvas.height - qSize) / 2
-      // white bg
-      ctx.fillStyle = '#fff'
-      const p = qSize * 0.08
-      ctx.fillRect(qx - p, qy - p, qSize + p * 2, qSize + p * 2)
-      // QR
-      const img = new Image(); img.src = qrUrl
-      img.onload = () => ctx.drawImage(img, qx, qy, qSize, qSize)
-      // texts
-      ctx.fillStyle = textColor
-      ctx.font = `bold ${canvas.width * 0.09}px system-ui`
-      if (isV) {
-        ctx.fillStyle = accentColor; ctx.fillText('Tu pase', canvas.width * 0.1, canvas.height * 0.15)
-        ctx.fillStyle = textColor;   ctx.fillText('digital', canvas.width * 0.1, canvas.height * 0.24)
-        ctx.font = `${canvas.width * 0.045}px system-ui`
-        ctx.fillStyle = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.35)'
-        ctx.textAlign = 'center'; ctx.fillText('ESCANEAR AQUÍ', canvas.width / 2, qy + qSize + p + canvas.width * 0.07)
+      // Scale context to preview size
+      const sx = canvas.width / tpl.w
+      const sy = canvas.height / tpl.h
+      ctx.setTransform(sx, 0, 0, sy, 0, 0)
+      // Load logo then draw
+      const doRender = (logoImg: HTMLImageElement | null) =>
+        drawCanvas(ctx, tpl.w, tpl.h, tpl, logoImg)
+      if (program?.logo_url) {
+        const logoImg = new Image()
+        logoImg.crossOrigin = 'anonymous'
+        logoImg.onload = () => doRender(logoImg)
+        logoImg.onerror = () => doRender(null)
+        logoImg.src = program.logo_url
       } else {
-        ctx.fillStyle = accentColor; ctx.fillText('Tu pase', canvas.width * 0.04, canvas.height * 0.45)
-        ctx.fillStyle = textColor;   ctx.fillText('digital', canvas.width * 0.04, canvas.height * 0.65)
+        doRender(null)
       }
-      ctx.textAlign = 'left'
     }, [qrUrl, tpl])
-    const aspect = tpl.h / tpl.w
-    const previewW = 140
-    return <canvas ref={ref} width={previewW} height={Math.round(previewW * aspect)}
-      className="rounded-xl block" style={{ maxHeight: 180, width: 'auto' }} />
+    const previewW = 130
+    const previewH = Math.round(previewW * tpl.h / tpl.w)
+    return <canvas ref={ref} width={previewW} height={previewH}
+      className="rounded-xl block" style={{ maxHeight: 185, width: 'auto' }} />
   }
 
   return (
