@@ -179,6 +179,27 @@ export default function OnboardingPage() {
     track(step, 'step_view')
   }, [step])
 
+  // Si el usuario ya tiene negocio registrado, redirigir al panel
+  useEffect(() => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) return
+      // Chequear vía API si ya tiene negocio
+      const res = await fetch('/api/fidelizacion/admin', {
+        headers: { Authorization: `Bearer ${data.session.access_token}` },
+      })
+      if (res.ok) {
+        const d = await res.json()
+        if (d.programs && d.programs.length > 0) {
+          window.location.replace('/negocio/fidelizacion')
+        }
+      }
+    }).catch(() => {})
+  }, [])
+
   // Form data
   const [businessType, setBusinessType] = useState('')
   const [cardDesign, setCardDesign] = useState<'template' | 'custom'>('template')

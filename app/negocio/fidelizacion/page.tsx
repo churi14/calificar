@@ -2,6 +2,12 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseClient = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 type Program = {
   id: string
@@ -653,8 +659,8 @@ function PlansModal({ onClose }: { onClose: () => void }) {
 }
 
 // ── Vista: TARJETA ───────────────────────────────────────────────────────────
-function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
-  { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void }) {
+function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken }:
+  { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void; accessToken: string }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
@@ -671,7 +677,11 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
     form.append('file', file)
     form.append('program_id', selectedProgram ?? '')
     try {
-      const res = await fetch('/api/fidelizacion/upload-logo', { method: 'POST', body: form })
+      const res = await fetch('/api/fidelizacion/upload-logo', {
+        method: 'POST',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        body: form,
+      })
       const data = await res.json()
       if (data.url) onLogoUploaded(data.url)
       else setUploadError(data.error ?? 'Error al subir')
@@ -970,9 +980,9 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif }:
 }
 
 // ── Vista: PROXIMIDAD ────────────────────────────────────────────────────────
-function ViewProximidad({ selectedProgram, isPro, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif }: {
+function ViewProximidad({ selectedProgram, isPro, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, accessToken }: {
   selectedProgram: string | null; isPro: boolean
-  notifMsg: string; setNotifMsg: (v: string) => void
+  notifMsg: string; setNotifMsg: (v: string) => void; accessToken: string
   notifSending: boolean; notifSent: boolean; sendNotif: () => void
 }) {
   const [tab, setTab] = useState<'push' | 'proximidad'>('proximidad')
@@ -988,7 +998,9 @@ function ViewProximidad({ selectedProgram, isPro, notifMsg, setNotifMsg, notifSe
 
   useEffect(() => {
     if (!selectedProgram) return
-    fetch(`/api/fidelizacion/proximity?program_id=${selectedProgram}`)
+    fetch(`/api/fidelizacion/proximity?program_id=${selectedProgram}`, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    })
       .then(r => r.json())
       .then(d => {
         setEnabled(d.proximity_enabled ?? false)
@@ -998,7 +1010,7 @@ function ViewProximidad({ selectedProgram, isPro, notifMsg, setNotifMsg, notifSe
         if (d.location_lng) setLng(String(d.location_lng))
       })
       .catch(() => setLoadError('No se pudo cargar la configuración.'))
-  }, [selectedProgram])
+  }, [selectedProgram, accessToken])
 
   function detectLocation() {
     if (!navigator.geolocation) return
@@ -1018,7 +1030,7 @@ function ViewProximidad({ selectedProgram, isPro, notifMsg, setNotifMsg, notifSe
     setSaving(true)
     await fetch('/api/fidelizacion/proximity', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
       body: JSON.stringify({
         program_id: selectedProgram,
         lat: lat ? parseFloat(lat) : null,
@@ -2167,6 +2179,7 @@ export default function NegocioDashboard() {
   const [showDiscount, setShowDiscount] = useState(false)
   const [businessName, setBusinessName] = useState('Mi negocio')
   const [userEmail, setUserEmail] = useState('')
+  const [accessToken, setAccessToken] = useState('')
   const [todayBdayCount, setTodayBdayCount] = useState(0)
   const [pushLogs, setPushLogs] = useState<{ id: string; title: string; body: string; sent_to: number; created_at: string }[]>([])
   const [salesByDay, setSalesByDay] = useState<Record<string, number>>({})
@@ -2188,6 +2201,11 @@ export default function NegocioDashboard() {
   useEffect(() => {
     const seen = localStorage.getItem('cal_discount_seen')
     if (!seen) setTimeout(() => setShowDiscount(true), 1200)
+
+    // Obtener token para requests autenticados
+    supabaseClient.auth.getSession().then(({ data }) => {
+      if (data.session?.access_token) setAccessToken(data.session.access_token)
+    })
 
     fetch('/api/fidelizacion/admin')
       .then(r => r.json())
@@ -2233,7 +2251,9 @@ export default function NegocioDashboard() {
     }).catch(() => setLoading(false))
 
     // Stats extra: push logs + ventas
-    fetch(`/api/fidelizacion/stats?program_id=${selectedProgram}`)
+    fetch(`/api/fidelizacion/stats?program_id=${selectedProgram}`, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    })
       .then(r => r.json())
       .then(d => {
         setPushLogs(d.push_logs ?? [])
@@ -2246,7 +2266,8 @@ export default function NegocioDashboard() {
     if (!notifMsg.trim() || !selectedProgram) return
     setNotifSending(true)
     const res = await fetch('/api/fidelizacion/push/send', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
       body: JSON.stringify({ program_id: selectedProgram, title: '📣 Novedad del local', body: notifMsg }),
     })
     const d = await res.json()
@@ -2263,7 +2284,8 @@ export default function NegocioDashboard() {
 
   async function manualStamp(cardId: string, purchaseAmount?: number) {
     await fetch('/api/fidelizacion/stamp', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
       body: JSON.stringify({ card_id: cardId, program_id: selectedProgram, registered_by: 'manual', purchase_amount: purchaseAmount ?? null }),
     })
     const r = await fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`)
@@ -2372,7 +2394,7 @@ export default function NegocioDashboard() {
             onLogoNav={() => setActiveNav('tarjeta')} />
         )}
         {activeNav === 'tarjeta' && (
-          <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} />
+          <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} accessToken={accessToken} />
         )}
         {activeNav === 'clientes' && (
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
@@ -2385,7 +2407,7 @@ export default function NegocioDashboard() {
         {activeNav === 'proximidad' && (
           <ViewProximidad selectedProgram={selectedProgram} isPro={true}
             notifMsg={notifMsg} setNotifMsg={setNotifMsg}
-            notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif} />
+            notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif} accessToken={accessToken} />
         )}
         {activeNav === 'cumple' && (
           <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={true} />

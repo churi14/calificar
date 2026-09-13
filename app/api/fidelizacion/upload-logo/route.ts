@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyProgramOwner } from '@/lib/business-auth'
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,6 +20,11 @@ export async function POST(req: NextRequest) {
 
     if (!file || !programId) {
       return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 })
+    }
+
+    const owner = await verifyProgramOwner(req, programId)
+    if (!owner) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
     if (file.size > 2 * 1024 * 1024) {

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
+import { verifyProgramOwner } from '@/lib/business-auth'
 
 function getVapidConfig() {
   return {
@@ -25,6 +26,12 @@ export async function POST(req: NextRequest) {
 
   if (!program_id || !title || !body) {
     return NextResponse.json({ error: 'program_id, title y body son requeridos' }, { status: 400 })
+  }
+
+  // Verificar que el usuario autenticado es dueño del programa
+  const owner = await verifyProgramOwner(req, program_id)
+  if (!owner) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
   const vapid = getVapidConfig()

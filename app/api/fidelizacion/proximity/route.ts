@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createOrUpdateLoyaltyClass } from '@/lib/wallet/google-wallet'
+import { verifyProgramOwner } from '@/lib/business-auth'
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,6 +21,11 @@ export async function POST(req: NextRequest) {
 
     if (!program_id) {
       return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
+    }
+
+    const owner = await verifyProgramOwner(req, program_id)
+    if (!owner) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
     // 1. Leer el programa completo para tener todos los datos que necesita el Wallet
@@ -79,6 +85,9 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const program_id = req.nextUrl.searchParams.get('program_id')
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
+
+  const owner = await verifyProgramOwner(req, program_id)
+  if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const { data } = await admin
     .from('loyalty_programs')

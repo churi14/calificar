@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
+import { verifyProgramOwner } from '@/lib/business-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,6 +22,14 @@ export async function POST(req: NextRequest) {
 
     if (!card_id || !program_id) {
       return NextResponse.json({ error: 'card_id y program_id son requeridos' }, { status: 400 })
+    }
+
+    // Los sellos manuales (desde el panel del negocio) requieren auth de dueño
+    if (registered_by === 'manual') {
+      const owner = await verifyProgramOwner(req, program_id)
+      if (!owner) {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+      }
     }
 
     // Traer tarjeta y programa juntos
