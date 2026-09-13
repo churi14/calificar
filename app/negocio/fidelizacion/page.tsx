@@ -1253,18 +1253,6 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
       ctx.drawImage(img, qrX, qrY, qrSize, qrSize)
     }
 
-    // Logo — top-left corner
-    if (logoImg) {
-      const logoSize = isV ? cw * 0.13 : ch * 0.22
-      const lx = cw * 0.07, ly = isV ? ch * 0.05 : ch * 0.08
-      // White circle behind logo
-      ctx.fillStyle = '#ffffff'
-      ctx.beginPath()
-      ctx.arc(lx + logoSize / 2, ly + logoSize / 2, logoSize * 0.65, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.drawImage(logoImg, lx, ly, logoSize, logoSize)
-    }
-
     ctx.textAlign = 'center'
     if (isV) {
       // Headline lines centered
