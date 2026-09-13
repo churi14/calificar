@@ -964,7 +964,11 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif }:
 }
 
 // ── Vista: PROXIMIDAD ────────────────────────────────────────────────────────
-function ViewProximidad({ selectedProgram, isPro }: { selectedProgram: string | null; isPro: boolean }) {
+function ViewProximidad({ selectedProgram, isPro, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif }: {
+  selectedProgram: string | null; isPro: boolean
+  notifMsg: string; setNotifMsg: (v: string) => void
+  notifSending: boolean; notifSent: boolean; sendNotif: () => void
+}) {
   const [tab, setTab] = useState<'push' | 'proximidad'>('proximidad')
   const [enabled, setEnabled] = useState(false)
   const [message, setMessage] = useState('')
@@ -1043,8 +1047,28 @@ function ViewProximidad({ selectedProgram, isPro }: { selectedProgram: string | 
       </div>
 
       {tab === 'push' && (
-        <div className="bg-white border border-zinc-100 rounded-2xl p-6">
-          <p className="text-sm text-zinc-500">Usá la sección <strong>Avisos push</strong> del menú izquierdo para enviar mensajes manuales.</p>
+        <div className="bg-white border border-zinc-100 rounded-2xl p-6 space-y-4">
+          <div>
+            <p className="text-sm font-bold text-zinc-900 mb-0.5">Enviar notificación push</p>
+            <p className="text-xs text-zinc-400">Se envía a todos los clientes que activaron notificaciones en su tarjeta.</p>
+          </div>
+          <textarea
+            value={notifMsg}
+            onChange={e => setNotifMsg(e.target.value)}
+            placeholder="Ej: Esta semana 2x1 en café ☕ Pasate a buscar tu beneficio!"
+            rows={4}
+            className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-4 py-3 text-sm focus:outline-none resize-none"
+          />
+          <button
+            onClick={sendNotif}
+            disabled={notifSending || !notifMsg.trim() || notifSent}
+            className="w-full py-3 rounded-xl font-bold text-white text-sm disabled:opacity-50 transition-all"
+            style={{ background: notifSent ? '#10B981' : '#7C3AED' }}>
+            {notifSent ? '✓ Enviado a todos los clientes' : notifSending ? 'Enviando...' : 'Enviar push a todos los clientes →'}
+          </button>
+          {notifSent && (
+            <p className="text-xs text-emerald-600 text-center">Los clientes con notificaciones activas lo recibieron al instante.</p>
+          )}
         </div>
       )}
 
@@ -1919,7 +1943,9 @@ export default function NegocioDashboard() {
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif} />
         )}
         {activeNav === 'proximidad' && (
-          <ViewProximidad selectedProgram={selectedProgram} isPro={true} />
+          <ViewProximidad selectedProgram={selectedProgram} isPro={true}
+            notifMsg={notifMsg} setNotifMsg={setNotifMsg}
+            notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif} />
         )}
         {activeNav === 'cumple' && (
           <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={true} />
