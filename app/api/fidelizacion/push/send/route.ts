@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       title,
       body,
       sent_to: sent,
-    }).catch(() => {})
+    })
   }
 
   return NextResponse.json({ ok: true, sent, total: subs.length })
