@@ -94,8 +94,8 @@ function DiscountPopup({ onClose }: { onClose: () => void }) {
 }
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────
-function Sidebar({ active, onNav, businessName, email, bdayBadge = 0 }: {
-  active: string; onNav: (id: string) => void; businessName: string; email: string; bdayBadge?: number
+function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, onDarkToggle }: {
+  active: string; onNav: (id: string) => void; businessName: string; email: string; bdayBadge?: number; isDark: boolean; onDarkToggle: () => void
 }) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const nav = [
@@ -187,7 +187,14 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0 }: {
             <div className="bg-violet-500 h-1 rounded-full" style={{ width: '15%' }} />
           </div>
         </div>
-        <button className="w-full text-left text-[10px] text-zinc-400 hover:text-zinc-600 transition-colors">↩ Cerrar sesión</button>
+        <div className="flex items-center justify-between mb-2">
+          <button className="text-[10px] text-zinc-400 hover:text-zinc-600 transition-colors">↩ Cerrar sesión</button>
+          <button onClick={onDarkToggle} title={isDark ? 'Modo claro' : 'Modo oscuro'}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-all hover:bg-zinc-100"
+            style={{ background: isDark ? '#3f3f46' : '' }}>
+            {isDark ? '☀️' : '🌙'}
+          </button>
+        </div>
       </div>
     </aside>
   )
@@ -404,7 +411,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
           { label: 'VUELVEN',            value: returningClients,     sub: 'más de 1 visita' },
           { label: 'PREMIOS ENTREGADOS', value: stats.rewardsTotal,   sub: 'en total' },
         ].map(k => (
-          <div key={k.label} className="bg-white border border-zinc-100 rounded-2xl p-4">
+          <div key={k.label} className={`bg-white border border-zinc-100 rounded-2xl p-4${k.value === 0 ? ' placeholder-glow' : ''}`}>
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">{k.label}</p>
             <p className="text-3xl font-extrabold text-zinc-900">{k.value}</p>
             <p className="text-[11px] text-zinc-400 mt-1">{k.sub}</p>
@@ -417,7 +424,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
         <div className="bg-white border border-zinc-100 rounded-2xl p-5">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">LO QUE ESTÁ PASANDO AHORA</p>
           {transactions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="flex flex-col items-center justify-center py-6 text-center placeholder-glow rounded-xl">
               <div className="w-10 h-10 bg-zinc-50 rounded-2xl flex items-center justify-center text-xl mb-2">✨</div>
               <p className="text-xs font-semibold text-zinc-700">La actividad aparecerá aquí.</p>
               <p className="text-[10px] text-zinc-400 mt-1">Activá tu primer cliente con el QR.</p>
@@ -442,7 +449,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
         <div className="bg-white border border-zinc-100 rounded-2xl p-5">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">CLIENTES QUE REGRESAN</p>
           <div className="flex flex-col items-center justify-center h-28">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-extrabold"
+            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-extrabold${returningClients === 0 ? ' placeholder-glow' : ''}`}
               style={{ background: `${color}18`, color }}>
               {returningClients}
             </div>
@@ -500,7 +507,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
             </div>
           </div>
           {totalSales === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="flex flex-col items-center justify-center py-8 text-center placeholder-glow rounded-xl">
               <p className="text-xs text-zinc-500 font-semibold mb-1">Registrá el gasto de tus clientes al sellar</p>
               <p className="text-[10px] text-zinc-400">En cada sello manual podés ingresar el monto de la venta</p>
             </div>
@@ -1715,6 +1722,17 @@ export default function NegocioDashboard() {
   const [salesByDay, setSalesByDay] = useState<Record<string, number>>({})
   const [totalSales, setTotalSales] = useState(0)
   const [stampModal, setStampModal] = useState<{ cardId: string; name: string } | null>(null)
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('cal_dark') === '1'
+    return false
+  })
+  function toggleDark() {
+    setIsDark(d => {
+      const next = !d
+      localStorage.setItem('cal_dark', next ? '1' : '0')
+      return next
+    })
+  }
 
   useEffect(() => {
     const seen = localStorage.getItem('cal_discount_seen')
@@ -1822,9 +1840,57 @@ export default function NegocioDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-zinc-50">
+    <div className="flex min-h-screen bg-zinc-50" data-dark={String(isDark)}>
+      <style>{`
+        [data-dark="true"] { background-color: #09090b; color-scheme: dark; }
+        [data-dark="true"] .bg-white { background-color: #18181b !important; }
+        [data-dark="true"] .bg-zinc-50 { background-color: #27272a !important; }
+        [data-dark="true"] .bg-zinc-100 { background-color: #3f3f46 !important; }
+        [data-dark="true"] .bg-zinc-200 { background-color: #52525b !important; }
+        [data-dark="true"] .border-zinc-50 { border-color: #27272a !important; }
+        [data-dark="true"] .border-zinc-100 { border-color: #3f3f46 !important; }
+        [data-dark="true"] .border-zinc-200 { border-color: #52525b !important; }
+        [data-dark="true"] .border-r { border-color: #3f3f46 !important; }
+        [data-dark="true"] .border-b { border-color: #3f3f46 !important; }
+        [data-dark="true"] .border-t { border-color: #3f3f46 !important; }
+        [data-dark="true"] .text-zinc-900 { color: #f4f4f5 !important; }
+        [data-dark="true"] .text-zinc-800 { color: #e4e4e7 !important; }
+        [data-dark="true"] .text-zinc-700 { color: #d4d4d8 !important; }
+        [data-dark="true"] .text-zinc-600 { color: #a1a1aa !important; }
+        [data-dark="true"] .text-zinc-500 { color: #71717a !important; }
+        [data-dark="true"] .text-zinc-400 { color: #52525b !important; }
+        [data-dark="true"] .hover\\:bg-zinc-50:hover { background-color: #27272a !important; }
+        [data-dark="true"] .hover\\:bg-zinc-100:hover { background-color: #3f3f46 !important; }
+        [data-dark="true"] .bg-violet-50 { background-color: rgba(109,40,217,0.18) !important; }
+        [data-dark="true"] .bg-violet-100 { background-color: rgba(109,40,217,0.25) !important; }
+        [data-dark="true"] .text-violet-700 { color: #a78bfa !important; }
+        [data-dark="true"] .text-violet-600 { color: #8b5cf6 !important; }
+        [data-dark="true"] .bg-amber-50 { background-color: rgba(217,119,6,0.15) !important; }
+        [data-dark="true"] .bg-[\\#F5F0E8] { background-color: #27272a !important; }
+        [data-dark="true"] input:not([type="range"]),
+        [data-dark="true"] textarea,
+        [data-dark="true"] select {
+          background-color: #27272a !important;
+          color: #f4f4f5 !important;
+          border-color: #52525b !important;
+        }
+        [data-dark="true"] input::placeholder,
+        [data-dark="true"] textarea::placeholder { color: #52525b !important; }
+        [data-dark="true"] .focus\\:border-violet-400:focus { border-color: #7c3aed !important; }
+        /* Glow en placeholders / estados vacíos */
+        .placeholder-glow {
+          box-shadow: 0 0 0 1.5px rgba(124,58,237,0.18), 0 0 28px rgba(124,58,237,0.10);
+          transition: box-shadow 0.2s;
+        }
+        [data-dark="true"] .placeholder-glow {
+          box-shadow: 0 0 0 1.5px rgba(139,92,246,0.30), 0 0 32px rgba(139,92,246,0.18);
+        }
+        [data-dark="true"] .placeholder-glow:hover {
+          box-shadow: 0 0 0 1.5px rgba(139,92,246,0.45), 0 0 40px rgba(139,92,246,0.28);
+        }
+      `}</style>
       {showDiscount && <DiscountPopup onClose={() => setShowDiscount(false)} />}
-      <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} bdayBadge={todayBdayCount} />
+      <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} bdayBadge={todayBdayCount} isDark={isDark} onDarkToggle={toggleDark} />
       {stampModal && (
         <StampModal
           cardName={stampModal.name}
