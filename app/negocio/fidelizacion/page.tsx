@@ -1147,6 +1147,307 @@ function ViewCumple({ selectedProgram, cards, isPro }:
   )
 }
 
+// ── Vista: IMPRIMIR Y COMPARTIR ──────────────────────────────────────────────
+const CALIFICAR_WA = '5491123867934'
+
+const DIGITAL_TEMPLATES = [
+  { id: 'story-anuncio',    label: 'IG Story · Anuncio',       size: '1080 × 1920 · 9:16',  tag: 'Stories', w: 1080, h: 1920 },
+  { id: 'story-activacion', label: 'IG Story · Activación',    size: '1080 × 1920 · 9:16',  tag: 'Stories', w: 1080, h: 1920 },
+  { id: 'whatsapp',         label: 'WhatsApp Status',          size: '1080 × 1920 · casual', tag: 'Feed',    w: 1080, h: 1920 },
+  { id: 'post-feed',        label: 'Post IG / FB · 4:5',       size: '1080 × 1350 · 4:5',   tag: 'Feed',    w: 1080, h: 1350 },
+  { id: 'post-twitter',     label: 'Post X / Twitter',         size: '1200 × 675 · 16:9',   tag: 'Feed',    w: 1200, h: 675  },
+  { id: 'banner-linkedin',  label: 'Banner LinkedIn',          size: '1584 × 396 · 4:1',    tag: 'Banners', w: 1584, h: 396  },
+]
+
+const PHYSICAL_TEMPLATES = [
+  { id: 'sticker',    label: 'Sticker circular',       size: 'Ø 90 mm · vinilo',         price: '$3.500',  desc: 'Ideal para el mostrador o la vidriera.' },
+  { id: 'tabletent',  label: 'Table tent',             size: '180 × 270 mm · plegable',  price: '$4.900',  desc: 'Se para solo sobre la mesa o barra.' },
+  { id: 'a4-anuncio', label: 'A4 Portrait · Anuncio',  size: '210 × 297 mm · papel',     price: '$2.500',  desc: 'Para enmarcar o pegar en el local.' },
+  { id: 'mini',       label: 'Mini insert para tickets', size: '80 × 120 mm · papel mate', price: '$1.800', desc: 'Se incluye en cada ticket o bolsa.' },
+]
+
+type ImprimirProps = { program: Program | undefined; selectedProgram: string | null }
+
+function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
+  const [qrUrl, setQrUrl] = useState<string | null>(null)
+  const [activeTag, setActiveTag] = useState<string>('Todos')
+  const [downloading, setDownloading] = useState<string | null>(null)
+  const color = program?.color_primary ?? '#7C3AED'
+  const bizName = (program as any)?.businesses?.name ?? program?.name ?? 'Tu negocio'
+  const scanUrl = selectedProgram
+    ? `https://calificar.com.ar/s/${selectedProgram}`
+    : 'https://calificar.com.ar'
+
+  useEffect(() => {
+    import('qrcode').then(QRCode => {
+      QRCode.toDataURL(scanUrl, { width: 400, margin: 2, color: { dark: '#000000', light: '#ffffff' } })
+        .then(url => setQrUrl(url))
+    })
+  }, [scanUrl])
+
+  function hexToRgb(hex: string) {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return { r, g, b }
+  }
+
+  function lighten(hex: string, amount = 40) {
+    const { r, g, b } = hexToRgb(hex)
+    return `rgb(${Math.min(255, r + amount)},${Math.min(255, g + amount)},${Math.min(255, b + amount)})`
+  }
+
+  function isDark(hex: string) {
+    const { r, g, b } = hexToRgb(hex)
+    return (r * 299 + g * 587 + b * 114) / 1000 < 128
+  }
+
+  async function renderTemplate(tpl: typeof DIGITAL_TEMPLATES[0]): Promise<string> {
+    const scale = 1
+    const cw = tpl.w * scale
+    const ch = tpl.h * scale
+    const canvas = document.createElement('canvas')
+    canvas.width = cw; canvas.height = ch
+    const ctx = canvas.getContext('2d')!
+    const dark = isDark(color)
+    const textColor = dark ? '#ffffff' : '#1a1a1a'
+    const bgColor = dark ? color : '#f5f0eb'
+    const accentColor = dark ? '#ffffff' : color
+
+    // Background
+    ctx.fillStyle = bgColor
+    ctx.fillRect(0, 0, cw, ch)
+
+    // Decorative circle top-right
+    ctx.beginPath()
+    ctx.arc(cw * 0.85, ch * -0.05, cw * 0.45, 0, Math.PI * 2)
+    ctx.fillStyle = dark ? lighten(color, 20) : lighten(color, 180)
+    ctx.fill()
+
+    const isVertical = ch > cw
+    const qrSize = isVertical ? cw * 0.42 : Math.min(cw, ch) * 0.38
+    const qrX = isVertical ? (cw - qrSize) / 2 : cw * 0.55
+    const qrY = isVertical ? ch * 0.38 : (ch - qrSize) / 2
+
+    // QR white card
+    const pad = qrSize * 0.08
+    ctx.fillStyle = '#ffffff'
+    const rr = qrSize * 0.07
+    const rx = qrX - pad, ry = qrY - pad, rw = qrSize + pad * 2, rh = qrSize + pad * 2
+    ctx.beginPath()
+    ctx.moveTo(rx + rr, ry)
+    ctx.lineTo(rx + rw - rr, ry); ctx.quadraticCurveTo(rx + rw, ry, rx + rw, ry + rr)
+    ctx.lineTo(rx + rw, ry + rh - rr); ctx.quadraticCurveTo(rx + rw, ry + rh, rx + rw - rr, ry + rh)
+    ctx.lineTo(rx + rr, ry + rh); ctx.quadraticCurveTo(rx, ry + rh, rx, ry + rh - rr)
+    ctx.lineTo(rx, ry + rr); ctx.quadraticCurveTo(rx, ry, rx + rr, ry)
+    ctx.closePath(); ctx.fill()
+
+    // QR image
+    if (qrUrl) {
+      const img = new Image()
+      await new Promise<void>(res => { img.onload = () => res(); img.src = qrUrl })
+      ctx.drawImage(img, qrX, qrY, qrSize, qrSize)
+    }
+
+    // Text
+    if (isVertical) {
+      const textX = cw * 0.1
+      if (tpl.id === 'story-activacion' || tpl.id === 'whatsapp') {
+        ctx.fillStyle = accentColor
+        ctx.font = `bold ${cw * 0.1}px system-ui`
+        ctx.fillText('Escanealo.', textX, ch * 0.15)
+        ctx.fillText('Guardalo.', textX, ch * 0.24)
+        ctx.fillStyle = textColor
+        ctx.font = `bold ${cw * 0.1}px system-ui`
+        ctx.fillText('Empieza.', textX, ch * 0.33)
+      } else {
+        ctx.fillStyle = textColor
+        ctx.font = `bold ${cw * 0.09}px system-ui`
+        ctx.fillText('Tu pase digital,', textX, ch * 0.15)
+        ctx.fillStyle = accentColor
+        ctx.fillText('guardalo en', textX, ch * 0.24)
+        ctx.fillText('tu Wallet.', textX, ch * 0.33)
+      }
+      // Business name
+      ctx.fillStyle = textColor
+      ctx.font = `${cw * 0.048}px system-ui`
+      ctx.fillText(bizName, textX, ch * 0.78)
+      // Escanea label
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)'
+      ctx.font = `${cw * 0.038}px system-ui`
+      ctx.textAlign = 'center'
+      ctx.fillText('+ ESCANEA AQUÍ', cw / 2, qrY + qrSize + pad + cw * 0.06)
+      ctx.fillText('Guardala en tu Wallet', cw / 2, qrY + qrSize + pad + cw * 0.11)
+    } else {
+      ctx.fillStyle = textColor
+      ctx.font = `bold ${ch * 0.18}px system-ui`
+      ctx.fillText('Tu pase', cw * 0.05, ch * 0.35)
+      ctx.fillStyle = accentColor
+      ctx.fillText('digital.', cw * 0.05, ch * 0.58)
+      ctx.fillStyle = dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.4)'
+      ctx.font = `${ch * 0.1}px system-ui`
+      ctx.textAlign = 'left'
+      ctx.fillText(bizName, cw * 0.05, ch * 0.78)
+    }
+
+    // Footer
+    ctx.textAlign = 'center'
+    ctx.fillStyle = dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.25)'
+    ctx.font = `${Math.min(cw, ch) * 0.025}px system-ui`
+    ctx.fillText('powered by calificar.com.ar', cw / 2, ch - Math.min(cw, ch) * 0.03)
+
+    return canvas.toDataURL('image/png')
+  }
+
+  async function download(tpl: typeof DIGITAL_TEMPLATES[0]) {
+    if (!qrUrl) return
+    setDownloading(tpl.id)
+    try {
+      const dataUrl = await renderTemplate(tpl)
+      const a = document.createElement('a')
+      a.href = dataUrl
+      a.download = `calificar-${bizName.toLowerCase().replace(/\s+/g, '-')}-${tpl.id}.png`
+      a.click()
+    } finally {
+      setDownloading(null)
+    }
+  }
+
+  function waLink(item: typeof PHYSICAL_TEMPLATES[0]) {
+    const msg = encodeURIComponent(`Hola! Quiero pedir un *${item.label}* (${item.size}) para mi negocio *${bizName}* en Calificar. Precio: ${item.price}`)
+    return `https://wa.me/${CALIFICAR_WA}?text=${msg}`
+  }
+
+  const tags = ['Todos', ...Array.from(new Set(DIGITAL_TEMPLATES.map(t => t.tag)))]
+  const filtered = activeTag === 'Todos' ? DIGITAL_TEMPLATES : DIGITAL_TEMPLATES.filter(t => t.tag === activeTag)
+
+  // Mini canvas preview per template
+  function TemplatePreview({ tpl }: { tpl: typeof DIGITAL_TEMPLATES[0] }) {
+    const ref = useRef<HTMLCanvasElement>(null)
+    useEffect(() => {
+      if (!ref.current || !qrUrl) return
+      const canvas = ref.current
+      const ctx = canvas.getContext('2d')!
+      const scale = canvas.width / tpl.w
+      const dark = isDark(color)
+      const bgColor = dark ? color : '#f5f0eb'
+      const accentColor = dark ? '#ffffff' : color
+      const textColor = dark ? '#ffffff' : '#1a1a1a'
+      ctx.fillStyle = bgColor; ctx.fillRect(0, 0, canvas.width, canvas.height)
+      // deco circle
+      ctx.beginPath()
+      ctx.arc(canvas.width * 0.85, canvas.height * -0.05, canvas.width * 0.45, 0, Math.PI * 2)
+      ctx.fillStyle = dark ? lighten(color, 20) : lighten(color, 180); ctx.fill()
+      const isV = tpl.h > tpl.w
+      const qSize = isV ? canvas.width * 0.42 : Math.min(canvas.width, canvas.height) * 0.38
+      const qx = isV ? (canvas.width - qSize) / 2 : canvas.width * 0.55
+      const qy = isV ? canvas.height * 0.38 : (canvas.height - qSize) / 2
+      // white bg
+      ctx.fillStyle = '#fff'
+      const p = qSize * 0.08
+      ctx.fillRect(qx - p, qy - p, qSize + p * 2, qSize + p * 2)
+      // QR
+      const img = new Image(); img.src = qrUrl
+      img.onload = () => ctx.drawImage(img, qx, qy, qSize, qSize)
+      // texts
+      ctx.fillStyle = textColor
+      ctx.font = `bold ${canvas.width * 0.09}px system-ui`
+      if (isV) {
+        ctx.fillStyle = accentColor; ctx.fillText('Tu pase', canvas.width * 0.1, canvas.height * 0.15)
+        ctx.fillStyle = textColor;   ctx.fillText('digital', canvas.width * 0.1, canvas.height * 0.24)
+        ctx.font = `${canvas.width * 0.045}px system-ui`
+        ctx.fillStyle = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.35)'
+        ctx.textAlign = 'center'; ctx.fillText('ESCANEAR AQUÍ', canvas.width / 2, qy + qSize + p + canvas.width * 0.07)
+      } else {
+        ctx.fillStyle = accentColor; ctx.fillText('Tu pase', canvas.width * 0.04, canvas.height * 0.45)
+        ctx.fillStyle = textColor;   ctx.fillText('digital', canvas.width * 0.04, canvas.height * 0.65)
+      }
+      ctx.textAlign = 'left'
+    }, [qrUrl, tpl])
+    const aspect = tpl.h / tpl.w
+    const previewW = 140
+    return <canvas ref={ref} width={previewW} height={Math.round(previewW * aspect)}
+      className="rounded-xl block" style={{ maxHeight: 180, width: 'auto' }} />
+  }
+
+  return (
+    <div className="p-8 max-w-4xl">
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Compartí tu tarjeta</h1>
+      <p className="text-zinc-400 text-sm mb-6">Todos los formatos con tu QR y colores de marca, listos para usar.</p>
+
+      {/* Digital */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mr-2">DESCARGA GRATIS</p>
+          {tags.map(t => (
+            <button key={t} onClick={() => setActiveTag(t)}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all ${activeTag === t ? 'text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}
+              style={activeTag === t ? { background: color } : {}}>
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {!qrUrl && (
+          <div className="flex items-center gap-2 text-zinc-400 text-sm py-8">
+            <div className="w-4 h-4 border-2 border-zinc-300 border-t-violet-500 rounded-full animate-spin" />
+            Generando QR...
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {filtered.map(tpl => (
+            <div key={tpl.id} className="bg-white border border-zinc-100 rounded-2xl overflow-hidden flex flex-col">
+              <div className="flex items-center justify-center bg-zinc-50 py-5 px-4 min-h-[160px]">
+                {qrUrl ? <TemplatePreview tpl={tpl} /> : <div className="w-20 h-28 bg-zinc-100 rounded-xl animate-pulse" />}
+              </div>
+              <div className="p-3 flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-zinc-900">{tpl.label}</p>
+                  <p className="text-[10px] text-zinc-400 mt-0.5">{tpl.size} · PNG</p>
+                </div>
+                <button onClick={() => download(tpl)} disabled={!qrUrl || downloading === tpl.id}
+                  className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-40">
+                  {downloading === tpl.id
+                    ? <div className="w-3 h-3 border-2 border-zinc-400 border-t-zinc-800 rounded-full animate-spin" />
+                    : <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="#52525b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  }
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Physical */}
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">MATERIALES FÍSICOS · PEDIDO POR WHATSAPP</p>
+        <div className="grid grid-cols-2 gap-4">
+          {PHYSICAL_TEMPLATES.map(item => (
+            <div key={item.id} className="bg-white border border-zinc-100 rounded-2xl p-4 flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-bold text-zinc-900">{item.label}</p>
+                  <p className="text-[10px] text-zinc-400 mt-0.5">{item.size}</p>
+                </div>
+                <span className="text-sm font-extrabold text-zinc-900 flex-shrink-0">{item.price}</span>
+              </div>
+              <p className="text-xs text-zinc-500">{item.desc}</p>
+              <a href={waLink(item)} target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: '#25D366' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.116.554 4.103 1.523 5.824L.057 23.5l5.805-1.522A11.951 11.951 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.871 9.871 0 01-5.031-1.378l-.361-.214-3.741.981.998-3.648-.235-.374A9.861 9.861 0 012.118 12C2.118 6.985 6.985 2.118 12 2.118S21.882 6.985 21.882 12 17.015 21.882 12 21.882z"/></svg>
+                Solicitar por WhatsApp
+              </a>
+            </div>
+          ))}
+        </div>
+        <p className="text-[10px] text-zinc-400 mt-3 text-center">Precios sin envío · Te contactamos para confirmar el pedido</p>
+      </div>
+    </div>
+  )
+}
+
 // ── Vista: PLACEHOLDER ───────────────────────────────────────────────────────
 function ViewPlaceholder({ title, icon }: { title: string; icon: string }) {
   return (
@@ -1286,7 +1587,7 @@ export default function NegocioDashboard() {
         {activeNav === 'cumple' && (
           <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={true} />
         )}
-        {activeNav === 'imprimir' && <ViewPlaceholder title="Imprimir y compartir" icon="🖨️" />}
+        {activeNav === 'imprimir' && <ViewImprimir program={program} selectedProgram={selectedProgram} />}
         {activeNav === 'perfil' && <ViewPlaceholder title="Perfil del negocio" icon="🏢" />}
         {activeNav === 'plan' && <ViewPlaceholder title="Plan" icon="💳" />}
         {activeNav === 'ayuda' && <ViewPlaceholder title="Ayuda" icon="❓" />}
