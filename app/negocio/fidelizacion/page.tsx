@@ -341,7 +341,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
   const calificarCost = 9.99
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-8 max-w-5xl mx-auto w-full">
       <div className="mb-5">
         <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName.split(' ')[0]}.</h1>
         <p className="text-zinc-400 text-sm mt-0.5">Esto es lo que está pasando hoy en {businessName}.</p>
@@ -678,7 +678,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded }:
   if (!program) return <div className="p-8 text-zinc-400 text-sm">No hay programa activo.</div>
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-8 max-w-4xl mx-auto w-full">
       {showPlans && <PlansModal onClose={() => setShowPlans(false)} />}
 
       <div className="mb-6">
@@ -819,7 +819,7 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
   })
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-8 max-w-5xl mx-auto w-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-zinc-900">Clientes</h1>
@@ -944,7 +944,7 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
 function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif }:
   { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void }) {
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-8 max-w-2xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Avisos push</h1>
       <p className="text-zinc-400 text-sm mb-8">Mandá mensajes directos a los clientes que activaron notificaciones.</p>
       <div className="bg-white border border-zinc-100 rounded-2xl p-6">
@@ -1024,7 +1024,7 @@ function ViewProximidad({ selectedProgram, isPro }: { selectedProgram: string | 
   }
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-8 max-w-2xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Avisos de proximidad</h1>
       <p className="text-zinc-400 text-sm mb-6">Alguien que guardó tu tarjeta pasa cerca de tu negocio y ve tu recordatorio en la pantalla de bloqueo. Se envía solo — tú no enviás nada.</p>
 
@@ -1207,7 +1207,7 @@ function ViewCumple({ selectedProgram, cards, isPro }:
   const totalWithBdayPct = cards.length > 0 ? Math.round((totalWithBday / cards.length) * 100) : 0
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-8 max-w-3xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Campañas de cumpleaños</h1>
       <p className="text-zinc-400 text-sm mb-6">Felicitá a tus clientes con un código exclusivo válido por 30 días.</p>
 
@@ -1614,7 +1614,7 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
   }
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-8 max-w-4xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Compartí tu tarjeta</h1>
       <p className="text-zinc-400 text-sm mb-6">Todos los formatos con tu QR y colores de marca, listos para usar.</p>
 
