@@ -238,12 +238,18 @@ export default function AdminFidelizacionPage() {
           <h1 className="text-2xl font-extrabold text-gray-900">Fidelización</h1>
           <p className="text-sm text-gray-500 mt-0.5">Programas de puntos y sellos por negocio</p>
         </div>
-        <button
-          onClick={openCreate}
-          className="bg-violet-600 hover:bg-violet-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors"
-        >
-          + Nuevo programa
-        </button>
+        <div className="flex items-center gap-3">
+          <a href="/admin/fidelizacion/planes"
+            className="border border-violet-300 text-violet-700 font-bold px-4 py-2.5 rounded-xl text-sm hover:bg-violet-50 transition-colors">
+            💳 Gestionar planes
+          </a>
+          <button
+            onClick={openCreate}
+            className="bg-violet-600 hover:bg-violet-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors"
+          >
+            + Nuevo programa
+          </button>
+        </div>
       </div>
 
       {/* Modal formulario */}

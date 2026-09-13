@@ -100,9 +100,10 @@ function DiscountPopup({ onClose }: { onClose: () => void }) {
 }
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────
-function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, onDarkToggle, isOpen, onClose }: {
+function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, onDarkToggle, isOpen, onClose, plan = 'trial', planExpiresAt = null }: {
   active: string; onNav: (id: string) => void; businessName: string; email: string
   bdayBadge?: number; isDark: boolean; onDarkToggle: () => void; isOpen: boolean; onClose: () => void
+  plan?: string; planExpiresAt?: string | null
 }) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const nav = [
@@ -192,15 +193,30 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
             <p className="text-[10px] text-zinc-400 truncate">{email}</p>
           </div>
         </div>
-        <div className="bg-violet-50 rounded-lg px-3 py-2 mb-2">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-violet-600 font-semibold">● Prueba gratuita</span>
-            <span className="text-[10px] text-zinc-400">1 programa</span>
-          </div>
-          <div className="w-full bg-violet-100 rounded-full h-1">
-            <div className="bg-violet-500 h-1 rounded-full" style={{ width: '15%' }} />
-          </div>
-        </div>
+        {(() => {
+          const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
+          const planLabels: Record<string, string> = {
+            trial: 'Prueba gratuita', starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate 🎁',
+          }
+          const planColors: Record<string, string> = {
+            trial: 'bg-violet-50 text-violet-600', starter: 'bg-blue-50 text-blue-600',
+            pro: 'bg-violet-50 text-violet-700', ultimate: 'bg-amber-50 text-amber-700', gifted: 'bg-green-50 text-green-700',
+          }
+          const label = isExpired ? '⚠ Plan vencido' : `● ${planLabels[plan] ?? plan}`
+          const color = isExpired ? 'bg-red-50 text-red-600' : (planColors[plan] ?? 'bg-zinc-50 text-zinc-500')
+          return (
+            <div className={`rounded-lg px-3 py-2 mb-2 ${color.split(' ')[0]}`}>
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] font-semibold ${color.split(' ')[1]}`}>{label}</span>
+                {planExpiresAt && !isExpired && (
+                  <span className="text-[10px] text-zinc-400">
+                    hasta {new Date(planExpiresAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+        })()}
         <div className="flex items-center justify-between mb-2">
           <button className="text-[10px] text-zinc-400 hover:text-zinc-600 transition-colors">↩ Cerrar sesión</button>
           <button onClick={onDarkToggle} title={isDark ? 'Modo claro' : 'Modo oscuro'}
@@ -2180,6 +2196,8 @@ export default function NegocioDashboard() {
   const [businessName, setBusinessName] = useState('Mi negocio')
   const [userEmail, setUserEmail] = useState('')
   const [accessToken, setAccessToken] = useState('')
+  const [businessPlan, setBusinessPlan] = useState('trial')
+  const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null)
   const [todayBdayCount, setTodayBdayCount] = useState(0)
   const [pushLogs, setPushLogs] = useState<{ id: string; title: string; body: string; sent_to: number; created_at: string }[]>([])
   const [salesByDay, setSalesByDay] = useState<Record<string, number>>({})
@@ -2213,8 +2231,10 @@ export default function NegocioDashboard() {
         setPrograms(d.programs ?? [])
         if (d.programs?.length > 0) {
           setSelectedProgram(d.programs[0].id)
-          const biz = d.programs[0].businesses?.name
-          if (biz) setBusinessName(biz)
+          const biz = d.programs[0].businesses
+          if (biz?.name) setBusinessName(biz.name)
+          if (biz?.plan) setBusinessPlan(biz.plan)
+          if (biz?.plan_expires_at !== undefined) setPlanExpiresAt(biz.plan_expires_at)
         }
         if (d.email) setUserEmail(d.email)
         setLoading(false)
@@ -2376,7 +2396,7 @@ export default function NegocioDashboard() {
             : <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>}
         </button>
       </header>
-      <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} bdayBadge={todayBdayCount} isDark={isDark} onDarkToggle={toggleDark} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      <Sidebar active={activeNav} onNav={setActiveNav} businessName={businessName} email={userEmail} bdayBadge={todayBdayCount} isDark={isDark} onDarkToggle={toggleDark} isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} plan={businessPlan} planExpiresAt={planExpiresAt} />
       {stampModal && (
         <StampModal
           cardName={stampModal.name}

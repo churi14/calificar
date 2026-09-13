@@ -21,7 +21,7 @@ export async function GET() {
     .from('loyalty_programs')
     .select(`
       *,
-      businesses(name, id),
+      businesses(name, id, plan, plan_expires_at),
       loyalty_cards(count)
     `)
     .order('created_at', { ascending: false })
