@@ -1837,13 +1837,311 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
   )
 }
 
-// ── Vista: PLACEHOLDER ───────────────────────────────────────────────────────
-function ViewPlaceholder({ title, icon }: { title: string; icon: string }) {
+// ── Vista: PERFIL DEL NEGOCIO ────────────────────────────────────────────────
+function ViewPerfil({ program, selectedProgram, businessName, onSaved }: {
+  program: Program | undefined; selectedProgram: string | null; businessName: string; onSaved: (name: string) => void
+}) {
+  const [name, setName] = useState(businessName)
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const color = program?.color_primary ?? '#7C3AED'
+
+  async function save() {
+    if (!selectedProgram) return
+    setSaving(true)
+    await fetch('/api/fidelizacion/admin', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ program_id: selectedProgram, business_name: name }),
+    }).catch(() => {})
+    setSaving(false); setSaved(true)
+    onSaved(name)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
   return (
-    <div className="p-8 flex flex-col items-center justify-center min-h-[60vh] text-center">
-      <div className="text-5xl mb-4">{icon}</div>
-      <h1 className="text-xl font-extrabold text-zinc-900 mb-2">{title}</h1>
-      <p className="text-zinc-400 text-sm">Esta sección está en desarrollo.</p>
+    <div className="p-8 max-w-2xl mx-auto w-full">
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Perfil del negocio</h1>
+      <p className="text-zinc-400 text-sm mb-6">Así te ven tus clientes en su wallet y en la app.</p>
+
+      {/* Identidad */}
+      <div className="bg-white border border-zinc-100 rounded-2xl p-6 mb-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">IDENTIDAD</p>
+        <div className="flex items-start gap-6">
+          <div className="flex-1 space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-zinc-700 block mb-1.5">Nombre del negocio</label>
+              <input value={name} onChange={e => setName(e.target.value)}
+                className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-400"
+                placeholder="Tu negocio" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-zinc-700 block mb-1.5">Teléfono de contacto</label>
+              <input value={phone} onChange={e => setPhone(e.target.value)}
+                className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-400"
+                placeholder="+54 11 0000-0000" type="tel" />
+            </div>
+          </div>
+          {/* Mini tarjeta preview */}
+          <div className="flex-shrink-0 w-40">
+            <p className="text-[10px] text-zinc-400 mb-2 text-center">ASÍ LA VEN TUS CLIENTES</p>
+            <div className="rounded-2xl overflow-hidden border border-zinc-100 shadow-sm" style={{ background: color }}>
+              <div className="bg-white px-2 py-1.5 flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0"
+                  style={{ background: color }}>
+                  {(name || businessName).charAt(0).toUpperCase()}
+                </div>
+                <p className="text-[9px] font-semibold text-zinc-800 truncate">{name || businessName}</p>
+              </div>
+              <div className="px-2 py-2">
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {Array.from({ length: program?.stamps_goal ?? 8 }).map((_, i) => (
+                    <div key={i} className="w-5 h-5 rounded-full border-2 border-white border-opacity-60 flex items-center justify-center">
+                      {i < 3 && <div className="w-2 h-2 rounded-full bg-white" />}
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-white rounded-lg p-1.5 text-center">
+                  <p className="text-[7px] text-zinc-400">powered by calificar.com.ar</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Ubicación */}
+      <div className="bg-white border border-zinc-100 rounded-2xl p-6 mb-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">UBICACIÓN</p>
+        <p className="text-xs text-zinc-400 mb-3">Define dónde estás para aparecer en el mapa y en los avisos de proximidad.</p>
+        <input value={address} onChange={e => setAddress(e.target.value)}
+          className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-400"
+          placeholder="Ej: Encina 2818, Ushuaia, Tierra del Fuego" />
+      </div>
+
+      {/* Personalización */}
+      <div className="bg-white border border-zinc-100 rounded-2xl p-6 mb-6">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">PERSONALIZACIÓN</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-zinc-900">Tarjeta de sellos</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Logo, colores y diseño de la tarjeta digital.</p>
+          </div>
+          <button className="text-xs font-bold px-4 py-2 rounded-xl text-white flex-shrink-0" style={{ background: color }}>
+            Personalizar →
+          </button>
+        </div>
+      </div>
+
+      <button onClick={save} disabled={saving}
+        className="w-full py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-50 transition-all"
+        style={{ background: saved ? '#10B981' : color }}>
+        {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar cambios'}
+      </button>
+    </div>
+  )
+}
+
+// ── Vista: PLAN ───────────────────────────────────────────────────────────────
+function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
+  const PLANS = [
+    {
+      id: 'starter',
+      name: 'Starter',
+      price: '$9.99',
+      period: '/mes',
+      desc: 'Para empezar a fidelizar clientes con sellos digitales.',
+      current: true,
+      color: '#7C3AED',
+      features: [
+        '1 programa de sellos',
+        'Clientes ilimitados',
+        'Tarjeta digital en Google Wallet / Apple Wallet',
+        'QR de acceso',
+        'Panel de gestión',
+        'Avisos push',
+        'Campañas de cumpleaños',
+        'Soporte por email',
+      ],
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      price: '$19.99',
+      period: '/mes',
+      desc: 'Para negocios que quieren más control y automatización.',
+      current: false,
+      color: '#059669',
+      features: [
+        'Todo lo de Starter',
+        'Hasta 3 programas de sellos',
+        'Avisos de proximidad (geofencing)',
+        'Estadísticas avanzadas de clientes',
+        'Templates de marketing incluidos',
+        'Soporte prioritario',
+      ],
+    },
+  ]
+
+  return (
+    <div className="p-8 max-w-3xl mx-auto w-full">
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Tu plan</h1>
+      <p className="text-zinc-400 text-sm mb-6">Estás en el período de prueba gratuita. Tu plan actual es Starter.</p>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        {PLANS.map(plan => (
+          <div key={plan.id} className={`bg-white border rounded-2xl p-6 flex flex-col relative ${plan.current ? 'border-violet-300' : 'border-zinc-100'}`}>
+            {plan.current && (
+              <span className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: plan.color }}>
+                PLAN ACTUAL
+              </span>
+            )}
+            <div className="mb-4">
+              <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: plan.color }}>{plan.name}</p>
+              <div className="flex items-baseline gap-0.5">
+                <span className="text-3xl font-extrabold text-zinc-900">{plan.price}</span>
+                <span className="text-sm text-zinc-400">{plan.period}</span>
+              </div>
+              <p className="text-xs text-zinc-400 mt-1">{plan.desc}</p>
+            </div>
+            <div className="flex-1 space-y-2 mb-5">
+              {plan.features.map(f => (
+                <div key={f} className="flex items-start gap-2">
+                  <span className="text-xs mt-0.5 flex-shrink-0" style={{ color: plan.color }}>✓</span>
+                  <p className="text-xs text-zinc-600">{f}</p>
+                </div>
+              ))}
+            </div>
+            {!plan.current && (
+              <button className="w-full py-2.5 rounded-xl font-bold text-white text-sm" style={{ background: plan.color }}>
+                Pasarme a {plan.name}
+              </button>
+            )}
+            {plan.current && (
+              <button className="w-full py-2.5 rounded-xl font-semibold text-sm border border-zinc-200 text-zinc-500" disabled>
+                Plan activo
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Facturación */}
+      <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">FACTURACIÓN</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-zinc-900">Período de prueba gratuita</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Sin cargo hasta que elijas un plan.</p>
+          </div>
+          <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">ACTIVO</span>
+        </div>
+      </div>
+
+      <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">¿TENÉS DUDAS?</p>
+        <p className="text-sm text-zinc-600 mb-3">Hablá con nosotros por WhatsApp y te ayudamos a elegir el plan que mejor se adapta a tu negocio.</p>
+        <a href="https://wa.me/5491123867934?text=Hola!%20Tengo%20dudas%20sobre%20los%20planes%20de%20Calificar."
+          target="_blank" rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white"
+          style={{ background: '#25D366' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.116.554 4.103 1.523 5.824L.057 23.5l5.805-1.522A11.951 11.951 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.871 9.871 0 01-5.031-1.378l-.361-.214-3.741.981.998-3.648-.235-.374A9.861 9.861 0 012.118 12C2.118 6.985 6.985 2.118 12 2.118S21.882 6.985 21.882 12 17.015 21.882 12 21.882z"/></svg>
+          Hablar por WhatsApp
+        </a>
+      </div>
+    </div>
+  )
+}
+
+// ── Vista: AYUDA ─────────────────────────────────────────────────────────────
+function ViewAyuda({ onNav }: { onNav: (id: string) => void }) {
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const faqs = [
+    { q: '¿Cómo se une un cliente al programa?', a: 'El cliente escanea el QR de tu local (lo encontrás en la sección "Hoy") o hace click en el enlace que le compartís. Automáticamente se crea su tarjeta de sellos digital.' },
+    { q: '¿Cómo sello manualmente a un cliente?', a: 'Entrá a "Clientes", buscá al cliente por nombre o teléfono, y hacé click en "+ Sello". También podés usar el botón "Escanear un cliente" que abre la cámara para leer el QR de la tarjeta del cliente.' },
+    { q: '¿Qué es Google Wallet / Apple Wallet?', a: 'Son las billeteras digitales de Android e iOS. Tus clientes pueden guardar ahí la tarjeta de sellos y la ven en la pantalla de bloqueo, junto con sus tarjetas bancarias.' },
+    { q: '¿Cómo funciona la notificación push?', a: 'Los clientes que activaron las notificaciones en su tarjeta reciben el mensaje directamente en su teléfono, aunque no estén en la app. Desde "Avisos push" podés escribir y enviar el mensaje a todos.' },
+    { q: '¿Puedo cambiar el diseño de la tarjeta?', a: 'Sí. En "Tarjeta" podés cambiar el color principal, subir tu logo, y personalizar el texto de bienvenida y la recompensa.' },
+    { q: '¿Qué pasa cuando un cliente completa la tarjeta?', a: 'El sistema le muestra automáticamente el premio en su tarjeta. Vos lo ves en el panel de clientes. Podés marcar el premio como entregado desde ahí.' },
+    { q: '¿Los datos de mis clientes son privados?', a: 'Sí. Los datos (nombre, teléfono) son solo tuyo. Calificar no los comparte ni los usa para publicidad.' },
+    { q: '¿Cómo cancelo si no quiero seguir?', a: 'Escribinos por WhatsApp o por email a hola@calificar.com.ar y lo cancelamos al instante, sin preguntas.' },
+  ]
+
+  return (
+    <div className="p-8 max-w-2xl mx-auto w-full">
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Ayuda</h1>
+      <p className="text-zinc-400 text-sm mb-6">Respuestas a las preguntas más frecuentes sobre Calificar.</p>
+
+      {/* Contacto rápido */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <a href="https://wa.me/5491123867934?text=Hola!%20Necesito%20ayuda%20con%20Calificar."
+          target="_blank" rel="noopener noreferrer"
+          className="bg-white border border-zinc-100 rounded-2xl p-4 flex items-center gap-3 hover:border-green-200 transition-colors group">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#25D366' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.116.554 4.103 1.523 5.824L.057 23.5l5.805-1.522A11.951 11.951 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.871 9.871 0 01-5.031-1.378l-.361-.214-3.741.981.998-3.648-.235-.374A9.861 9.861 0 012.118 12C2.118 6.985 6.985 2.118 12 2.118S21.882 6.985 21.882 12 17.015 21.882 12 21.882z"/></svg>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-zinc-900 group-hover:text-green-700 transition-colors">WhatsApp</p>
+            <p className="text-xs text-zinc-400">Respuesta en minutos</p>
+          </div>
+        </a>
+        <a href="mailto:hola@calificar.com.ar"
+          className="bg-white border border-zinc-100 rounded-2xl p-4 flex items-center gap-3 hover:border-violet-200 transition-colors group">
+          <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0 text-lg">✉️</div>
+          <div>
+            <p className="text-sm font-bold text-zinc-900 group-hover:text-violet-700 transition-colors">Email</p>
+            <p className="text-xs text-zinc-400">hola@calificar.com.ar</p>
+          </div>
+        </a>
+      </div>
+
+      {/* Guía rápida */}
+      <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden mb-4">
+        <div className="px-5 py-4 border-b border-zinc-50">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">GUÍA RÁPIDA</p>
+        </div>
+        {[
+          { n: '1', t: 'Personalizá tu tarjeta', d: 'Subí tu logo y elegí el color en "Tarjeta"', nav: 'tarjeta' },
+          { n: '2', t: 'Compartí el QR', d: 'Mostralo en tu mostrador o compartilo por WhatsApp', nav: 'hoy' },
+          { n: '3', t: 'Sellá a tus clientes', d: 'Manualmente desde "Clientes" o escaneando su tarjeta', nav: 'clientes' },
+          { n: '4', t: 'Enviá avisos push', d: 'Comunicá ofertas a todos tus clientes con un click', nav: 'push' },
+        ].map(step => (
+          <button key={step.n} onClick={() => onNav(step.nav)}
+            className="w-full flex items-center gap-4 px-5 py-4 border-b border-zinc-50 last:border-0 hover:bg-zinc-50 transition-colors text-left">
+            <div className="w-7 h-7 rounded-full bg-violet-100 text-violet-700 text-xs font-extrabold flex items-center justify-center flex-shrink-0">
+              {step.n}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-zinc-900">{step.t}</p>
+              <p className="text-xs text-zinc-400 mt-0.5">{step.d}</p>
+            </div>
+            <span className="text-zinc-300 text-sm">›</span>
+          </button>
+        ))}
+      </div>
+
+      {/* FAQ */}
+      <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-50">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">PREGUNTAS FRECUENTES</p>
+        </div>
+        {faqs.map((faq, i) => (
+          <div key={i} className="border-b border-zinc-50 last:border-0">
+            <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
+              className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-zinc-50 transition-colors">
+              <p className="text-sm font-semibold text-zinc-900 pr-4">{faq.q}</p>
+              <span className="text-zinc-400 text-sm flex-shrink-0">{openFaq === i ? '▲' : '▼'}</span>
+            </button>
+            {openFaq === i && (
+              <div className="px-5 pb-4">
+                <p className="text-sm text-zinc-500 leading-relaxed">{faq.a}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -2073,9 +2371,12 @@ export default function NegocioDashboard() {
           <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={true} />
         )}
         {activeNav === 'imprimir' && <ViewImprimir program={program} selectedProgram={selectedProgram} />}
-        {activeNav === 'perfil' && <ViewPlaceholder title="Perfil del negocio" icon="🏢" />}
-        {activeNav === 'plan' && <ViewPlaceholder title="Plan" icon="💳" />}
-        {activeNav === 'ayuda' && <ViewPlaceholder title="Ayuda" icon="❓" />}
+        {activeNav === 'perfil' && (
+          <ViewPerfil program={program} selectedProgram={selectedProgram}
+            businessName={businessName} onSaved={name => setBusinessName(name)} />
+        )}
+        {activeNav === 'plan' && <ViewPlan onNav={setActiveNav} />}
+        {activeNav === 'ayuda' && <ViewAyuda onNav={setActiveNav} />}
         {activeNav === 'primeros-pasos' && <ViewPlaceholder title="Primeros pasos" icon="🚀" />}
       </main>
     </div>
