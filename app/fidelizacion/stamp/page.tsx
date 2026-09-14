@@ -1,13 +1,15 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
-type Status = 'loading' | 'phone-input' | 'success' | 'reward' | 'milestone' | 'error' | 'no-card' | 'cooldown'
+type Status = 'loading' | 'phone-input' | 'success' | 'reward' | 'milestone' | 'error' | 'no-card' | 'cooldown' | 'unauthorized'
 
 function StampContent() {
   const params = useSearchParams()
+  const router = useRouter()
   const programId = params.get('program')
   const cardId = params.get('card')
 
@@ -21,23 +23,46 @@ function StampContent() {
   const [phone, setPhone] = useState('')
   const [phoneLoading, setPhoneLoading] = useState(false)
   const [phoneError, setPhoneError] = useState('')
+  const [accessToken, setAccessToken] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!programId) { setStatus('error'); return }
-    if (!cardId) { setStatus('phone-input'); return }
-    doStamp(cardId)
+    async function checkAuthAndStamp() {
+      if (!programId) { setStatus('error'); return }
+
+      // Verificar sesión — solo empleados/dueños del negocio pueden sellar
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        // Redirigir al login con next param para volver acá después
+        const next = `/fidelizacion/stamp?program=${programId}${cardId ? `&card=${cardId}` : ''}`
+        router.replace(`/login?next=${encodeURIComponent(next)}`)
+        return
+      }
+
+      setAccessToken(session.access_token)
+
+      if (!cardId) { setStatus('phone-input'); return }
+      doStamp(cardId, session.access_token)
+    }
+    checkAuthAndStamp()
   }, [programId, cardId])
 
-  async function doStamp(cid: string) {
+  async function doStamp(cid: string, token?: string) {
     setStatus('loading')
+    const tok = token ?? accessToken
     try {
       const res = await fetch('/api/fidelizacion/stamp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ card_id: cid, program_id: programId, registered_by: 'nfc' }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(tok ? { 'Authorization': `Bearer ${tok}` } : {}),
+        },
+        body: JSON.stringify({ card_id: cid, program_id: programId, registered_by: 'manual' }),
       })
       const data = await res.json()
       if (data.cooldown) { setStatus('cooldown'); return }
+      if (res.status === 401) { setStatus('unauthorized'); return }
       if (data.error) { setStatus('error'); return }
       setStamps(data.stamps)
       setStampsGoal(data.stamps_goal)
@@ -72,7 +97,7 @@ function StampContent() {
       setPhoneError('No encontramos tu tarjeta con ese número. ¿Ya te registraste?')
       return
     }
-    doStamp(data.card.id)
+    doStamp(data.card.id, accessToken ?? undefined)
   }
 
   return (
@@ -237,6 +262,14 @@ function StampContent() {
           <div className="text-5xl">⏳</div>
           <h1 className="text-xl font-bold text-zinc-900">Ya sumaste un sello hoy</h1>
           <p className="text-zinc-500 text-sm">Podés sumar un sello por visita. Volvé mañana o pedile al encargado que te lo sume desde el panel.</p>
+        </div>
+      )}
+
+      {status === 'unauthorized' && (
+        <div className="flex flex-col items-center gap-4 max-w-xs">
+          <div className="text-5xl">🔒</div>
+          <h1 className="text-xl font-bold text-zinc-900">Sin permisos</h1>
+          <p className="text-zinc-500 text-sm">Solo el dueño o encargado del negocio puede sellar tarjetas.</p>
         </div>
       )}
 

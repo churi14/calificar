@@ -675,8 +675,8 @@ function PlansModal({ onClose }: { onClose: () => void }) {
 }
 
 // ── Vista: TARJETA ───────────────────────────────────────────────────────────
-function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken }:
-  { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void; accessToken: string }) {
+function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, plan = 'trial', planExpiresAt = null, stats }:
+  { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void; accessToken: string; plan?: string; planExpiresAt?: string | null; stats?: { total: number; stampsToday: number; rewardsTotal: number } }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
@@ -718,28 +718,53 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken }:
         <p className="text-zinc-400 text-sm mt-0.5">1 programa activo</p>
       </div>
 
-      {/* Banner trial */}
-      <div className="border border-violet-200 bg-violet-50 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <span className="text-xl mt-0.5">🪪</span>
-          <div>
-            <p className="text-sm font-semibold text-violet-900">Estás en tu período de prueba gratuita.</p>
-            <p className="text-xs text-violet-600 mt-0.5">Activá el plan Pro para desbloquear todas las funciones y seguir usando Calificar sin límites.</p>
-          </div>
-        </div>
-        <button onClick={() => setShowPlans(true)}
-          className="flex-shrink-0 text-xs font-bold text-white px-4 py-2 rounded-xl" style={{ background: '#7C3AED' }}>
-          → Ver planes
-        </button>
-      </div>
+      {/* Banner trial — solo en plan trial o vencido */}
+      {(() => {
+        const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
+        if (plan === 'trial') {
+          return (
+            <div className="border border-violet-200 bg-violet-50 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="text-xl mt-0.5">🪪</span>
+                <div>
+                  <p className="text-sm font-semibold text-violet-900">Estás en tu período de prueba gratuita.</p>
+                  <p className="text-xs text-violet-600 mt-0.5">Activá el plan Pro para desbloquear todas las funciones y seguir usando Calificar sin límites.</p>
+                </div>
+              </div>
+              <button onClick={() => setShowPlans(true)}
+                className="flex-shrink-0 text-xs font-bold text-white px-4 py-2 rounded-xl" style={{ background: '#7C3AED' }}>
+                → Ver planes
+              </button>
+            </div>
+          )
+        }
+        if (isExpired) {
+          return (
+            <div className="border border-red-200 bg-red-50 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="text-xl mt-0.5">⚠️</span>
+                <div>
+                  <p className="text-sm font-semibold text-red-800">Tu plan venció el {new Date(planExpiresAt!).toLocaleDateString('es-AR', { day: '2-digit', month: 'long' })}.</p>
+                  <p className="text-xs text-red-600 mt-0.5">Renovalo para seguir usando todas las funciones.</p>
+                </div>
+              </div>
+              <button onClick={() => setShowPlans(true)}
+                className="flex-shrink-0 text-xs font-bold text-white px-4 py-2 rounded-xl bg-red-600">
+                → Renovar
+              </button>
+            </div>
+          )
+        }
+        return null
+      })()}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'PROGRAMAS ACTIVOS', value: '1 / 1' },
-          { label: 'WALLETS ACTIVOS', value: '0' },
-          { label: 'SELLOS OTORGADOS', value: '0' },
-          { label: 'PREMIOS ENTREGADOS', value: '0' },
+          { label: 'CLIENTES ACTIVOS', value: String(stats?.total ?? 0) },
+          { label: 'SELLOS HOY', value: String(stats?.stampsToday ?? 0) },
+          { label: 'PREMIOS ENTREGADOS', value: String(stats?.rewardsTotal ?? 0) },
+          { label: 'PLAN ACTIVO', value: plan === 'trial' ? 'Trial' : plan.charAt(0).toUpperCase() + plan.slice(1) },
         ].map(s => (
           <div key={s.label} className="bg-white border border-zinc-100 rounded-2xl p-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">{s.label}</p>
@@ -973,24 +998,133 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
 }
 
 // ── Vista: PUSH ──────────────────────────────────────────────────────────────
-function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif }:
-  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void }) {
+function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, cards = [], selectedProgram, accessToken }:
+  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void; cards?: Card[]; selectedProgram?: string | null; accessToken?: string }) {
+  const [tab, setTab] = useState<'todos' | 'individual'>('todos')
+  const [search, setSearch] = useState('')
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null)
+  const [indivMsg, setIndivMsg] = useState('')
+  const [indivSending, setIndivSending] = useState(false)
+  const [indivSent, setIndivSent] = useState(false)
+  const [indivError, setIndivError] = useState('')
+
+  const filtered = search.trim()
+    ? cards.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search))
+    : []
+
+  async function sendIndividual() {
+    if (!selectedCard || !indivMsg.trim() || !selectedProgram) return
+    setIndivSending(true)
+    setIndivError('')
+    const res = await fetch('/api/fidelizacion/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: JSON.stringify({
+        program_id: selectedProgram,
+        card_id: selectedCard.id,
+        title: '🔔 Mensaje de tu local',
+        body: indivMsg,
+      }),
+    })
+    const d = await res.json()
+    setIndivSending(false)
+    if (d.ok) {
+      setIndivSent(true)
+      setIndivMsg('')
+      setTimeout(() => setIndivSent(false), 3000)
+    } else {
+      setIndivError(d.error ?? 'Error al enviar')
+    }
+  }
+
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Avisos push</h1>
-      <p className="text-zinc-400 text-sm mb-8">Mandá mensajes directos a los clientes que activaron notificaciones.</p>
-      <div className="bg-white border border-zinc-100 rounded-2xl p-6">
-        <label className="block text-sm font-semibold text-zinc-700 mb-2">Mensaje</label>
-        <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
-          placeholder="Ej: Esta semana 2x1 en café. ¡Te esperamos!" rows={4}
-          className="w-full border border-zinc-200 focus:border-violet-400 rounded-2xl px-4 py-3 text-sm focus:outline-none resize-none transition-colors" />
-        <p className="text-xs text-zinc-400 mt-1 mb-4">{notifMsg.length}/160 caracteres</p>
-        <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
-          className="font-bold px-6 py-3 rounded-2xl text-sm text-white transition-colors disabled:opacity-50"
-          style={{ background: notifSent ? '#10B981' : '#7C3AED' }}>
-          {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar a todos mis clientes'}
+      <p className="text-zinc-400 text-sm mb-6">Mandá mensajes directos a los clientes que activaron notificaciones.</p>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-zinc-100 rounded-xl p-1 w-fit mb-6">
+        <button onClick={() => setTab('todos')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'todos' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'}`}>
+          Todos los clientes
+        </button>
+        <button onClick={() => setTab('individual')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'individual' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'}`}>
+          Cliente específico
         </button>
       </div>
+
+      {tab === 'todos' && (
+        <div className="bg-white border border-zinc-100 rounded-2xl p-6">
+          <label className="block text-sm font-semibold text-zinc-700 mb-2">Mensaje para todos</label>
+          <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
+            placeholder="Ej: Esta semana 2x1 en café. ¡Te esperamos!" rows={4}
+            className="w-full border border-zinc-200 focus:border-violet-400 rounded-2xl px-4 py-3 text-sm focus:outline-none resize-none transition-colors" />
+          <p className="text-xs text-zinc-400 mt-1 mb-4">{notifMsg.length}/160 caracteres</p>
+          <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
+            className="font-bold px-6 py-3 rounded-2xl text-sm text-white transition-colors disabled:opacity-50"
+            style={{ background: notifSent ? '#10B981' : '#7C3AED' }}>
+            {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar a todos mis clientes'}
+          </button>
+        </div>
+      )}
+
+      {tab === 'individual' && (
+        <div className="bg-white border border-zinc-100 rounded-2xl p-6 space-y-4">
+          {/* Buscador de cliente */}
+          <div>
+            <label className="block text-sm font-semibold text-zinc-700 mb-2">Buscar cliente</label>
+            {selectedCard ? (
+              <div className="flex items-center justify-between border border-violet-300 bg-violet-50 rounded-xl px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-900">{selectedCard.name}</p>
+                  <p className="text-xs text-zinc-400">{selectedCard.phone} · {selectedCard.stamps} sellos</p>
+                </div>
+                <button onClick={() => setSelectedCard(null)} className="text-zinc-400 hover:text-zinc-600 text-sm">✕</button>
+              </div>
+            ) : (
+              <div className="relative">
+                <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+                  placeholder="Nombre o teléfono..."
+                  className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors" />
+                {filtered.length > 0 && (
+                  <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                    {filtered.map(c => (
+                      <button key={c.id} onClick={() => { setSelectedCard(c); setSearch('') }}
+                        className="w-full text-left px-4 py-3 hover:bg-zinc-50 border-b border-zinc-50 last:border-0">
+                        <p className="text-sm font-semibold text-zinc-900">{c.name}</p>
+                        <p className="text-xs text-zinc-400">{c.phone} · {c.stamps} sellos</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {search.trim() && filtered.length === 0 && (
+                  <p className="text-xs text-zinc-400 mt-2">No se encontró ningún cliente con ese nombre o teléfono.</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Mensaje */}
+          <div>
+            <label className="block text-sm font-semibold text-zinc-700 mb-2">Mensaje personalizado</label>
+            <textarea value={indivMsg} onChange={e => setIndivMsg(e.target.value)}
+              placeholder={`Ej: Hola ${selectedCard?.name?.split(' ')[0] ?? 'Juan'}, te tenemos una sorpresa especial 🎁`}
+              rows={4}
+              className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-4 py-3 text-sm focus:outline-none resize-none transition-colors" />
+            <p className="text-xs text-zinc-400 mt-1">{indivMsg.length}/160 caracteres</p>
+          </div>
+
+          {indivError && <p className="text-red-500 text-xs">{indivError}</p>}
+
+          <button onClick={sendIndividual}
+            disabled={indivSending || !indivMsg.trim() || !selectedCard || indivSent}
+            className="font-bold px-6 py-3 rounded-2xl text-sm text-white transition-colors disabled:opacity-50"
+            style={{ background: indivSent ? '#10B981' : '#7C3AED' }}>
+            {indivSent ? '✓ Enviado' : indivSending ? 'Enviando...' : selectedCard ? `Enviar a ${selectedCard.name.split(' ')[0]}` : 'Seleccioná un cliente'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -2414,7 +2548,7 @@ export default function NegocioDashboard() {
             onLogoNav={() => setActiveNav('tarjeta')} />
         )}
         {activeNav === 'tarjeta' && (
-          <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} accessToken={accessToken} />
+          <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} accessToken={accessToken} plan={businessPlan} planExpiresAt={planExpiresAt} stats={stats} />
         )}
         {activeNav === 'clientes' && (
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
@@ -2422,7 +2556,8 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'push' && (
           <ViewPush notifMsg={notifMsg} setNotifMsg={setNotifMsg}
-            notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif} />
+            notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
+            cards={cards} selectedProgram={selectedProgram} accessToken={accessToken} />
         )}
         {activeNav === 'proximidad' && (
           <ViewProximidad selectedProgram={selectedProgram} isPro={true}
