@@ -27,6 +27,7 @@ function TarjetaContent() {
   const [card, setCard] = useState<CardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [notifState, setNotifState] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
+  const [showNotifModal, setShowNotifModal] = useState(false)
 
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent)
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -62,8 +63,13 @@ function TarjetaContent() {
       navigator.serviceWorker.register('/sw.js').catch(() => {})
     }
     // Detectar si ya tiene permiso
-    if ('Notification' in window && Notification.permission === 'granted') {
-      setNotifState('granted')
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        setNotifState('granted')
+      } else if (Notification.permission === 'default') {
+        // Mostrar modal después de 1.5s para que vea su tarjeta primero
+        setTimeout(() => setShowNotifModal(true), 1500)
+      }
     }
   }, [])
 
@@ -103,8 +109,41 @@ function TarjetaContent() {
   // Generar grid de sellos
   const selloItems = Array.from({ length: goal }, (_, i) => i < stamps)
 
+  async function activarDesdeModal() {
+    setShowNotifModal(false)
+    await activarNotificaciones()
+  }
+
   return (
     <main className="min-h-screen bg-zinc-50 flex flex-col items-center px-4 py-10">
+
+      {/* Modal de notificaciones */}
+      {showNotifModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-8" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl">
+            <div className="text-4xl text-center mb-3">🔔</div>
+            <h2 className="text-lg font-extrabold text-zinc-900 text-center mb-1">
+              Activá las notificaciones
+            </h2>
+            <p className="text-sm text-zinc-500 text-center mb-5">
+              Te avisamos cuando {card?.loyalty_programs?.businesses?.name ?? 'el negocio'} tenga promos especiales para vos.
+            </p>
+            <button
+              onClick={activarDesdeModal}
+              className="w-full text-white font-bold py-3.5 rounded-full text-sm mb-3"
+              style={{ backgroundColor: color }}
+            >
+              Activar notificaciones
+            </button>
+            <button
+              onClick={() => setShowNotifModal(false)}
+              className="w-full text-zinc-400 text-sm py-2"
+            >
+              Ahora no
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tarjeta visual */}
       <div
