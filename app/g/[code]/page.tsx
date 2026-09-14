@@ -18,8 +18,14 @@ export default async function QRRedirectPage({
     .eq('code', code.toUpperCase())
     .single()
 
-  // Código inválido
-  if (!data) redirect('https://calificar.com.ar')
+  // Código no existe → lo recreamos y mandamos a setup (auto-recuperación)
+  if (!data) {
+    await supabase.from('qr_redirects').insert({
+      code: code.toUpperCase(),
+      activated: false,
+    })
+    redirect(`/g/${code}/setup`)
+  }
 
   // No activado aún → setup
   if (!data.activated || !data.google_url) {
