@@ -9,6 +9,8 @@ const supabaseClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+type Milestone = { at: number; label: string; coupon_prefix?: string }
+
 type Program = {
   id: string
   name: string
@@ -16,6 +18,7 @@ type Program = {
   reward_description: string
   color_primary: string
   logo_url: string | null
+  milestones?: Milestone[]
   businesses?: { name: string; id: string }
 }
 
@@ -681,8 +684,33 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [showPlans, setShowPlans] = useState(false)
+  const [milestones, setMilestones] = useState<Milestone[]>([])
+  const [milestoneSaving, setMilestoneSaving] = useState(false)
+  const [milestoneSaved, setMilestoneSaved] = useState(false)
+  const [milestoneError, setMilestoneError] = useState('')
   const color = program?.color_primary ?? '#7C3AED'
   const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
+
+  // Cargar milestones del programa cuando esté disponible
+  useEffect(() => {
+    if (program?.milestones) setMilestones(program.milestones)
+  }, [program?.id])
+
+  async function saveMilestones() {
+    if (!selectedProgram) return
+    setMilestoneSaving(true)
+    setMilestoneError('')
+    const res = await fetch('/api/fidelizacion/program', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: JSON.stringify({ program_id: selectedProgram, milestones }),
+    })
+    const d = await res.json()
+    setMilestoneSaving(false)
+    if (d.error) { setMilestoneError(d.error); return }
+    setMilestoneSaved(true)
+    setTimeout(() => setMilestoneSaved(false), 2500)
+  }
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -834,8 +862,58 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
           </div>
         </div>
 
+        {/* Premios intermedios (milestones) */}
+        <div className="p-5 border-t border-zinc-100">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-sm font-bold text-zinc-900">Premios intermedios</p>
+            <span className="text-[10px] bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full">Opcional</span>
+          </div>
+          <p className="text-xs text-zinc-400 mb-4">
+            Podés dar un premio antes de llegar a la meta. Ej: a los 3 sellos, 10% OFF.
+          </p>
+          {milestones.map((m, i) => (
+            <div key={i} className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 flex-1">
+                <span className="text-xs text-zinc-400 whitespace-nowrap">Al sello</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={program ? program.stamps_goal - 1 : 9}
+                  value={m.at}
+                  onChange={e => setMilestones(ms => ms.map((x, idx) => idx === i ? { ...x, at: Number(e.target.value) } : x))}
+                  className="w-12 bg-transparent text-center font-bold text-zinc-900 text-sm focus:outline-none"
+                />
+              </div>
+              <input
+                type="text"
+                value={m.label}
+                onChange={e => setMilestones(ms => ms.map((x, idx) => idx === i ? { ...x, label: e.target.value } : x))}
+                placeholder="Ej: 10% OFF"
+                className="flex-1 border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-400"
+              />
+              <button onClick={() => setMilestones(ms => ms.filter((_, idx) => idx !== i))}
+                className="text-zinc-300 hover:text-red-400 transition-colors text-lg leading-none px-1">✕</button>
+            </div>
+          ))}
+          <div className="flex items-center gap-3 mt-3">
+            <button
+              onClick={() => setMilestones(ms => [...ms, { at: Math.floor((program?.stamps_goal ?? 10) / 2), label: '10% OFF' }])}
+              className="text-xs font-semibold text-violet-600 hover:text-violet-800 transition-colors">
+              + Agregar premio intermedio
+            </button>
+            <button
+              onClick={saveMilestones}
+              disabled={milestoneSaving || milestoneSaved}
+              className="text-xs font-bold text-white px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+              style={{ background: milestoneSaved ? '#10B981' : '#7C3AED' }}>
+              {milestoneSaved ? '✓ Guardado' : milestoneSaving ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+          {milestoneError && <p className="text-xs text-red-500 mt-2">{milestoneError}</p>}
+        </div>
+
         {/* Preview tarjeta */}
-        <div className="p-5">
+        <div className="p-5 border-t border-zinc-100">
           <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4">PREVIEW DE LA TARJETA</p>
           <div className="rounded-2xl p-5 text-white max-w-xs" style={{ background: `linear-gradient(135deg, ${color}, ${color}bb)` }}>
             <div className="flex items-center justify-between mb-4">
