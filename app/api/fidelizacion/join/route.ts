@@ -43,14 +43,35 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (existing) {
-      // Ya tiene tarjeta — devolver el wallet link existente
-      // Para tarjeta existente: referenciar por ID sin objeto completo (ya existe en Google)
-      const walletLink = existing.wallet_object_id
-        ? getWalletLink(existing.wallet_object_id, program.id)
-        : null
+      // Ya tiene tarjeta — generar wallet link con objeto completo embebido en JWT
+      // Si wallet_object_id es null (falló antes), usamos ID determinístico: calificar_card_<id>
+      const objectId = existing.wallet_object_id ?? `calificar_card_${existing.id}`
+
+      // Si no tenía wallet_object_id guardado, intentar guardarlo ahora
+      if (!existing.wallet_object_id) {
+        try {
+          await createLoyaltyObject({
+            classId: program.id,
+            objectId,
+            customerName: existing.name ?? existing.phone,
+            stamps: existing.stamps,
+            stampsGoal: program.stamps_goal,
+            rewardDescription: program.reward_description,
+          })
+        } catch { /* ya puede existir en Google — ignorar */ }
+        await supabase.from('loyalty_cards').update({ wallet_object_id: objectId }).eq('id', existing.id)
+      }
+
+      // Siempre embeber objeto completo en el JWT para que Google lo cree si no existe
+      const walletLink = getWalletLink(objectId, program.id, {
+        customerName: existing.name ?? existing.phone,
+        stamps: existing.stamps,
+        stampsGoal: program.stamps_goal,
+        rewardDescription: program.reward_description,
+      })
 
       return NextResponse.json({
-        card: existing,
+        card: { ...existing, wallet_object_id: objectId },
         wallet_link: walletLink,
         already_member: true,
       })
@@ -78,27 +99,24 @@ export async function POST(req: NextRequest) {
 
     // Crear objeto en Google Wallet
     const objectId = `calificar_card_${card.id}`
+
+    // Guardar el wallet_object_id SIEMPRE — aunque la pre-creación falle,
+    // el JWT embebe el objeto completo y Google lo crea al vuelo cuando el usuario guarda
+    await supabase.from('loyalty_cards').update({ wallet_object_id: objectId }).eq('id', card.id)
+
     try {
       await createLoyaltyObject({
-        classId: program.id,          // usamos el UUID del programa como classId
+        classId: program.id,
         objectId,
         customerName: name ?? phone,
         stamps: 0,
         stampsGoal: program.stamps_goal,
         rewardDescription: program.reward_description,
       })
-
-      // Guardar el wallet_object_id en la tarjeta
-      await supabase
-        .from('loyalty_cards')
-        .update({ wallet_object_id: objectId })
-        .eq('id', card.id)
     } catch (walletErr: unknown) {
+      // No bloquea el flujo — el JWT tiene el objeto completo embebido
       const msg = walletErr instanceof Error ? walletErr.message : JSON.stringify(walletErr)
-      console.error('[WALLET ERROR] createLoyaltyObject falló:', msg)
-      console.error('[WALLET DEBUG] classId usado:', program.id)
-      console.error('[WALLET DEBUG] ISSUER_ID:', process.env.GOOGLE_WALLET_ISSUER_ID)
-      console.error('[WALLET DEBUG] SERVICE_EMAIL:', process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL)
+      console.error('[WALLET] Pre-creación falló (no crítico):', msg)
     }
 
     const walletLink = getWalletLink(objectId, program.id, {
