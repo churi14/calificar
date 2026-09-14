@@ -130,7 +130,13 @@ export async function GET(req: NextRequest) {
       }
     }
   } else {
-    debug.program = 'ℹ Pasá ?program_id=UUID para diagnóstico completo'
+    // Sin program_id: listar todos los programas para encontrar el ID correcto
+    const { data: programs } = await supabase
+      .from('loyalty_programs')
+      .select('id, name, business_id, active')
+      .order('created_at', { ascending: false })
+    debug.all_programs = programs ?? []
+    debug.tip = 'Copiá el "id" del programa que querés y pasalo como ?program_id=...'
   }
 
   return NextResponse.json(debug, { status: 200 })
