@@ -83,18 +83,24 @@ function UnirseContent() {
         {/* Header del programa */}
         <div className="text-center mb-8">
           {program?.logo_url ? (
-            <div className="w-24 h-24 rounded-2xl mx-auto mb-4 bg-white shadow-md flex items-center justify-center p-2">
-              <img src={program.logo_url} alt="" className="max-h-full max-w-full object-contain" />
+            <div className="w-32 h-32 rounded-3xl mx-auto mb-5 flex items-center justify-center p-4"
+              style={{ backgroundColor: color }}>
+              <img src={program.logo_url} alt=""
+                className="max-h-full max-w-full object-contain"
+                style={{ filter: lum < 0.5 ? 'brightness(0) invert(1)' : 'none' }} />
             </div>
           ) : (
-            <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold"
+            <div className="w-20 h-20 rounded-3xl mx-auto mb-5 flex items-center justify-center text-white text-3xl font-bold"
               style={{ backgroundColor: color }}>
               ★
             </div>
           )}
-          <h1 className="text-xl font-extrabold text-zinc-900">
-            {program ? program.name : 'Cargando...'}
+          <h1 className="text-2xl font-extrabold text-zinc-900">
+            {program ? (program.businesses?.name ?? program.name) : 'Cargando...'}
           </h1>
+          {program && program.businesses?.name && (
+            <p className="text-sm font-medium text-zinc-400 mt-0.5">{program.name}</p>
+          )}
           {program && (
             <p className="text-sm text-zinc-500 mt-1">
               Juntá {program.stamps_goal} sellos y ganás: <strong>{program.reward_description}</strong>
