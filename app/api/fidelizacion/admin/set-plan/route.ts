@@ -8,7 +8,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createClient as createCookieClient } from '@/lib/supabase/server'
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,13 +18,9 @@ const admin = createClient(
 const VALID_PLANS = ['trial', 'starter', 'pro', 'ultimate', 'gifted']
 
 export async function PUT(req: NextRequest) {
-  // Verificar que sea admin
-  const supabase = createServiceClient()
-  const { data: { user } } = await supabase.auth.getUser(
-    req.headers.get('authorization')?.replace('Bearer ', '') ?? ''
-  )
-  // Fallback: usar cookie session (para llamadas desde el panel admin)
-  const sessionUser = user ?? (await supabase.auth.getUser()).data.user
+  // Verificar que sea admin usando cliente con cookies
+  const supabase = await createCookieClient()
+  const { data: { user: sessionUser } } = await supabase.auth.getUser()
   if (!sessionUser) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const { data: profile } = await admin
