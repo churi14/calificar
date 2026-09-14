@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
+import { createOrUpdateLoyaltyClass } from '@/lib/wallet/google-wallet'
 
 // Cliente con service role para escrituras (bypass RLS)
 const adminSupabase = createClient(
@@ -138,6 +139,23 @@ export async function POST(req: NextRequest) {
 
     if (progErr || !program) {
       return NextResponse.json({ error: progErr?.message ?? 'Error creando programa' }, { status: 500 })
+    }
+
+    // ── Crear clase en Google Wallet ─────────────────────────────────────────
+    // Sin esto, cualquier tarjeta falla con "Ocurrió un error" al agregar a Wallet
+    try {
+      await createOrUpdateLoyaltyClass({
+        classId: program.id,
+        programName: `Tarjeta de Sellos — ${businessName}`,
+        issuerName: businessName,
+        logoUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'}/logo-wallet.png`,
+        hexBgColor: primaryColor,
+        stampsGoal,
+        rewardDescription,
+      })
+    } catch (walletErr) {
+      // No bloquear el onboarding si falla Wallet — se puede sincronizar después
+      console.error('[WALLET] Error creando clase en onboarding:', walletErr)
     }
 
     return NextResponse.json({ ok: true, business_id: businessId, program })

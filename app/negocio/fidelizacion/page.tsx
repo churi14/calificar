@@ -688,6 +688,8 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
   const [milestoneSaving, setMilestoneSaving] = useState(false)
   const [milestoneSaved, setMilestoneSaved] = useState(false)
   const [milestoneError, setMilestoneError] = useState('')
+  const [walletSyncing, setWalletSyncing] = useState(false)
+  const [walletSyncMsg, setWalletSyncMsg] = useState('')
   const color = program?.color_primary ?? '#7C3AED'
   const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
 
@@ -710,6 +712,21 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     if (d.error) { setMilestoneError(d.error); return }
     setMilestoneSaved(true)
     setTimeout(() => setMilestoneSaved(false), 2500)
+  }
+
+  async function syncWallet() {
+    if (!selectedProgram) return
+    setWalletSyncing(true)
+    setWalletSyncMsg('')
+    const res = await fetch('/api/fidelizacion/program', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: JSON.stringify({ program_id: selectedProgram, sync_wallet: true }),
+    })
+    const d = await res.json()
+    setWalletSyncing(false)
+    setWalletSyncMsg(d.wallet_synced ? '✓ Wallet sincronizado' : `Error: ${d.wallet_error ?? 'desconocido'}`)
+    setTimeout(() => setWalletSyncMsg(''), 5000)
   }
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -859,6 +876,19 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                 <p className="text-xs text-green-600 mt-1 font-medium">✓ Logo activo</p>
               )}
             </div>
+          </div>
+          {/* Botón de sincronización Google Wallet */}
+          <div className="mt-4 pt-4 border-t border-zinc-50">
+            <p className="text-xs text-zinc-400 mb-2">Si Google Wallet muestra "Ocurrió un error", sincronizá la tarjeta:</p>
+            <button onClick={syncWallet} disabled={walletSyncing}
+              className="text-xs font-semibold border border-zinc-200 text-zinc-600 px-4 py-2 rounded-xl hover:bg-zinc-50 transition-colors disabled:opacity-50 flex items-center gap-2">
+              {walletSyncing ? '⏳ Sincronizando...' : '🔄 Sincronizar Google Wallet'}
+            </button>
+            {walletSyncMsg && (
+              <p className={`text-xs mt-2 font-medium ${walletSyncMsg.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>
+                {walletSyncMsg}
+              </p>
+            )}
           </div>
         </div>
 
