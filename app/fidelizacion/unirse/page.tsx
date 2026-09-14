@@ -76,39 +76,32 @@ function UnirseContent() {
       ? `${color}20`
       : '#1a1a1a'    // fondo oscuro si el color es muy claro
 
+  const textOnColor = lum < 0.5 ? 'white' : '#111827'
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: bgColor }}>
-      <div className="w-full max-w-sm">
+    <main className="min-h-screen flex flex-col">
+      {/* Hero con color del negocio */}
+      <div className="flex flex-col items-center justify-center pt-14 pb-10 px-6" style={{ backgroundColor: color }}>
+        {program?.logo_url ? (
+          <img src={program.logo_url} alt=""
+            className="h-24 max-w-[200px] object-contain mb-5 drop-shadow-lg"
+            style={{ filter: lum < 0.5 ? 'brightness(0) invert(1)' : 'brightness(0)' }} />
+        ) : (
+          <div className="text-5xl mb-5" style={{ color: textOnColor }}>★</div>
+        )}
+        <h1 className="text-2xl font-extrabold text-center" style={{ color: textOnColor }}>
+          {program ? (program.businesses?.name ?? program.name) : 'Cargando...'}
+        </h1>
+        {program && (
+          <p className="text-sm text-center mt-2 opacity-80" style={{ color: textOnColor }}>
+            Juntá {program.stamps_goal} sellos y ganás: <strong>{program.reward_description}</strong>
+          </p>
+        )}
+      </div>
 
-        {/* Header del programa */}
-        <div className="text-center mb-8">
-          {program?.logo_url ? (
-            <div className="w-32 h-32 rounded-3xl mx-auto mb-5 flex items-center justify-center p-4"
-              style={{ backgroundColor: color }}>
-              <img src={program.logo_url} alt=""
-                className="max-h-full max-w-full object-contain"
-                style={{ filter: lum < 0.5 ? 'brightness(0) invert(1)' : 'none' }} />
-            </div>
-          ) : (
-            <div className="w-20 h-20 rounded-3xl mx-auto mb-5 flex items-center justify-center text-white text-3xl font-bold"
-              style={{ backgroundColor: color }}>
-              ★
-            </div>
-          )}
-          <h1 className="text-2xl font-extrabold text-zinc-900">
-            {program ? (program.businesses?.name ?? program.name) : 'Cargando...'}
-          </h1>
-          {program && program.businesses?.name && (
-            <p className="text-sm font-medium text-zinc-400 mt-0.5">{program.name}</p>
-          )}
-          {program && (
-            <p className="text-sm text-zinc-500 mt-1">
-              Juntá {program.stamps_goal} sellos y ganás: <strong>{program.reward_description}</strong>
-            </p>
-          )}
-        </div>
-
-        {/* Formulario */}
+      {/* Formulario sobre fondo blanco */}
+      <div className="flex-1 bg-white px-6 pt-8 pb-10">
+        <div className="w-full max-w-sm mx-auto">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="block text-xs font-semibold text-zinc-500 mb-1.5">Tu nombre</label>
@@ -158,6 +151,7 @@ function UnirseContent() {
         <p className="text-center text-xs text-zinc-400 mt-5">
           Sin app, sin contraseña. Solo tu teléfono.
         </p>
+        </div>
       </div>
     </main>
   )
