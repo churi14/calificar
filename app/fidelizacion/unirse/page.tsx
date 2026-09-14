@@ -83,7 +83,9 @@ function UnirseContent() {
         {/* Header del programa */}
         <div className="text-center mb-8">
           {program?.logo_url ? (
-            <img src={program.logo_url} alt="" className="h-20 max-w-[200px] mx-auto mb-4 object-contain" />
+            <div className="w-24 h-24 rounded-2xl mx-auto mb-4 bg-white shadow-md flex items-center justify-center p-2">
+              <img src={program.logo_url} alt="" className="max-h-full max-w-full object-contain" />
+            </div>
           ) : (
             <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold"
               style={{ backgroundColor: color }}>
@@ -91,7 +93,7 @@ function UnirseContent() {
             </div>
           )}
           <h1 className="text-xl font-extrabold text-zinc-900">
-            {program ? `${program.businesses?.name ?? 'Calificar'} — ${program.name}` : 'Cargando...'}
+            {program ? program.name : 'Cargando...'}
           </h1>
           {program && (
             <p className="text-sm text-zinc-500 mt-1">
