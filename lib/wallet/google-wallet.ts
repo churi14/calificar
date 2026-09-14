@@ -198,28 +198,26 @@ export function generateWalletJwt(opts: WalletJwtOptions): string {
   const fullClassId = `${ISSUER_ID}.${opts.classId}`
   const fullObjectId = `${ISSUER_ID}.${opts.objectId}`
 
-  // Incluir el objeto completo en el JWT para que Google lo cree al vuelo
-  // si no fue pre-creado (evita el error "Ocurrió un error")
-  const loyaltyObject: Record<string, unknown> = {
-    id: fullObjectId,
-    classId: fullClassId,
-    state: 'ACTIVE',
-    accountName: opts.customerName ?? 'Cliente',
-    accountId: opts.objectId,
-  }
-
-  if (opts.stampsGoal) {
-    loyaltyObject.loyaltyPoints = {
-      balance: { string: `${opts.stamps ?? 0} / ${opts.stampsGoal}` },
-      label: 'Sellos',
-    }
-  }
-
-  if (opts.rewardDescription) {
-    loyaltyObject.textModulesData = [
-      { header: 'Premio', body: opts.rewardDescription, id: 'reward' },
-    ]
-  }
+  // Si se pasan datos del objeto → incluirlo completo (objeto nuevo, Google lo crea al vuelo)
+  // Si no → solo referenciar por ID (objeto ya existe en Google)
+  const loyaltyObject: Record<string, unknown> = opts.customerName
+    ? {
+        id: fullObjectId,
+        classId: fullClassId,
+        state: 'ACTIVE',
+        accountName: opts.customerName,
+        accountId: opts.objectId,
+        ...(opts.stampsGoal ? {
+          loyaltyPoints: {
+            balance: { string: `${opts.stamps ?? 0} / ${opts.stampsGoal}` },
+            label: 'Sellos',
+          }
+        } : {}),
+        ...(opts.rewardDescription ? {
+          textModulesData: [{ header: 'Premio', body: opts.rewardDescription, id: 'reward' }]
+        } : {}),
+      }
+    : { id: fullObjectId, classId: fullClassId }
 
   const payload = {
     iss: SERVICE_EMAIL,

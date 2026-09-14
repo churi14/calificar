@@ -44,13 +44,9 @@ export async function POST(req: NextRequest) {
 
     if (existing) {
       // Ya tiene tarjeta — devolver el wallet link existente
+      // Para tarjeta existente: referenciar por ID sin objeto completo (ya existe en Google)
       const walletLink = existing.wallet_object_id
-        ? getWalletLink(existing.wallet_object_id, program.id, {
-            customerName: existing.name,
-            stamps: existing.stamps,
-            stampsGoal: program.stamps_goal,
-            rewardDescription: program.reward_description,
-          })
+        ? getWalletLink(existing.wallet_object_id, program.id)
         : null
 
       return NextResponse.json({
