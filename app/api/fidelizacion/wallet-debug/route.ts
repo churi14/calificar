@@ -109,7 +109,41 @@ export async function GET(req: NextRequest) {
           : `❌ Error creando clase — status ${createRes.status}: ${createBody}`
       }
 
-      // Verificar un objeto de tarjeta si existe
+      // Intentar crear un objeto de prueba para ver el error exacto de Google
+      const testObjectId = `${ISSUER_ID}.calificar_test_debug_${Date.now()}`
+      const tok2 = await getToken()
+      const testObjRes = await fetch(`${WALLET_API}/loyaltyObject`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tok2}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: testObjectId,
+          classId: fullClassId,
+          state: 'ACTIVE',
+          accountName: 'Test Debug',
+          accountId: 'test_debug',
+          loyaltyPoints: {
+            balance: { string: '0 / 5' },
+            label: 'Sellos',
+          },
+          barcode: { type: 'QR_CODE', value: testObjectId },
+        }),
+      })
+      const testObjBody = await testObjRes.text()
+      debug.test_object_create = testObjRes.ok
+        ? `✓ Objeto de prueba creado OK — el problema es en el join, no en la API`
+        : `❌ Error creando objeto — status ${testObjRes.status}: ${testObjBody}`
+
+      // Si el objeto de prueba se creó, borrarlo
+      if (testObjRes.ok) {
+        const tok3 = await getToken()
+        await fetch(`${WALLET_API}/loyaltyObject/${encodeURIComponent(testObjectId)}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${tok3}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: 'INACTIVE' }),
+        })
+      }
+
+      // Verificar tarjetas existentes
       const { data: card } = await supabase
         .from('loyalty_cards')
         .select('id, wallet_object_id, name')
@@ -126,7 +160,7 @@ export async function GET(req: NextRequest) {
           : `❌ Objeto NO existe — status ${objRes.status}: ${objBody}`
         debug.object_id_used = fullObjectId
       } else {
-        debug.wallet_object = 'ℹ Sin tarjetas con wallet_object_id en este programa'
+        debug.wallet_object = 'ℹ Sin tarjetas con wallet_object_id — todos los joins fallaron al crear el objeto'
       }
     }
   } else {
