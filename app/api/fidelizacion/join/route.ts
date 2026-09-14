@@ -99,7 +99,10 @@ export async function POST(req: NextRequest) {
         .eq('id', card.id)
     } catch (walletErr: unknown) {
       const msg = walletErr instanceof Error ? walletErr.message : JSON.stringify(walletErr)
-      console.error('Error creando objeto Wallet:', msg)
+      console.error('[WALLET ERROR] createLoyaltyObject falló:', msg)
+      console.error('[WALLET DEBUG] classId usado:', program.id)
+      console.error('[WALLET DEBUG] ISSUER_ID:', process.env.GOOGLE_WALLET_ISSUER_ID)
+      console.error('[WALLET DEBUG] SERVICE_EMAIL:', process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL)
     }
 
     const walletLink = getWalletLink(objectId, program.id, {
