@@ -35,18 +35,23 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#070A14' }}>
       <div className="w-full max-w-sm">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-extrabold text-gray-900 flex items-center justify-center gap-1.5">
-            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
-          <p className="text-gray-500 text-sm mt-2">Ingresá a tu cuenta</p>
+          <Link href="/" className="inline-flex items-center justify-center gap-2 mb-3">
+            <img src="/logo.svg" alt="Calificar" className="h-8 w-auto" />
+            <span className="font-extrabold text-xl text-white">Calificar</span>
+          </Link>
+          <p className="text-slate-400 text-sm">Ingresá a tu cuenta</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
+        {/* Card */}
+        <div className="rounded-2xl p-6 space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           {/* Google */}
           <button onClick={handleGoogle} disabled={loading} type="button"
-            className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50">
+            className="w-full flex items-center justify-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+            style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -57,42 +62,50 @@ function LoginForm() {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-xs text-gray-400">o con email</span>
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+            <span className="text-xs text-slate-500">o con email</span>
+            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl border border-red-100">{error}</div>
+              <div className="text-red-400 text-sm p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.2)' }}>{error}</div>
             )}
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
                 placeholder="tu@email.com"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-gray-400 placeholder-gray-300"/>
+                className="w-full rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none placeholder-slate-600"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}
+                onFocus={e => (e.target.style.borderColor = 'rgba(124,58,237,0.6)')}
+                onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.10)')}
+              />
             </div>
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Contraseña</label>
-                <Link href="/recuperar" className="text-xs text-gray-400 hover:text-gray-700 transition-colors">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Contraseña</label>
+                <Link href="/recuperar" className="text-xs text-slate-500 hover:text-violet-400 transition-colors">
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
                 placeholder="••••••••"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-gray-400 placeholder-gray-300"/>
+                className="w-full rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none placeholder-slate-600"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}
+                onFocus={e => (e.target.style.borderColor = 'rgba(124,58,237,0.6)')}
+                onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.10)')}
+              />
             </div>
             <button type="submit" disabled={loading}
-              className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl text-sm hover:bg-gray-700 transition-colors disabled:opacity-50">
+              className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="text-center text-sm text-slate-500 mt-4">
           ¿No tenés cuenta?{' '}
-          <Link href="/register" className="text-gray-900 font-semibold hover:underline">Registrate gratis</Link>
+          <Link href="/register" className="text-violet-400 font-semibold hover:text-violet-300 transition-colors">Registrate gratis</Link>
         </p>
       </div>
     </div>

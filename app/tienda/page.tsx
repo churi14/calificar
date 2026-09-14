@@ -108,10 +108,10 @@ function ProductCard({ p, onAdd, onDetail }: {
   const waConsultar = `https://wa.me/${WA_NUM}?text=${encodeURIComponent(`Hola! Quiero consultar el precio del ${p.name} en ${currentVariant?.label ?? ''}.`)}`
 
   return (
-    <div className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden hover:border-[#FBCAD8] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col">
+    <div className="rounded-[2rem] overflow-hidden hover:-translate-y-2 transition-all duration-300 group flex flex-col" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
 
       {/* Imagen */}
-      <div className="bg-[#F5EFE7] h-48 flex items-center justify-center relative cursor-pointer overflow-hidden"
+      <div className="h-48 flex items-center justify-center relative cursor-pointer overflow-hidden" style={{ background: 'rgba(124,58,237,0.08)' }}
         onClick={() => onDetail(p, variantIdx)}>
         {p.images?.[0] ? (
           <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
@@ -127,8 +127,8 @@ function ProductCard({ p, onAdd, onDetail }: {
 
       {/* Info */}
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="font-display font-bold text-[#0F172A] text-lg mb-1">{p.name}</h3>
-        <p className="text-sm text-gray-500 mb-4">{p.sub}</p>
+        <h3 className="font-display font-bold text-white text-lg mb-1">{p.name}</h3>
+        <p className="text-sm text-slate-400 mb-4">{p.sub}</p>
 
         <div className="mt-auto">
           {/* Selector de material */}
@@ -138,9 +138,10 @@ function ProductCard({ p, onAdd, onDetail }: {
                 <button key={v.label} onClick={() => setVariantIdx(i)}
                   className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all ${
                     i === variantIdx
-                      ? 'bg-[#0F172A] text-white border-[#0F172A]'
-                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                  }`}>
+                      ? 'bg-violet-600 text-white border-violet-600'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  style={i !== variantIdx ? { background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' } : {}}>
                   {v.label}
                 </button>
               ))}
@@ -148,31 +149,31 @@ function ProductCard({ p, onAdd, onDetail }: {
           )}
 
           {consultar ? (
-            <p className="text-2xl font-black text-[#0F172A] mb-4">Consultar</p>
+            <p className="text-2xl font-black text-white mb-4">Consultar</p>
           ) : (
             <>
-              <p className="text-xs text-gray-400 mb-0.5">Desde</p>
-              <p className="text-2xl font-black text-[#0F172A] mb-4">{fmt(price)}</p>
+              <p className="text-xs text-slate-500 mb-0.5">Desde</p>
+              <p className="text-2xl font-black text-white mb-4">{fmt(price)}</p>
             </>
           )}
 
           {p.note && (
-            <p className="text-xs text-gray-400 italic mb-3 leading-relaxed">{p.note}</p>
+            <p className="text-xs text-slate-500 italic mb-3 leading-relaxed">{p.note}</p>
           )}
 
           {consultar ? (
             <a href={waConsultar} target="_blank"
-              className="w-full bg-[#0F172A] text-white font-semibold py-3.5 rounded-full text-sm hover:bg-[#1e293b] transition-colors shadow-md flex items-center justify-center gap-2">
+              className="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3.5 rounded-full text-sm transition-colors shadow-md flex items-center justify-center gap-2">
               Consultar precio
             </a>
           ) : (
             <button onClick={() => onAdd(p, currentVariant?.label, price)}
-              className="w-full bg-[#0F172A] text-white font-semibold py-3.5 rounded-full text-sm hover:bg-[#1e293b] transition-colors shadow-md">
+              className="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3.5 rounded-full text-sm transition-colors shadow-md shadow-violet-900/40">
               Agregar al carrito
             </button>
           )}
           <button onClick={() => onDetail(p, variantIdx)}
-            className="w-full mt-2 text-sm font-medium text-gray-500 hover:text-[#0F172A] py-2 transition-colors">
+            className="w-full mt-2 text-sm font-medium text-slate-500 hover:text-white py-2 transition-colors">
             Ver detalles
           </button>
         </div>
@@ -223,25 +224,25 @@ export default function TiendaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen text-white" style={{ background: '#070A14' }}>
 
       <style>{`@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}`}</style>
 
       {/* NAV */}
-      <nav className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-40">
+      <nav className="sticky top-0 z-40 border-b" style={{ background: 'rgba(7,10,20,0.95)', backdropFilter: 'blur(20px)', borderColor: 'rgba(255,255,255,0.08)' }}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-4">
-          <Link href="/" className="font-display font-extrabold text-2xl text-[#0F172A] flex items-center gap-2 flex-shrink-0">
-            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-[#0F172A]">Calificar</span></Link>
-          <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 font-medium">
-            <Link href="/" className="px-4 py-2 rounded-full hover:bg-gray-50 hover:text-[#0F172A] transition-colors">Inicio</Link>
-            <Link href="/tienda" className="px-4 py-2 rounded-full bg-[#F5EFE7] text-[#0F172A]">Tienda</Link>
-            <Link href="/r/demo" className="px-4 py-2 rounded-full hover:bg-gray-50 hover:text-[#0F172A] transition-colors">Demo</Link>
+          <Link href="/" className="font-display font-extrabold text-2xl text-white flex items-center gap-2 flex-shrink-0">
+            <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" /><span className="font-extrabold text-xl text-white">Calificar</span></Link>
+          <div className="hidden md:flex items-center gap-2 text-sm text-slate-400 font-medium">
+            <Link href="/" className="px-4 py-2 rounded-full hover:bg-white/5 hover:text-white transition-colors">Inicio</Link>
+            <Link href="/tienda" className="px-4 py-2 rounded-full text-white" style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.2)' }}>Tienda</Link>
+            <Link href="/r/demo" className="px-4 py-2 rounded-full hover:bg-white/5 hover:text-white transition-colors">Demo</Link>
           </div>
           <button onClick={() => setCartOpen(true)}
-            className="relative flex items-center gap-2 bg-[#0F172A] text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-[#1e293b] transition-colors shadow-md">
+            className="relative flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors shadow-md shadow-violet-900/40">
             <span>🛒</span> Carrito
             {cartQty > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 bg-[#FBCAD8] text-[#0F172A] rounded-full text-xs font-extrabold flex items-center justify-center shadow-sm">
+              <span className="absolute -top-2 -right-2 w-5 h-5 bg-white text-violet-700 rounded-full text-xs font-extrabold flex items-center justify-center shadow-sm">
                 {cartQty}
               </span>
             )}
@@ -250,23 +251,21 @@ export default function TiendaPage() {
       </nav>
 
       {/* HERO */}
-      <section className="relative bg-[#F5EFE7] pt-20 pb-32 px-6 text-center">
-        <div className="inline-flex items-center gap-2 bg-[#FBCAD8] text-[#0F172A] text-xs font-extrabold px-4 py-2 rounded-full mb-6 tracking-widest uppercase shadow-sm">
-          ★ TIENDA OFICIAL
-        </div>
-        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0F172A] tracking-tight mb-6">
-          Carteles NFC + QR para reseñas
-        </h1>
-        <p className="text-[#0F172A]/70 text-lg max-w-2xl mx-auto mb-6 leading-relaxed">
-          El cliente apoya el celu o escanea el QR — y en 3 segundos está en tu perfil de Google listo para dejarte las 5 estrellas.
-        </p>
-        <p className="text-sm text-gray-500 bg-white/60 inline-block px-4 py-2 rounded-full">
-          Los precios no incluyen envío
-        </p>
-        <div className="absolute left-0 w-full top-full -mt-1 overflow-hidden leading-[0] z-0">
-          <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-[50px] sm:h-[80px] lg:h-[100px] text-white" preserveAspectRatio="none">
-            <path d="M0 0 C 360 100 1080 100 1440 0 L 1440 100 L 0 100 Z" fill="currentColor"/>
-          </svg>
+      <section className="relative pt-20 pb-24 px-6 text-center overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 60%)' }} />
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 text-violet-300 text-xs font-extrabold px-4 py-2 rounded-full mb-6 tracking-widest uppercase" style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.2)' }}>
+            ★ TIENDA OFICIAL
+          </div>
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6">
+            Carteles NFC + QR para reseñas
+          </h1>
+          <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-6 leading-relaxed">
+            El cliente apoya el celu o escanea el QR — y en 3 segundos está en tu perfil de Google listo para dejarte las 5 estrellas.
+          </p>
+          <p className="text-sm text-slate-500 inline-block px-4 py-2 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            Los precios no incluyen envío
+          </p>
         </div>
       </section>
 
@@ -280,33 +279,33 @@ export default function TiendaPage() {
       </section>
 
       {/* PLANES DEL SISTEMA */}
-      <section className="bg-[#F5EFE7] px-6 py-20">
+      <section className="px-6 py-20" style={{ background: 'rgba(255,255,255,0.02)' }}>
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Sistema digital</span>
-            <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-[#0F172A] mb-3">
+            <span className="inline-block text-xs font-bold uppercase tracking-widest text-violet-400 mb-3">Sistema digital</span>
+            <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-white mb-3">
               El cartel necesita el sistema
             </h2>
-            <p className="text-gray-500 max-w-xl mx-auto">
+            <p className="text-slate-400 max-w-xl mx-auto">
               El cartel físico activa el contacto. El sistema gestiona el filtro, el dashboard y las métricas. Los dos juntos son lo que hace la diferencia.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Plan base */}
-            <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-8 flex flex-col">
-              <h3 className="font-extrabold text-[#0F172A] text-xl mb-1">Sistema Calificar</h3>
-              <p className="text-sm text-gray-500 mb-6 leading-relaxed">Filtro inteligente de reseñas + dashboard con estadísticas en tiempo real + feedback privado + ranking de empleados.</p>
+            <div className="rounded-[2rem] p-8 flex flex-col" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <h3 className="font-extrabold text-white text-xl mb-1">Sistema Calificar</h3>
+              <p className="text-sm text-slate-400 mb-6 leading-relaxed">Filtro inteligente de reseñas + dashboard con estadísticas en tiempo real + feedback privado + ranking de empleados.</p>
               <div className="mb-6">
                 <div className="flex items-end gap-1">
-                  <span className="text-3xl font-black text-[#0F172A]">$5.000</span>
-                  <span className="text-sm text-gray-400 mb-1">/mes</span>
+                  <span className="text-3xl font-black text-white">$5.000</span>
+                  <span className="text-sm text-slate-500 mb-1">/mes</span>
                 </div>
               </div>
               <ul className="space-y-2 mb-8 flex-1">
                 {['Filtro inteligente de reseñas', 'Dashboard con estadísticas', 'Feedback privado del cliente', 'Ranking de empleados', 'QR descargable', 'Soporte por WhatsApp'].map(f => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-600">
-                    <span className="w-4 h-4 rounded-full bg-[#056E4B]/10 text-[#056E4B] flex items-center justify-center flex-shrink-0">
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-300">
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-violet-400" style={{ background: 'rgba(124,58,237,0.15)' }}>
                       <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
                     </span>
                     {f}
@@ -314,30 +313,30 @@ export default function TiendaPage() {
                 ))}
               </ul>
               <Link href="/register"
-                className="w-full flex items-center justify-center border-2 border-[#0F172A] text-[#0F172A] font-bold py-3.5 rounded-full hover:bg-[#0F172A] hover:text-white transition-colors text-sm">
+                className="w-full flex items-center justify-center border border-white/20 text-white font-bold py-3.5 rounded-full hover:bg-white/5 transition-colors text-sm">
                 Empezar ahora
               </Link>
             </div>
 
             {/* Plan con dominio */}
-            <div className="bg-[#0F172A] rounded-[2rem] shadow-2xl p-8 flex flex-col relative overflow-hidden">
+            <div className="rounded-[2rem] p-8 flex flex-col relative overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(99,102,241,0.1) 100%)', border: '1px solid rgba(124,58,237,0.35)' }}>
               <div className="absolute top-6 right-6">
-                <span className="text-xs font-extrabold bg-[#FBCAD8] text-[#0F172A] px-3 py-1.5 rounded-full">★ Recomendado</span>
+                <span className="text-xs font-extrabold bg-violet-600 text-white px-3 py-1.5 rounded-full">★ Recomendado</span>
               </div>
               <h3 className="font-extrabold text-white text-xl mb-1">Dominio Propio</h3>
-              <p className="text-sm text-gray-300 mb-6 leading-relaxed">Todo lo del plan base más tu propio dominio registrado. El QR apunta a tu dirección para siempre.</p>
+              <p className="text-sm text-slate-300 mb-6 leading-relaxed">Todo lo del plan base más tu propio dominio registrado. El QR apunta a tu dirección para siempre.</p>
               <div className="mb-1">
-                <p className="text-sm font-semibold text-[#FBCAD8] mb-1">$30.000 setup único +</p>
+                <p className="text-sm font-semibold text-violet-300 mb-1">$30.000 setup único +</p>
                 <div className="flex items-end gap-1">
                   <span className="text-3xl font-black text-white">$5.000</span>
-                  <span className="text-sm text-gray-400 mb-1">/mes</span>
+                  <span className="text-sm text-slate-400 mb-1">/mes</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mb-6">Pago anual · incluye dominio + config. completa</p>
+              <p className="text-xs text-slate-500 mb-6">Pago anual · incluye dominio + config. completa</p>
               <ul className="space-y-2 mb-8 flex-1">
                 {['Todo lo del Sistema Calificar', 'Registro y gestión del dominio', 'QR dinámico de por vida', 'Linktree con tu marca', 'Página calificar.com.ar/tunegocio', 'Soporte prioritario'].map(f => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                    <span className="w-4 h-4 rounded-full bg-[#FBCAD8]/20 text-[#FBCAD8] flex items-center justify-center flex-shrink-0">
+                  <li key={f} className="flex items-center gap-2.5 text-sm text-slate-300">
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-violet-300" style={{ background: 'rgba(124,58,237,0.2)' }}>
                       <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
                     </span>
                     {f}
@@ -345,16 +344,16 @@ export default function TiendaPage() {
                 ))}
               </ul>
               <a href={`https://wa.me/${WA_NUM}?text=${encodeURIComponent('Hola! Quiero info sobre el plan Dominio Propio de Calificar.')}`} target="_blank"
-                className="w-full flex items-center justify-center bg-[#FBCAD8] text-[#0F172A] font-bold py-3.5 rounded-full hover:bg-white transition-colors text-sm">
+                className="w-full flex items-center justify-center bg-violet-600 hover:bg-violet-500 text-white font-bold py-3.5 rounded-full transition-colors text-sm shadow-lg shadow-violet-900/40">
                 Quiero este plan
               </a>
             </div>
           </div>
 
-          <p className="text-center text-sm text-gray-400">
+          <p className="text-center text-sm text-slate-500">
             ¿Tenés dudas sobre qué plan elegir?{' '}
             <a href={`https://wa.me/${WA_NUM}?text=${encodeURIComponent('Hola! Quiero saber qué plan de Calificar me conviene.')}`}
-              target="_blank" className="text-[#0F172A] font-semibold underline underline-offset-2 hover:opacity-70 transition-opacity">
+              target="_blank" className="text-violet-400 font-semibold underline underline-offset-2 hover:text-violet-300 transition-colors">
               Hablemos por WhatsApp →
             </a>
           </p>
@@ -362,13 +361,13 @@ export default function TiendaPage() {
       </section>
 
       {/* SERVICIOS ADICIONALES */}
-      <section className="px-6 py-20 bg-white">
+      <section className="px-6 py-20">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-[#0F172A] mb-3">
+            <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-white mb-3">
               ¿Necesitás algo más?
             </h2>
-            <p className="text-gray-500 max-w-lg mx-auto">
+            <p className="text-slate-400 max-w-lg mx-auto">
               Si todavía no tenés presencia digital, te ayudamos con todo. Desde cero o desde donde estés.
             </p>
           </div>
@@ -382,13 +381,13 @@ export default function TiendaPage() {
               { icon: '⚙️', label: 'Configuración inicial', desc: 'Te ayudamos a arrancar desde cero' },
               { icon: '📸', label: 'Contenido para redes', desc: 'Fotos y diseños para publicar' },
             ].map(s => (
-              <div key={s.label} className="bg-[#F5EFE7] rounded-2xl p-5 flex items-start gap-4">
-                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-xl flex-shrink-0 shadow-sm">
+              <div key={s.label} className="rounded-2xl p-5 flex items-start gap-4" style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.12)' }}>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: 'rgba(124,58,237,0.15)' }}>
                   {s.icon}
                 </div>
                 <div>
-                  <p className="font-semibold text-[#0F172A] text-sm mb-0.5">{s.label}</p>
-                  <p className="text-xs text-gray-400">{s.desc}</p>
+                  <p className="font-semibold text-white text-sm mb-0.5">{s.label}</p>
+                  <p className="text-xs text-slate-500">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -397,20 +396,20 @@ export default function TiendaPage() {
           <div className="text-center">
             <a href={`https://wa.me/${WA_NUM}?text=${encodeURIComponent('Hola! Me interesan los servicios adicionales (redes, Google, dominio).')}`}
               target="_blank"
-              className="inline-flex items-center gap-2.5 bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg text-sm">
+              className="inline-flex items-center gap-2.5 bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-full transition-colors shadow-lg shadow-violet-900/40 text-sm">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
               Consultar por WhatsApp
             </a>
-            <p className="text-xs text-gray-400 mt-3">Te respondemos en menos de 24 hs</p>
+            <p className="text-xs text-slate-500 mt-3">Te respondemos en menos de 24 hs</p>
           </div>
         </div>
       </section>
 
       {/* INFO BANNER */}
       <section className="px-6 pb-20">
-        <div className="max-w-6xl mx-auto bg-[#056E4B] rounded-[2.5rem] py-16 px-8 shadow-2xl">
+        <div className="max-w-6xl mx-auto rounded-[2.5rem] py-16 px-8" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.18) 0%, rgba(99,102,241,0.08) 100%)', border: '1px solid rgba(124,58,237,0.25)' }}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center">
             {[
               { e:'⚡', t:'Configuración incluida', d:'Programamos el chip NFC con tu link de Google.' },
@@ -418,9 +417,9 @@ export default function TiendaPage() {
               { e:'🔗', t:'Link dinámico', d:'Cambiás el destino cuando quieras sin cambiar el cartel.' },
             ].map(({ e, t, d }) => (
               <div key={t} className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-3xl mb-6">{e}</div>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6" style={{ background: 'rgba(124,58,237,0.2)' }}>{e}</div>
                 <h3 className="font-display font-bold text-white text-xl mb-3">{t}</h3>
-                <p className="text-white/80 leading-relaxed">{d}</p>
+                <p className="text-slate-400 leading-relaxed">{d}</p>
               </div>
             ))}
           </div>
@@ -430,44 +429,44 @@ export default function TiendaPage() {
       {/* CARRITO DRAWER */}
       {cartOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-sm" onClick={() => setCartOpen(false)}/>
-          <div className="relative w-full max-w-md bg-white shadow-2xl flex flex-col h-full">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <h2 className="font-display font-bold text-xl text-[#0F172A]">Tu carrito 🛒</h2>
-              <button onClick={() => setCartOpen(false)} className="text-gray-400 hover:text-[#0F172A] text-2xl transition-colors leading-none">×</button>
+          <div className="absolute inset-0 backdrop-blur-sm" style={{ background: 'rgba(0,0,0,0.6)' }} onClick={() => setCartOpen(false)}/>
+          <div className="relative w-full max-w-md flex flex-col h-full shadow-2xl" style={{ background: '#0F1628', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              <h2 className="font-display font-bold text-xl text-white">Tu carrito 🛒</h2>
+              <button onClick={() => setCartOpen(false)} className="text-slate-400 hover:text-white text-2xl transition-colors leading-none">×</button>
             </div>
 
-            <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
-              <p className="text-xs text-gray-500">Los precios no incluyen envío.</p>
+            <div className="px-6 py-3 border-b" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}>
+              <p className="text-xs text-slate-500">Los precios no incluyen envío.</p>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {cart.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-6xl mb-6 opacity-50">🛒</p>
-                  <p className="text-gray-500 text-lg font-medium">Tu carrito está vacío</p>
+                  <p className="text-slate-400 text-lg font-medium">Tu carrito está vacío</p>
                 </div>
               ) : cart.map(item => {
                 const key = `${item.product.id}-${item.variantLabel ?? ''}`
                 return (
                   <div key={key} className="flex gap-4 items-center">
-                    <div className="w-20 h-20 bg-[#F5EFE7] rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-sm">
+                    <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0" style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.12)' }}>
                       {item.product.emoji}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-base font-bold text-[#0F172A] truncate mb-0.5">{item.product.name}</p>
-                      {item.variantLabel && <p className="text-xs text-gray-400 mb-1">{item.variantLabel}</p>}
-                      <p className="text-sm font-black text-[#056E4B]">{fmt(item.variantPrice)}</p>
+                      <p className="text-base font-bold text-white truncate mb-0.5">{item.product.name}</p>
+                      {item.variantLabel && <p className="text-xs text-slate-400 mb-1">{item.variantLabel}</p>}
+                      <p className="text-sm font-black text-violet-400">{fmt(item.variantPrice)}</p>
                     </div>
                     <div className="flex flex-col items-end gap-3">
                       <button onClick={() => removeFromCart(key)}
-                        className="text-gray-300 hover:text-red-500 text-sm transition-colors font-bold">✕</button>
-                      <div className="flex items-center bg-gray-50 rounded-full overflow-hidden text-sm border border-gray-200">
+                        className="text-slate-500 hover:text-red-400 text-sm transition-colors font-bold">✕</button>
+                      <div className="flex items-center rounded-full overflow-hidden text-sm" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}>
                         <button onClick={() => updateQty(key, item.qty - 1)}
-                          className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 text-gray-600 transition-colors font-bold">−</button>
-                        <span className="w-6 text-center font-bold text-[#0F172A]">{item.qty}</span>
+                          className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-white transition-colors font-bold" style={{ background: 'transparent' }}>−</button>
+                        <span className="w-6 text-center font-bold text-white">{item.qty}</span>
                         <button onClick={() => updateQty(key, item.qty + 1)}
-                          className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 text-gray-600 transition-colors font-bold">+</button>
+                          className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-white transition-colors font-bold" style={{ background: 'transparent' }}>+</button>
                       </div>
                     </div>
                   </div>
@@ -476,23 +475,23 @@ export default function TiendaPage() {
             </div>
 
             {cart.length > 0 && (
-              <div className="p-6 border-t border-gray-100 bg-white">
+              <div className="p-6 border-t" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
                 <div className="flex justify-between text-base mb-2">
-                  <span className="text-gray-500 font-medium">Subtotal</span>
-                  <span className="font-bold text-[#0F172A]">{fmt(total)}</span>
+                  <span className="text-slate-400 font-medium">Subtotal</span>
+                  <span className="font-bold text-white">{fmt(total)}</span>
                 </div>
                 <div className="flex justify-between text-base mb-6">
-                  <span className="text-gray-500 font-medium">Envío</span>
-                  <span className="text-gray-400 text-sm">No incluido</span>
+                  <span className="text-slate-400 font-medium">Envío</span>
+                  <span className="text-slate-500 text-sm">No incluido</span>
                 </div>
                 <button onClick={checkout}
-                  className="w-full bg-[#056E4B] text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 hover:bg-[#045c3f] transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+                  className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
                   Pedir por WhatsApp
                 </button>
-                <p className="text-xs text-gray-500 text-center mt-4 font-medium">Te contactamos para coordinar el pago y envío</p>
+                <p className="text-xs text-slate-500 text-center mt-4 font-medium">Te contactamos para coordinar el pago y envío</p>
               </div>
             )}
           </div>
@@ -517,8 +516,8 @@ export default function TiendaPage() {
         const imgs = modal.images ?? []
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-[#0F172A]/60 backdrop-blur-sm" onClick={() => setModal(null)}/>
-            <div className="relative bg-white rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="absolute inset-0 backdrop-blur-sm" style={{ background: 'rgba(0,0,0,0.75)' }} onClick={() => setModal(null)}/>
+            <div className="relative rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto" style={{ background: '#0F1628', border: '1px solid rgba(255,255,255,0.08)' }}>
 
               {/* Galería de imágenes */}
               {imgs.length > 0 ? (
@@ -551,44 +550,45 @@ export default function TiendaPage() {
                   )}
                 </div>
               ) : (
-                <div className="bg-[#FBCAD8] h-48 flex items-center justify-center relative">
+                <div className="h-48 flex items-center justify-center relative" style={{ background: 'rgba(124,58,237,0.12)', borderBottom: '1px solid rgba(124,58,237,0.2)' }}>
                   <span className="text-8xl drop-shadow-md">{modal.emoji}</span>
-                  <button onClick={() => setModal(null)} className="absolute top-4 right-4 text-[#0F172A]/50 hover:text-[#0F172A] text-3xl leading-none bg-white/30 w-10 h-10 rounded-full flex items-center justify-center pb-1">×</button>
+                  <button onClick={() => setModal(null)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-3xl leading-none w-10 h-10 rounded-full flex items-center justify-center pb-1" style={{ background: 'rgba(255,255,255,0.08)' }}>×</button>
                 </div>
               )}
 
               <div className="p-8">
                 <div className="mb-5">
-                  <h3 className="font-display font-extrabold text-[#0F172A] text-2xl mb-1">{modal.name}</h3>
-                  <p className="text-sm font-medium text-gray-500">{modal.sub}</p>
+                  <h3 className="font-display font-extrabold text-white text-2xl mb-1">{modal.name}</h3>
+                  <p className="text-sm font-medium text-slate-400">{modal.sub}</p>
                 </div>
-                <p className="text-base text-gray-600 leading-relaxed mb-6">{modal.desc}</p>
-                <div className="bg-[#F5EFE7] rounded-2xl p-5 mb-4">
+                <p className="text-base text-slate-400 leading-relaxed mb-6">{modal.desc}</p>
+                <div className="rounded-2xl p-5 mb-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                   <ul className="space-y-3">
                     {modal.feats.map(f => (
-                      <li key={f} className="text-sm font-medium flex items-start gap-3 text-[#0F172A]">
-                        <span className="text-[#056E4B] mt-0.5">✓</span>{f}
+                      <li key={f} className="text-sm font-medium flex items-start gap-3 text-slate-300">
+                        <span className="text-violet-400 mt-0.5">✓</span>{f}
                       </li>
                     ))}
                   </ul>
                 </div>
                 {modal.note && (
-                  <p className="text-xs text-gray-400 italic mb-4 leading-relaxed px-1">{modal.note}</p>
+                  <p className="text-xs text-slate-500 italic mb-4 leading-relaxed px-1">{modal.note}</p>
                 )}
-                <p className="text-sm text-gray-500 mb-6 font-medium"><span className="mr-2">💡</span> Ideal para: {modal.ideal}</p>
+                <p className="text-sm text-slate-400 mb-6 font-medium"><span className="mr-2">💡</span> Ideal para: {modal.ideal}</p>
 
                 {/* Selector de variantes */}
                 {modal.variants && modal.variants.length > 0 && (
                   <div className="mb-6">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Material</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Material</p>
                     <div className="flex gap-2 flex-wrap">
                       {modal.variants.map((v, i) => (
                         <button key={v.label} onClick={() => setModalVariantIdx(i)}
                           className={`text-sm font-semibold px-4 py-2 rounded-full border transition-all ${
                             i === modalVariantIdx
-                              ? 'bg-[#0F172A] text-white border-[#0F172A]'
-                              : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
-                          }`}>
+                              ? 'bg-violet-600 text-white border-violet-600'
+                              : 'text-slate-400 hover:text-white'
+                          }`}
+                          style={i !== modalVariantIdx ? { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.12)' } : undefined}>
                           {v.label}
                         </button>
                       ))}
@@ -596,25 +596,25 @@ export default function TiendaPage() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between border-t border-gray-100 pt-6">
+                <div className="flex items-center justify-between border-t pt-6" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
                   <div>
                     {modalConsultar ? (
-                      <p className="text-3xl font-black text-[#0F172A]">Consultar</p>
+                      <p className="text-3xl font-black text-white">Consultar</p>
                     ) : (
                       <>
-                        <p className="text-xs text-gray-400">Desde</p>
-                        <p className="text-3xl font-black text-[#0F172A]">{fmt(modalPrice)}</p>
+                        <p className="text-xs text-slate-400">Desde</p>
+                        <p className="text-3xl font-black text-white">{fmt(modalPrice)}</p>
                       </>
                     )}
                   </div>
                   {modalConsultar ? (
                     <a href={waModalConsultar} target="_blank"
-                      className="bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg">
+                      className="bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-full transition-colors shadow-lg">
                       Consultar
                     </a>
                   ) : (
                     <button onClick={() => { addToCart(modal, modalVariant?.label, modalPrice); setModal(null) }}
-                      className="bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg">
+                      className="bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-full transition-colors shadow-lg">
                       Agregar
                     </button>
                   )}

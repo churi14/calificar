@@ -152,9 +152,9 @@ export default function MayoristaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-white">
+    <div className="min-h-screen text-white" style={{ background: '#070A14' }}>
       {/* Header */}
-      <header className="border-b border-white/10 sticky top-0 z-40 bg-[#0F172A]/90 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 border-b" style={{ background: 'rgba(7,10,20,0.9)', backdropFilter: 'blur(20px)', borderColor: 'rgba(255,255,255,0.08)' }}>
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <img src="/logo.svg" alt="Calificar" className="h-7 w-auto brightness-0 invert" />
@@ -180,20 +180,20 @@ export default function MayoristaPage() {
           Carteles Calificar QR<br />
           <span className="text-violet-400">para revendedores</span>
         </h1>
-        <p className="text-gray-400 text-lg max-w-xl mx-auto mb-6">
+        <p className="text-slate-400 text-lg max-w-xl mx-auto mb-6">
           Todos los carteles incluyen QR dinámico, NFC y acceso al dashboard del cliente. Comprás al por mayor, revendés con tu margen.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-slate-500">
           <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-green-400 rounded-full inline-block"></span>Stock disponible</span>
           <span>·</span><span>Entrega en 24 hs</span>
           <span>·</span><span>Pago por transferencia</span>
         </div>
 
         {/* Aviso anticipo — bien visible */}
-        <div className="mt-8 max-w-3xl mx-auto bg-yellow-400 rounded-2xl px-5 py-4 flex items-center gap-3 text-left">
+        <div className="mt-8 max-w-3xl mx-auto rounded-2xl px-5 py-4 flex items-center gap-3 text-left" style={{ background: 'rgba(234,179,8,0.10)', border: '1px solid rgba(234,179,8,0.25)' }}>
           <span className="text-xl flex-shrink-0">💳</span>
-          <p className="text-sm text-yellow-900 font-semibold leading-relaxed">
-            <strong className="font-extrabold">Primer pedido:</strong> se requiere el 50% del total por anticipado para confirmar la producción.
+          <p className="text-sm text-yellow-300 font-semibold leading-relaxed">
+            <strong className="font-extrabold text-yellow-200">Primer pedido:</strong> se requiere el 50% del total por anticipado para confirmar la producción.
           </p>
         </div>
 
@@ -208,7 +208,7 @@ export default function MayoristaPage() {
             <div key={i.title} className="bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-left">
               <div className="text-xl mb-2">{i.icon}</div>
               <p className="font-bold text-xs text-white mb-0.5">{i.title}</p>
-              <p className="text-[11px] text-gray-400">{i.desc}</p>
+              <p className="text-[11px] text-slate-400">{i.desc}</p>
             </div>
           ))}
         </div>
@@ -226,7 +226,7 @@ export default function MayoristaPage() {
             <div key={f.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
               <div className="text-2xl mb-2">{f.icon}</div>
               <p className="font-bold text-xs text-white mb-0.5">{f.label}</p>
-              <p className="text-[11px] text-gray-500">{f.desc}</p>
+              <p className="text-[11px] text-slate-500">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -235,7 +235,7 @@ export default function MayoristaPage() {
       {/* Productos */}
       <section className="max-w-5xl mx-auto px-6 pb-16">
         <h2 className="text-2xl font-extrabold mb-1">Productos</h2>
-        <p className="text-gray-400 text-sm mb-8">Seleccioná el producto y la cantidad para hacer tu pedido.</p>
+        <p className="text-slate-400 text-sm mb-8">Seleccioná el producto y la cantidad para hacer tu pedido.</p>
 
         <div className="space-y-5">
           {PRODUCTS.map(product => (
@@ -262,8 +262,8 @@ export default function MayoristaPage() {
                       <span className="text-[10px] font-bold bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">Sin NFC</span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-400">{product.size} · {product.material}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Compra mínima: {product.minQty} unidades</p>
+                  <p className="text-sm text-slate-400">{product.size} · {product.material}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Compra mínima: {product.minQty} unidades</p>
                 </div>
               </div>
 
@@ -281,7 +281,7 @@ export default function MayoristaPage() {
                       </button>
                     ))}
                   </div>
-                  <p className="text-[10px] text-gray-600 mt-2">
+                  <p className="text-[10px] text-slate-600 mt-2">
                     * Las imágenes son de muestra. Los QR y datos de cada cartel se personalizan para tu negocio. No representan errores de impresión.
                   </p>
                 </div>
@@ -306,8 +306,8 @@ export default function MayoristaPage() {
                           <span className="font-bold text-sm text-white">{tier.qty} unidades</span>
                           {isSelected && <span className="text-violet-400 text-xs">✓</span>}
                         </div>
-                        <p className="text-2xl font-extrabold text-white">${fmt(tier.price)}<span className="text-xs font-normal text-gray-400"> /u</span></p>
-                        <p className="text-xs text-gray-500 mt-0.5">Total: <span className="text-gray-300">${fmt(tier.price * tier.qty)}</span> ARS</p>
+                        <p className="text-2xl font-extrabold text-white">${fmt(tier.price)}<span className="text-xs font-normal text-slate-400"> /u</span></p>
+                        <p className="text-xs text-slate-500 mt-0.5">Total: <span className="text-slate-300">${fmt(tier.price * tier.qty)}</span> ARS</p>
                       </button>
                     )
                   })}
@@ -322,16 +322,16 @@ export default function MayoristaPage() {
       <section className="max-w-2xl mx-auto px-6 pb-20">
         <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
           <h2 className="text-xl font-extrabold mb-1">Hacer un pedido</h2>
-          <p className="text-gray-400 text-sm mb-6">Seleccioná un producto arriba y completá tus datos. Te contactamos por WhatsApp.</p>
+          <p className="text-slate-400 text-sm mb-6">Seleccioná un producto arriba y completá tus datos. Te contactamos por WhatsApp.</p>
 
           {sent ? (
             <div className="text-center py-8">
               <div className="text-5xl mb-4">✅</div>
               <p className="font-bold text-lg mb-2">¡Pedido enviado!</p>
-              <p className="text-gray-400 text-sm">Te abrió el WhatsApp con el detalle. Si no abrió,{' '}
+              <p className="text-slate-400 text-sm">Te abrió el WhatsApp con el detalle. Si no abrió,{' '}
                 <button onClick={handleWA} className="underline text-violet-400">tocá acá</button>.
               </p>
-              <button onClick={() => { setSent(false); setSelection(null) }} className="mt-6 text-sm text-gray-500 hover:text-gray-300 underline">
+              <button onClick={() => { setSent(false); setSelection(null) }} className="mt-6 text-sm text-slate-500 hover:text-slate-300 underline">
                 Hacer otro pedido
               </button>
             </div>
@@ -346,13 +346,13 @@ export default function MayoristaPage() {
                   </p>
                 </div>
               ) : (
-                <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-gray-500">
+                <div className="rounded-xl px-4 py-3 text-sm text-slate-500" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                   ↑ Seleccioná un producto y cantidad arriba
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1.5">Nombre / Empresa</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">Nombre / Empresa</label>
                 <input
                   type="text" value={name} onChange={e => setName(e.target.value)}
                   placeholder="Tu nombre o razón social"
@@ -360,7 +360,7 @@ export default function MayoristaPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1.5">Teléfono / WhatsApp</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">Teléfono / WhatsApp</label>
                 <input
                   type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                   placeholder="11 1234-5678"
@@ -368,7 +368,7 @@ export default function MayoristaPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1.5">Notas adicionales</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">Notas adicionales</label>
                 <textarea
                   value={notes} onChange={e => setNotes(e.target.value)} rows={2}
                   placeholder="Localidad, forma de pago, preguntas..."
@@ -397,10 +397,10 @@ export default function MayoristaPage() {
         </div>
       )}
 
-      <footer className="border-t border-white/10 py-6 text-center text-xs text-gray-600">
-        <Link href="/" className="hover:text-gray-400 transition-colors">calificar.com.ar</Link>
+      <footer className="py-6 text-center text-xs text-slate-500" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <Link href="/" className="hover:text-slate-300 transition-colors">calificar.com.ar</Link>
         {' · '}
-        <Link href="/qr" className="hover:text-gray-400 transition-colors">Calificar QR</Link>
+        <Link href="/qr" className="hover:text-slate-300 transition-colors">Calificar QR</Link>
       </footer>
     </div>
   )

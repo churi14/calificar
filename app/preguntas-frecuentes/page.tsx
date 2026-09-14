@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import HeroNav from '@/components/landing/HeroNav'
-import Footer from '@/components/landing/Footer'
+import DarkLayout from '@/components/landing/DarkLayout'
 
 const WA = 'https://wa.me/5491123867934?text=Hola!%20Tengo%20una%20pregunta%20sobre%20Calificar.'
 
@@ -53,17 +52,17 @@ const FAQS = [
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-gray-100 last:border-0">
+    <div className="py-5 border-b border-white/8 last:border-0">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-5 text-left gap-4">
-        <span className="font-semibold text-[#0F172A] text-base leading-snug">{q}</span>
-        <span className={`flex-shrink-0 w-6 h-6 rounded-full border-2 border-gray-200 flex items-center justify-center text-gray-400 transition-transform ${open ? 'rotate-45' : ''}`}>
+        className="w-full flex items-center justify-between text-left gap-4">
+        <span className="font-semibold text-white text-base leading-snug">{q}</span>
+        <span className="flex-shrink-0 text-slate-400 text-2xl leading-none transition-transform duration-200" style={{ transform: open ? 'rotate(45deg)' : 'rotate(0deg)' }}>
           +
         </span>
       </button>
       {open && (
-        <p className="text-gray-600 text-sm leading-relaxed pb-5 pr-10">
+        <p className="text-slate-400 text-sm leading-relaxed mt-3 pr-10">
           {a}
         </p>
       )}
@@ -73,58 +72,43 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 
 export default function PreguntasFrecuentesPage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-
-      {/* Logo */}
-      <div className="fixed top-6 left-6 sm:left-10 z-50">
-        <Link href="/" className="font-extrabold text-xl text-gray-900 flex items-center gap-1.5">
-          <img src="/logo.svg" alt="Calificar" className="h-7 w-auto" />
-          <span className="font-extrabold text-xl text-[#0F172A]">Calificar</span>
-        </Link>
-      </div>
-      <div className="fixed top-6 right-6 lg:right-10 z-50">
-        <HeroNav />
-      </div>
-
+    <DarkLayout>
       {/* HERO */}
-      <section className="pt-32 pb-16 px-6 bg-[#F5EFE7] text-center">
-        <div className="max-w-2xl mx-auto">
-          <span className="inline-block bg-[#FBCAD8] text-[#0F172A] text-xs font-extrabold px-4 py-2 rounded-full mb-6 tracking-widest uppercase">
+      <section className="pt-14 pb-14 px-6 text-center relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.10) 0%, transparent 60%)' }} />
+        <div className="relative max-w-2xl mx-auto">
+          <span className="inline-block text-violet-300 text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest" style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.2)' }}>
             FAQ
           </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-[#0F172A] leading-tight mb-4">
+          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-4">
             Preguntas frecuentes
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-slate-400 text-lg">
             Todo lo que necesitás saber antes de arrancar.
           </p>
         </div>
       </section>
 
       {/* FAQs */}
-      <section className="py-20 px-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-10">
-            {FAQS.map(f => (
-              <FAQItem key={f.q} q={f.q} a={f.a} />
-            ))}
-          </div>
+      <section className="py-8 px-6">
+        <div className="max-w-2xl mx-auto rounded-3xl p-6 sm:p-10" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          {FAQS.map(f => (
+            <FAQItem key={f.q} q={f.q} a={f.a} />
+          ))}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="pb-24 px-6 text-center">
+      <section className="pb-20 pt-10 px-6 text-center">
         <div className="max-w-xl mx-auto">
-          <p className="text-lg font-semibold text-[#0F172A] mb-2">¿No encontraste lo que buscabas?</p>
-          <p className="text-gray-500 mb-8">Escribinos por WhatsApp y te respondemos en minutos.</p>
+          <p className="text-lg font-semibold text-white mb-2">¿No encontraste lo que buscabas?</p>
+          <p className="text-slate-400 mb-8">Escribinos por WhatsApp y te respondemos en minutos.</p>
           <a href={WA} target="_blank"
-            className="inline-flex items-center gap-2 bg-[#0F172A] text-white font-bold px-8 py-4 rounded-full hover:bg-[#1e293b] transition-colors shadow-lg text-base">
+            className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-full transition-colors shadow-lg shadow-violet-900/40 text-base">
             Hacer una pregunta →
           </a>
         </div>
       </section>
-
-      <Footer />
-    </div>
+    </DarkLayout>
   )
 }

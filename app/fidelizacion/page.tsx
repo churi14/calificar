@@ -111,21 +111,21 @@ export default function FidelizacionLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   return (
-    <div className="bg-white text-zinc-900 font-sans">
+    <div className="font-sans text-white" style={{ background: '#070A14' }}>
 
       {/* NAV */}
-      <nav className="fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur border-b border-zinc-100">
+      <nav className="fixed top-0 inset-x-0 z-50 border-b" style={{ background: 'rgba(7,10,20,0.9)', backdropFilter: 'blur(20px)', borderColor: 'rgba(255,255,255,0.08)' }}>
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="font-extrabold text-lg tracking-tight text-zinc-900">
-            calificar <span className="text-violet-600">fidelización</span>
+          <Link href="/" className="font-extrabold text-lg tracking-tight text-white">
+            calificar <span className="text-violet-400">fidelización</span>
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500">
-            <a href="#como-funciona" className="hover:text-zinc-900 transition-colors">Cómo funciona</a>
-            <a href="#funcionalidades" className="hover:text-zinc-900 transition-colors">Funcionalidades</a>
-            <a href="#precios" className="hover:text-zinc-900 transition-colors">Precios</a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
+            <a href="#como-funciona" className="hover:text-white transition-colors">Cómo funciona</a>
+            <a href="#funcionalidades" className="hover:text-white transition-colors">Funcionalidades</a>
+            <a href="#precios" className="hover:text-white transition-colors">Precios</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/admin/fidelizacion" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors hidden md:block">
+            <Link href="/admin/fidelizacion" className="text-sm font-medium text-slate-400 hover:text-white transition-colors hidden md:block">
               Ingresar
             </Link>
             <Link
@@ -142,30 +142,30 @@ export default function FidelizacionLanding() {
       <section className="min-h-[100dvh] flex items-center pt-16">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center py-20">
           <div>
-            <p className="text-violet-600 font-semibold text-sm uppercase tracking-widest mb-4">Programa de fidelidad digital</p>
+            <p className="text-violet-400 font-semibold text-sm uppercase tracking-widest mb-4">Programa de fidelidad digital</p>
             <h1 className="text-5xl md:text-6xl font-extrabold leading-[1.05] tracking-tight mb-6">
               Tus clientes vuelven.
               <br />
-              <span className="text-violet-600">Siempre.</span>
+              <span className="text-violet-400">Siempre.</span>
             </h1>
-            <p className="text-zinc-500 text-lg leading-relaxed mb-8 max-w-md">
+            <p className="text-slate-400 text-lg leading-relaxed mb-8 max-w-md">
               Reemplazá las tarjetitas de papel con una tarjeta digital en Google Wallet. NFC, QR, notificaciones y premios automáticos.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="#precios"
-                className="bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-2xl text-base transition-colors text-center"
+                className="bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-2xl text-base transition-colors text-center shadow-lg shadow-violet-900/40"
               >
                 Empezar 14 días gratis
               </Link>
               <a
                 href="#como-funciona"
-                className="border-2 border-zinc-200 hover:border-violet-300 text-zinc-700 font-semibold px-8 py-4 rounded-2xl text-base transition-colors text-center"
+                className="border border-white/15 hover:border-white/25 text-white font-semibold px-8 py-4 rounded-2xl text-base transition-colors text-center"
               >
                 Ver cómo funciona
               </a>
             </div>
-            <p className="text-zinc-400 text-xs mt-4">Sin tarjeta de crédito. Sin compromiso.</p>
+            <p className="text-slate-500 text-xs mt-4">Sin tarjeta de crédito. Sin compromiso.</p>
           </div>
 
           {/* Card mockup */}
@@ -233,10 +233,10 @@ export default function FidelizacionLanding() {
       </section>
 
       {/* SOCIAL PROOF */}
-      <div className="border-y border-zinc-100 bg-zinc-50 py-8">
+      <div className="border-y py-8" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
         <div className="max-w-6xl mx-auto px-6">
-          <p className="text-center text-zinc-400 text-sm font-medium mb-6">Negocios que ya usan Calificar fidelización</p>
-          <div className="flex flex-wrap justify-center gap-8 text-zinc-400 font-semibold text-sm">
+          <p className="text-center text-slate-500 text-sm font-medium mb-6">Negocios que ya usan Calificar fidelización</p>
+          <div className="flex flex-wrap justify-center gap-8 text-slate-500 font-semibold text-sm">
             {['La Cocina', 'Café Central', 'Peluquería Nova', 'Sushi Haus', 'El Rincón'].map(b => (
               <span key={b} className="opacity-60">{b}</span>
             ))}
@@ -248,17 +248,17 @@ export default function FidelizacionLanding() {
       <section id="como-funciona" className="py-24">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold tracking-tight mb-4">Listo en 10 minutos</h2>
-            <p className="text-zinc-500 text-lg max-w-xl mx-auto">Sin instalar nada. Sin contratos. Sin paper de papel.</p>
+            <h2 className="text-4xl font-extrabold tracking-tight mb-4 text-white">Listo en 10 minutos</h2>
+            <p className="text-slate-400 text-lg max-w-xl mx-auto">Sin instalar nada. Sin contratos. Sin papel.</p>
           </div>
           <div className="grid md:grid-cols-4 gap-8">
             {steps.map((s) => (
               <div key={s.num} className="relative">
-                <div className="w-12 h-12 bg-violet-100 text-violet-700 font-extrabold rounded-2xl flex items-center justify-center text-sm mb-4">
+                <div className="w-12 h-12 bg-violet-600 text-white font-extrabold rounded-2xl flex items-center justify-center text-sm mb-4">
                   {s.num}
                 </div>
-                <h3 className="font-bold text-lg mb-2">{s.title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed">{s.desc}</p>
+                <h3 className="font-bold text-lg mb-2 text-white">{s.title}</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -266,20 +266,20 @@ export default function FidelizacionLanding() {
       </section>
 
       {/* FUNCIONALIDADES */}
-      <section id="funcionalidades" className="py-24 bg-zinc-50">
+      <section id="funcionalidades" className="py-24" style={{ background: 'rgba(255,255,255,0.02)' }}>
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold tracking-tight mb-4">Todo lo que necesitás</h2>
-            <p className="text-zinc-500 text-lg max-w-xl mx-auto">
+            <h2 className="text-4xl font-extrabold tracking-tight mb-4 text-white">Todo lo que necesitás</h2>
+            <p className="text-slate-400 text-lg max-w-xl mx-auto">
               Cada herramienta pensada para que el cliente vuelva y vos lo sepas en tiempo real.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {features.map((f) => (
-              <div key={f.title} className="bg-white rounded-2xl p-6 border border-zinc-100 hover:border-violet-200 hover:shadow-md transition-all">
+              <div key={f.title} className="rounded-2xl p-6 hover:-translate-y-1 transition-all duration-200" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div className="text-3xl mb-4">{f.icon}</div>
-                <h3 className="font-bold text-lg mb-2">{f.title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed">{f.desc}</p>
+                <h3 className="font-bold text-lg mb-2 text-white">{f.title}</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -289,7 +289,7 @@ export default function FidelizacionLanding() {
       {/* DIFERENCIADOR NFC */}
       <section className="py-24">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-          <div className="bg-gradient-to-br from-violet-600 to-violet-800 rounded-3xl p-10 text-white text-center">
+          <div className="rounded-3xl p-10 text-white text-center" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.25) 0%, rgba(99,102,241,0.15) 100%)', border: '1px solid rgba(124,58,237,0.3)' }}>
             <div className="text-6xl mb-4">📡</div>
             <h3 className="text-2xl font-extrabold mb-3">Tap. Sello sumado.</h3>
             <p className="opacity-80 text-sm leading-relaxed">
@@ -301,7 +301,7 @@ export default function FidelizacionLanding() {
             </div>
           </div>
           <div>
-            <h2 className="text-4xl font-extrabold tracking-tight mb-6">
+            <h2 className="text-4xl font-extrabold tracking-tight mb-6 text-white">
               La tecnología que solo tiene Calificar
             </h2>
             <div className="space-y-5">
@@ -311,12 +311,12 @@ export default function FidelizacionLanding() {
                 { t: 'QR de respaldo', d: 'Si el cliente no tiene NFC, escanea el QR que también está en el cartelito.' },
               ].map(({ t, d }) => (
                 <div key={t} className="flex gap-4">
-                  <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <div className="w-2 h-2 rounded-full bg-violet-600" />
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(124,58,237,0.2)' }}>
+                    <div className="w-2 h-2 rounded-full bg-violet-400" />
                   </div>
                   <div>
-                    <p className="font-bold mb-1">{t}</p>
-                    <p className="text-zinc-500 text-sm leading-relaxed">{d}</p>
+                    <p className="font-bold mb-1 text-white">{t}</p>
+                    <p className="text-slate-400 text-sm leading-relaxed">{d}</p>
                   </div>
                 </div>
               ))}
@@ -326,15 +326,15 @@ export default function FidelizacionLanding() {
       </section>
 
       {/* PRECIOS */}
-      <section id="precios" className="py-24 bg-zinc-950">
+      <section id="precios" className="py-24" style={{ background: 'rgba(124,58,237,0.04)' }}>
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-10">
             <h2 className="text-4xl font-extrabold tracking-tight text-white mb-3">Precios simples</h2>
-            <p className="text-zinc-400 text-lg">14 días gratis. Cambiá de plan o cancelá cuando quieras.</p>
+            <p className="text-slate-400 text-lg">14 días gratis. Cambiá de plan o cancelá cuando quieras.</p>
           </div>
 
           {/* Promo banner */}
-          <div className="border border-violet-500/40 rounded-2xl px-6 py-4 text-center mb-10 max-w-xl mx-auto bg-violet-950/30">
+          <div className="rounded-2xl px-6 py-4 text-center mb-10 max-w-xl mx-auto" style={{ border: '1px solid rgba(124,58,237,0.3)', background: 'rgba(124,58,237,0.08)' }}>
             <span className="bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-2">14 días gratis</span>
             <p className="text-white font-bold text-lg">Probá gratis y empezá a fidelizar desde el primer día.</p>
             <p className="text-zinc-400 text-sm mt-1">Sin tarjeta de crédito. Sin compromiso.</p>
@@ -344,11 +344,15 @@ export default function FidelizacionLanding() {
             {plans.map((p) => (
               <div
                 key={p.name}
-                className={`rounded-3xl p-7 flex flex-col relative ${
-                  p.highlight
-                    ? 'bg-white text-zinc-900 shadow-2xl shadow-violet-500/20 scale-[1.03]'
-                    : 'bg-zinc-900 text-white'
-                }`}
+                className={`rounded-3xl p-7 flex flex-col relative text-white ${p.highlight ? 'scale-[1.03]' : ''}`}
+                style={p.highlight ? {
+                  background: 'linear-gradient(135deg, rgba(124,58,237,0.25) 0%, rgba(99,102,241,0.12) 100%)',
+                  border: '1px solid rgba(124,58,237,0.4)',
+                  boxShadow: '0 8px 40px rgba(124,58,237,0.2)',
+                } : {
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}
               >
                 {p.highlight && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
@@ -356,30 +360,30 @@ export default function FidelizacionLanding() {
                   </div>
                 )}
 
-                <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${p.highlight ? 'text-violet-600' : 'text-zinc-400'}`}>{p.label}</p>
-                <h3 className="text-3xl font-extrabold mb-1">{p.name}</h3>
+                <p className="text-xs font-bold uppercase tracking-widest mb-2 text-violet-400">{p.label}</p>
+                <h3 className="text-3xl font-extrabold mb-1 text-white">{p.name}</h3>
 
                 <div className="flex items-baseline gap-1.5 mb-3">
-                  <span className="text-4xl font-extrabold">{p.price}</span>
-                  <span className={`text-sm ${p.highlight ? 'text-zinc-400' : 'text-zinc-400'}`}>USD / mes</span>
+                  <span className="text-4xl font-extrabold text-white">{p.price}</span>
+                  <span className="text-sm text-slate-400">USD / mes</span>
                 </div>
 
                 {/* Per day pill */}
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold w-fit mb-4 ${p.highlight ? 'bg-zinc-100 text-zinc-600' : 'bg-zinc-800 text-zinc-400'}`}>
-                  <span className="font-bold">{p.perDay}</span>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold w-fit mb-4" style={{ background: 'rgba(255,255,255,0.07)', color: '#94a3b8' }}>
+                  <span className="font-bold text-white">{p.perDay}</span>
                   <span className="opacity-70">{p.perDaySub}</span>
                 </div>
 
                 {/* Badges */}
                 <div className="flex flex-wrap gap-2 mb-5">
                   <span className="bg-violet-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Tarjetas ilimitadas</span>
-                  <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${p.highlight ? 'border-zinc-200 text-zinc-600' : 'border-zinc-700 text-zinc-400'}`}>Notificaciones ilimitadas</span>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full text-slate-400" style={{ border: '1px solid rgba(255,255,255,0.12)' }}>Notificaciones ilimitadas</span>
                 </div>
 
                 <ul className="space-y-2.5 mb-7 flex-1">
                   {p.features.map(f => (
-                    <li key={f} className={`flex items-start gap-2.5 text-sm leading-snug ${p.highlight ? 'text-zinc-600' : 'text-zinc-300'}`}>
-                      <span className="text-violet-500 font-bold mt-0.5 flex-shrink-0">✓</span>
+                    <li key={f} className="flex items-start gap-2.5 text-sm leading-snug text-slate-300">
+                      <span className="text-violet-400 font-bold mt-0.5 flex-shrink-0">✓</span>
                       {f}
                     </li>
                   ))}
@@ -400,19 +404,19 @@ export default function FidelizacionLanding() {
       {/* FAQ */}
       <section className="py-24">
         <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-4xl font-extrabold tracking-tight text-center mb-12">Preguntas frecuentes</h2>
+          <h2 className="text-4xl font-extrabold tracking-tight text-center mb-12 text-white">Preguntas frecuentes</h2>
           <div className="space-y-3">
             {faqs.map((f, i) => (
-              <div key={i} className="border border-zinc-200 rounded-2xl overflow-hidden">
+              <div key={i} className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-6 py-5 text-left font-semibold text-zinc-900 hover:bg-zinc-50 transition-colors"
+                  className="w-full flex items-center justify-between px-6 py-5 text-left font-semibold text-white hover:bg-white/5 transition-colors"
                 >
                   {f.q}
-                  <span className={`text-zinc-400 transition-transform ${openFaq === i ? 'rotate-180' : ''}`}>▼</span>
+                  <span className={`text-slate-400 transition-transform ${openFaq === i ? 'rotate-180' : ''}`}>▼</span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-6 pb-5 text-zinc-500 text-sm leading-relaxed border-t border-zinc-100 pt-4">
+                  <div className="px-6 pb-5 text-slate-400 text-sm leading-relaxed border-t pt-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                     {f.a}
                   </div>
                 )}
@@ -423,7 +427,7 @@ export default function FidelizacionLanding() {
       </section>
 
       {/* CTA FINAL */}
-      <section className="py-24 bg-violet-600">
+      <section className="py-24" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(99,102,241,0.1) 100%)' }}>
         <div className="max-w-3xl mx-auto px-6 text-center text-white">
           <h2 className="text-4xl font-extrabold tracking-tight mb-4">
             Empezá hoy, gratis.
@@ -433,7 +437,7 @@ export default function FidelizacionLanding() {
           </p>
           <Link
             href="/fidelizacion/onboarding"
-            className="inline-block bg-white text-violet-700 font-bold px-10 py-4 rounded-2xl text-base hover:bg-violet-50 transition-colors"
+            className="inline-block bg-violet-600 hover:bg-violet-500 text-white font-bold px-10 py-4 rounded-2xl text-base transition-colors shadow-lg shadow-violet-900/40"
           >
             Crear mi programa gratis
           </Link>
@@ -441,15 +445,15 @@ export default function FidelizacionLanding() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-zinc-100 py-10">
+      <footer className="border-t py-10" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <Link href="/" className="font-extrabold text-zinc-900">calificar</Link>
-          <div className="flex gap-6 text-sm text-zinc-400">
-            <Link href="/" className="hover:text-zinc-900 transition-colors">Inicio</Link>
-            <a href="mailto:hola@calificar.com.ar" className="hover:text-zinc-900 transition-colors">Contacto</a>
-            <Link href="/admin/fidelizacion" className="hover:text-zinc-900 transition-colors">Ingresar</Link>
+          <Link href="/" className="font-extrabold text-white">calificar</Link>
+          <div className="flex gap-6 text-sm text-slate-500">
+            <Link href="/" className="hover:text-white transition-colors">Inicio</Link>
+            <a href="mailto:hola@calificar.com.ar" className="hover:text-white transition-colors">Contacto</a>
+            <Link href="/admin/fidelizacion" className="hover:text-white transition-colors">Ingresar</Link>
           </div>
-          <p className="text-zinc-400 text-sm">2026 Calificar</p>
+          <p className="text-slate-500 text-sm">2026 Calificar</p>
         </div>
       </footer>
     </div>
