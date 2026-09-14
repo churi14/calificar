@@ -45,7 +45,12 @@ export async function POST(req: NextRequest) {
     if (existing) {
       // Ya tiene tarjeta — devolver el wallet link existente
       const walletLink = existing.wallet_object_id
-        ? getWalletLink(existing.wallet_object_id, program.id)
+        ? getWalletLink(existing.wallet_object_id, program.id, {
+            customerName: existing.name,
+            stamps: existing.stamps,
+            stampsGoal: program.stamps_goal,
+            rewardDescription: program.reward_description,
+          })
         : null
 
       return NextResponse.json({
@@ -97,7 +102,12 @@ export async function POST(req: NextRequest) {
       console.error('Error creando objeto Wallet:', msg)
     }
 
-    const walletLink = getWalletLink(objectId, program.id)
+    const walletLink = getWalletLink(objectId, program.id, {
+      customerName: name ?? phone,
+      stamps: 0,
+      stampsGoal: program.stamps_goal,
+      rewardDescription: program.reward_description,
+    })
 
     return NextResponse.json({
       card: { ...card, wallet_object_id: objectId },

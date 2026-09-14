@@ -185,9 +185,41 @@ export async function updateLoyaltyObjectStamps(
 
 // ─── Generar JWT → link "Agregar a Google Wallet" ────────────────────────────
 
-export function generateWalletJwt(objectId: string, classId: string): string {
-  const fullClassId = `${ISSUER_ID}.${classId}`
-  const fullObjectId = `${ISSUER_ID}.${objectId}`
+export interface WalletJwtOptions {
+  objectId: string
+  classId: string
+  customerName?: string
+  stamps?: number
+  stampsGoal?: number
+  rewardDescription?: string
+}
+
+export function generateWalletJwt(opts: WalletJwtOptions): string {
+  const fullClassId = `${ISSUER_ID}.${opts.classId}`
+  const fullObjectId = `${ISSUER_ID}.${opts.objectId}`
+
+  // Incluir el objeto completo en el JWT para que Google lo cree al vuelo
+  // si no fue pre-creado (evita el error "Ocurrió un error")
+  const loyaltyObject: Record<string, unknown> = {
+    id: fullObjectId,
+    classId: fullClassId,
+    state: 'ACTIVE',
+    accountName: opts.customerName ?? 'Cliente',
+    accountId: opts.objectId,
+  }
+
+  if (opts.stampsGoal) {
+    loyaltyObject.loyaltyPoints = {
+      balance: { string: `${opts.stamps ?? 0} / ${opts.stampsGoal}` },
+      label: 'Sellos',
+    }
+  }
+
+  if (opts.rewardDescription) {
+    loyaltyObject.textModulesData = [
+      { header: 'Premio', body: opts.rewardDescription, id: 'reward' },
+    ]
+  }
 
   const payload = {
     iss: SERVICE_EMAIL,
@@ -196,9 +228,7 @@ export function generateWalletJwt(objectId: string, classId: string): string {
     iat: Math.floor(Date.now() / 1000),
     origins: [process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'],
     payload: {
-      loyaltyObjects: [
-        { id: fullObjectId, classId: fullClassId },
-      ],
+      loyaltyObjects: [loyaltyObject],
     },
   }
 
@@ -208,7 +238,7 @@ export function generateWalletJwt(objectId: string, classId: string): string {
   })
 }
 
-export function getWalletLink(objectId: string, classId: string): string {
-  const token = generateWalletJwt(objectId, classId)
+export function getWalletLink(objectId: string, classId: string, opts?: Partial<WalletJwtOptions>): string {
+  const token = generateWalletJwt({ objectId, classId, ...opts })
   return `https://pay.google.com/gp/v/save/${token}`
 }
