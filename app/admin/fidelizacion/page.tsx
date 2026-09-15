@@ -662,13 +662,16 @@ export default function AdminFidelizacionPage() {
                   >
                     🔗 Link de registro
                   </a>
-                  <a
-                    href={`/fidelizacion/stamp?program=${p.id}`}
-                    target="_blank"
+                  <button
+                    onClick={() => {
+                      const url = `https://calificar.com.ar/fidelizacion/stamp?program=${p.id}`
+                      navigator.clipboard.writeText(url)
+                      alert(`✅ URL copiada al portapapeles:\n\n${url}\n\nGrabala en el chip NFC con la app "NFC Tools".`)
+                    }}
                     className="bg-amber-50 text-amber-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-amber-100 transition-colors"
                   >
                     📡 URL del NFC
-                  </a>
+                  </button>
                   <button
                     onClick={() => selectedProgram === p.id ? setSelectedProgram(null) : loadCards(p.id)}
                     className="bg-gray-100 text-gray-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
