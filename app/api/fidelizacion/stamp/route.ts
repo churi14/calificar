@@ -161,6 +161,8 @@ export async function POST(req: NextRequest) {
       // Milestone intermedio
       milestone_reached: hitMilestone ? true : false,
       milestone_label: hitMilestone?.label ?? null,
+      // Google Wallet deep link
+      wallet_object_id: card.wallet_object_id ?? null,
     })
   } catch (err) {
     console.error('Error en /api/fidelizacion/stamp:', err)
