@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           error: 'Ya sumaste un sello en las últimas 4 horas.',
           cooldown: true,
+          wallet_object_id: card.wallet_object_id ?? null,
         }, { status: 429 })
       }
     }
