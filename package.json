@@ -16,6 +16,7 @@
     "google-auth-library": "^11.0.2",
     "jsonwebtoken": "^9.0.3",
     "next": "^16.2.9",
+    "pptxgenjs": "^4.0.1",
     "qrcode": "^1.5.4",
     "react": "^18",
     "react-dom": "^18",
