@@ -29,21 +29,19 @@ function StampContent() {
     async function checkAuthAndStamp() {
       if (!programId) { setStatus('error'); return }
 
-      // Verificar sesión — solo empleados/dueños del negocio pueden sellar
+      // Verificar sesión — si está logueado (negocio) se usa token, si no (cliente con NFC) se sella sin auth
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
 
-      if (!session) {
-        // Redirigir al login con next param para volver acá después
-        const next = `/fidelizacion/stamp?program=${programId}${cardId ? `&card=${cardId}` : ''}`
-        router.replace(`/login?next=${encodeURIComponent(next)}`)
-        return
+      if (session) {
+        setAccessToken(session.access_token)
+        if (!cardId) { setStatus('phone-input'); return }
+        doStamp(cardId, session.access_token)
+      } else {
+        // Cliente sin sesión: mostrar formulario de teléfono directamente
+        if (!cardId) { setStatus('phone-input'); return }
+        doStamp(cardId)
       }
-
-      setAccessToken(session.access_token)
-
-      if (!cardId) { setStatus('phone-input'); return }
-      doStamp(cardId, session.access_token)
     }
     checkAuthAndStamp()
   }, [programId, cardId])
@@ -58,7 +56,7 @@ function StampContent() {
           'Content-Type': 'application/json',
           ...(tok ? { 'Authorization': `Bearer ${tok}` } : {}),
         },
-        body: JSON.stringify({ card_id: cid, program_id: programId, registered_by: 'manual' }),
+        body: JSON.stringify({ card_id: cid, program_id: programId, registered_by: tok ? 'manual' : 'nfc' }),
       })
       const data = await res.json()
       if (data.cooldown) { setStatus('cooldown'); return }
