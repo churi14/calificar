@@ -28,6 +28,7 @@ function TarjetaContent() {
   const [loading, setLoading] = useState(true)
   const [notifState, setNotifState] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
   const [showNotifModal, setShowNotifModal] = useState(false)
+  const [coupons, setCoupons] = useState<{ label: string; code: string; created_at: string }[]>([])
 
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent)
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -79,6 +80,12 @@ function TarjetaContent() {
       .then(r => r.json())
       .then(d => { setCard(d.card); setLoading(false) })
       .catch(() => setLoading(false))
+
+    // Buscar cupones de milestones no usados
+    fetch(`/api/fidelizacion/card-coupons?card_id=${cardId}`)
+      .then(r => r.json())
+      .then(d => { if (d.coupons) setCoupons(d.coupons) })
+      .catch(() => {})
   }, [cardId])
 
   if (loading) {
@@ -195,6 +202,23 @@ function TarjetaContent() {
           <span>Premio: {program.reward_description}</span>
         </div>
       </div>
+
+      {/* Cupones de premios intermedios */}
+      {coupons.length > 0 && (
+        <div className="w-full max-w-sm flex flex-col gap-3 mb-4">
+          {coupons.map((c, i) => (
+            <div key={i} className="bg-violet-50 border-2 border-violet-300 rounded-2xl px-5 py-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-violet-500 mb-1">Premio ganado 🎁</p>
+              <p className="text-sm font-semibold text-zinc-800 mb-3">{c.label}</p>
+              <div className="bg-zinc-900 rounded-xl px-4 py-3 text-center">
+                <p className="text-xs text-zinc-400 mb-1 uppercase tracking-widest">Código de descuento</p>
+                <p className="text-lg font-mono font-extrabold text-white tracking-widest">{c.code}</p>
+              </div>
+              <p className="text-xs text-zinc-400 mt-2 text-center">Mostralo al encargado — un solo uso</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* QR personal para que el negocio escanee */}
       {cardId && programId && (
