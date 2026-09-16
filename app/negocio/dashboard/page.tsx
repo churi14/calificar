@@ -26,6 +26,9 @@ export default function NegocioDashboard() {
   const [stampingId, setStampingId] = useState<string | null>(null)
   const [stampResult, setStampResult] = useState<Record<string, string>>({})
   const [search, setSearch] = useState('')
+  const [couponInput, setCouponInput] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponResult, setCouponResult] = useState<{ ok: boolean; msg: string } | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -64,6 +67,30 @@ export default function NegocioDashboard() {
     ))
 
     setTimeout(() => setStampResult(prev => { const n = { ...prev }; delete n[client.id]; return n }), 3000)
+  }
+
+  async function redeemCoupon(e: React.FormEvent) {
+    e.preventDefault()
+    if (!couponInput.trim()) return
+    setCouponLoading(true)
+    setCouponResult(null)
+    const res = await fetch('/api/fidelizacion/redeem-coupon', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coupon_code: couponInput.trim().toUpperCase() }),
+    })
+    const data = await res.json()
+    setCouponLoading(false)
+    if (res.ok) {
+      setCouponResult({ ok: true, msg: `✅ Canjeado: ${data.note ?? 'Premio'}` })
+      setCouponInput('')
+    } else if (res.status === 409) {
+      setCouponResult({ ok: false, msg: '⚠️ Este cupón ya fue canjeado anteriormente.' })
+    } else if (res.status === 404) {
+      setCouponResult({ ok: false, msg: '❌ Cupón no encontrado. Revisá el código.' })
+    } else {
+      setCouponResult({ ok: false, msg: '❌ Error al canjear. Intentá de nuevo.' })
+    }
   }
 
   const filtered = clients.filter(c =>
@@ -119,8 +146,36 @@ export default function NegocioDashboard() {
         ))}
       </div>
 
-      {/* Buscador */}
+      {/* Canjear cupón */}
       <div className="px-4 mt-5">
+        <div className="bg-white border border-zinc-200 rounded-2xl p-4">
+          <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">🎟 Canjear cupón</p>
+          <form onSubmit={redeemCoupon} className="flex gap-2">
+            <input
+              type="text"
+              value={couponInput}
+              onChange={e => setCouponInput(e.target.value.toUpperCase())}
+              placeholder="Ingresá el código del cliente"
+              className="flex-1 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-400"
+            />
+            <button
+              type="submit"
+              disabled={couponLoading || !couponInput.trim()}
+              className="bg-violet-600 hover:bg-violet-500 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50"
+            >
+              {couponLoading ? '...' : 'Canjear'}
+            </button>
+          </form>
+          {couponResult && (
+            <p className={`text-xs font-semibold mt-2 ${couponResult.ok ? 'text-green-600' : 'text-red-500'}`}>
+              {couponResult.msg}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Buscador */}
+      <div className="px-4 mt-3">
         <input
           type="text"
           value={search}

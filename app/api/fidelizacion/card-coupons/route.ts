@@ -17,10 +17,11 @@ export async function GET(req: NextRequest) {
   // Traer transacciones de tipo reward con coupon_code (milestones y premios finales)
   const { data, error } = await supabase
     .from('loyalty_transactions')
-    .select('note, coupon_code, created_at')
+    .select('note, coupon_code, created_at, redeemed_at')
     .eq('card_id', cardId)
     .eq('type', 'reward')
     .not('coupon_code', 'is', null)
+    .is('redeemed_at', null)
     .order('created_at', { ascending: false })
     .limit(10)
 
