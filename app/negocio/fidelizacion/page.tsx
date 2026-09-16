@@ -2425,11 +2425,22 @@ function ViewAyuda({ onNav }: { onNav: (id: string) => void }) {
 
 // ── Vista: CUPONES ───────────────────────────────────────────────────────────
 function ViewCupones({ selectedProgram, accessToken }: { selectedProgram: string | null; accessToken: string }) {
+  type Coupon = { id: string; coupon_code: string; note: string; created_at: string; redeemed_at: string | null; client_name: string; client_phone: string }
   const [couponInput, setCouponInput] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponResult, setCouponResult] = useState<{ ok: boolean; msg: string } | null>(null)
-  const [coupons, setCoupons] = useState<{ id: string; coupon_code: string; note: string; created_at: string; redeemed_at: string | null; client_name: string; client_phone: string }[]>([])
+  const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loadingCoupons, setLoadingCoupons] = useState(false)
+  const [search, setSearch] = useState('')
+  const [redeemingId, setRedeemingId] = useState<string | null>(null)
+  const [rowResult, setRowResult] = useState<Record<string, { ok: boolean; msg: string }>>({})
+
+  function refreshList() {
+    if (!selectedProgram) return
+    fetch(`/api/fidelizacion/admin/coupons?program_id=${selectedProgram}`)
+      .then(r => r.json())
+      .then(d => setCoupons(d.coupons ?? []))
+  }
 
   useEffect(() => {
     if (!selectedProgram) return
@@ -2440,55 +2451,74 @@ function ViewCupones({ selectedProgram, accessToken }: { selectedProgram: string
       .catch(() => setLoadingCoupons(false))
   }, [selectedProgram])
 
-  async function redeemCoupon(e: React.FormEvent) {
-    e.preventDefault()
-    if (!couponInput.trim()) return
-    setCouponLoading(true)
-    setCouponResult(null)
+  async function redeemByCode(code: string, rowId?: string) {
+    const isRow = !!rowId
+    if (isRow) setRedeemingId(rowId!)
+    else setCouponLoading(true)
+    if (!isRow) setCouponResult(null)
+
     const res = await fetch('/api/fidelizacion/redeem-coupon', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
-      body: JSON.stringify({ coupon_code: couponInput.trim().toUpperCase() }),
+      body: JSON.stringify({ coupon_code: code.trim().toUpperCase() }),
     })
     const data = await res.json()
-    setCouponLoading(false)
-    if (res.ok) {
-      setCouponResult({ ok: true, msg: `✅ Canjeado: ${data.note ?? 'Premio'}` })
-      setCouponInput('')
-      // Refrescar lista
-      fetch(`/api/fidelizacion/admin/coupons?program_id=${selectedProgram}`)
-        .then(r => r.json())
-        .then(d => setCoupons(d.coupons ?? []))
-    } else if (res.status === 409) {
-      setCouponResult({ ok: false, msg: '⚠️ Este cupón ya fue canjeado.' })
-    } else if (res.status === 404) {
-      setCouponResult({ ok: false, msg: '❌ Cupón no encontrado. Revisá el código.' })
+
+    if (isRow) {
+      setRedeemingId(null)
+      if (res.ok) {
+        setRowResult(prev => ({ ...prev, [rowId!]: { ok: true, msg: '✅ Canjeado' } }))
+        refreshList()
+        setTimeout(() => setRowResult(prev => { const n = { ...prev }; delete n[rowId!]; return n }), 3000)
+      } else if (res.status === 409) {
+        setRowResult(prev => ({ ...prev, [rowId!]: { ok: false, msg: '⚠️ Ya canjeado' } }))
+        setTimeout(() => setRowResult(prev => { const n = { ...prev }; delete n[rowId!]; return n }), 3000)
+      }
     } else {
-      setCouponResult({ ok: false, msg: '❌ Error al canjear. Intentá de nuevo.' })
+      setCouponLoading(false)
+      if (res.ok) {
+        setCouponResult({ ok: true, msg: `✅ Canjeado: ${data.note ?? 'Premio'}` })
+        setCouponInput('')
+        refreshList()
+      } else if (res.status === 409) {
+        setCouponResult({ ok: false, msg: '⚠️ Este cupón ya fue canjeado.' })
+      } else if (res.status === 404) {
+        setCouponResult({ ok: false, msg: '❌ Cupón no encontrado. Revisá el código.' })
+      } else {
+        setCouponResult({ ok: false, msg: '❌ Error al canjear. Intentá de nuevo.' })
+      }
     }
   }
 
   const pending = coupons.filter(c => !c.redeemed_at)
   const redeemed = coupons.filter(c => c.redeemed_at)
 
+  const filtered = search.trim()
+    ? coupons.filter(c =>
+        c.client_name?.toLowerCase().includes(search.toLowerCase()) ||
+        c.client_phone?.includes(search) ||
+        c.coupon_code?.includes(search.toUpperCase())
+      )
+    : coupons
+
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-zinc-900">Cupones</h1>
         <p className="text-zinc-400 text-sm mt-0.5">
-          El cliente te muestra el código — ingresalo acá para marcarlo como canjeado.
+          El cliente te muestra el código — canjéalo desde la lista o ingresalo manualmente.
         </p>
       </div>
 
-      {/* Canjear */}
+      {/* Canjear manual */}
       <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-6">
-        <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">Canjear cupón del cliente</p>
-        <form onSubmit={redeemCoupon} className="flex gap-2">
+        <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">Canjear código manualmente</p>
+        <form onSubmit={e => { e.preventDefault(); if (couponInput.trim()) redeemByCode(couponInput) }} className="flex gap-2">
           <input
             type="text"
             value={couponInput}
             onChange={e => setCouponInput(e.target.value.toUpperCase())}
-            placeholder="Código del cupón (ej: AB12CD)"
+            placeholder="Código del cupón (ej: 10%0F-AB12-CD34)"
             className="flex-1 border border-zinc-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-violet-400"
           />
           <button type="submit" disabled={couponLoading || !couponInput.trim()}
@@ -2518,10 +2548,25 @@ function ViewCupones({ selectedProgram, accessToken }: { selectedProgram: string
         ))}
       </div>
 
-      {/* Lista */}
+      {/* Lista con búsqueda */}
       <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-50">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Cupones generados</p>
+        <div className="px-5 py-4 border-b border-zinc-50 flex items-center gap-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex-1">Cupones generados</p>
+          {coupons.length > 0 && (
+            <div className="flex items-center gap-2 border border-zinc-200 rounded-xl px-3 py-1.5 bg-zinc-50">
+              <span className="text-zinc-400 text-xs">🔍</span>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Buscar por nombre, teléfono o código..."
+                className="text-xs text-zinc-700 placeholder-zinc-400 focus:outline-none bg-transparent w-48"
+              />
+              {search && (
+                <button onClick={() => setSearch('')} className="text-zinc-400 hover:text-zinc-600 text-xs leading-none">✕</button>
+              )}
+            </div>
+          )}
         </div>
         {loadingCoupons ? (
           <div className="flex items-center justify-center py-10">
@@ -2533,23 +2578,46 @@ function ViewCupones({ selectedProgram, accessToken }: { selectedProgram: string
             <p className="text-sm font-semibold text-zinc-700">No hay cupones todavía.</p>
             <p className="text-xs text-zinc-400 mt-1">Se generan automáticamente cuando un cliente completa su tarjeta.</p>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-10 text-center text-zinc-400 text-sm">Sin resultados para &quot;{search}&quot;</div>
         ) : (
           <div className="divide-y divide-zinc-50">
-            {coupons.map(c => (
-              <div key={c.id} className="px-5 py-4 flex items-center gap-4">
+            {filtered.map(c => (
+              <div key={c.id} className="px-5 py-4 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-zinc-900 truncate">{c.client_name}</p>
                   <p className="text-xs text-zinc-400">{c.client_phone}</p>
                   <p className="text-xs text-zinc-500 mt-0.5">{c.note}</p>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="font-mono text-sm font-bold text-violet-700 tracking-widest">{c.coupon_code}</p>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">{new Date(c.created_at).toLocaleDateString('es-AR')}</p>
-                  <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mt-1 ${
-                    c.redeemed_at ? 'bg-zinc-100 text-zinc-500' : 'bg-amber-50 text-amber-600'
-                  }`}>
-                    {c.redeemed_at ? `Canjeado ${new Date(c.redeemed_at).toLocaleDateString('es-AR')}` : 'Pendiente'}
-                  </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="text-right">
+                    <p className="font-mono text-xs font-bold text-violet-700 tracking-wider">{c.coupon_code}</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">{new Date(c.created_at).toLocaleDateString('es-AR')}</p>
+                    {!c.redeemed_at && !rowResult[c.id] && (
+                      <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mt-1 bg-amber-50 text-amber-600">
+                        Pendiente
+                      </span>
+                    )}
+                    {c.redeemed_at && !rowResult[c.id] && (
+                      <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mt-1 bg-zinc-100 text-zinc-500">
+                        Canjeado {new Date(c.redeemed_at).toLocaleDateString('es-AR')}
+                      </span>
+                    )}
+                    {rowResult[c.id] && (
+                      <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mt-1 ${rowResult[c.id].ok ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-500'}`}>
+                        {rowResult[c.id].msg}
+                      </span>
+                    )}
+                  </div>
+                  {!c.redeemed_at && (
+                    <button
+                      onClick={() => redeemByCode(c.coupon_code, c.id)}
+                      disabled={redeemingId === c.id}
+                      className="text-xs font-bold text-white px-3 py-2 rounded-xl disabled:opacity-50 transition-colors flex-shrink-0"
+                      style={{ background: '#7C3AED' }}>
+                      {redeemingId === c.id ? '...' : 'Canjear'}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
