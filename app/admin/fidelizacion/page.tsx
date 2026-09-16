@@ -18,7 +18,15 @@ type Program = {
 
 type Business = { id: string; name: string }
 
-
+type Coupon = {
+  id: string
+  coupon_code: string
+  note: string
+  created_at: string
+  redeemed_at: string | null
+  client_name: string
+  client_phone: string
+}
 
 type Milestone = { at: number; label: string }
 
@@ -113,6 +121,13 @@ export default function AdminFidelizacionPage() {
   const [promoForm, setPromoForm] = useState({ title: '', body: '' })
   const [promoSending, setPromoSending] = useState(false)
   const [promoResult, setPromoResult] = useState<string | null>(null)
+  // Cupones
+  const [couponInput, setCouponInput] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponResult, setCouponResult] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [selectedCouponProgram, setSelectedCouponProgram] = useState<string | null>(null)
+  const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [loadingCoupons, setLoadingCoupons] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -206,6 +221,41 @@ export default function AdminFidelizacionPage() {
       setShowNewBiz(false)
     }
     setCreatingBiz(false)
+  }
+
+  async function redeemCoupon(e: React.FormEvent) {
+    e.preventDefault()
+    if (!couponInput.trim()) return
+    setCouponLoading(true)
+    setCouponResult(null)
+    const res = await fetch('/api/fidelizacion/redeem-coupon', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coupon_code: couponInput.trim().toUpperCase() }),
+    })
+    const data = await res.json()
+    setCouponLoading(false)
+    if (res.ok) {
+      setCouponResult({ ok: true, msg: `✅ Canjeado: ${data.note ?? 'Premio'}` })
+      setCouponInput('')
+      // Refrescar lista si está abierta
+      if (selectedCouponProgram) loadCoupons(selectedCouponProgram)
+    } else if (res.status === 409) {
+      setCouponResult({ ok: false, msg: '⚠️ Este cupón ya fue canjeado anteriormente.' })
+    } else if (res.status === 404) {
+      setCouponResult({ ok: false, msg: '❌ Cupón no encontrado. Revisá el código.' })
+    } else {
+      setCouponResult({ ok: false, msg: '❌ Error al canjear. Intentá de nuevo.' })
+    }
+  }
+
+  async function loadCoupons(programId: string) {
+    setLoadingCoupons(true)
+    setSelectedCouponProgram(programId)
+    const res = await fetch(`/api/fidelizacion/admin/coupons?program_id=${programId}`)
+    const { coupons: c } = await res.json()
+    setCoupons(c ?? [])
+    setLoadingCoupons(false)
   }
 
   async function sendPromo() {
@@ -587,6 +637,32 @@ export default function AdminFidelizacionPage() {
         </div>
       )}
 
+      {/* Canjear cupón */}
+      <div className="mb-6 bg-white border border-gray-100 rounded-2xl p-5">
+        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">🎟 Canjear cupón</p>
+        <form onSubmit={redeemCoupon} className="flex gap-2">
+          <input
+            type="text"
+            value={couponInput}
+            onChange={e => setCouponInput(e.target.value.toUpperCase())}
+            placeholder="Ingresá el código del cliente (ej: DESC20-AB3C-XY9Z)"
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-400"
+          />
+          <button
+            type="submit"
+            disabled={couponLoading || !couponInput.trim()}
+            className="bg-violet-600 hover:bg-violet-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50"
+          >
+            {couponLoading ? '...' : 'Canjear'}
+          </button>
+        </form>
+        {couponResult && (
+          <p className={`text-xs font-semibold mt-2 ${couponResult.ok ? 'text-green-600' : 'text-red-500'}`}>
+            {couponResult.msg}
+          </p>
+        )}
+      </div>
+
       {/* Lista de programas */}
       {loading ? (
         <div className="flex items-center justify-center h-40">
@@ -684,6 +760,12 @@ export default function AdminFidelizacionPage() {
                   >
                     🔔 Enviar promo
                   </button>
+                  <button
+                    onClick={() => selectedCouponProgram === p.id ? setSelectedCouponProgram(null) : loadCoupons(p.id)}
+                    className="bg-emerald-50 text-emerald-700 font-semibold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors"
+                  >
+                    {selectedCouponProgram === p.id ? '▲ Ocultar cupones' : '🎟 Ver cupones'}
+                  </button>
                 </div>
 
                 {/* QR de registro para imprimir */}
@@ -710,6 +792,54 @@ export default function AdminFidelizacionPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Tabla de cupones */}
+                {selectedCouponProgram === p.id && (
+                  <div className="mt-4 border-t border-gray-100 pt-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Cupones generados</p>
+                    {loadingCoupons ? (
+                      <p className="text-xs text-gray-400 text-center py-4">Cargando...</p>
+                    ) : coupons.length === 0 ? (
+                      <p className="text-xs text-gray-400 text-center py-4">No hay cupones generados todavía.</p>
+                    ) : (
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-gray-400 font-semibold uppercase tracking-wide border-b border-gray-100">
+                            <th className="text-left pb-2">Cliente</th>
+                            <th className="text-left pb-2">Código</th>
+                            <th className="text-left pb-2">Premio</th>
+                            <th className="text-left pb-2">Fecha</th>
+                            <th className="text-center pb-2">Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {coupons.map(c => (
+                            <tr key={c.id} className="hover:bg-gray-50">
+                              <td className="py-2">
+                                <p className="font-medium text-gray-900">{c.client_name}</p>
+                                <p className="text-gray-400">{c.client_phone}</p>
+                              </td>
+                              <td className="py-2 font-mono font-bold text-violet-700 tracking-wide">{c.coupon_code}</td>
+                              <td className="py-2 text-gray-600">{c.note}</td>
+                              <td className="py-2 text-gray-400">{new Date(c.created_at).toLocaleDateString('es-AR')}</td>
+                              <td className="py-2 text-center">
+                                {c.redeemed_at ? (
+                                  <span className="inline-block bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    Canjeado
+                                  </span>
+                                ) : (
+                                  <span className="inline-block bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    Pendiente
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
 
                 {/* Tabla de clientes */}
                 {selectedProgram === p.id && (

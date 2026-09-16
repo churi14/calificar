@@ -19,6 +19,16 @@ type Client = {
   created_at: string
 }
 
+type Coupon = {
+  id: string
+  coupon_code: string
+  note: string
+  created_at: string
+  redeemed_at: string | null
+  client_name: string
+  client_phone: string
+}
+
 export default function NegocioDashboard() {
   const [program, setProgram] = useState<Program | null>(null)
   const [clients, setClients] = useState<Client[]>([])
@@ -29,6 +39,9 @@ export default function NegocioDashboard() {
   const [couponInput, setCouponInput] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponResult, setCouponResult] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [showCoupons, setShowCoupons] = useState(false)
+  const [loadingCoupons, setLoadingCoupons] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -69,6 +82,14 @@ export default function NegocioDashboard() {
     setTimeout(() => setStampResult(prev => { const n = { ...prev }; delete n[client.id]; return n }), 3000)
   }
 
+  async function loadCoupons() {
+    setLoadingCoupons(true)
+    const res = await fetch('/api/negocio/coupons')
+    const data = await res.json()
+    setCoupons(data.coupons ?? [])
+    setLoadingCoupons(false)
+  }
+
   async function redeemCoupon(e: React.FormEvent) {
     e.preventDefault()
     if (!couponInput.trim()) return
@@ -84,6 +105,8 @@ export default function NegocioDashboard() {
     if (res.ok) {
       setCouponResult({ ok: true, msg: `✅ Canjeado: ${data.note ?? 'Premio'}` })
       setCouponInput('')
+      // Refrescar lista si está abierta
+      if (showCoupons) loadCoupons()
     } else if (res.status === 409) {
       setCouponResult({ ok: false, msg: '⚠️ Este cupón ya fue canjeado anteriormente.' })
     } else if (res.status === 404) {
@@ -172,6 +195,53 @@ export default function NegocioDashboard() {
             </p>
           )}
         </div>
+      </div>
+
+      {/* Lista de cupones */}
+      <div className="px-4 mt-3">
+        <button
+          onClick={() => {
+            if (!showCoupons) { setShowCoupons(true); loadCoupons() }
+            else setShowCoupons(false)
+          }}
+          className="w-full flex items-center justify-between bg-white border border-zinc-200 rounded-2xl px-4 py-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+        >
+          <span>🎟 Cupones generados</span>
+          <span className="text-zinc-400 text-xs">{showCoupons ? '▲ Ocultar' : '▼ Ver todos'}</span>
+        </button>
+
+        {showCoupons && (
+          <div className="bg-white border border-zinc-200 rounded-2xl mt-1 overflow-hidden">
+            {loadingCoupons ? (
+              <p className="text-xs text-zinc-400 text-center py-5">Cargando...</p>
+            ) : coupons.length === 0 ? (
+              <p className="text-xs text-zinc-400 text-center py-5">No hay cupones generados todavía.</p>
+            ) : (
+              <div className="divide-y divide-zinc-100">
+                {coupons.map(c => (
+                  <div key={c.id} className="px-4 py-3 flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-zinc-900 truncate">{c.client_name}</p>
+                      <p className="text-[10px] text-zinc-400">{c.client_phone}</p>
+                      <p className="text-[10px] text-zinc-500 mt-0.5">{c.note}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-mono text-xs font-bold text-violet-700 tracking-wide">{c.coupon_code}</p>
+                      <p className="text-[10px] text-zinc-400">{new Date(c.created_at).toLocaleDateString('es-AR')}</p>
+                      <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded-full mt-0.5 ${
+                        c.redeemed_at
+                          ? 'bg-zinc-100 text-zinc-500'
+                          : 'bg-amber-50 text-amber-600'
+                      }`}>
+                        {c.redeemed_at ? 'Canjeado' : 'Pendiente'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Buscador */}
