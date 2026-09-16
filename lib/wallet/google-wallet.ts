@@ -168,10 +168,14 @@ export async function updateLoyaltyObjectStamps(
   stamps: number,
   stampsGoal: number
 ) {
-  const fullObjectId = `${ISSUER_ID}.${objectId}`
+  // Si el objectId ya contiene el ISSUER_ID, no lo dupliquemos
+  const fullObjectId = objectId.startsWith(`${ISSUER_ID}.`)
+    ? objectId
+    : `${ISSUER_ID}.${objectId}`
+
   const headers = await authHeaders()
 
-  await fetch(`${WALLET_API}/loyaltyObject/${fullObjectId}`, {
+  const res = await fetch(`${WALLET_API}/loyaltyObject/${encodeURIComponent(fullObjectId)}`, {
     method: 'PATCH',
     headers,
     body: JSON.stringify({
@@ -181,6 +185,13 @@ export async function updateLoyaltyObjectStamps(
       },
     }),
   })
+
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Google Wallet PATCH falló (${res.status}): ${body}`)
+  }
+
+  return res.json()
 }
 
 // ─── Generar JWT → link "Agregar a Google Wallet" ────────────────────────────

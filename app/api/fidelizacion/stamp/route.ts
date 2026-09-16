@@ -144,12 +144,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Actualizar Google Wallet (no bloquea la respuesta)
+    let walletUpdateError: string | null = null
     if (card.wallet_object_id) {
-      updateLoyaltyObjectStamps(
-        card.wallet_object_id,
-        finalStamps,
-        program.stamps_goal
-      ).catch(err => console.error('Error actualizando Wallet:', err))
+      try {
+        await updateLoyaltyObjectStamps(
+          card.wallet_object_id,
+          finalStamps,
+          program.stamps_goal
+        )
+      } catch (err) {
+        walletUpdateError = String(err)
+        console.error('Error actualizando Wallet:', walletUpdateError)
+      }
     }
 
     return NextResponse.json({
@@ -162,8 +168,9 @@ export async function POST(req: NextRequest) {
       // Milestone intermedio
       milestone_reached: hitMilestone ? true : false,
       milestone_label: hitMilestone?.label ?? null,
-      // Google Wallet deep link
+      // Google Wallet
       wallet_object_id: card.wallet_object_id ?? null,
+      wallet_update_error: walletUpdateError, // null si OK, string si falló
     })
   } catch (err) {
     console.error('Error en /api/fidelizacion/stamp:', err)
