@@ -83,8 +83,8 @@ export async function POST(req: NextRequest) {
     const milestones: { at: number; label: string; coupon_prefix?: string }[] = program.milestones ?? []
     const hitMilestone = !goalReached ? milestones.find(m => m.at === newStamps) ?? null : null
 
-    // Reset de stamps: al llegar a la meta O al alcanzar un hito que tenga reset
-    const finalStamps = goalReached ? 0 : hitMilestone ? 0 : newStamps
+    // Reset de stamps: SOLO al llegar a la meta final. Los milestones no resetean.
+    const finalStamps = goalReached ? 0 : newStamps
 
     // Generar cupón único para meta final
     function genCoupon(prefix: string) {
