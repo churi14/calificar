@@ -113,6 +113,7 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
     { id: 'hoy',         label: 'Hoy',                    icon: '⊞' },
     { id: 'tarjeta',     label: 'Tarjeta',                icon: '🪪' },
     { id: 'clientes',    label: 'Clientes',               icon: '👥' },
+    { id: 'cupones',     label: 'Cupones',                icon: '🎟' },
     { id: 'push',        label: 'Avisos push',            icon: '🔔' },
     { id: 'proximidad',  label: 'Avisos de proximidad',   icon: '📍' },
     { id: 'cumple',      label: 'Campañas de cumpleaños', icon: '🎂' },
@@ -2422,6 +2423,143 @@ function ViewAyuda({ onNav }: { onNav: (id: string) => void }) {
   )
 }
 
+// ── Vista: CUPONES ───────────────────────────────────────────────────────────
+function ViewCupones({ selectedProgram, accessToken }: { selectedProgram: string | null; accessToken: string }) {
+  const [couponInput, setCouponInput] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponResult, setCouponResult] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [coupons, setCoupons] = useState<{ id: string; coupon_code: string; note: string; created_at: string; redeemed_at: string | null; client_name: string; client_phone: string }[]>([])
+  const [loadingCoupons, setLoadingCoupons] = useState(false)
+
+  useEffect(() => {
+    if (!selectedProgram) return
+    setLoadingCoupons(true)
+    fetch(`/api/fidelizacion/admin/coupons?program_id=${selectedProgram}`)
+      .then(r => r.json())
+      .then(d => { setCoupons(d.coupons ?? []); setLoadingCoupons(false) })
+      .catch(() => setLoadingCoupons(false))
+  }, [selectedProgram])
+
+  async function redeemCoupon(e: React.FormEvent) {
+    e.preventDefault()
+    if (!couponInput.trim()) return
+    setCouponLoading(true)
+    setCouponResult(null)
+    const res = await fetch('/api/fidelizacion/redeem-coupon', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: JSON.stringify({ coupon_code: couponInput.trim().toUpperCase() }),
+    })
+    const data = await res.json()
+    setCouponLoading(false)
+    if (res.ok) {
+      setCouponResult({ ok: true, msg: `✅ Canjeado: ${data.note ?? 'Premio'}` })
+      setCouponInput('')
+      // Refrescar lista
+      fetch(`/api/fidelizacion/admin/coupons?program_id=${selectedProgram}`)
+        .then(r => r.json())
+        .then(d => setCoupons(d.coupons ?? []))
+    } else if (res.status === 409) {
+      setCouponResult({ ok: false, msg: '⚠️ Este cupón ya fue canjeado.' })
+    } else if (res.status === 404) {
+      setCouponResult({ ok: false, msg: '❌ Cupón no encontrado. Revisá el código.' })
+    } else {
+      setCouponResult({ ok: false, msg: '❌ Error al canjear. Intentá de nuevo.' })
+    }
+  }
+
+  const pending = coupons.filter(c => !c.redeemed_at)
+  const redeemed = coupons.filter(c => c.redeemed_at)
+
+  return (
+    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold text-zinc-900">Cupones</h1>
+        <p className="text-zinc-400 text-sm mt-0.5">
+          El cliente te muestra el código — ingresalo acá para marcarlo como canjeado.
+        </p>
+      </div>
+
+      {/* Canjear */}
+      <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-6">
+        <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">Canjear cupón del cliente</p>
+        <form onSubmit={redeemCoupon} className="flex gap-2">
+          <input
+            type="text"
+            value={couponInput}
+            onChange={e => setCouponInput(e.target.value.toUpperCase())}
+            placeholder="Código del cupón (ej: AB12CD)"
+            className="flex-1 border border-zinc-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-violet-400"
+          />
+          <button type="submit" disabled={couponLoading || !couponInput.trim()}
+            className="px-5 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition-colors"
+            style={{ background: '#7C3AED' }}>
+            {couponLoading ? '...' : 'Canjear'}
+          </button>
+        </form>
+        {couponResult && (
+          <p className={`text-sm font-semibold mt-3 ${couponResult.ok ? 'text-green-600' : 'text-red-500'}`}>
+            {couponResult.msg}
+          </p>
+        )}
+      </div>
+
+      {/* Estadísticas */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        {[
+          { label: 'Total generados', value: coupons.length },
+          { label: 'Pendientes', value: pending.length },
+          { label: 'Canjeados', value: redeemed.length },
+        ].map(s => (
+          <div key={s.label} className="bg-white border border-zinc-100 rounded-2xl p-4 text-center">
+            <p className="text-2xl font-extrabold text-zinc-900">{s.value}</p>
+            <p className="text-[11px] text-zinc-400 mt-1">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Lista */}
+      <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-50">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Cupones generados</p>
+        </div>
+        {loadingCoupons ? (
+          <div className="flex items-center justify-center py-10">
+            <div className="w-7 h-7 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+          </div>
+        ) : coupons.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="text-3xl mb-2">🎟</p>
+            <p className="text-sm font-semibold text-zinc-700">No hay cupones todavía.</p>
+            <p className="text-xs text-zinc-400 mt-1">Se generan automáticamente cuando un cliente completa su tarjeta.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-zinc-50">
+            {coupons.map(c => (
+              <div key={c.id} className="px-5 py-4 flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-zinc-900 truncate">{c.client_name}</p>
+                  <p className="text-xs text-zinc-400">{c.client_phone}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">{c.note}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="font-mono text-sm font-bold text-violet-700 tracking-widest">{c.coupon_code}</p>
+                  <p className="text-[10px] text-zinc-400 mt-0.5">{new Date(c.created_at).toLocaleDateString('es-AR')}</p>
+                  <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mt-1 ${
+                    c.redeemed_at ? 'bg-zinc-100 text-zinc-500' : 'bg-amber-50 text-amber-600'
+                  }`}>
+                    {c.redeemed_at ? `Canjeado ${new Date(c.redeemed_at).toLocaleDateString('es-AR')}` : 'Pendiente'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 export default function NegocioDashboard() {
   const [programs, setPrograms] = useState<Program[]>([])
@@ -2661,6 +2799,9 @@ export default function NegocioDashboard() {
         {activeNav === 'clientes' && (
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
             loading={loading} manualStamp={(id, name) => setStampModal({ cardId: id, name })} />
+        )}
+        {activeNav === 'cupones' && (
+          <ViewCupones selectedProgram={selectedProgram} accessToken={accessToken} />
         )}
         {activeNav === 'push' && (
           <ViewPush notifMsg={notifMsg} setNotifMsg={setNotifMsg}
