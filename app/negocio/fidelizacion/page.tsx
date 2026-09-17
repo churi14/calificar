@@ -2666,7 +2666,7 @@ export default function NegocioDashboard() {
 
   useEffect(() => {
     const seen = localStorage.getItem('cal_discount_seen')
-    if (!seen) setTimeout(() => setShowDiscount(true), 1200)
+    if (seen) return
 
     // Obtener token para requests autenticados
     supabaseClient.auth.getSession().then(({ data }) => {
@@ -2681,7 +2681,15 @@ export default function NegocioDashboard() {
           setSelectedProgram(d.programs[0].id)
           const biz = d.programs[0].businesses
           if (biz?.name) setBusinessName(biz.name)
-          if (biz?.plan) setBusinessPlan(biz.plan)
+          if (biz?.plan) {
+            setBusinessPlan(biz.plan)
+            // Mostrar popup de descuento solo si NO tiene plan pago
+            const isPaidPlan = ['pro', 'ultimate', 'gifted'].includes(biz.plan)
+            if (!isPaidPlan) {
+              const seen = localStorage.getItem('cal_discount_seen')
+              if (!seen) setTimeout(() => setShowDiscount(true), 1200)
+            }
+          }
           if (biz?.plan_expires_at !== undefined) setPlanExpiresAt(biz.plan_expires_at)
         }
         if (d.email) setUserEmail(d.email)
