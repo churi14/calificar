@@ -125,7 +125,7 @@ export default function FidelizacionLanding() {
             <a href="#precios" className="hover:text-white transition-colors">Precios</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/admin/fidelizacion" className="text-sm font-medium text-slate-400 hover:text-white transition-colors hidden md:block">
+            <Link href="/negocio/fidelizacion" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
               Ingresar
             </Link>
             <Link
