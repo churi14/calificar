@@ -121,13 +121,18 @@ export default function AdminFidelizacionPage() {
   const [promoForm, setPromoForm] = useState({ title: '', body: '' })
   const [promoSending, setPromoSending] = useState(false)
   const [promoResult, setPromoResult] = useState<string | null>(null)
-  // Cupones
-  const [couponInput, setCouponInput] = useState('')
-  const [couponLoading, setCouponLoading] = useState(false)
-  const [couponResult, setCouponResult] = useState<{ ok: boolean; msg: string } | null>(null)
+  // Cupones del programa (tab "Ver cupones")
   const [selectedCouponProgram, setSelectedCouponProgram] = useState<string | null>(null)
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loadingCoupons, setLoadingCoupons] = useState(false)
+
+  // Modal de perfil de cliente
+  type ClientModalData = { card: Record<string, unknown>; programId: string; stampGoal: number; programColor: string }
+  const [clientModal, setClientModal] = useState<ClientModalData | null>(null)
+  const [clientCoupons, setClientCoupons] = useState<Coupon[]>([])
+  const [loadingClientCoupons, setLoadingClientCoupons] = useState(false)
+  const [redeemingCouponId, setRedeemingCouponId] = useState<string | null>(null)
+  const [couponRowResult, setCouponRowResult] = useState<Record<string, { ok: boolean; msg: string }>>({})
 
   useEffect(() => { load() }, [])
 
@@ -151,6 +156,35 @@ export default function AdminFidelizacionPage() {
     const { cards: c } = await res.json()
     setCards(c ?? [])
     setLoadingCards(false)
+  }
+
+  async function openClientModal(card: Record<string, unknown>, programId: string, stampGoal: number, programColor: string) {
+    setClientModal({ card, programId, stampGoal, programColor })
+    setCouponRowResult({})
+    setLoadingClientCoupons(true)
+    const res = await fetch(`/api/fidelizacion/admin/coupons?program_id=${programId}`)
+    const { coupons: all } = await res.json()
+    setClientCoupons((all ?? []).filter((c: Coupon) => c.client_phone === card.phone))
+    setLoadingClientCoupons(false)
+  }
+
+  async function redeemClientCoupon(couponId: string, couponCode: string) {
+    setRedeemingCouponId(couponId)
+    const res = await fetch('/api/fidelizacion/redeem-coupon', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ coupon_code: couponCode }),
+    })
+    setRedeemingCouponId(null)
+    if (res.ok) {
+      setCouponRowResult(prev => ({ ...prev, [couponId]: { ok: true, msg: '✅ Canjeado' } }))
+      setClientCoupons(prev => prev.map(c => c.id === couponId ? { ...c, redeemed_at: new Date().toISOString() } : c))
+    } else if (res.status === 409) {
+      setCouponRowResult(prev => ({ ...prev, [couponId]: { ok: false, msg: '⚠️ Ya canjeado' } }))
+    } else {
+      setCouponRowResult(prev => ({ ...prev, [couponId]: { ok: false, msg: '❌ Error' } }))
+    }
+    setTimeout(() => setCouponRowResult(prev => { const n = { ...prev }; delete n[couponId]; return n }), 3000)
   }
 
   function openCreate() {
@@ -223,31 +257,6 @@ export default function AdminFidelizacionPage() {
     setCreatingBiz(false)
   }
 
-  async function redeemCoupon(e: React.FormEvent) {
-    e.preventDefault()
-    if (!couponInput.trim()) return
-    setCouponLoading(true)
-    setCouponResult(null)
-    const res = await fetch('/api/fidelizacion/redeem-coupon', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ coupon_code: couponInput.trim().toUpperCase() }),
-    })
-    const data = await res.json()
-    setCouponLoading(false)
-    if (res.ok) {
-      setCouponResult({ ok: true, msg: `✅ Canjeado: ${data.note ?? 'Premio'}` })
-      setCouponInput('')
-      // Refrescar lista si está abierta
-      if (selectedCouponProgram) loadCoupons(selectedCouponProgram)
-    } else if (res.status === 409) {
-      setCouponResult({ ok: false, msg: '⚠️ Este cupón ya fue canjeado anteriormente.' })
-    } else if (res.status === 404) {
-      setCouponResult({ ok: false, msg: '❌ Cupón no encontrado. Revisá el código.' })
-    } else {
-      setCouponResult({ ok: false, msg: '❌ Error al canjear. Intentá de nuevo.' })
-    }
-  }
 
   async function loadCoupons(programId: string) {
     setLoadingCoupons(true)
@@ -637,31 +646,91 @@ export default function AdminFidelizacionPage() {
         </div>
       )}
 
-      {/* Canjear cupón */}
-      <div className="mb-6 bg-white border border-gray-100 rounded-2xl p-5">
-        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">🎟 Canjear cupón</p>
-        <form onSubmit={redeemCoupon} className="flex gap-2">
-          <input
-            type="text"
-            value={couponInput}
-            onChange={e => setCouponInput(e.target.value.toUpperCase())}
-            placeholder="Ingresá el código del cliente (ej: DESC20-AB3C-XY9Z)"
-            className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-400"
-          />
-          <button
-            type="submit"
-            disabled={couponLoading || !couponInput.trim()}
-            className="bg-violet-600 hover:bg-violet-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50"
-          >
-            {couponLoading ? '...' : 'Canjear'}
-          </button>
-        </form>
-        {couponResult && (
-          <p className={`text-xs font-semibold mt-2 ${couponResult.ok ? 'text-green-600' : 'text-red-500'}`}>
-            {couponResult.msg}
-          </p>
-        )}
-      </div>
+      {/* Modal perfil de cliente */}
+      {clientModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="p-6 pb-4" style={{ background: `linear-gradient(135deg, ${clientModal.programColor}, ${clientModal.programColor}cc)` }}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">Perfil de cliente</p>
+                  <p className="text-white font-extrabold text-xl leading-tight">{clientModal.card.name as string || '—'}</p>
+                  <p className="text-white/80 text-sm mt-0.5">{clientModal.card.phone as string}</p>
+                </div>
+                <button onClick={() => setClientModal(null)} className="text-white/70 hover:text-white text-2xl leading-none">×</button>
+              </div>
+              {/* Sellos */}
+              <div className="flex gap-3 mt-4">
+                <div className="bg-white/20 rounded-2xl px-4 py-2 text-center">
+                  <p className="text-white font-extrabold text-lg">{clientModal.card.stamps as number}<span className="text-white/60 text-sm">/{clientModal.stampGoal}</span></p>
+                  <p className="text-white/70 text-[11px]">sellos</p>
+                </div>
+                <div className="bg-white/20 rounded-2xl px-4 py-2 text-center">
+                  <p className="text-white font-extrabold text-lg">{clientModal.card.total_visits as number}</p>
+                  <p className="text-white/70 text-[11px]">visitas</p>
+                </div>
+                {clientModal.card.birth_date && (
+                  <div className="bg-white/20 rounded-2xl px-4 py-2 text-center">
+                    <p className="text-white font-extrabold text-lg">
+                      {new Date(clientModal.card.birth_date as string).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
+                    </p>
+                    <p className="text-white/70 text-[11px]">cumple</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Cupones */}
+            <div className="p-6 pt-4 max-h-80 overflow-y-auto">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Cupones</p>
+              {loadingClientCoupons ? (
+                <p className="text-xs text-gray-400 text-center py-4">Cargando...</p>
+              ) : clientCoupons.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-4">Sin cupones todavía.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {clientCoupons.map(c => (
+                    <div key={c.id} className={`rounded-xl p-3 border ${c.redeemed_at ? 'bg-gray-50 border-gray-100' : 'bg-violet-50 border-violet-200'}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-mono font-bold text-sm text-violet-700 tracking-wider">{c.coupon_code}</p>
+                          <p className="text-xs text-gray-500 truncate">{c.note}</p>
+                          <p className="text-[11px] text-gray-400">{new Date(c.created_at).toLocaleDateString('es-AR')}</p>
+                        </div>
+                        {c.redeemed_at ? (
+                          <span className="flex-shrink-0 text-[10px] bg-gray-200 text-gray-500 font-bold px-2 py-1 rounded-full">Canjeado</span>
+                        ) : couponRowResult[c.id] ? (
+                          <span className={`flex-shrink-0 text-[11px] font-bold ${couponRowResult[c.id].ok ? 'text-green-600' : 'text-red-500'}`}>
+                            {couponRowResult[c.id].msg}
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => redeemClientCoupon(c.id, c.coupon_code)}
+                            disabled={redeemingCouponId === c.id}
+                            className="flex-shrink-0 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            {redeemingCouponId === c.id ? '...' : 'Canjear'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 pb-5">
+              <button
+                onClick={() => setClientModal(null)}
+                className="w-full border border-gray-200 text-gray-600 font-semibold py-2.5 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Lista de programas */}
       {loading ? (
@@ -878,12 +947,20 @@ export default function AdminFidelizacionPage() {
                                 {new Date(c.created_at as string).toLocaleDateString('es-AR')}
                               </td>
                               <td className="py-2">
-                                <button
-                                  onClick={() => { setPromoModal(`card:${c.id as string}:${p.id}`); setPromoForm({ title: '', body: '' }); setPromoResult(null) }}
-                                  className="text-[10px] bg-violet-50 hover:bg-violet-100 text-violet-600 font-semibold px-2 py-1 rounded-lg transition-colors"
-                                >
-                                  📣
-                                </button>
+                                <div className="flex gap-1">
+                                  <button
+                                    onClick={() => openClientModal(c, p.id, p.stamps_goal, p.color_primary)}
+                                    className="text-[10px] bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold px-2 py-1 rounded-lg transition-colors"
+                                  >
+                                    Ver
+                                  </button>
+                                  <button
+                                    onClick={() => { setPromoModal(`card:${c.id as string}:${p.id}`); setPromoForm({ title: '', body: '' }); setPromoResult(null) }}
+                                    className="text-[10px] bg-gray-50 hover:bg-gray-100 text-gray-500 font-semibold px-2 py-1 rounded-lg transition-colors"
+                                  >
+                                    📣
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}

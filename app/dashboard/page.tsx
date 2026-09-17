@@ -23,6 +23,18 @@ export default async function DashboardPage() {
   // Admin → siempre al panel admin
   if (profile?.role === 'admin') redirect('/admin')
 
+  // Chequear también negocios de fidelización (usan owner_user_id en vez de owner_id)
+  const { data: fidBiz } = await supabase
+    .from('businesses')
+    .select('id')
+    .eq('owner_user_id', user!.id)
+    .limit(1)
+
+  // Si tiene negocio de fidelización pero no de QR review → mandarlo al panel de fidelización
+  if (fidBiz && fidBiz.length > 0 && (!businesses || businesses.length === 0)) {
+    redirect('/negocio/fidelizacion')
+  }
+
   // Solo redirigir al onboarding si tiene plan pago pero aún no creó ningún negocio
   const hasPaidPlan = profile?.plan === 'basic' || profile?.plan === 'pro'
   if (hasPaidPlan && (!businesses || businesses.length === 0)) {
