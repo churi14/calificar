@@ -212,7 +212,7 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
             <div className={`rounded-lg px-3 py-2 mb-2 ${color.split(' ')[0]}`}>
               <div className="flex items-center justify-between">
                 <span className={`text-[10px] font-semibold ${color.split(' ')[1]}`}>{label}</span>
-                {planExpiresAt && !isExpired && (
+                {planExpiresAt && !isExpired && !['ultimate', 'gifted'].includes(plan) && (
                   <span className="text-[10px] text-zinc-400">
                     hasta {new Date(planExpiresAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
                   </span>
