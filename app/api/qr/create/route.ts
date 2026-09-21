@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const { destination_url, label } = await req.json()
-  if (!destination_url) return NextResponse.json({ error: 'Falta la URL de destino' }, { status: 400 })
 
   const serviceClient = createServiceClient()
 
@@ -50,10 +49,10 @@ export async function POST(req: NextRequest) {
   const { error } = await serviceClient.from('qr_redirects').insert({
     code,
     owner_id: user.id,
-    google_url: destination_url,
+    google_url: destination_url || null,
     label: label || null,
-    activated: true,
-    activated_at: new Date().toISOString(),
+    activated: !!destination_url,
+    activated_at: destination_url ? new Date().toISOString() : null,
     scan_count: 0,
   })
 

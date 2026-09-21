@@ -425,8 +425,9 @@ export default function QRDashboard() {
   }, [load, loadMembers])
 
   async function handleCreate() {
-    if (!newUrl.trim()) { setCreateError('Ingresá la URL de destino'); return }
-    try { new URL(newUrl) } catch { setCreateError('La URL no es válida'); return }
+    if (newUrl.trim() && !newUrl.startsWith('http')) {
+      setCreateError('La URL debe empezar con http:// o https://'); return
+    }
     setCreating(true); setCreateError('')
     const res = await fetch('/api/qr/create', {
       method: 'POST',
@@ -456,8 +457,7 @@ export default function QRDashboard() {
   }
 
   async function handleSaveEdit(code: string) {
-    if (!editUrl.trim()) return
-    try { new URL(editUrl) } catch { return }
+    if (editUrl.trim() && !editUrl.startsWith('http')) return
     setSaving(true)
     await fetch('/api/qr/update-url', {
       method: 'PATCH',
@@ -583,7 +583,7 @@ export default function QRDashboard() {
             <h2 className="font-bold text-gray-900 mb-4">Nuevo QR dinámico</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">URL de destino <span className="text-red-400">*</span></label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">URL de destino <span className="text-gray-300">(opcional — podés agregarla después)</span></label>
                 <input
                   type="url" value={newUrl} onChange={e => setNewUrl(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleCreate()}
