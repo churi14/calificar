@@ -228,6 +228,44 @@ export default function AdminQRPage() {
     setTimeout(() => setCopied(null), 2000)
   }
 
+  async function downloadAllAsZip() {
+    const [QRCode, JSZip] = await Promise.all([
+      import('qrcode'),
+      import('jszip'),
+    ])
+    const zip = new JSZip.default()
+    const style = qrStyle
+    for (const c of filtered) {
+      const url = `${BASE}/g/${c.code}`
+      const canvas = document.createElement('canvas')
+      await QRCode.toCanvas(canvas, url, {
+        width: style.size,
+        margin: 2,
+        color: { dark: style.fg, light: style.transparent ? '#FFFFFF' : style.bg },
+      })
+      if (style.transparent) {
+        const ctx = canvas.getContext('2d')!
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        const d = img.data
+        for (let i = 0; i < d.length; i += 4) {
+          if (d[i] > 200 && d[i + 1] > 200 && d[i + 2] > 200) d[i + 3] = 0
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.putImageData(img, 0, 0)
+      }
+      const dataUrl = canvas.toDataURL('image/png')
+      const base64 = dataUrl.split(',')[1]
+      const name = c.business_name ? `${c.business_name}-${c.code}` : c.code
+      zip.file(`${name}${style.transparent ? '-transparent' : ''}.png`, base64, { base64: true })
+    }
+    const blob = await zip.generateAsync({ type: 'blob' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `qr-calificar-${filtered.length}-codigos.zip`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
   function startEdit(c: QRCode) {
     setEditing(c.code)
     setShowQR(null)
@@ -375,18 +413,28 @@ export default function AdminQRPage() {
 
       {/* Lista */}
       <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50 gap-3 flex-wrap">
           <h2 className="font-bold text-gray-900">Todos los códigos</h2>
-          <div className="flex gap-1">
-            {(['all', 'active', 'pending'] as const).map(f => (
+          <div className="flex items-center gap-2 flex-wrap">
+            {filtered.length > 10 && (
               <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${filter === f ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                onClick={downloadAllAsZip}
+                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-500 transition-colors"
               >
-                {f === 'all' ? 'Todos' : f === 'active' ? 'Activados' : 'Pendientes'}
+                ↓ ZIP ({filtered.length} QRs)
               </button>
-            ))}
+            )}
+            <div className="flex gap-1">
+              {(['all', 'active', 'pending'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${filter === f ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                >
+                  {f === 'all' ? 'Todos' : f === 'active' ? 'Activados' : 'Pendientes'}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
