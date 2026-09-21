@@ -228,15 +228,16 @@ export default function AdminQRPage() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  async function downloadAllAsZip() {
+  async function downloadGeneratedAsZip() {
+    if (!generated || generated.length === 0) return
     const [QRCode, JSZip] = await Promise.all([
       import('qrcode'),
       import('jszip'),
     ])
     const zip = new JSZip.default()
-    const style = qrStyle
-    for (const c of filtered) {
-      const url = `${BASE}/g/${c.code}`
+    const style = generateStyle
+    for (const code of generated) {
+      const url = `${BASE}/g/${code}`
       const canvas = document.createElement('canvas')
       await QRCode.toCanvas(canvas, url, {
         width: style.size,
@@ -253,15 +254,13 @@ export default function AdminQRPage() {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.putImageData(img, 0, 0)
       }
-      const dataUrl = canvas.toDataURL('image/png')
-      const base64 = dataUrl.split(',')[1]
-      const name = c.business_name ? `${c.business_name}-${c.code}` : c.code
-      zip.file(`${name}${style.transparent ? '-transparent' : ''}.png`, base64, { base64: true })
+      const base64 = canvas.toDataURL('image/png').split(',')[1]
+      zip.file(`${code}${style.transparent ? '-transparent' : ''}.png`, base64, { base64: true })
     }
     const blob = await zip.generateAsync({ type: 'blob' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `qr-calificar-${filtered.length}-codigos.zip`
+    a.download = `qr-calificar-${generated.length}-codigos.zip`
     a.click()
     URL.revokeObjectURL(a.href)
   }
@@ -399,9 +398,19 @@ export default function AdminQRPage() {
 
         {generated && generated.length > 0 && (
           <div className="mt-6 border-t border-gray-100 pt-6">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-              QR listos para imprimir o programar en NFC:
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                QR listos para imprimir o programar en NFC:
+              </p>
+              {generated.length > 10 && (
+                <button
+                  onClick={downloadGeneratedAsZip}
+                  className="text-xs font-bold px-4 py-2 rounded-xl bg-violet-600 text-white hover:bg-violet-500 transition-colors"
+                >
+                  ↓ Descargar ZIP ({generated.length} QRs)
+                </button>
+              )}
+            </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
               {generated.map(code => (
                 <QRCard key={code} code={code} initialStyle={generateStyle} />
@@ -413,28 +422,18 @@ export default function AdminQRPage() {
 
       {/* Lista */}
       <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50 gap-3 flex-wrap">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
           <h2 className="font-bold text-gray-900">Todos los códigos</h2>
-          <div className="flex items-center gap-2 flex-wrap">
-            {filtered.length > 10 && (
+          <div className="flex gap-1">
+            {(['all', 'active', 'pending'] as const).map(f => (
               <button
-                onClick={downloadAllAsZip}
-                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-500 transition-colors"
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${filter === f ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
               >
-                ↓ ZIP ({filtered.length} QRs)
+                {f === 'all' ? 'Todos' : f === 'active' ? 'Activados' : 'Pendientes'}
               </button>
-            )}
-            <div className="flex gap-1">
-              {(['all', 'active', 'pending'] as const).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${filter === f ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-                >
-                  {f === 'all' ? 'Todos' : f === 'active' ? 'Activados' : 'Pendientes'}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
 
