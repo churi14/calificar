@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('name, plan, role')
+    .select('name, plan, role, qr_unlimited')
     .eq('id', user!.id)
     .single()
 
@@ -33,6 +33,11 @@ export default async function DashboardPage() {
   // Si tiene negocio de fidelización pero no de QR review → mandarlo al panel de fidelización
   if (fidBiz && fidBiz.length > 0 && (!businesses || businesses.length === 0)) {
     redirect('/negocio/fidelizacion')
+  }
+
+  // Si es usuario QR (qr_unlimited) sin negocio → mandarlo al dashboard QR
+  if (profile?.qr_unlimited && (!businesses || businesses.length === 0)) {
+    redirect('/qr/dashboard')
   }
 
   // Solo redirigir al onboarding si tiene plan pago pero aún no creó ningún negocio
