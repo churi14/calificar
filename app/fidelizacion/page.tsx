@@ -47,6 +47,7 @@ const plans = [
   {
     label: 'PARA TU NEGOCIO',
     name: 'Starter',
+    slug: 'starter',
     price: '$14.999',
     perDay: '$500 al día',
     perDaySub: 'menos que un café',
@@ -58,12 +59,13 @@ const plans = [
       'Exportá tus clientes: nombre y teléfono',
       'Soporte en español',
     ],
-    cta: 'Crear mi programa gratis',
+    cta: 'Empezar con Starter',
     highlight: false,
   },
   {
     label: 'PARA DESTACAR',
     name: 'Pro',
+    slug: 'pro',
     price: '$29.999',
     perDay: '$1.000 al día',
     perDaySub: 'menos que un café doble',
@@ -76,12 +78,13 @@ const plans = [
       'Zonas de notificación por geolocalización',
       'Soporte prioritario',
     ],
-    cta: 'Crear mi programa gratis',
+    cta: 'Empezar con Pro',
     highlight: true,
   },
   {
     label: 'SIN LÍMITES',
     name: 'Ultimate',
+    slug: 'ultimate',
     price: '$69.999',
     perDay: '$2.333 al día',
     perDaySub: 'para todas tus sucursales',
@@ -94,7 +97,7 @@ const plans = [
       'Exportación detallada con historial',
       'API + integración con tu sistema',
     ],
-    cta: 'Crear mi programa gratis',
+    cta: 'Empezar con Ultimate',
     highlight: false,
   },
 ]
@@ -390,7 +393,7 @@ export default function FidelizacionLanding() {
                 </ul>
 
                 <Link
-                  href="/fidelizacion/onboarding"
+                  href={`/fidelizacion/onboarding?plan=${p.slug}`}
                   className="text-center font-bold py-3.5 rounded-2xl text-sm transition-all bg-violet-600 hover:bg-violet-500 text-white active:scale-[0.98]"
                 >
                   {p.cta}

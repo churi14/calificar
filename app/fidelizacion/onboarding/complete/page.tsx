@@ -92,7 +92,6 @@ function CompleteContent() {
           throw new Error(data.error ?? 'Error creando el programa')
         }
 
-        localStorage.removeItem('cal_onboarding')
         // Track conversión final
         const sid = localStorage.getItem('cal_ob_session') ?? 'unknown'
         fetch('/api/fidelizacion/onboarding/track', {
@@ -100,6 +99,34 @@ function CompleteContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ session_id: sid, step: 11, step_name: 'registro', event: 'registered', data: { business_name: config.businessName } }),
         }).catch(() => {})
+
+        // Ver si el usuario eligió un plan pago
+        const chosenPlan = localStorage.getItem('cal_chosen_plan')
+        localStorage.removeItem('cal_onboarding')
+        localStorage.removeItem('cal_chosen_plan')
+
+        if (chosenPlan && ['starter', 'pro', 'ultimate'].includes(chosenPlan)) {
+          // Crear preferencia de pago en MP y redirigir
+          setStatus('done')
+          try {
+            const mpRes = await fetch('/api/mp/checkout', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+              },
+              body: JSON.stringify({ plan: chosenPlan }),
+            })
+            const mpData = await mpRes.json()
+            if (mpData.init_point) {
+              window.location.href = mpData.init_point
+              return
+            }
+          } catch (e) {
+            console.error('Error MP checkout:', e)
+          }
+        }
+
         setStatus('done')
         setTimeout(() => router.replace('/negocio/fidelizacion'), 1500)
       } catch (err: unknown) {

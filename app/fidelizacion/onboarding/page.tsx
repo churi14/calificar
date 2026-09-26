@@ -174,6 +174,17 @@ export default function OnboardingPage() {
   const [animKey, setAnimKey] = useState(0)
   const [animDir, setAnimDir] = useState<'fwd' | 'back'>('fwd')
 
+  // Guardar plan elegido desde la landing (viene en el query param ?plan=starter)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const plan = params.get('plan')
+      if (plan && ['starter', 'pro', 'ultimate'].includes(plan)) {
+        localStorage.setItem('cal_chosen_plan', plan)
+      }
+    } catch {}
+  }, [])
+
   // Track step views (drop-off detection)
   useEffect(() => {
     track(step, 'step_view')
