@@ -47,8 +47,8 @@ const plans = [
   {
     label: 'PARA TU NEGOCIO',
     name: 'Starter',
-    price: '$9.99',
-    perDay: '$0.33 al día',
+    price: '$14.999',
+    perDay: '$500 al día',
     perDaySub: 'menos que un café',
     features: [
       '1 programa de fidelidad con tu logo y colores',
@@ -64,9 +64,9 @@ const plans = [
   {
     label: 'PARA DESTACAR',
     name: 'Pro',
-    price: '$19.99',
-    perDay: '$0.66 al día',
-    perDaySub: 'menos que dos cafés',
+    price: '$29.999',
+    perDay: '$1.000 al día',
+    perDaySub: 'menos que un café doble',
     features: [
       'Todo lo de Starter',
       'Hasta 3 programas de fidelidad',
@@ -82,8 +82,8 @@ const plans = [
   {
     label: 'SIN LÍMITES',
     name: 'Ultimate',
-    price: '$49.99',
-    perDay: '$1.66 al día',
+    price: '$69.999',
+    perDay: '$2.333 al día',
     perDaySub: 'para todas tus sucursales',
     features: [
       'Todo lo de Pro',
@@ -365,7 +365,7 @@ export default function FidelizacionLanding() {
 
                 <div className="flex items-baseline gap-1.5 mb-3">
                   <span className="text-4xl font-extrabold text-white">{p.price}</span>
-                  <span className="text-sm text-slate-400">USD / mes</span>
+                  <span className="text-sm text-slate-400">ARS / mes</span>
                 </div>
 
                 {/* Per day pill */}
