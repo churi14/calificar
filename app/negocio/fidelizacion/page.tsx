@@ -222,7 +222,12 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
           )
         })()}
         <div className="flex items-center justify-between mb-2">
-          <button className="text-[10px] text-zinc-400 hover:text-zinc-600 transition-colors">↩ Cerrar sesión</button>
+          <button
+            onClick={async () => {
+              await supabaseClient.auth.signOut()
+              window.location.href = '/'
+            }}
+            className="text-[10px] text-zinc-400 hover:text-zinc-600 transition-colors">↩ Cerrar sesión</button>
           <button onClick={onDarkToggle} title={isDark ? 'Modo claro' : 'Modo oscuro'}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-all hover:bg-zinc-100"
             style={{ background: isDark ? '#3f3f46' : '' }}>
