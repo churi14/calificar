@@ -2665,9 +2665,6 @@ export default function NegocioDashboard() {
   }
 
   useEffect(() => {
-    const seen = localStorage.getItem('cal_discount_seen')
-    if (seen) return
-
     // Obtener token para requests autenticados
     supabaseClient.auth.getSession().then(({ data }) => {
       if (data.session?.access_token) setAccessToken(data.session.access_token)
