@@ -49,7 +49,7 @@ function DarkNav() {
               Blog
             </Link>
             <Link href="/login" className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors duration-200">
-              Entrar
+              Iniciar sesión
             </Link>
             <a
               href={WA}
@@ -96,7 +96,7 @@ function DarkNav() {
             <Link href="/tienda" onClick={() => setOpen(false)} className="px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-colors">Carteles</Link>
             <Link href="/precios" onClick={() => setOpen(false)} className="px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-colors">Precios</Link>
             <Link href="/blog" onClick={() => setOpen(false)} className="px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-colors">Blog</Link>
-            <Link href="/login" onClick={() => setOpen(false)} className="px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-colors">Entrar</Link>
+            <Link href="/login" onClick={() => setOpen(false)} className="px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-colors">Iniciar sesión</Link>
           </nav>
           <a href={WA} target="_blank" className="mt-auto block text-center bg-violet-600 text-white font-semibold px-5 py-4 rounded-full">
             Quiero mi sistema
@@ -166,6 +166,20 @@ const PRODUCTS = [
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'QR Dinámico',
+    tagline: 'Generador de QR dinámicos con NFC',
+    href: '/qr',
+    cta: 'Ver más',
+    accent: '#06b6d4',
+    glow: 'rgba(6,182,212,0.2)',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3z"/>
+        <path d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2z"/>
       </svg>
     ),
   },
@@ -248,7 +262,7 @@ function QrDemo() {
 
           <div>
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-white leading-[1.1] mb-5">
-              Un QR que cambia cuando quieras
+              Generador de QR Dinámicos
             </h2>
             <p className="text-slate-400 text-base sm:text-lg leading-relaxed mb-8">
               El cartel fisico no cambia nunca. Pero el link adonde lleva, si. Actualizalo desde tu celular en segundos, sin cambiar el impreso.
@@ -441,12 +455,12 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* RIGHT — 2x2 product cards */}
+            {/* RIGHT — product cards */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {PRODUCTS.map((p, i) => (
                 <div
                   key={p.label}
-                  className="card-float-in"
+                  className={`card-float-in ${i === PRODUCTS.length - 1 && PRODUCTS.length % 2 !== 0 ? 'col-span-2' : ''}`}
                   style={{ animationDelay: `${120 + i * 80}ms` }}
                 >
                   <ProductCard product={p} />
