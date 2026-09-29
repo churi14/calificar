@@ -297,6 +297,12 @@ function QrDemo() {
                 Ver carteles con QR Dinamico
               </Link>
               <Link
+                href="/qr"
+                className="inline-flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-white font-bold px-7 py-3.5 rounded-full transition-colors text-sm shadow-lg shadow-cyan-900/40"
+              >
+                Generar QR Dinámico
+              </Link>
+              <Link
                 href="/r/demo"
                 className="inline-flex items-center gap-2 border border-white/10 hover:border-white/20 hover:bg-white/5 text-white font-semibold px-7 py-3.5 rounded-full transition-all text-sm"
               >
