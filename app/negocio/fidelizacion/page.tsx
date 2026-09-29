@@ -2498,24 +2498,22 @@ function ViewPerfil({ program, selectedProgram, businessName, onSaved }: {
 
 // ── Vista: PLAN ───────────────────────────────────────────────────────────────
 function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
-  const PLANS = [
+  const VIEW_PLANS = [
     {
       id: 'starter',
       name: 'Starter',
       price: '$14.999',
       period: 'ARS/mes',
       desc: 'Para empezar a fidelizar clientes con sellos digitales.',
-      current: true,
       color: '#7C3AED',
+      badge: null as string | null,
       features: [
-        '1 programa de sellos',
-        'Clientes ilimitados',
-        'Tarjeta digital en Google Wallet / Apple Wallet',
-        'QR de acceso',
-        'Panel de gestión',
-        'Avisos push',
-        'Campañas de cumpleaños',
-        'Soporte por email',
+        '1 programa de fidelidad',
+        'Tarjeta digital en Google Wallet',
+        'NFC + QR en el mostrador',
+        'Panel de gestión en tiempo real',
+        'Exportá nombre y teléfono',
+        'Soporte premium en español 🇦🇷',
       ],
     },
     {
@@ -2524,61 +2522,101 @@ function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
       price: '$29.999',
       period: 'ARS/mes',
       desc: 'Para negocios que quieren más control y automatización.',
-      current: false,
-      color: '#059669',
+      color: '#7C3AED',
+      badge: 'RECOMENDADO',
       features: [
         'Todo lo de Starter',
-        'Hasta 3 programas de sellos',
+        'Hasta 3 programas de fidelidad',
+        'Campañas de cumpleaños automáticas',
+        'Cupones únicos al completar la tarjeta',
         'Avisos de proximidad (geofencing)',
-        'Estadísticas avanzadas de clientes',
-        'Templates de marketing incluidos',
-        'Soporte prioritario',
+        'Soporte premium en español 🇦🇷',
+      ],
+    },
+    {
+      id: 'ultimate',
+      name: 'Ultimate',
+      price: '$69.999',
+      period: 'ARS/mes',
+      desc: 'Para cadenas, franquicias y negocios sin límites.',
+      color: '#7C3AED',
+      badge: null,
+      features: [
+        'Todo lo de Pro',
+        'Programas y sucursales ilimitadas',
+        'Múltiples usuarios por local',
+        'Zonas de notificación ilimitadas',
+        'Exportación detallada con historial',
+        'API + integración con tu sistema',
       ],
     },
   ]
 
-  return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
-      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Tu plan</h1>
-      <p className="text-zinc-400 text-sm mb-6">Estás en el período de prueba gratuita. Tu plan actual es Starter.</p>
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+  const [checkoutErr, setCheckoutErr] = useState('')
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        {PLANS.map(plan => (
-          <div key={plan.id} className={`bg-white border rounded-2xl p-6 flex flex-col relative ${plan.current ? 'border-violet-300' : 'border-zinc-100'}`}>
-            {plan.current && (
-              <span className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ background: plan.color }}>
-                PLAN ACTUAL
+  async function goCheckout(planId: string) {
+    setLoadingPlan(planId)
+    setCheckoutErr('')
+    try {
+      const res = await fetch('/api/mp/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planId }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setCheckoutErr(data.error || 'Error al procesar'); setLoadingPlan(null); return }
+      window.location.href = data.init_point
+    } catch { setCheckoutErr('Error de conexión'); setLoadingPlan(null) }
+  }
+
+  return (
+    <div className="p-4 md:p-8 max-w-4xl mx-auto w-full">
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Tu plan</h1>
+      <p className="text-zinc-400 text-sm mb-6">Estás en el período de prueba gratuita. Elegí el plan que mejor se adapta a tu negocio.</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        {VIEW_PLANS.map(plan => (
+          <div key={plan.id} className={`bg-white border rounded-2xl p-5 flex flex-col relative ${plan.badge ? 'border-violet-300 shadow-md' : 'border-zinc-100'}`}>
+            {plan.badge && (
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold px-3 py-0.5 rounded-full text-white bg-violet-600 whitespace-nowrap">
+                {plan.badge}
               </span>
             )}
-            <div className="mb-4">
-              <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: plan.color }}>{plan.name}</p>
+            <div className="mb-4 mt-1">
+              <p className="text-xs font-bold uppercase tracking-widest mb-1 text-violet-600">{plan.name}</p>
               <div className="flex items-baseline gap-0.5">
-                <span className="text-3xl font-extrabold text-zinc-900">{plan.price}</span>
-                <span className="text-sm text-zinc-400">{plan.period}</span>
+                <span className="text-2xl font-extrabold text-zinc-900">{plan.price}</span>
+                <span className="text-xs text-zinc-400 ml-1">{plan.period}</span>
               </div>
               <p className="text-xs text-zinc-400 mt-1">{plan.desc}</p>
             </div>
             <div className="flex-1 space-y-2 mb-5">
               {plan.features.map(f => (
                 <div key={f} className="flex items-start gap-2">
-                  <span className="text-xs mt-0.5 flex-shrink-0" style={{ color: plan.color }}>✓</span>
+                  <span className="text-violet-500 text-xs mt-0.5 flex-shrink-0">✓</span>
                   <p className="text-xs text-zinc-600">{f}</p>
                 </div>
               ))}
             </div>
-            {!plan.current && (
-              <button className="w-full py-2.5 rounded-xl font-bold text-white text-sm" style={{ background: plan.color }}>
-                Pasarme a {plan.name}
-              </button>
-            )}
-            {plan.current && (
-              <button className="w-full py-2.5 rounded-xl font-semibold text-sm border border-zinc-200 text-zinc-500" disabled>
-                Plan activo
-              </button>
-            )}
+            <button
+              onClick={() => goCheckout(plan.id)}
+              disabled={!!loadingPlan}
+              className="w-full py-2.5 rounded-xl font-bold text-white text-sm mb-2 disabled:opacity-60"
+              style={{ background: '#7C3AED' }}>
+              {loadingPlan === plan.id ? 'Redirigiendo...' : `Pasarme a ${plan.name}`}
+            </button>
+            <a
+              href={`/fidelizacion/precios#${plan.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-center text-xs text-violet-500 hover:text-violet-700 transition-colors">
+              Ver qué incluye {plan.name} ↗
+            </a>
           </div>
         ))}
       </div>
+      {checkoutErr && <p className="text-red-500 text-xs text-center mb-4">{checkoutErr}</p>}
 
       {/* Facturación */}
       <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
