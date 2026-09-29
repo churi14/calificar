@@ -2675,7 +2675,7 @@ export default function NegocioDashboard() {
       if (data.session?.access_token) setAccessToken(data.session.access_token)
     })
 
-    fetch('/api/fidelizacion/admin')
+    fetch('/api/fidelizacion/my-programs')
       .then(r => r.json())
       .then(d => {
         setPrograms(d.programs ?? [])
