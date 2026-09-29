@@ -26,10 +26,10 @@ const PRODUCTS: Product[] = [
     desc: 'El que va al lado de la caja. Formato A5, diseño en 3 franjas: tu logo arriba, ícono NFC en el centro, QR abajo. Chip NFC + QR dinámico configurado.',
     feats: ['Formato A5 (15×21 cm)', 'NFC + QR Dinámico', 'Configuración incluida'],
     ideal: 'Zona de caja, mostrador, recepción',
-    price: 14500,
+    price: 24500,
     variants: [
-      { label: 'PVC 3mm', price: 14500 },
-      { label: 'Acrílico', price: 18000 },
+      { label: 'PVC 3mm', price: 24500 },
+      { label: 'Acrílico', price: 28000 },
     ],
   },
   {
@@ -39,10 +39,10 @@ const PRODUCTS: Product[] = [
     desc: 'Display tipo L o T con chip NFC y QR. No estorba en las mesas. El cliente apoya el celu o escanea y listo.',
     feats: ['Formato A6 (10×15 cm)', 'NFC + QR Dinámico', 'Configuración incluida'],
     ideal: 'Mesas de cafeterías, restaurantes y bares',
-    price: 12000,
+    price: 22000,
     variants: [
-      { label: 'PVC', price: 12000 },
-      { label: 'Acrílico', price: 15500 },
+      { label: 'PVC', price: 22000 },
+      { label: 'Acrílico', price: 25500 },
     ],
   },
   {
@@ -52,11 +52,11 @@ const PRODUCTS: Product[] = [
     desc: 'Stickers de 9×5cm que van fijos en la mesa o barra. No los pueden tirar ni caen. Resistentes al agua y lavandina. QR + NFC integrado.',
     feats: ['9×5 cm', 'QR + NFC integrado', 'Resistente al agua y lavandina', 'Configuración incluida'],
     ideal: 'Mesas fijas, barras, mostradores',
-    price: 8500,
+    price: 18500,
     variants: [
-      { label: 'PVC', price: 8500 },
-      { label: 'Acrílico', price: 11000 },
-      { label: 'Metal', price: 14000 },
+      { label: 'PVC', price: 18500 },
+      { label: 'Acrílico', price: 21000 },
+      { label: 'Metal', price: 24000 },
     ],
   },
   {
@@ -72,7 +72,7 @@ const PRODUCTS: Product[] = [
     desc: 'Tamaño tarjeta de crédito. El mozo la lleva en el delantal. Al traer la cuenta dice "¿Me dejás una reseña?" y la acerca al celu.',
     feats: ['86×54mm (credit card)', 'QR + NFC integrado', 'Configuración incluida'],
     ideal: 'Mozos y vendedores, cobro en mesa',
-    price: 4500,
+    price: 14500,
   },
   {
     id: 5, emoji: '🖼️', name: 'Cartel de Pared',
@@ -81,7 +81,7 @@ const PRODUCTS: Product[] = [
     feats: ['30×20 cm', 'QR + NFC', 'Interior o exterior', 'Configuración incluida'],
     ideal: 'Locales con alta afluencia, entradas, cajas',
     note: 'La medida puede variar, el precio corresponde a la medida indicada.',
-    price: 19500,
+    price: 29500,
   },
 ]
 
