@@ -10,6 +10,7 @@ type BizRow = {
   plan_expires_at: string | null
   billing_notes: string | null
   owner_user_id: string
+  owner_email: string | null
   created_at: string
   loyalty_programs: { id: string }[]
 }
@@ -156,7 +157,7 @@ export default function PlanesPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-zinc-900 text-sm truncate">{biz.name}</p>
-                    <p className="text-[10px] text-zinc-400 truncate">{biz.owner_user_id}</p>
+                    <p className="text-[10px] text-zinc-400 truncate">{biz.owner_email ?? biz.owner_user_id}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 ml-3">

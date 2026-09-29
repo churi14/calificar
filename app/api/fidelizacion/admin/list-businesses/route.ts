@@ -17,5 +17,20 @@ export async function GET() {
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ businesses: data ?? [] })
+
+  // Traer emails desde profiles
+  const ownerIds = [...new Set((data ?? []).map((b: { owner_user_id: string }) => b.owner_user_id).filter(Boolean))]
+  const { data: profiles } = ownerIds.length
+    ? await admin.from('profiles').select('id, email').in('id', ownerIds)
+    : { data: [] }
+
+  const emailMap: Record<string, string> = {}
+  for (const p of profiles ?? []) emailMap[p.id] = p.email
+
+  const businesses = (data ?? []).map((b: { owner_user_id: string }) => ({
+    ...b,
+    owner_email: emailMap[b.owner_user_id] ?? null,
+  }))
+
+  return NextResponse.json({ businesses })
 }
