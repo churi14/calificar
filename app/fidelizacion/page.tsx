@@ -398,6 +398,13 @@ export default function FidelizacionLanding() {
                 >
                   {p.cta}
                 </Link>
+
+                <Link
+                  href={`/fidelizacion/precios#${p.slug}`}
+                  className="text-center text-xs text-violet-400 hover:text-violet-300 mt-3 transition-colors"
+                >
+                  Ver qué incluye {p.name} ↓
+                </Link>
               </div>
             ))}
           </div>
