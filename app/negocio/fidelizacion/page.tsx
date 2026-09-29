@@ -809,14 +809,21 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
   const [milestoneSaving, setMilestoneSaving] = useState(false)
   const [milestoneSaved, setMilestoneSaved] = useState(false)
   const [milestoneError, setMilestoneError] = useState('')
+  const [rewardGoal, setRewardGoal] = useState(0)
+  const [rewardDesc, setRewardDesc] = useState('')
+  const [rewardSaving, setRewardSaving] = useState(false)
+  const [rewardSaved, setRewardSaved] = useState(false)
+  const [rewardError, setRewardError] = useState('')
   const [walletSyncing, setWalletSyncing] = useState(false)
   const [walletSyncMsg, setWalletSyncMsg] = useState('')
   const color = program?.color_primary ?? '#7C3AED'
   const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
 
-  // Cargar milestones del programa cuando esté disponible
+  // Cargar datos del programa cuando esté disponible
   useEffect(() => {
     if (program?.milestones) setMilestones(program.milestones)
+    if (program?.stamps_goal) setRewardGoal(program.stamps_goal)
+    if (program?.reward_description) setRewardDesc(program.reward_description)
   }, [program?.id])
 
   async function saveMilestones() {
@@ -833,6 +840,22 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     if (d.error) { setMilestoneError(d.error); return }
     setMilestoneSaved(true)
     setTimeout(() => setMilestoneSaved(false), 2500)
+  }
+
+  async function saveReward() {
+    if (!selectedProgram || !rewardGoal || !rewardDesc.trim()) return
+    setRewardSaving(true)
+    setRewardError('')
+    const res = await fetch('/api/fidelizacion/program', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: JSON.stringify({ program_id: selectedProgram, stamps_goal: rewardGoal, reward_description: rewardDesc.trim() }),
+    })
+    const d = await res.json()
+    setRewardSaving(false)
+    if (d.error) { setRewardError(d.error); return }
+    setRewardSaved(true)
+    setTimeout(() => setRewardSaved(false), 2500)
   }
 
   async function syncWallet() {
@@ -1011,6 +1034,45 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
               </p>
             )}
           </div>
+        </div>
+
+        {/* Premio final */}
+        <div className="p-5 border-t border-zinc-100">
+          <p className="text-sm font-bold text-zinc-900 mb-1">Premio final</p>
+          <p className="text-xs text-zinc-400 mb-4">
+            Cuántos sellos necesita el cliente y qué premio recibe al completar la tarjeta.
+          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2">
+              <span className="text-xs text-zinc-400 whitespace-nowrap">A los</span>
+              <input
+                type="number"
+                min={1}
+                max={30}
+                value={rewardGoal}
+                onChange={e => setRewardGoal(Number(e.target.value))}
+                className="w-12 bg-transparent text-center font-bold text-zinc-900 text-sm focus:outline-none"
+              />
+              <span className="text-xs text-zinc-400 whitespace-nowrap">sellos</span>
+            </div>
+            <input
+              type="text"
+              value={rewardDesc}
+              onChange={e => setRewardDesc(e.target.value)}
+              placeholder="Ej: 30% OFF en tu próxima compra"
+              className="flex-1 border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-400"
+            />
+          </div>
+          <div className="flex items-center gap-3 mt-3">
+            <button
+              onClick={saveReward}
+              disabled={rewardSaving || rewardSaved || !rewardGoal || !rewardDesc.trim()}
+              className="text-xs font-bold text-white px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+              style={{ background: rewardSaved ? '#10B981' : '#7C3AED' }}>
+              {rewardSaved ? '✓ Guardado' : rewardSaving ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+          {rewardError && <p className="text-xs text-red-500 mt-2">{rewardError}</p>}
         </div>
 
         {/* Premios intermedios (milestones) */}

@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   const body = await req.json()
-  const { program_id, milestones, sync_wallet } = body
+  const { program_id, milestones, sync_wallet, stamps_goal, reward_description } = body
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
 
   // Verificar que el usuario es dueño del programa
@@ -38,6 +38,18 @@ export async function PATCH(req: NextRequest) {
     const { error } = await supabase
       .from('loyalty_programs')
       .update({ milestones })
+      .eq('id', program_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Actualizar premio final si se enviaron
+  if (stamps_goal !== undefined || reward_description !== undefined) {
+    const updates: Record<string, unknown> = {}
+    if (stamps_goal !== undefined) updates.stamps_goal = Number(stamps_goal)
+    if (reward_description !== undefined) updates.reward_description = reward_description
+    const { error } = await supabase
+      .from('loyalty_programs')
+      .update(updates)
       .eq('id', program_id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
