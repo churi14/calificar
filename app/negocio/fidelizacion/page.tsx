@@ -41,60 +41,87 @@ type Transaction = {
 }
 
 // ── Popup descuento ──────────────────────────────────────────────────────────
-function DiscountPopup({ onClose }: { onClose: () => void }) {
-  const [secs, setSecs] = useState(() => {
-    const saved = localStorage.getItem('cal_discount_timer')
-    if (saved) {
-      const rem = parseInt(saved) - Math.floor(Date.now() / 1000)
-      return rem > 0 ? rem : 0
-    }
-    const end = Math.floor(Date.now() / 1000) + 600
-    localStorage.setItem('cal_discount_timer', String(end))
-    return 600
-  })
-  useEffect(() => {
-    if (secs <= 0) return
-    const id = setInterval(() => setSecs(s => s - 1), 1000)
-    return () => clearInterval(id)
-  }, [secs])
-  const mm = String(Math.floor(secs / 60)).padStart(2, '0')
-  const ss = String(secs % 60).padStart(2, '0')
+const DISCOUNT_PLANS = [
+  { id: 'starter', name: 'Starter', origPrice: '$14.999', discPrice: '$7.499', savings: '$7.500', pill: 'Para empezar' },
+  { id: 'pro',     name: 'Pro',     origPrice: '$29.999', discPrice: '$14.999', savings: '$15.000', pill: 'Más popular', highlight: true },
+  { id: 'ultimate',name: 'Ultimate',origPrice: '$69.999', discPrice: '$34.999', savings: '$35.000', pill: 'Sin límites' },
+]
+
+function DiscountPopup({ onClose, daysLeft }: { onClose: () => void; daysLeft: number }) {
+  const [loading, setLoading] = useState<string | null>(null)
+  const [err, setErr] = useState('')
+
+  async function checkout(planId: string) {
+    setLoading(planId)
+    setErr('')
+    try {
+      const res = await fetch('/api/mp/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planId, discount: true }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setErr(data.error || 'Error al procesar'); setLoading(null); return }
+      localStorage.setItem('cal_discount_dismissed', '1')
+      window.location.href = data.init_point
+    } catch { setErr('Error de conexión'); setLoading(null) }
+  }
+
+  function dismiss() {
+    // Schedule next popup in 3 hours
+    const nextShow = Date.now() + 3 * 60 * 60 * 1000
+    localStorage.setItem('cal_discount_next', String(nextShow))
+    onClose()
+  }
+
+  function dismissForever() {
+    localStorage.setItem('cal_discount_dismissed', '1')
+    onClose()
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.65)' }}>
-      <div className="bg-[#F5F0E8] rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-        <div className="px-6 pt-5 pb-4" style={{ background: '#1C1C1C' }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">TU DESCUENTO ACABA DE BAJAR</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-zinc-500 text-xl line-through">$19.99</span>
-            <span className="text-white font-extrabold text-4xl">50% OFF</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.72)' }}>
+      <div className="bg-zinc-950 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-5 text-center border-b border-zinc-800 relative">
+          <button onClick={dismiss} className="absolute right-5 top-5 text-zinc-500 hover:text-zinc-300 text-xl leading-none">✕</button>
+          <div className="inline-block bg-violet-600 text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+            50% OFF — PRIMER MES
           </div>
-          <p className="text-zinc-400 text-sm mt-0.5">tu primer mes</p>
-          <div className="mt-3 inline-flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2">
-            <span className="text-xs text-zinc-500 uppercase tracking-wide">SE ACABA EN</span>
-            <span className="font-mono font-bold text-white text-lg">{mm}:{ss}</span>
-          </div>
+          <h2 className="text-xl font-extrabold text-white">Oferta de bienvenida</h2>
+          <p className="text-zinc-400 text-sm mt-1">
+            Tenés <strong className="text-violet-400">{daysLeft} {daysLeft === 1 ? 'día' : 'días'}</strong> para aprovechar el 50% de descuento en tu primer mes.
+          </p>
         </div>
-        <div className="px-6 py-5">
-          <p className="text-sm text-zinc-600 mb-4">Este es tu período de prueba. Al terminar el reloj, el precio vuelve a su valor normal.</p>
-          <div className="bg-white rounded-xl border border-zinc-200 p-4 mb-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-zinc-400 font-semibold uppercase tracking-wide">Plan Pro</p>
-                <div className="flex items-baseline gap-2 mt-0.5">
-                  <span className="text-zinc-400 line-through text-sm">$19.99</span>
-                  <span className="text-2xl font-extrabold text-zinc-900">$9.99</span>
-                  <span className="text-xs text-zinc-400">/mes</span>
+        {/* Plans */}
+        <div className="p-5 space-y-3">
+          {DISCOUNT_PLANS.map(plan => (
+            <div key={plan.id} className={`rounded-xl p-4 flex items-center justify-between gap-3 ${plan.highlight ? 'bg-violet-900/40 border border-violet-700' : 'bg-zinc-900 border border-zinc-800'}`}>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-sm font-bold text-white">{plan.name}</p>
+                  {plan.highlight && <span className="text-[10px] font-bold bg-violet-600 text-white px-2 py-0.5 rounded-full">{plan.pill}</span>}
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-zinc-500 line-through text-xs">{plan.origPrice}/mes</span>
+                  <span className="text-white font-extrabold text-lg">{plan.discPrice}</span>
+                  <span className="text-zinc-500 text-xs">/mes</span>
                 </div>
               </div>
-              <span className="bg-violet-100 text-violet-700 text-xs font-bold px-2 py-1 rounded-lg">AHORRÁS $10</span>
+              <button
+                onClick={() => checkout(plan.id)}
+                disabled={!!loading}
+                className={`flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm text-white transition-all disabled:opacity-60 ${plan.highlight ? 'bg-violet-600 hover:bg-violet-500' : 'bg-zinc-700 hover:bg-zinc-600'}`}
+              >
+                {loading === plan.id ? '...' : 'Elegir'}
+              </button>
             </div>
-          </div>
-          <button onClick={onClose} className="w-full py-3.5 rounded-xl font-bold text-white text-sm" style={{ background: '#7C3AED' }}>
-            Asegurar 50% — Actualizar plan
-          </button>
-          <button onClick={() => { localStorage.setItem('cal_discount_seen', '1'); onClose() }}
-            className="w-full text-center text-xs text-zinc-400 mt-3 hover:text-zinc-600 transition-colors">
-            Ahora no
+          ))}
+          {err && <p className="text-red-400 text-xs text-center">{err}</p>}
+        </div>
+        <div className="px-5 pb-5 text-center">
+          <button onClick={dismissForever} className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors">
+            No me interesa
           </button>
         </div>
       </div>
@@ -317,26 +344,44 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
         </div>
         {(() => {
           const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
-          const planLabels: Record<string, string> = {
-            trial: 'Prueba gratuita', starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate 🎁',
-          }
-          const planColors: Record<string, string> = {
-            trial: 'bg-violet-50 text-violet-600', starter: 'bg-blue-50 text-blue-600',
-            pro: 'bg-violet-50 text-violet-700', ultimate: 'bg-amber-50 text-amber-700', gifted: 'bg-green-50 text-green-700',
-          }
-          const label = isExpired ? '⚠ Plan vencido' : `● ${planLabels[plan] ?? plan}`
-          const color = isExpired ? 'bg-red-50 text-red-600' : (planColors[plan] ?? 'bg-zinc-50 text-zinc-500')
-          return (
-            <div className={`rounded-lg px-3 py-2 mb-2 ${color.split(' ')[0]}`}>
-              <div className="flex items-center justify-between">
-                <span className={`text-[10px] font-semibold ${color.split(' ')[1]}`}>{label}</span>
-                {planExpiresAt && !isExpired && !['ultimate', 'gifted'].includes(plan) && (
-                  <span className="text-[10px] text-zinc-400">
-                    hasta {new Date(planExpiresAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
-                  </span>
-                )}
+          const isPaid = ['pro', 'ultimate', 'gifted', 'starter'].includes(plan) && !isExpired
+          if (isPaid) {
+            const planLabels: Record<string, string> = {
+              starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate 🎁',
+            }
+            const planColors: Record<string, string> = {
+              starter: 'bg-blue-50 text-blue-600', pro: 'bg-violet-50 text-violet-700',
+              ultimate: 'bg-amber-50 text-amber-700', gifted: 'bg-green-50 text-green-700',
+            }
+            const color = planColors[plan] ?? 'bg-zinc-50 text-zinc-500'
+            return (
+              <div className={`rounded-lg px-3 py-2 mb-2 ${color.split(' ')[0]}`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-[10px] font-semibold ${color.split(' ')[1]}`}>● {planLabels[plan] ?? plan}</span>
+                  {planExpiresAt && (
+                    <span className="text-[10px] text-zinc-400">
+                      hasta {new Date(planExpiresAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
+            )
+          }
+          // Trial o vencido: botón prominente
+          return (
+            <button
+              onClick={() => navigate('plan')}
+              className={`w-full rounded-xl px-3 py-2.5 mb-2 text-left transition-opacity hover:opacity-90 ${
+                isExpired ? 'bg-red-600' : 'bg-violet-600'
+              }`}
+            >
+              <p className="text-white font-bold text-xs">
+                {isExpired ? '⚠️ Plan vencido' : '✨ Prueba gratuita'}
+              </p>
+              <p className="text-white/70 text-[10px] mt-0.5">
+                {isExpired ? 'Renovar plan →' : 'Mejorar plan →'}
+              </p>
+            </button>
           )
         })()}
         <div className="flex items-center justify-between mb-2">
@@ -693,9 +738,9 @@ const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    price: '$9.99',
-    period: 'USD / mes',
-    sub: '$0.33 al día · menos que un café',
+    price: '$14.999',
+    period: 'ARS / mes',
+    sub: '$500/día · menos que un café',
     desc: 'PARA TU NEGOCIO',
     color: '#7C3AED',
     textColor: '#fff',
@@ -707,9 +752,9 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '$19.99',
-    period: 'USD / mes',
-    sub: '$0.66 al día · menos que dos cafés',
+    price: '$29.999',
+    period: 'ARS / mes',
+    sub: '$1.000/día · menos que dos cafés',
     desc: 'PARA DESTACAR',
     color: '#7C3AED',
     textColor: '#fff',
@@ -723,9 +768,9 @@ const PLANS = [
   {
     id: 'ultimate',
     name: 'Ultimate',
-    price: '$49.99',
-    period: 'USD / mes',
-    sub: '$1.66 al día · para todas tus sucursales',
+    price: '$69.999',
+    period: 'ARS / mes',
+    sub: '$2.333/día · para todas tus sucursales',
     desc: 'SIN LÍMITES',
     color: '#7C3AED',
     textColor: '#fff',
@@ -736,25 +781,57 @@ const PLANS = [
   },
 ]
 
-function PlansModal({ onClose }: { onClose: () => void }) {
+function PlansModal({ onClose, isDiscountEligible = false }: { onClose: () => void; isDiscountEligible?: boolean }) {
+  const [loading, setLoading] = useState<string | null>(null)
+  const [err, setErr] = useState('')
+
+  const DISC_PRICES: Record<string, string> = { starter: '$7.499', pro: '$14.999', ultimate: '$34.999' }
+
+  async function checkout(planId: string) {
+    setLoading(planId)
+    setErr('')
+    try {
+      const res = await fetch('/api/mp/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planId, discount: isDiscountEligible }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setErr(data.error || 'Error al procesar'); setLoading(null); return }
+      if (isDiscountEligible) localStorage.setItem('cal_discount_dismissed', '1')
+      window.location.href = data.init_point
+    } catch { setErr('Error de conexión'); setLoading(null) }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
       <div className="bg-zinc-950 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="relative px-7 pt-6 pb-5 text-center border-b border-zinc-800">
           <button onClick={onClose} className="absolute right-5 top-5 text-zinc-500 hover:text-zinc-300 text-xl leading-none">✕</button>
-          <div className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
-            14 DÍAS GRATIS
-          </div>
-          <h2 className="text-xl font-extrabold text-white">Probá gratis y empezá a fidelizar desde el primer día.</h2>
-          <p className="text-zinc-400 text-sm mt-1">Sin tarjeta de crédito. Sin compromiso.</p>
+          {isDiscountEligible ? (
+            <>
+              <div className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+                50% OFF — PRIMER MES
+              </div>
+              <h2 className="text-xl font-extrabold text-white">Oferta de bienvenida. Solo esta semana.</h2>
+              <p className="text-zinc-400 text-sm mt-1">El descuento se aplica automáticamente al elegir tu plan.</p>
+            </>
+          ) : (
+            <>
+              <div className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+                14 DÍAS GRATIS
+              </div>
+              <h2 className="text-xl font-extrabold text-white">Probá gratis y empezá a fidelizar desde el primer día.</h2>
+              <p className="text-zinc-400 text-sm mt-1">Sin tarjeta de crédito. Sin compromiso.</p>
+            </>
+          )}
         </div>
 
         {/* Plans grid */}
         <div className="p-5 grid grid-cols-3 gap-4">
           {PLANS.map(plan => (
             <div key={plan.id} className={`relative rounded-2xl flex flex-col overflow-visible ${plan.highlight ? 'bg-white shadow-xl' : 'bg-zinc-900 border border-zinc-800'}`}>
-              {/* Badge arriba del card, no dentro */}
               {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full whitespace-nowrap z-10">
                   {plan.badge}
@@ -764,11 +841,18 @@ function PlansModal({ onClose }: { onClose: () => void }) {
                 <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${plan.highlight ? 'text-violet-600' : 'text-zinc-400'}`}>{plan.desc}</p>
                 <p className={`text-xl font-extrabold mb-1 ${plan.highlight ? 'text-zinc-900' : 'text-white'}`}>{plan.name}</p>
                 <div className="flex items-baseline gap-1 mb-1">
-                  <span className={`text-3xl font-extrabold ${plan.highlight ? 'text-zinc-900' : 'text-white'}`}>{plan.price}</span>
+                  {isDiscountEligible ? (
+                    <>
+                      <span className={`text-lg line-through ${plan.highlight ? 'text-zinc-400' : 'text-zinc-600'}`}>{plan.price}</span>
+                      <span className={`text-3xl font-extrabold ${plan.highlight ? 'text-violet-600' : 'text-violet-400'}`}>{DISC_PRICES[plan.id]}</span>
+                    </>
+                  ) : (
+                    <span className={`text-3xl font-extrabold ${plan.highlight ? 'text-zinc-900' : 'text-white'}`}>{plan.price}</span>
+                  )}
                   <span className={`text-xs ${plan.highlight ? 'text-zinc-400' : 'text-zinc-500'}`}>{plan.period}</span>
                 </div>
                 <div className={`text-[10px] px-2.5 py-1 rounded-lg inline-block mb-3 ${plan.highlight ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-800 text-zinc-400'}`}>
-                  {plan.sub}
+                  {isDiscountEligible ? '50% OFF primer mes' : plan.sub}
                 </div>
                 {/* Pills */}
                 <div className="flex flex-wrap gap-1.5 mb-4">
@@ -785,14 +869,18 @@ function PlansModal({ onClose }: { onClose: () => void }) {
                 </ul>
               </div>
               <div className="px-5 pb-5">
-                <button className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all"
+                <button
+                  onClick={() => checkout(plan.id)}
+                  disabled={!!loading}
+                  className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all disabled:opacity-60"
                   style={{ background: '#7C3AED' }}>
-                  {plan.cta}
+                  {loading === plan.id ? 'Redirigiendo...' : plan.cta}
                 </button>
               </div>
             </div>
           ))}
         </div>
+        {err && <p className="text-red-400 text-xs text-center pb-3">{err}</p>}
         <div className="pb-5 text-center">
           <p className="text-xs text-zinc-500">¿Tenés dudas? <a href="mailto:hola@calificar.com.ar" className="text-violet-400 underline">Escribinos</a> y te ayudamos.</p>
         </div>
@@ -802,8 +890,8 @@ function PlansModal({ onClose }: { onClose: () => void }) {
 }
 
 // ── Vista: TARJETA ───────────────────────────────────────────────────────────
-function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, plan = 'trial', planExpiresAt = null, stats }:
-  { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void; accessToken: string; plan?: string; planExpiresAt?: string | null; stats?: { total: number; stampsToday: number; rewardsTotal: number } }) {
+function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, plan = 'trial', planExpiresAt = null, stats, businessCreatedAt = null }:
+  { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void; accessToken: string; plan?: string; planExpiresAt?: string | null; stats?: { total: number; stampsToday: number; rewardsTotal: number }; businessCreatedAt?: string | null }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
@@ -903,7 +991,9 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto w-full">
-      {showPlans && <PlansModal onClose={() => setShowPlans(false)} />}
+      {showPlans && <PlansModal onClose={() => setShowPlans(false)} isDiscountEligible={
+        !!businessCreatedAt && (Date.now() - new Date(businessCreatedAt).getTime()) / (1000 * 60 * 60 * 24) <= 7
+      } />}
 
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-zinc-900">Tarjeta</h1>
@@ -2412,8 +2502,8 @@ function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
     {
       id: 'starter',
       name: 'Starter',
-      price: '$9.99',
-      period: '/mes',
+      price: '$14.999',
+      period: 'ARS/mes',
       desc: 'Para empezar a fidelizar clientes con sellos digitales.',
       current: true,
       color: '#7C3AED',
@@ -2431,8 +2521,8 @@ function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
     {
       id: 'pro',
       name: 'Pro',
-      price: '$19.99',
-      period: '/mes',
+      price: '$29.999',
+      period: 'ARS/mes',
       desc: 'Para negocios que quieren más control y automatización.',
       current: false,
       color: '#059669',
@@ -2831,6 +2921,7 @@ export default function NegocioDashboard() {
   const [accessToken, setAccessToken] = useState('')
   const [businessPlan, setBusinessPlan] = useState('trial')
   const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null)
+  const [businessCreatedAt, setBusinessCreatedAt] = useState<string | null>(null)
   const [todayBdayCount, setTodayBdayCount] = useState(0)
   const [pushLogs, setPushLogs] = useState<{ id: string; title: string; body: string; sent_to: number; created_at: string }[]>([])
   const [salesByDay, setSalesByDay] = useState<Record<string, number>>({})
@@ -2865,14 +2956,25 @@ export default function NegocioDashboard() {
           if (biz?.name) setBusinessName(biz.name)
           if (biz?.plan) {
             setBusinessPlan(biz.plan)
-            // Mostrar popup de descuento solo si NO tiene plan pago
-            const isPaidPlan = ['pro', 'ultimate', 'gifted'].includes(biz.plan)
-            if (!isPaidPlan) {
-              const seen = localStorage.getItem('cal_discount_seen')
-              if (!seen) setTimeout(() => setShowDiscount(true), 1200)
-            }
           }
           if (biz?.plan_expires_at !== undefined) setPlanExpiresAt(biz.plan_expires_at)
+          if (biz?.created_at) {
+            setBusinessCreatedAt(biz.created_at)
+            // Mostrar popup de descuento solo dentro de los primeros 7 días y si no pagó
+            const isPaidPlan = ['starter', 'pro', 'ultimate', 'gifted'].includes(biz.plan ?? '')
+            if (!isPaidPlan) {
+              const diffDays = (Date.now() - new Date(biz.created_at).getTime()) / (1000 * 60 * 60 * 24)
+              if (diffDays <= 7) {
+                const dismissed = localStorage.getItem('cal_discount_dismissed')
+                if (!dismissed) {
+                  const nextShow = parseInt(localStorage.getItem('cal_discount_next') ?? '0')
+                  if (Date.now() >= nextShow) {
+                    setTimeout(() => setShowDiscount(true), 1500)
+                  }
+                }
+              }
+            }
+          }
         }
         if (d.email) setUserEmail(d.email)
         setLoading(false)
@@ -3022,7 +3124,12 @@ export default function NegocioDashboard() {
           box-shadow: 0 0 0 1.5px rgba(139,92,246,0.45), 0 0 40px rgba(139,92,246,0.28);
         }
       `}</style>
-      {showDiscount && <DiscountPopup onClose={() => setShowDiscount(false)} />}
+      {showDiscount && (() => {
+        const daysLeft = businessCreatedAt
+          ? Math.max(0, 7 - Math.floor((Date.now() - new Date(businessCreatedAt).getTime()) / (1000 * 60 * 60 * 24)))
+          : 7
+        return <DiscountPopup onClose={() => setShowDiscount(false)} daysLeft={daysLeft} />
+      })()}
       {/* Mobile top header */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-4 h-14 bg-white border-b border-zinc-100">
         <button onClick={() => setMobileMenuOpen(true)} className="p-2 rounded-xl hover:bg-zinc-50 text-zinc-600">
@@ -3043,6 +3150,20 @@ export default function NegocioDashboard() {
         />
       )}
       <main className="flex-1 overflow-y-auto pt-14 md:pt-0">
+
+        {/* Banner de plan vencido — solo cuando el plan expiró */}
+        {planExpiresAt && new Date(planExpiresAt) < new Date() && (
+          <div className="flex items-center justify-between gap-4 px-5 py-3 text-sm bg-red-600 text-white">
+            <p className="font-medium">⚠️ Tu plan venció. Algunas funciones están pausadas.</p>
+            <button
+              onClick={() => setActiveNav('plan')}
+              className="flex-shrink-0 text-xs font-bold bg-white text-red-600 px-3 py-1.5 rounded-xl transition-opacity hover:opacity-90"
+            >
+              Ver planes →
+            </button>
+          </div>
+        )}
+
         {activeNav === 'sello-rapido' && selectedProgram && (
           <ViewSelloRapido
             cards={cards}
@@ -3060,7 +3181,7 @@ export default function NegocioDashboard() {
             onLogoNav={() => setActiveNav('tarjeta')} />
         )}
         {activeNav === 'tarjeta' && (
-          <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} accessToken={accessToken} plan={businessPlan} planExpiresAt={planExpiresAt} stats={stats} />
+          <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} accessToken={accessToken} plan={businessPlan} planExpiresAt={planExpiresAt} stats={stats} businessCreatedAt={businessCreatedAt} />
         )}
         {activeNav === 'clientes' && (
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
