@@ -2,6 +2,12 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 type CardData = {
   id: string
@@ -95,16 +101,36 @@ function TarjetaContent() {
 
   useEffect(() => {
     if (!cardId) return
+
     fetch(`/api/fidelizacion/card?card_id=${cardId}`)
       .then(r => r.json())
       .then(d => { setCard(d.card); setLoading(false) })
       .catch(() => setLoading(false))
 
-    // Buscar cupones de milestones no usados
     fetch(`/api/fidelizacion/card-coupons?card_id=${cardId}`)
       .then(r => r.json())
       .then(d => { if (d.coupons) setCoupons(d.coupons) })
       .catch(() => {})
+
+    // Realtime: actualiza stamps automáticamente cuando el negocio sella
+    const channel = supabase
+      .channel(`card-${cardId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'loyalty_cards',
+        filter: `id=eq.${cardId}`,
+      }, (payload) => {
+        setCard(prev => prev ? { ...prev, stamps: payload.new.stamps, total_visits: payload.new.total_visits } : prev)
+        // Refrescar cupones por si cayó un premio nuevo
+        fetch(`/api/fidelizacion/card-coupons?card_id=${cardId}`)
+          .then(r => r.json())
+          .then(d => { if (d.coupons) setCoupons(d.coupons) })
+          .catch(() => {})
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [cardId])
 
   if (loading) {
