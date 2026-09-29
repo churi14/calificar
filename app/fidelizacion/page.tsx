@@ -57,7 +57,7 @@ const plans = [
       'Cartelito NFC + QR para el mostrador',
       'Panel: quién volvió, cuándo y cuántos sellos',
       'Exportá tus clientes: nombre y teléfono',
-      'Soporte en español',
+      'Soporte premium en español 🇦🇷',
     ],
     cta: 'Empezar con Starter',
     highlight: false,
@@ -76,7 +76,7 @@ const plans = [
       'Formulario de registro personalizable',
       'Cupones únicos al completar la tarjeta',
       'Zonas de notificación por geolocalización',
-      'Soporte prioritario',
+      'Soporte premium en español 🇦🇷',
     ],
     cta: 'Empezar con Pro',
     highlight: true,
@@ -334,6 +334,7 @@ export default function FidelizacionLanding() {
           <div className="text-center mb-10">
             <h2 className="text-4xl font-extrabold tracking-tight text-white mb-3">Precios simples</h2>
             <p className="text-slate-400 text-lg">14 días gratis. Cambiá de plan o cancelá cuando quieras.</p>
+            <p className="text-sm text-violet-400 mt-2 font-medium">🇦🇷 Precios válidos únicamente para Argentina</p>
           </div>
 
           {/* Promo banner */}
