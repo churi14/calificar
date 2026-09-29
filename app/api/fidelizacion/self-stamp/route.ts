@@ -37,13 +37,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
     }
 
-    // Buscar o crear tarjeta por teléfono + programa
-    let { data: card } = await supabase
+    // Buscar tarjeta por teléfono + programa (match bidireccional para código de área)
+    const { data: allCards } = await supabase
       .from('loyalty_cards')
       .select('*')
       .eq('program_id', program_id)
-      .ilike('phone', `%${cleanPhone}`)
-      .maybeSingle()
+
+    let card = (allCards ?? []).find(c => {
+      const stored = c.phone.replace(/\D/g, '')
+      return stored.endsWith(cleanPhone) || cleanPhone.endsWith(stored)
+    }) ?? null
 
     const isNew = !card
     if (!card) {

@@ -121,7 +121,10 @@ function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp }: {
     setStamped(false)
     const clean = value.replace(/\D/g, '')
     if (clean.length < 6) { setFound(null); return }
-    const match = cards.find(c => c.phone.replace(/\D/g, '').endsWith(clean))
+    const match = cards.find(c => {
+      const stored = c.phone.replace(/\D/g, '')
+      return stored.endsWith(clean) || clean.endsWith(stored)
+    })
     setFound(match ?? 'none')
   }
 

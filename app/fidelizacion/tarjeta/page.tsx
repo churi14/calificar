@@ -29,9 +29,14 @@ function TarjetaContent() {
   const [notifState, setNotifState] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
   const [showNotifModal, setShowNotifModal] = useState(false)
   const [coupons, setCoupons] = useState<{ label: string; code: string; created_at: string }[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [installPrompt, setInstallPrompt] = useState<any>(null)
+  const [showInstallBanner, setShowInstallBanner] = useState(false)
+  const [installDismissed, setInstallDismissed] = useState(false)
 
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent)
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
+  const isStandalone = typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches
 
   async function activarNotificaciones() {
     if (!cardId || !programId) return
@@ -63,7 +68,7 @@ function TarjetaContent() {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {})
     }
-    // Detectar si ya tiene permiso
+    // Detectar si ya tiene permiso de notificaciones
     if ('Notification' in window) {
       if (Notification.permission === 'granted') {
         setNotifState('granted')
@@ -72,6 +77,20 @@ function TarjetaContent() {
         setTimeout(() => setShowNotifModal(true), 1500)
       }
     }
+    // PWA install banner — Android (beforeinstallprompt)
+    const onBeforeInstall = (e: Event) => {
+      e.preventDefault()
+      setInstallPrompt(e)
+      if (!sessionStorage.getItem('pwa_dismissed')) {
+        setTimeout(() => setShowInstallBanner(true), 3000)
+      }
+    }
+    window.addEventListener('beforeinstallprompt', onBeforeInstall)
+    // iOS: mostrar banner si no está instalado y es Safari iOS
+    if (isIOS && !isStandalone && !sessionStorage.getItem('pwa_dismissed')) {
+      setTimeout(() => setShowInstallBanner(true), 3000)
+    }
+    return () => window.removeEventListener('beforeinstallprompt', onBeforeInstall)
   }, [])
 
   useEffect(() => {
@@ -121,6 +140,20 @@ function TarjetaContent() {
     await activarNotificaciones()
   }
 
+  async function instalarApp() {
+    if (installPrompt) {
+      installPrompt.prompt()
+      const { outcome } = await installPrompt.userChoice
+      if (outcome === 'accepted') setShowInstallBanner(false)
+    }
+  }
+
+  function dismissInstall() {
+    sessionStorage.setItem('pwa_dismissed', '1')
+    setInstallDismissed(true)
+    setShowInstallBanner(false)
+  }
+
   return (
     <main className="min-h-screen bg-zinc-50 flex flex-col items-center px-4 py-10">
 
@@ -148,6 +181,54 @@ function TarjetaContent() {
             >
               Ahora no
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Banner de instalación PWA */}
+      {showInstallBanner && !installDismissed && !isStandalone && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-4">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-zinc-100 overflow-hidden">
+            {isIOS ? (
+              /* iOS: instrucciones manuales */
+              <div className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">📲</span>
+                    <div>
+                      <p className="font-bold text-zinc-900 text-sm">Instalá la app</p>
+                      <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">
+                        Tocá <strong>Compartir</strong> {' '}
+                        <svg className="inline w-3.5 h-3.5 -mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M13 5l-3-3-3 3M10 2v10M4 10H2a8 8 0 0016 0h-2"/>
+                        </svg>
+                        {' '} → <strong>Agregar a inicio</strong>
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={dismissInstall} className="text-zinc-300 hover:text-zinc-500 text-lg leading-none flex-shrink-0 mt-0.5">✕</button>
+                </div>
+              </div>
+            ) : (
+              /* Android: install prompt nativo */
+              <div className="flex items-center gap-3 p-4">
+                <span className="text-2xl">📲</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-zinc-900 text-sm">Instalá la app</p>
+                  <p className="text-xs text-zinc-500">Accedé rápido desde tu pantalla de inicio</p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button onClick={dismissInstall} className="text-xs text-zinc-400 px-2 py-1.5">No, gracias</button>
+                  <button
+                    onClick={instalarApp}
+                    className="text-xs font-bold text-white px-3 py-1.5 rounded-xl"
+                    style={{ background: color }}
+                  >
+                    Instalar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
