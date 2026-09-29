@@ -26,6 +26,9 @@ function LoginForm() {
   async function handleGoogle() {
     setLoading(true)
     const supabase = await createClient()
+    // Cerrar sesión activa primero para evitar que un usuario quede logueado
+    // con la cuenta equivocada cuando tiene múltiples perfiles
+    await supabase.auth.signOut()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

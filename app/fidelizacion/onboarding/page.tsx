@@ -269,6 +269,7 @@ export default function OnboardingPage() {
     setAuthError('')
     track(11, 'auth_click', { method: 'google' })
     saveConfig()
+    await supabase.auth.signOut()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/fidelizacion/onboarding/complete` },
