@@ -102,6 +102,120 @@ function DiscountPopup({ onClose }: { onClose: () => void }) {
   )
 }
 
+// ── ViewSelloRapido ───────────────────────────────────────────────────────────
+function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp }: {
+  cards: Card[]
+  selectedProgram: string
+  accessToken: string
+  manualStamp: (id: string, name: string) => void
+}) {
+  const [phone, setPhone] = useState('')
+  const [found, setFound] = useState<Card | null | 'none'>(null)
+  const [stamping, setStamping] = useState(false)
+  const [stamped, setStamped] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const selfLink = typeof window !== 'undefined' ? `${window.location.origin}/s/${selectedProgram}` : `/s/${selectedProgram}`
+
+  function search(value: string) {
+    setPhone(value)
+    setStamped(false)
+    const clean = value.replace(/\D/g, '')
+    if (clean.length < 6) { setFound(null); return }
+    const match = cards.find(c => c.phone.replace(/\D/g, '').endsWith(clean))
+    setFound(match ?? 'none')
+  }
+
+  async function doStamp() {
+    if (!found || found === 'none') return
+    setStamping(true)
+    await manualStamp(found.id, found.name)
+    setStamping(false)
+    setStamped(true)
+    setPhone('')
+    setTimeout(() => { setFound(null); setStamped(false) }, 2500)
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(selfLink).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+
+  return (
+    <div className="p-6 max-w-md mx-auto pt-10">
+      <h2 className="text-2xl font-extrabold text-zinc-900 mb-1">Sello rápido</h2>
+      <p className="text-sm text-zinc-500 mb-8">Ingresá el teléfono del cliente y sellá con un tap.</p>
+
+      {/* Input teléfono */}
+      <div className="relative mb-4">
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">📱</span>
+        <input
+          type="tel"
+          value={phone}
+          onChange={e => search(e.target.value)}
+          placeholder="Número de teléfono"
+          className="w-full pl-11 pr-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg font-medium placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
+        />
+      </div>
+
+      {/* Resultado búsqueda */}
+      {found === 'none' && (
+        <div className="rounded-2xl border border-zinc-100 bg-zinc-50 px-5 py-4 text-center text-zinc-500 text-sm mb-4">
+          No hay ningún cliente con ese número.
+        </div>
+      )}
+
+      {found && found !== 'none' && !stamped && (
+        <div className="rounded-2xl border border-violet-100 bg-violet-50 px-5 py-4 mb-4 flex items-center justify-between">
+          <div>
+            <p className="font-bold text-violet-900 text-lg">{found.name}</p>
+            <p className="text-violet-600 text-sm">{found.stamps} sello{found.stamps !== 1 ? 's' : ''} actuales</p>
+          </div>
+          <span className="text-3xl">🃏</span>
+        </div>
+      )}
+
+      {stamped && (
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4 mb-4 text-center">
+          <p className="text-emerald-700 font-bold text-lg">✅ ¡Sello cargado!</p>
+        </div>
+      )}
+
+      {/* Botón sellar */}
+      <button
+        onClick={doStamp}
+        disabled={!found || found === 'none' || stamping || stamped}
+        className="w-full py-4 rounded-2xl font-extrabold text-lg text-white transition-all disabled:opacity-40"
+        style={{ background: '#7C3AED' }}
+      >
+        {stamping ? 'Sellando…' : stamped ? '¡Listo!' : '⚡ Sellar'}
+      </button>
+
+      {/* Divisor */}
+      <div className="my-10 border-t border-zinc-100" />
+
+      {/* Link de auto-sello */}
+      <div>
+        <h3 className="font-bold text-zinc-900 mb-1">Link de auto-sello</h3>
+        <p className="text-sm text-zinc-500 mb-4">
+          Mandá este link por WhatsApp al confirmar un pedido. El cliente lo abre, pone su teléfono y se sella solo — vos no necesitás hacer nada.
+        </p>
+        <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3">
+          <span className="text-sm text-zinc-600 font-mono truncate flex-1">{selfLink}</span>
+          <button
+            onClick={copyLink}
+            className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
+            style={{ background: copied ? '#10b981' : '#7C3AED', color: 'white' }}
+          >
+            {copied ? '✓ Copiado' : 'Copiar'}
+          </button>
+        </div>
+        <p className="text-xs text-zinc-400 mt-2">
+          El link aplica anti-abuso: máximo 1 sello por número cada 4 horas.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 // ── Sidebar ──────────────────────────────────────────────────────────────────
 function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, onDarkToggle, isOpen, onClose, plan = 'trial', planExpiresAt = null }: {
   active: string; onNav: (id: string) => void; businessName: string; email: string
@@ -110,14 +224,15 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
 }) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const nav = [
-    { id: 'hoy',         label: 'Hoy',                    icon: '⊞' },
-    { id: 'tarjeta',     label: 'Tarjeta',                icon: '🪪' },
-    { id: 'clientes',    label: 'Clientes',               icon: '👥' },
-    { id: 'cupones',     label: 'Cupones',                icon: '🎟' },
-    { id: 'push',        label: 'Avisos push',            icon: '🔔' },
-    { id: 'proximidad',  label: 'Avisos de proximidad',   icon: '📍' },
-    { id: 'cumple',      label: 'Campañas de cumpleaños', icon: '🎂' },
-    { id: 'imprimir',    label: 'Imprimir y compartir',   icon: '🖨️' },
+    { id: 'hoy',          label: 'Hoy',                    icon: '⊞' },
+    { id: 'sello-rapido', label: 'Sello rápido',           icon: '⚡' },
+    { id: 'tarjeta',      label: 'Tarjeta',                icon: '🪪' },
+    { id: 'clientes',     label: 'Clientes',               icon: '👥' },
+    { id: 'cupones',      label: 'Cupones',                icon: '🎟' },
+    { id: 'push',         label: 'Avisos push',            icon: '🔔' },
+    { id: 'proximidad',   label: 'Avisos de proximidad',   icon: '📍' },
+    { id: 'cumple',       label: 'Campañas de cumpleaños', icon: '🎂' },
+    { id: 'imprimir',     label: 'Imprimir y compartir',   icon: '🖨️' },
   ]
   function navigate(id: string) { onNav(id); onClose() }
   return (
@@ -383,7 +498,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
       <div className="mb-5">
-        <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName.split(' ')[0]}.</h1>
+        <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName}.</h1>
         <p className="text-zinc-400 text-sm mt-0.5">Esto es lo que está pasando hoy en {businessName}.</p>
       </div>
 
@@ -2863,6 +2978,14 @@ export default function NegocioDashboard() {
         />
       )}
       <main className="flex-1 overflow-y-auto pt-14 md:pt-0">
+        {activeNav === 'sello-rapido' && (
+          <ViewSelloRapido
+            cards={cards}
+            selectedProgram={selectedProgram}
+            accessToken={accessToken}
+            manualStamp={(id, name) => setStampModal({ cardId: id, name })}
+          />
+        )}
         {activeNav === 'hoy' && (
           <ViewHoy program={program} selectedProgram={selectedProgram} stats={stats}
             transactions={transactions} notifMsg={notifMsg} setNotifMsg={setNotifMsg}
