@@ -2497,7 +2497,19 @@ function ViewPerfil({ program, selectedProgram, businessName, onSaved }: {
 }
 
 // ── Vista: PLAN ───────────────────────────────────────────────────────────────
-function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
+function useCountdown(targetMs: number) {
+  const [remaining, setRemaining] = useState(Math.max(0, targetMs - Date.now()))
+  useEffect(() => {
+    const t = setInterval(() => setRemaining(Math.max(0, targetMs - Date.now())), 1000)
+    return () => clearInterval(t)
+  }, [targetMs])
+  const h = Math.floor(remaining / 3600000)
+  const m = Math.floor((remaining % 3600000) / 60000)
+  const s = Math.floor((remaining % 60000) / 1000)
+  return { remaining, h, m, s }
+}
+
+function ViewPlan({ onNav, businessCreatedAt = null }: { onNav: (id: string) => void; businessCreatedAt?: string | null }) {
   const VIEW_PLANS = [
     {
       id: 'starter',
@@ -2552,6 +2564,14 @@ function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
     },
   ]
 
+  const discountDeadlineMs = businessCreatedAt
+    ? new Date(businessCreatedAt).getTime() + 7 * 24 * 60 * 60 * 1000
+    : 0
+  const isDiscountEligible = discountDeadlineMs > Date.now()
+  const { h, m, s } = useCountdown(discountDeadlineMs)
+
+  const DISC_PRICES: Record<string, string> = { starter: '$7.499', pro: '$14.999', ultimate: '$34.999' }
+
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [checkoutErr, setCheckoutErr] = useState('')
 
@@ -2562,7 +2582,7 @@ function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
       const res = await fetch('/api/mp/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId }),
+        body: JSON.stringify({ plan: planId, discount: isDiscountEligible }),
       })
       const data = await res.json()
       if (!res.ok) { setCheckoutErr(data.error || 'Error al procesar'); setLoadingPlan(null); return }
@@ -2573,7 +2593,23 @@ function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Tu plan</h1>
-      <p className="text-zinc-400 text-sm mb-6">Estás en el período de prueba gratuita. Elegí el plan que mejor se adapta a tu negocio.</p>
+      <p className="text-zinc-400 text-sm mb-4">Estás en el período de prueba gratuita. Elegí el plan que mejor se adapta a tu negocio.</p>
+
+      {isDiscountEligible && (
+        <div className="mb-6 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap" style={{ background: 'linear-gradient(135deg, #7C3AED22, #6366f122)', border: '1px solid #7C3AED44' }}>
+          <div>
+            <span className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-1">50% OFF — Solo esta semana</span>
+            <p className="text-sm font-semibold text-zinc-800">Oferta de bienvenida · Se aplica automáticamente al elegir tu plan.</p>
+          </div>
+          <div className="flex items-center gap-1.5 text-violet-700 font-extrabold text-lg tabular-nums flex-shrink-0">
+            <span className="bg-violet-100 px-2.5 py-1 rounded-xl">{String(h).padStart(2,'0')}</span>
+            <span>:</span>
+            <span className="bg-violet-100 px-2.5 py-1 rounded-xl">{String(m).padStart(2,'0')}</span>
+            <span>:</span>
+            <span className="bg-violet-100 px-2.5 py-1 rounded-xl">{String(s).padStart(2,'0')}</span>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {VIEW_PLANS.map(plan => (
@@ -2585,10 +2621,23 @@ function ViewPlan({ onNav }: { onNav: (id: string) => void }) {
             )}
             <div className="mb-4 mt-1">
               <p className="text-xs font-bold uppercase tracking-widest mb-1 text-violet-600">{plan.name}</p>
-              <div className="flex items-baseline gap-0.5">
-                <span className="text-2xl font-extrabold text-zinc-900">{plan.price}</span>
-                <span className="text-xs text-zinc-400 ml-1">{plan.period}</span>
-              </div>
+              {isDiscountEligible ? (
+                <div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-extrabold text-violet-600">{DISC_PRICES[plan.id]}</span>
+                    <span className="text-xs text-zinc-400">{plan.period}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-zinc-400 line-through">{plan.price}</span>
+                    <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full">50% OFF primer mes</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-2xl font-extrabold text-zinc-900">{plan.price}</span>
+                  <span className="text-xs text-zinc-400 ml-1">{plan.period}</span>
+                </div>
+              )}
               <p className="text-xs text-zinc-400 mt-1">{plan.desc}</p>
             </div>
             <div className="flex-1 space-y-2 mb-5">
@@ -3246,7 +3295,7 @@ export default function NegocioDashboard() {
           <ViewPerfil program={program} selectedProgram={selectedProgram}
             businessName={businessName} onSaved={name => setBusinessName(name)} />
         )}
-        {activeNav === 'plan' && <ViewPlan onNav={setActiveNav} />}
+        {activeNav === 'plan' && <ViewPlan onNav={setActiveNav} businessCreatedAt={businessCreatedAt} />}
         {activeNav === 'ayuda' && <ViewAyuda onNav={setActiveNav} />}
         {activeNav === 'primeros-pasos' && <ViewAyuda onNav={setActiveNav} />}
       </main>
