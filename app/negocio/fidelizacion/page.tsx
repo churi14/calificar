@@ -3028,10 +3028,14 @@ export default function NegocioDashboard() {
   }
 
   useEffect(() => {
-    // Obtener token para requests autenticados
+    // Obtener token inicial y mantenerlo actualizado cuando Supabase lo refresca
     supabaseClient.auth.getSession().then(({ data }) => {
       if (data.session?.access_token) setAccessToken(data.session.access_token)
     })
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      if (session?.access_token) setAccessToken(session.access_token)
+    })
+    return () => subscription.unsubscribe()
 
     fetch('/api/fidelizacion/my-programs')
       .then(r => r.json())
