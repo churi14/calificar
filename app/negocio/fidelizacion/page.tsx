@@ -2,12 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 
-const supabaseClient = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabaseClient = createSupabaseClient()
 
 type Milestone = { at: number; label: string; coupon_prefix?: string }
 
