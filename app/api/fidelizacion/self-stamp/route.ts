@@ -50,17 +50,26 @@ export async function POST(req: NextRequest) {
 
     const isNew = !card
     if (!card) {
-      const clientName = (name ?? '').trim() || 'Cliente'
-      const { data: newCard, error: createErr } = await supabase
-        .from('loyalty_cards')
-        .insert({ program_id, phone: cleanPhone, name: clientName, stamps: 0, total_visits: 0 })
-        .select()
-        .single()
+      // Si no se encontró con match bidireccional, verificar por últimos 8 dígitos
+      // para evitar duplicados por variaciones de código de área
+      const last8 = cleanPhone.slice(-8)
+      const duplicate = (allCards ?? []).find(c => c.phone.replace(/\D/g, '').slice(-8) === last8)
+      if (duplicate) {
+        // Usar la tarjeta existente en vez de crear una nueva
+        card = duplicate
+      } else {
+        const clientName = (name ?? '').trim() || 'Cliente'
+        const { data: newCard, error: createErr } = await supabase
+          .from('loyalty_cards')
+          .insert({ program_id, phone: cleanPhone, name: clientName, stamps: 0, total_visits: 0 })
+          .select()
+          .single()
 
-      if (createErr || !newCard) {
-        return NextResponse.json({ error: 'No se pudo crear la tarjeta' }, { status: 500 })
+        if (createErr || !newCard) {
+          return NextResponse.json({ error: 'No se pudo crear la tarjeta' }, { status: 500 })
+        }
+        card = newCard
       }
-      card = newCard
     }
 
     // Anti-abuso: máximo 1 sello cada 4 horas

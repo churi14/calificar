@@ -1358,7 +1358,7 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
                       </td>
                       <td className="px-5 py-4 text-zinc-500 text-xs text-center">{c.total_visits}</td>
                       <td className="px-5 py-4 text-zinc-500 text-xs">
-                        {c.birth_date ? new Date(c.birth_date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : '—'}
+                        {c.birth_date ? (() => { const [,m,d] = c.birth_date.split('-'); return `${parseInt(d)}/${parseInt(m)}` })() : '—'}
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
@@ -1906,9 +1906,9 @@ function ViewCumple({ selectedProgram, cards, isPro }:
           </div>
           <div className="divide-y divide-zinc-50">
             {upcoming.map(c => {
-              const bd = new Date(c.birth_date)
+              const [,bdM,bdD] = c.birth_date.split('-').map(Number)
               const today = new Date()
-              const thisYear = new Date(today.getFullYear(), bd.getMonth(), bd.getDate())
+              const thisYear = new Date(today.getFullYear(), bdM - 1, bdD)
               const diff = Math.floor((thisYear.getTime() - today.getTime()) / 86400000)
               return (
                 <div key={c.id} className="flex items-center justify-between px-5 py-3">
@@ -3095,8 +3095,8 @@ export default function NegocioDashboard() {
       })
       const bdayToday = c.filter(card => {
         if (!card.birth_date) return false
-        const bd = new Date(card.birth_date)
-        return bd.getMonth() + 1 === mm && bd.getDate() === dd
+        const [,bdM,bdD] = card.birth_date.split('-').map(Number)
+        return bdM === mm && bdD === dd
       }).length
       setTodayBdayCount(bdayToday)
       setLoading(false)
