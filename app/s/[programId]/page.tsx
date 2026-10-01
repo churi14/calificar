@@ -33,12 +33,15 @@ export default function SelfStampPage() {
   // ── Tab Sello ──
   const [phone, setPhone] = useState('')
   const [name, setName] = useState('')
+  const [dni, setDni] = useState('')
   const [step, setStep] = useState<'form' | 'loading' | 'result'>('form')
   const [result, setResult] = useState<Result | null>(null)
   const [needsName, setNeedsName] = useState(false)
 
   // ── Tab Ver ──
   const [viewPhone, setViewPhone] = useState('')
+  const [viewDni, setViewDni] = useState('')
+  const [viewMode, setViewMode] = useState<'phone' | 'dni'>('phone')
   const [viewStep, setViewStep] = useState<'form' | 'loading' | 'result'>('form')
   const [viewStatus, setViewStatus] = useState<CardStatus | null>(null)
 
@@ -48,7 +51,7 @@ export default function SelfStampPage() {
     const res = await fetch('/api/fidelizacion/self-stamp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ program_id: programId, phone: phone.trim(), name: name.trim() || undefined }),
+      body: JSON.stringify({ program_id: programId, phone: phone.trim(), name: name.trim() || undefined, dni: dni.trim() || undefined }),
     })
     const data: Result = await res.json()
     if (data.is_new && !name.trim() && res.ok) {
@@ -61,20 +64,24 @@ export default function SelfStampPage() {
   }
 
   function reset() {
-    setPhone(''); setName(''); setResult(null); setStep('form'); setNeedsName(false)
+    setPhone(''); setName(''); setDni(''); setResult(null); setStep('form'); setNeedsName(false)
   }
 
   async function viewCard() {
-    if (!viewPhone.trim()) return
+    const query = viewMode === 'phone' ? viewPhone.trim() : viewDni.trim()
+    if (!query) return
     setViewStep('loading')
-    const res = await fetch(`/api/fidelizacion/card-status?program_id=${programId}&phone=${encodeURIComponent(viewPhone.trim())}`)
+    const param = viewMode === 'phone'
+      ? `phone=${encodeURIComponent(query)}`
+      : `dni=${encodeURIComponent(query)}`
+    const res = await fetch(`/api/fidelizacion/card-status?program_id=${programId}&${param}`)
     const data: CardStatus = await res.json()
     setViewStatus(data)
     setViewStep('result')
   }
 
   function resetView() {
-    setViewPhone(''); setViewStatus(null); setViewStep('form')
+    setViewPhone(''); setViewDni(''); setViewStatus(null); setViewStep('form')
   }
 
   // ── Resultado sello ───────────────────────────────────────────────────────
@@ -190,7 +197,7 @@ export default function SelfStampPage() {
               <button onClick={resetView} className="px-5 py-3 rounded-2xl bg-zinc-100 text-zinc-700 font-semibold text-sm">
                 Volver
               </button>
-              <button onClick={() => { resetView(); setTab('sello'); setPhone(viewPhone) }} className="px-5 py-3 rounded-2xl font-bold text-white text-sm" style={{ background: '#7C3AED' }}>
+              <button onClick={() => { resetView(); setTab('sello'); if (viewMode === 'phone') setPhone(viewPhone) }} className="px-5 py-3 rounded-2xl font-bold text-white text-sm" style={{ background: '#7C3AED' }}>
                 Registrarme
               </button>
             </div>
@@ -302,6 +309,26 @@ export default function SelfStampPage() {
               />
             </div>
 
+            {/* DNI opcional */}
+            <div>
+              <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">
+                DNI <span className="font-normal normal-case text-zinc-400">(opcional)</span>
+              </label>
+              <input
+                type="number"
+                value={dni}
+                onChange={e => setDni(e.target.value)}
+                placeholder="Ej: 38500000"
+                className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
+              />
+              <div className="mt-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-100 flex items-start gap-2">
+                <span className="text-amber-500 text-sm flex-shrink-0 mt-0.5">⚠️</span>
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  Tu tarjeta está asociada a tu número de teléfono. Si lo cambiás o perdés el celular, <strong>perdés el acceso</strong>. Con el DNI podés recuperarla sin importar el teléfono.
+                </p>
+              </div>
+            </div>
+
             <button
               onClick={submit}
               disabled={!phone.trim()}
@@ -318,15 +345,30 @@ export default function SelfStampPage() {
         </>
       ) : (
         <>
-          <div className="text-center mb-6">
+          <div className="text-center mb-5">
             <div className="text-5xl mb-3">🃏</div>
             <h1 className="text-2xl font-extrabold text-zinc-900">Ver mis sellos</h1>
-            <p className="text-zinc-500 text-sm mt-1">Ingresá tu número para ver tu tarjeta.</p>
+            <p className="text-zinc-500 text-sm mt-1">Buscá tu tarjeta por teléfono o DNI.</p>
+          </div>
+
+          {/* Selector teléfono / DNI */}
+          <div className="flex gap-1 bg-zinc-100 rounded-xl p-1 mb-4">
+            <button
+              onClick={() => setViewMode('phone')}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'phone' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'}`}
+            >
+              📱 Teléfono
+            </button>
+            <button
+              onClick={() => setViewMode('dni')}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'dni' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'}`}
+            >
+              🪪 DNI
+            </button>
           </div>
 
           <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Tu teléfono</label>
+            {viewMode === 'phone' ? (
               <input
                 type="tel"
                 value={viewPhone}
@@ -336,21 +378,30 @@ export default function SelfStampPage() {
                 autoFocus
                 className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
               />
-            </div>
+            ) : (
+              <>
+                <input
+                  type="number"
+                  value={viewDni}
+                  onChange={e => setViewDni(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && viewCard()}
+                  placeholder="Ej: 38500000"
+                  autoFocus
+                  className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
+                />
+                <p className="text-xs text-zinc-400 text-center">Solo funciona si registraste tu DNI al unirte.</p>
+              </>
+            )}
 
             <button
               onClick={viewCard}
-              disabled={!viewPhone.trim()}
-              className="w-full py-4 rounded-2xl font-extrabold text-lg text-white transition-all disabled:opacity-40 mt-2"
+              disabled={viewMode === 'phone' ? !viewPhone.trim() : !viewDni.trim()}
+              className="w-full py-4 rounded-2xl font-extrabold text-lg text-white transition-all disabled:opacity-40"
               style={{ background: '#7C3AED' }}
             >
               Ver mi tarjeta
             </button>
           </div>
-
-          <p className="text-center text-xs text-zinc-400 mt-6">
-            Sin instalación. Solo tu número de teléfono.
-          </p>
         </>
       )}
     </Screen>

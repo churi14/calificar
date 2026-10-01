@@ -15,7 +15,7 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { program_id, phone, name } = await req.json()
+    const { program_id, phone, name, dni } = await req.json()
 
     if (!program_id || !phone) {
       return NextResponse.json({ error: 'program_id y phone son requeridos' }, { status: 400 })
@@ -59,9 +59,10 @@ export async function POST(req: NextRequest) {
         card = duplicate
       } else {
         const clientName = (name ?? '').trim() || 'Cliente'
+        const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
         const { data: newCard, error: createErr } = await supabase
           .from('loyalty_cards')
-          .insert({ program_id, phone: cleanPhone, name: clientName, stamps: 0, total_visits: 0 })
+          .insert({ program_id, phone: cleanPhone, name: clientName, stamps: 0, total_visits: 0, ...(cleanDni ? { dni: cleanDni } : {}) })
           .select()
           .single()
 
