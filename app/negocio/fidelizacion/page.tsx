@@ -3035,7 +3035,6 @@ export default function NegocioDashboard() {
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       if (session?.access_token) setAccessToken(session.access_token)
     })
-    return () => subscription.unsubscribe()
 
     fetch('/api/fidelizacion/my-programs')
       .then(r => r.json())
@@ -3071,6 +3070,8 @@ export default function NegocioDashboard() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
+
+    return () => subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
