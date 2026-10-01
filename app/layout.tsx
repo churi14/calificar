@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Poppins, Inter } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
-import WhatsAppButton from '@/components/WhatsAppButton'
+import ConditionalWhatsApp from '@/components/ConditionalWhatsApp'
 
 const GA_ID = 'G-TXJKY9DTWY'
 
@@ -107,7 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       `}</Script>
       <body className="font-sans">
         {children}
-        <WhatsAppButton />
+        <ConditionalWhatsApp />
       </body>
     </html>
   )

@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   // Verificar que el programa existe
   const { data: program, error: progErr } = await supabase
     .from('loyalty_programs')
-    .select('id, stamps_goal, reward_description, name, color_primary, logo_url, businesses(name)')
+    .select('id, stamps_goal, reward_description, name, color_primary, logo_url, businesses(name, whatsapp_number)')
     .eq('id', program_id)
     .single()
 

@@ -2391,7 +2391,7 @@ function ViewPerfil({ program, selectedProgram, businessName, onSaved }: {
   program: Program | undefined; selectedProgram: string | null; businessName: string; onSaved: (name: string) => void
 }) {
   const [name, setName] = useState(businessName)
-  const [phone, setPhone] = useState('')
+  const [waNumber, setWaNumber] = useState('')
   const [address, setAddress] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -2400,10 +2400,15 @@ function ViewPerfil({ program, selectedProgram, businessName, onSaved }: {
   async function save() {
     if (!selectedProgram) return
     setSaving(true)
-    await fetch('/api/fidelizacion/admin', {
-      method: 'PATCH',
+    // Guardar nombre del negocio y WhatsApp
+    await fetch('/api/fidelizacion/update-business', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ program_id: selectedProgram, business_name: name }),
+      body: JSON.stringify({
+        program_id: selectedProgram,
+        business_name: name,
+        whatsapp_number: waNumber.trim() || undefined,
+      }),
     }).catch(() => {})
     setSaving(false); setSaved(true)
     onSaved(name)
@@ -2427,10 +2432,11 @@ function ViewPerfil({ program, selectedProgram, businessName, onSaved }: {
                 placeholder="Tu negocio" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-zinc-700 block mb-1.5">Teléfono de contacto</label>
-              <input value={phone} onChange={e => setPhone(e.target.value)}
+              <label className="text-xs font-semibold text-zinc-700 block mb-1.5">WhatsApp del local</label>
+              <input value={waNumber} onChange={e => setWaNumber(e.target.value)}
                 className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-400"
-                placeholder="+54 11 0000-0000" type="tel" />
+                placeholder="5491112345678" type="tel" />
+              <p className="text-[10px] text-zinc-400 mt-1">Los clientes verán un botón para contactarte directo desde su tarjeta.</p>
             </div>
           </div>
           {/* Mini tarjeta preview */}

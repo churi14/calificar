@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     // Verificar que el programa existe
     const { data: program, error: progErr } = await supabase
       .from('loyalty_programs')
-      .select('*, businesses(name)')
+      .select('*, businesses(name, whatsapp_number)')
       .eq('id', program_id)
       .eq('active', true)
       .single()

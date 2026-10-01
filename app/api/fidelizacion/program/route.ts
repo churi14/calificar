@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   const { data: program, error } = await supabase
     .from('loyalty_programs')
-    .select('*, businesses(name)')
+    .select('*, businesses(name, whatsapp_number)')
     .eq('id', id)
     .eq('active', true)
     .single()

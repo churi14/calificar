@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const { data: card, error } = await supabase
     .from('loyalty_cards')
-    .select('*, loyalty_programs(name, stamps_goal, reward_description, color_primary, logo_url, businesses(name))')
+    .select('*, loyalty_programs(name, stamps_goal, reward_description, color_primary, logo_url, businesses(name, whatsapp_number))')
     .eq('id', cardId)
     .single()
 
