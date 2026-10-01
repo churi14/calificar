@@ -1923,7 +1923,7 @@ function ViewCumple({ selectedProgram, cards, isPro }:
                       {diff === 0 ? '🎂 Hoy' : diff === 1 ? 'Mañana' : `En ${diff} días`}
                     </p>
                     <p className="text-[10px] text-zinc-400">
-                      {bd.toLocaleDateString('es-AR', { day: '2-digit', month: 'long' })}
+                      {new Date(today.getFullYear(), bdM - 1, bdD).toLocaleDateString('es-AR', { day: '2-digit', month: 'long' })}
                     </p>
                   </div>
                 </div>
