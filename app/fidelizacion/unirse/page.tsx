@@ -22,6 +22,7 @@ function UnirseContent() {
   const [phone, setPhone] = useState('')
   const [name, setName] = useState('')
   const [birthDate, setBirthDate] = useState('')
+  const [dni, setDni] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -42,7 +43,7 @@ function UnirseContent() {
     const res = await fetch('/api/fidelizacion/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ program_id: programId, phone, name, birth_date: birthDate || null }),
+      body: JSON.stringify({ program_id: programId, phone, name, birth_date: birthDate || null, dni: dni.trim() || null }),
     })
     const data = await res.json()
     setLoading(false)
@@ -134,6 +135,23 @@ function UnirseContent() {
               className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
             <p className="text-xs text-zinc-400 mt-1">Te mandamos un regalo el día de tu cumple 🎂</p>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-zinc-500 mb-1.5">DNI <span className="text-zinc-300">(opcional)</span></label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={dni}
+              onChange={e => setDni(e.target.value)}
+              placeholder="12345678"
+              className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            />
+            <div className="mt-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-100 flex items-start gap-2">
+              <span className="text-amber-500 text-sm flex-shrink-0 mt-0.5">⚠️</span>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Tu tarjeta está asociada a tu número de teléfono. Si lo cambiás o perdés el celular, <strong>perdés el acceso</strong>. Con el DNI podés recuperarla sin importar el teléfono.
+              </p>
+            </div>
           </div>
 
           {error && <p className="text-red-500 text-xs text-center">{error}</p>}

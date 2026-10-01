@@ -16,7 +16,7 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { program_id, phone, name, email, birth_date } = await req.json()
+    const { program_id, phone, name, email, birth_date, dni } = await req.json()
 
     if (!program_id || !phone) {
       return NextResponse.json({ error: 'program_id y phone son requeridos' }, { status: 400 })
@@ -34,13 +34,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
     }
 
-    // Verificar si ya tiene tarjeta
-    const { data: existing } = await supabase
+    const cleanPhone = phone.replace(/\D/g, '')
+    const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
+
+    // Verificar si ya tiene tarjeta (match bidireccional + últimos 8 dígitos)
+    const { data: allCards } = await supabase
       .from('loyalty_cards')
       .select('*')
       .eq('program_id', program_id)
-      .eq('phone', phone)
-      .single()
+
+    const existing = (allCards ?? []).find(c => {
+      const stored = c.phone.replace(/\D/g, '')
+      return stored.endsWith(cleanPhone) || cleanPhone.endsWith(stored)
+    }) ?? (allCards ?? []).find(c => c.phone.replace(/\D/g, '').slice(-8) === cleanPhone.slice(-8)) ?? null
 
     if (existing) {
       // Ya tiene tarjeta — generar wallet link con objeto completo embebido en JWT
@@ -82,13 +88,14 @@ export async function POST(req: NextRequest) {
       .from('loyalty_cards')
       .insert({
         program_id,
-        phone,
+        phone: cleanPhone,
         name: name ?? phone,
         email: email ?? null,
         birth_date: birth_date ?? null,
         stamps: 0,
         points: 0,
         total_visits: 0,
+        ...(cleanDni ? { dni: cleanDni } : {}),
       })
       .select()
       .single()
