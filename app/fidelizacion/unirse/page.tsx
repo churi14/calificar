@@ -26,13 +26,40 @@ function UnirseContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Lookup "ya tengo tarjeta"
+  const [showLookup, setShowLookup] = useState(false)
+  const [lookupPhone, setLookupPhone] = useState('')
+  const [lookupLoading, setLookupLoading] = useState(false)
+  const [lookupError, setLookupError] = useState('')
+
   useEffect(() => {
     if (!programId) return
+
+    // Si ya tiene tarjeta guardada, redirigir directo
+    const savedCard = localStorage.getItem(`loyalty_card_${programId}`)
+    if (savedCard) {
+      router.replace(`/fidelizacion/tarjeta?card=${savedCard}&program=${programId}`)
+      return
+    }
+
     fetch(`/api/fidelizacion/program?id=${programId}`)
       .then(r => r.json())
       .then(d => setProgram(d.program))
       .catch(() => {})
-  }, [programId])
+  }, [programId, router])
+
+  async function handleLookup(e: React.FormEvent) {
+    e.preventDefault()
+    if (!lookupPhone || lookupPhone.length < 6) { setLookupError('Ingresá tu número de teléfono'); return }
+    setLookupLoading(true)
+    setLookupError('')
+    const res = await fetch(`/api/fidelizacion/card-status?program_id=${programId}&phone=${encodeURIComponent(lookupPhone)}`)
+    const data = await res.json()
+    setLookupLoading(false)
+    if (!data.found) { setLookupError('No encontramos una tarjeta con ese número.'); return }
+    localStorage.setItem(`loyalty_card_${programId}`, data.card.id)
+    router.push(`/fidelizacion/tarjeta?card=${data.card.id}&program=${programId}`)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -169,6 +196,44 @@ function UnirseContent() {
         <p className="text-center text-xs text-zinc-400 mt-5">
           Sin app, sin contraseña. Solo tu teléfono.
         </p>
+
+        {/* Sección "ya tengo tarjeta" */}
+        <div className="mt-8 pt-6 border-t border-zinc-100">
+          {!showLookup ? (
+            <button
+              onClick={() => setShowLookup(true)}
+              className="w-full py-3 rounded-full border-2 border-zinc-200 text-sm font-semibold text-zinc-600 hover:border-zinc-300 transition-colors"
+            >
+              Ya me registré → Ver mis sellos
+            </button>
+          ) : (
+            <div>
+              <p className="text-sm font-semibold text-zinc-700 mb-3 text-center">Ingresá tu número para encontrar tu tarjeta</p>
+              <form onSubmit={handleLookup} className="flex flex-col gap-3">
+                <input
+                  type="tel"
+                  value={lookupPhone}
+                  onChange={e => setLookupPhone(e.target.value)}
+                  placeholder="Tu número de teléfono"
+                  autoFocus
+                  className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                />
+                {lookupError && <p className="text-red-500 text-xs text-center">{lookupError}</p>}
+                <button
+                  type="submit"
+                  disabled={lookupLoading}
+                  className="w-full text-white font-bold py-3 rounded-full text-sm disabled:opacity-60"
+                  style={{ backgroundColor: color }}
+                >
+                  {lookupLoading ? 'Buscando...' : 'Buscar mi tarjeta →'}
+                </button>
+                <button type="button" onClick={() => setShowLookup(false)} className="text-xs text-zinc-400 text-center">
+                  Cancelar
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
         </div>
       </div>
     </main>
