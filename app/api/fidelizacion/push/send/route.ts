@@ -34,6 +34,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
+  // Obtener logo del negocio (para el ícono de la notificación)
+  const { data: program } = await supabase
+    .from('loyalty_programs')
+    .select('logo_url, businesses(plan, plan_expires_at)')
+    .eq('id', program_id)
+    .single()
+
+  const biz = program?.businesses as { plan?: string | null; plan_expires_at?: string | null } | null
+  const hasPaidPlan = biz?.plan && biz.plan !== 'trial'
+    && (!biz.plan_expires_at || new Date(biz.plan_expires_at) > new Date())
+  const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
+  const iconUrl = hasPaidPlan && program?.logo_url ? program.logo_url : `${BASE}/logo.svg`
+
   const vapid = getVapidConfig()
   webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey)
 
@@ -47,7 +60,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, sent: 0, message: 'Sin suscriptores' })
   }
 
-  const payload = JSON.stringify({ title, body, url: url || '/fidelizacion/tarjeta' })
+  const payload = JSON.stringify({ title, body, icon: iconUrl, url: url || '/fidelizacion/tarjeta' })
 
   const results = await Promise.allSettled(
     subs.map(sub =>

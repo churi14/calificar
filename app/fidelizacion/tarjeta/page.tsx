@@ -69,6 +69,18 @@ function TarjetaContent() {
     }
   }
 
+  // Manifest dinámico con logo del negocio
+  useEffect(() => {
+    if (!programId) return
+    const existing = document.querySelector('link[rel="manifest"]')
+    if (existing) existing.remove()
+    const link = document.createElement('link')
+    link.rel = 'manifest'
+    link.href = `/api/fidelizacion/manifest?program_id=${programId}${cardId ? `&card_id=${cardId}` : ''}`
+    document.head.appendChild(link)
+    return () => { link.remove() }
+  }, [programId, cardId])
+
   useEffect(() => {
     // Registrar service worker
     if ('serviceWorker' in navigator) {
