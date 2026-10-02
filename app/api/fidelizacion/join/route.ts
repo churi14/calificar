@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       .insert({
         program_id,
         phone: cleanPhone,
-        name: name ?? phone,
+        name: (name ?? '').trim() || cleanPhone,
         email: email ?? null,
         birth_date: birth_date ?? null,
         stamps: 0,

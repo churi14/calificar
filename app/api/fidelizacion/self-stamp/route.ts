@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         // Usar la tarjeta existente en vez de crear una nueva
         card = duplicate
       } else {
-        const clientName = (name ?? '').trim() || 'Cliente'
+        const clientName = (name ?? '').trim() || cleanPhone
         const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
         const { data: newCard, error: createErr } = await supabase
           .from('loyalty_cards')
