@@ -32,6 +32,7 @@ function TarjetaContent() {
 
   const [card, setCard] = useState<CardData | null>(null)
   const [walletLinkFromApi, setWalletLinkFromApi] = useState<string | null>(null)
+  const [walletSaved, setWalletSaved] = useState(false)
   const [loading, setLoading] = useState(true)
   const [notifState, setNotifState] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
   const [showNotifModal, setShowNotifModal] = useState(false)
@@ -114,6 +115,9 @@ function TarjetaContent() {
 
   useEffect(() => {
     if (!cardId) return
+
+    // Leer flag de wallet guardado
+    if (localStorage.getItem(`wallet_saved_${cardId}`)) setWalletSaved(true)
 
     fetch(`/api/fidelizacion/card?card_id=${cardId}`)
       .then(r => r.json())
@@ -368,12 +372,13 @@ function TarjetaContent() {
             href={(walletLink ?? walletLinkFromApi)!}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => { localStorage.setItem(`wallet_saved_${cardId}`, '1'); setWalletSaved(true) }}
             className="flex items-center justify-center gap-2 bg-black text-white font-semibold px-6 py-3 rounded-full text-sm hover:bg-zinc-800 transition-colors shadow-lg"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M21.56 10.738l-9.52-9.52A1.5 1.5 0 0010.978.5H3.5A3 3 0 00.5 3.5v7.478c0 .398.158.78.44 1.062l9.52 9.52a3 3 0 004.242 0l6.858-6.858a3 3 0 000-4.243zM5.5 8a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
             </svg>
-            Agregar a Google Wallet
+            {walletSaved ? 'Ver en Google Wallet' : 'Agregar a Google Wallet'}
           </a>
         )}
         {isAndroid && !(walletLink ?? walletLinkFromApi) && (
