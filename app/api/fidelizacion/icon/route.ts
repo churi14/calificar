@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
       .png()
       .toBuffer()
 
-    return new NextResponse(icon, {
+    return new NextResponse(icon as unknown as BodyInit, {
       headers: {
         'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=86400',
