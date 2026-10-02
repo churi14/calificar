@@ -62,9 +62,10 @@ export async function GET(req: NextRequest) {
     ? `${BASE}/fidelizacion/tarjeta?card=${card_id}&program=${program_id}`
     : `${BASE}/fidelizacion/tarjeta?program=${program_id}`
 
-  // Si tiene plan pago Y tiene logo → usar logo del negocio
-  const iconSrc = hasPaidPlan && program.logo_url ? program.logo_url : `${BASE}/logo.svg`
-  const iconType = iconSrc.endsWith('.svg') ? 'image/svg+xml' : 'image/png'
+  // Si tiene plan pago Y tiene logo → usar el endpoint de ícono generado (con fondo sólido)
+  const iconSrc = hasPaidPlan && program.logo_url
+    ? `${BASE}/api/fidelizacion/icon?program_id=${program.id}&size=192`
+    : `${BASE}/logo.svg`
 
   const manifest = {
     name: `${bizName} — Sellos`,
@@ -76,9 +77,8 @@ export async function GET(req: NextRequest) {
     theme_color: program.color_primary ?? '#7C3AED',
     orientation: 'portrait',
     icons: [
-      { src: iconSrc, sizes: 'any', type: iconType, purpose: 'any maskable' },
-      // Siempre incluir el de Calificar como fallback de 192x192
-      ...(hasPaidPlan && program.logo_url ? [{ src: `${BASE}/logo.svg`, sizes: 'any', type: 'image/svg+xml' }] : []),
+      { src: iconSrc, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: iconSrc.replace('size=192', 'size=512'), sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
     ],
   }
 
