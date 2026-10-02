@@ -47,6 +47,7 @@ export default function SelfStampPage() {
 
   async function submit() {
     if (!phone.trim()) return
+    if (needsName && !name.trim()) return
     setStep('loading')
     const res = await fetch('/api/fidelizacion/self-stamp', {
       method: 'POST',
@@ -291,9 +292,10 @@ export default function SelfStampPage() {
                   onChange={e => setName(e.target.value)}
                   placeholder="¿Cómo te llamás?"
                   autoFocus
+                  required
                   className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
                 />
-                <p className="text-xs text-zinc-400 mt-1">Solo la primera vez que usás la tarjeta.</p>
+                <p className="text-xs text-zinc-400 mt-1">Obligatorio — así te reconocemos en el local.</p>
               </div>
             )}
             <div>

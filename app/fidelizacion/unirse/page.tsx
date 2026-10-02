@@ -63,6 +63,7 @@ function UnirseContent() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!name.trim()) { setError('Ingresá tu nombre'); return }
     if (!phone || phone.length < 8) { setError('Ingresá un teléfono válido'); return }
     setLoading(true)
     setError('')
@@ -137,12 +138,13 @@ function UnirseContent() {
         <div className="w-full max-w-sm mx-auto">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-xs font-semibold text-zinc-500 mb-1.5">Tu nombre</label>
+            <label className="block text-xs font-semibold text-zinc-500 mb-1.5">Tu nombre <span className="text-red-400">*</span></label>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Juan"
+              required
               className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
           </div>
