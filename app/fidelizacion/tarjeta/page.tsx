@@ -31,6 +31,7 @@ function TarjetaContent() {
   const walletLink = params.get('wallet')
 
   const [card, setCard] = useState<CardData | null>(null)
+  const [walletLinkFromApi, setWalletLinkFromApi] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [notifState, setNotifState] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
   const [showNotifModal, setShowNotifModal] = useState(false)
@@ -116,7 +117,7 @@ function TarjetaContent() {
 
     fetch(`/api/fidelizacion/card?card_id=${cardId}`)
       .then(r => r.json())
-      .then(d => { setCard(d.card); setLoading(false) })
+      .then(d => { setCard(d.card); if (d.wallet_link) setWalletLinkFromApi(d.wallet_link); setLoading(false) })
       .catch(() => setLoading(false))
 
     fetch(`/api/fidelizacion/card-coupons?card_id=${cardId}`)
@@ -362,9 +363,9 @@ function TarjetaContent() {
 
       {/* Botones de acción */}
       <div className="w-full max-w-sm flex flex-col gap-3 mb-4">
-        {isAndroid && walletLink && (
+        {isAndroid && (walletLink ?? walletLinkFromApi) && (
           <a
-            href={walletLink}
+            href={(walletLink ?? walletLinkFromApi)!}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 bg-black text-white font-semibold px-6 py-3 rounded-full text-sm hover:bg-zinc-800 transition-colors shadow-lg"
@@ -375,7 +376,7 @@ function TarjetaContent() {
             Agregar a Google Wallet
           </a>
         )}
-        {isAndroid && !walletLink && (
+        {isAndroid && !(walletLink ?? walletLinkFromApi) && (
           <div className="flex items-center justify-center gap-2 bg-zinc-100 text-zinc-400 font-semibold px-6 py-3 rounded-full text-sm cursor-not-allowed">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M21.56 10.738l-9.52-9.52A1.5 1.5 0 0010.978.5H3.5A3 3 0 00.5 3.5v7.478c0 .398.158.78.44 1.062l9.52 9.52a3 3 0 004.242 0l6.858-6.858a3 3 0 000-4.243zM5.5 8a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
