@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  const biz = program.businesses as { name: string; plan: string | null; plan_expires_at: string | null } | null
+  const biz = program.businesses as unknown as { name: string; plan: string | null; plan_expires_at: string | null } | null
   const hasPaidPlan = isPlanActive(biz?.plan ?? null, biz?.plan_expires_at ?? null)
   const bizName = biz?.name ?? program.name
   const startUrl = card_id
