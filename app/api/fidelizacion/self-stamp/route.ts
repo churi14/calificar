@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
+import { validateToken } from '@/app/api/fidelizacion/stamp-token/route'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,7 +16,7 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { program_id, phone, name, dni } = await req.json()
+    const { program_id, phone, name, dni, token } = await req.json()
 
     if (!program_id || !phone) {
       return NextResponse.json({ error: 'program_id y phone son requeridos' }, { status: 400 })
@@ -29,12 +30,22 @@ export async function POST(req: NextRequest) {
     // Verificar que el programa existe y está activo
     const { data: program, error: progErr } = await supabase
       .from('loyalty_programs')
-      .select('id, stamps_goal, reward_description, milestones, business_id')
+      .select('id, stamps_goal, reward_description, milestones, business_id, stamp_secret')
       .eq('id', program_id)
       .single()
 
     if (progErr || !program) {
       return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
+    }
+
+    // Validar token rotativo si el programa lo tiene configurado
+    if (program.stamp_secret) {
+      if (!token) {
+        return NextResponse.json({ error: 'Link expirado. Pedí el link actualizado al negocio.', token_required: true }, { status: 403 })
+      }
+      if (!validateToken(program.stamp_secret, token)) {
+        return NextResponse.json({ error: 'Este link ya expiró. Pedí el link actualizado al negocio.', token_required: true }, { status: 403 })
+      }
     }
 
     // Buscar tarjeta por teléfono + programa (match bidireccional para código de área)

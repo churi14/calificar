@@ -127,18 +127,75 @@ function DiscountPopup({ onClose, daysLeft }: { onClose: () => void; daysLeft: n
 }
 
 // ── ViewSelloRapido ───────────────────────────────────────────────────────────
-function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp }: {
+function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp, plan = 'trial', planExpiresAt = null }: {
   cards: Card[]
   selectedProgram: string
   accessToken: string
   manualStamp: (id: string, name: string) => void
+  plan?: string
+  planExpiresAt?: string | null
 }) {
   const [phone, setPhone] = useState('')
   const [found, setFound] = useState<Card | null | 'none'>(null)
   const [stamping, setStamping] = useState(false)
   const [stamped, setStamped] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [copiedSecure, setCopiedSecure] = useState(false)
   const selfLink = typeof window !== 'undefined' ? `${window.location.origin}/s/${selectedProgram}` : `/s/${selectedProgram}`
+
+  // Link seguro rotativo (Pro+)
+  const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
+  const isProPlus = ['pro', 'ultimate', 'gifted'].includes(plan) && !isExpired
+  const [secureLink, setSecureLink] = useState<string | null>(null)
+  const [secondsLeft, setSecondsLeft] = useState<number>(0)
+  const [loadingToken, setLoadingToken] = useState(false)
+
+  useEffect(() => {
+    if (!isProPlus) return
+    async function fetchToken() {
+      setLoadingToken(true)
+      try {
+        const res = await fetch(`/api/fidelizacion/stamp-token?program_id=${selectedProgram}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        const data = await res.json()
+        if (data.link) { setSecureLink(data.link); setSecondsLeft(data.seconds_remaining) }
+      } catch { /* silent */ }
+      setLoadingToken(false)
+    }
+    fetchToken()
+  }, [isProPlus, selectedProgram, accessToken])
+
+  // Countdown y auto-refresh cuando expira
+  useEffect(() => {
+    if (!isProPlus || secondsLeft <= 0) return
+    const interval = setInterval(() => {
+      setSecondsLeft(s => {
+        if (s <= 1) {
+          // Refrescar token
+          fetch(`/api/fidelizacion/stamp-token?program_id=${selectedProgram}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }).then(r => r.json()).then(data => {
+            if (data.link) { setSecureLink(data.link); setSecondsLeft(data.seconds_remaining) }
+          }).catch(() => {})
+          return 0
+        }
+        return s - 1
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [isProPlus, secondsLeft, selectedProgram, accessToken])
+
+  function formatCountdown(s: number) {
+    const m = Math.floor(s / 60)
+    const sec = s % 60
+    return `${m}:${sec.toString().padStart(2, '0')}`
+  }
+
+  function copySecureLink() {
+    if (!secureLink) return
+    navigator.clipboard.writeText(secureLink).then(() => { setCopiedSecure(true); setTimeout(() => setCopiedSecure(false), 2000) })
+  }
 
   function search(value: string) {
     setPhone(value)
@@ -238,6 +295,65 @@ function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp }: {
         <p className="text-xs text-zinc-400 mt-2">
           El link aplica anti-abuso: máximo 1 sello por número cada 4 horas.
         </p>
+      </div>
+
+      {/* Link seguro con vencimiento — Pro+ */}
+      <div className="mt-8 pt-6 border-t border-zinc-100">
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className="font-bold text-zinc-900">Link seguro con vencimiento</h3>
+          {!isProPlus && (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">Pro</span>
+          )}
+        </div>
+        {isProPlus ? (
+          <>
+            <p className="text-sm text-zinc-500 mb-4">
+              Este link expira automáticamente cada 30 minutos. Mandalo a tus clientes — si lo guardan y lo usan después, no funciona.
+            </p>
+            {loadingToken ? (
+              <div className="h-12 bg-zinc-100 rounded-xl animate-pulse" />
+            ) : secureLink ? (
+              <>
+                <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                  <span className="text-sm text-emerald-800 font-mono truncate flex-1">{secureLink}</span>
+                  <button
+                    onClick={copySecureLink}
+                    className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
+                    style={{ background: copiedSecure ? '#10b981' : '#7C3AED', color: 'white' }}
+                  >
+                    {copiedSecure ? '✓ Copiado' : 'Copiar'}
+                  </button>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 h-1 bg-zinc-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-400 rounded-full transition-all duration-1000"
+                      style={{ width: `${(secondsLeft / (30 * 60)) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-zinc-400 tabular-nums">
+                    {secondsLeft > 0 ? `Expira en ${formatCountdown(secondsLeft)}` : 'Actualizando…'}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 mt-1">El link se renueva automáticamente cuando expira.</p>
+              </>
+            ) : (
+              <p className="text-sm text-red-500">No se pudo generar el link. Recargá la página.</p>
+            )}
+          </>
+        ) : (
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-4">
+            <p className="text-sm text-zinc-500">
+              Los links con vencimiento automático están disponibles en el plan <strong>Pro</strong>. Evitá que tus clientes guarden el link y se sellen solos cuando quieran.
+            </p>
+            <button
+              className="mt-3 text-sm font-semibold text-violet-600 hover:text-violet-700"
+              onClick={() => {/* navegación al plan */}}
+            >
+              Ver planes →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -3265,6 +3381,8 @@ export default function NegocioDashboard() {
             selectedProgram={selectedProgram}
             accessToken={accessToken}
             manualStamp={(id, name) => setStampModal({ cardId: id, name })}
+            plan={businessPlan}
+            planExpiresAt={planExpiresAt}
           />
         )}
         {activeNav === 'hoy' && (

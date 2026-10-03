@@ -1,7 +1,7 @@
 'use client'
 
-import { useParams } from 'next/navigation'
-import { useState } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
+import { useState, Suspense } from 'react'
 
 type Result = {
   success: boolean
@@ -26,8 +26,10 @@ type CardStatus = {
   active_coupons?: { id: string; coupon_code: string | null; note: string | null; created_at: string }[]
 }
 
-export default function SelfStampPage() {
+function SelfStampContent() {
   const { programId } = useParams<{ programId: string }>()
+  const searchParams = useSearchParams()
+  const stampToken = searchParams.get('t') ?? undefined
   const [tab, setTab] = useState<'sello' | 'ver'>('sello')
 
   // ── Tab Sello ──
@@ -52,7 +54,7 @@ export default function SelfStampPage() {
     const res = await fetch('/api/fidelizacion/self-stamp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ program_id: programId, phone: phone.trim(), name: name.trim() || undefined, dni: dni.trim() || undefined }),
+      body: JSON.stringify({ program_id: programId, phone: phone.trim(), name: name.trim() || undefined, dni: dni.trim() || undefined, token: stampToken }),
     })
     const data: Result = await res.json()
     if (data.is_new && !name.trim() && res.ok) {
@@ -407,6 +409,18 @@ export default function SelfStampPage() {
         </>
       )}
     </Screen>
+  )
+}
+
+export default function SelfStampPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+      </div>
+    }>
+      <SelfStampContent />
+    </Suspense>
   )
 }
 
