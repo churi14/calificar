@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import Link from 'next/link'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 
 const supabaseClient = createSupabaseClient()
@@ -387,7 +386,7 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
       <aside className={`w-60 flex-shrink-0 border-r border-zinc-100 bg-white flex flex-col h-screen overflow-y-auto z-50 transition-transform duration-200
         fixed top-0 left-0 md:static md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div className="px-5 py-5 border-b border-zinc-50">
-        <Link href="/" className="font-extrabold text-xl text-zinc-900 tracking-tight">calificar</Link>
+        <button onClick={() => onNav('hoy')} className="font-extrabold text-xl text-zinc-900 tracking-tight">calificar</button>
       </div>
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2">
