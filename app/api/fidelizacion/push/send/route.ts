@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
   const iconUrl = hasPaidPlan && program?.logo_url
     ? `${BASE}/api/fidelizacion/icon?program_id=${program_id}&size=96`
-    : `${BASE}/logo.svg`
+    : `${BASE}/logo.png`
 
   const vapid = getVapidConfig()
   webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey)
