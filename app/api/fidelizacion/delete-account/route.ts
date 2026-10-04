@@ -1,7 +1,9 @@
 /**
  * POST /api/fidelizacion/delete-account
- * Soft-delete: desactiva el negocio y el programa del usuario.
- * NO borra ningún dato — loyalty_cards, transactions, etc. quedan intactos.
+ * Elimina la cuenta del negocio:
+ * - Soft-delete del negocio y programa (active: false)
+ * - Borra el usuario de Supabase Auth → el email queda libre para re-registrarse
+ * - NO borra loyalty_cards ni transacciones — esos datos quedan en la DB
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -51,6 +53,10 @@ export async function POST(req: NextRequest) {
 
   // NO eliminamos: loyalty_cards, loyalty_transactions, push_subscriptions
   // Los datos de clientes quedan en la base de datos
+
+  // Borrar el usuario de Supabase Auth
+  // → el email queda libre para volver a registrarse desde cero
+  await serviceClient.auth.admin.deleteUser(user.id)
 
   return NextResponse.json({ ok: true })
 }
