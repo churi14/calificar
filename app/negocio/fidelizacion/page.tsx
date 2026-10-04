@@ -3147,6 +3147,33 @@ export default function NegocioDashboard() {
   }
 
   useEffect(() => {
+    // Carga inmediata desde localStorage si viene de onboarding (evita flash de "Mi negocio")
+    try {
+      const newBizRaw = localStorage.getItem('cal_new_biz')
+      if (newBizRaw) {
+        const newBiz = JSON.parse(newBizRaw)
+        if (newBiz.name) setBusinessName(newBiz.name)
+        if (newBiz.plan) setBusinessPlan(newBiz.plan)
+        if (newBiz.created_at) {
+          setBusinessCreatedAt(newBiz.created_at)
+          const isPaidPlan = ['starter', 'pro', 'ultimate', 'gifted'].includes(newBiz.plan ?? '')
+          if (!isPaidPlan) {
+            const diffDays = (Date.now() - new Date(newBiz.created_at).getTime()) / (1000 * 60 * 60 * 24)
+            if (diffDays <= 30) {
+              const dismissed = localStorage.getItem('cal_discount_dismissed')
+              if (!dismissed) {
+                const nextShow = parseInt(localStorage.getItem('cal_discount_next') ?? '0')
+                if (Date.now() >= nextShow) {
+                  setTimeout(() => setShowDiscount(true), 1500)
+                }
+              }
+            }
+          }
+        }
+        localStorage.removeItem('cal_new_biz') // consumir una sola vez
+      }
+    } catch {}
+
     // programsFetched se pone true solo cuando la carga fue EXITOSA (no en 401)
     // Así el retry de onAuthStateChange puede reintentar si el primer call falló por falta de auth
     let programsFetched = false

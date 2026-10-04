@@ -115,6 +115,14 @@ function CompleteContent() {
           body: JSON.stringify({ session_id: sid, step: 11, step_name: 'registro', event: 'registered', data: { business_name: config.businessName } }),
         }).catch(() => {})
 
+        // Guardar datos del negocio para que el dashboard los muestre inmediatamente
+        // sin depender del timing del token de auth
+        localStorage.setItem('cal_new_biz', JSON.stringify({
+          name: config.businessName,
+          plan: 'trial',
+          created_at: new Date().toISOString(),
+        }))
+
         // Ver si el usuario eligió un plan pago
         const chosenPlan = localStorage.getItem('cal_chosen_plan')
         localStorage.removeItem('cal_onboarding')
