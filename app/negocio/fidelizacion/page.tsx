@@ -2814,7 +2814,7 @@ function ViewPlan({ onNav, businessCreatedAt = null }: { onNav: (id: string) => 
 }
 
 // ── Vista: AYUDA ─────────────────────────────────────────────────────────────
-function ViewAyuda({ onNav }: { onNav: (id: string) => void }) {
+function ViewAyuda({ onNav, mode = 'ayuda' }: { onNav: (id: string) => void; mode?: 'ayuda' | 'primeros-pasos' }) {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const faqs = [
     { q: '¿Cómo se une un cliente al programa?', a: 'El cliente escanea el QR de tu local (lo encontrás en la sección "Hoy") o hace click en el enlace que le compartís. Automáticamente se crea su tarjeta de sellos digital.' },
@@ -2829,8 +2829,8 @@ function ViewAyuda({ onNav }: { onNav: (id: string) => void }) {
 
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
-      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Ayuda</h1>
-      <p className="text-zinc-400 text-sm mb-6">Respuestas a las preguntas más frecuentes sobre Calificar.</p>
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">{mode === 'primeros-pasos' ? 'Primeros pasos' : 'Ayuda'}</h1>
+      <p className="text-zinc-400 text-sm mb-6">{mode === 'primeros-pasos' ? 'Todo lo que necesitás para arrancar con Calificar.' : 'Respuestas a las preguntas más frecuentes sobre Calificar.'}</p>
 
       {/* Contacto rápido */}
       <div className="grid grid-cols-2 gap-3 mb-6">
@@ -3375,15 +3375,27 @@ export default function NegocioDashboard() {
           </div>
         )}
 
-        {activeNav === 'sello-rapido' && selectedProgram && (
-          <ViewSelloRapido
-            cards={cards}
-            selectedProgram={selectedProgram}
-            accessToken={accessToken}
-            manualStamp={(id, name) => setStampModal({ cardId: id, name })}
-            plan={businessPlan}
-            planExpiresAt={planExpiresAt}
-          />
+        {activeNav === 'sello-rapido' && (
+          selectedProgram ? (
+            <ViewSelloRapido
+              cards={cards}
+              selectedProgram={selectedProgram}
+              accessToken={accessToken}
+              manualStamp={(id, name) => setStampModal({ cardId: id, name })}
+              plan={businessPlan}
+              planExpiresAt={planExpiresAt}
+            />
+          ) : loading ? (
+            <div className="p-6 flex items-center gap-3 text-zinc-400">
+              <div className="w-5 h-5 border-2 border-zinc-300 border-t-violet-500 rounded-full animate-spin" />
+              <span className="text-sm">Cargando...</span>
+            </div>
+          ) : (
+            <div className="p-6 max-w-md mx-auto pt-10 text-center">
+              <p className="text-4xl mb-4">⚡</p>
+              <p className="text-zinc-500 text-sm">Todavía no configuraste tu programa de fidelidad.</p>
+            </div>
+          )
         )}
         {activeNav === 'hoy' && (
           <ViewHoy program={program} selectedProgram={selectedProgram} stats={stats}
@@ -3423,7 +3435,7 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'plan' && <ViewPlan onNav={setActiveNav} businessCreatedAt={businessCreatedAt} />}
         {activeNav === 'ayuda' && <ViewAyuda onNav={setActiveNav} />}
-        {activeNav === 'primeros-pasos' && <ViewAyuda onNav={setActiveNav} />}
+        {activeNav === 'primeros-pasos' && <ViewAyuda onNav={setActiveNav} mode="primeros-pasos" />}
       </main>
     </div>
   )

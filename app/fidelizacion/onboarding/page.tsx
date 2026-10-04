@@ -228,6 +228,7 @@ export default function OnboardingPage() {
   // Auth
   const [email, setEmail] = useState('')
   const [showEmailForm, setShowEmailForm] = useState(false)
+  const emailFormRef = useRef<HTMLDivElement>(null)
   const [emailSent, setEmailSent] = useState(false)
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
@@ -972,31 +973,39 @@ export default function OnboardingPage() {
 
                   {!showEmailForm ? (
                     <button
-                      onClick={() => setShowEmailForm(true)}
+                      onClick={() => {
+                        setShowEmailForm(true)
+                        setTimeout(() => emailFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80)
+                      }}
                       className="w-full text-center text-sm text-zinc-500 hover:text-zinc-700 transition-colors py-2"
                     >
-                      o continuá con tu correo
+                      o usá tu correo (Gmail, Outlook, Hotmail…)
                     </button>
                   ) : (
-                    <form onSubmit={handleMagicLink} className="flex flex-col gap-3">
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        placeholder="tu@email.com"
-                        className="w-full border-2 border-zinc-200 focus:border-violet-500 rounded-2xl px-4 py-3.5 text-sm focus:outline-none transition-colors bg-white"
-                        autoFocus
-                        required
-                      />
-                      <button
-                        type="submit"
-                        disabled={authLoading || !email.trim()}
-                        className="w-full text-white font-bold py-3.5 rounded-2xl text-sm disabled:opacity-40 transition-all active:scale-[0.98]"
-                        style={{ background: primaryColor }}
-                      >
-                        {authLoading ? 'Enviando...' : 'Enviarme link de acceso →'}
-                      </button>
-                    </form>
+                    <div ref={emailFormRef}>
+                      <form onSubmit={handleMagicLink} className="flex flex-col gap-3">
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={e => setEmail(e.target.value)}
+                          placeholder="tu@email.com"
+                          className="w-full border-2 border-zinc-200 focus:border-violet-500 rounded-2xl px-4 py-3.5 text-sm focus:outline-none transition-colors bg-white"
+                          autoFocus
+                          required
+                        />
+                        <button
+                          type="submit"
+                          disabled={authLoading || !email.trim()}
+                          className="w-full text-white font-bold py-3.5 rounded-2xl text-sm disabled:opacity-40 transition-all active:scale-[0.98]"
+                          style={{ background: primaryColor }}
+                        >
+                          {authLoading ? 'Enviando...' : 'Enviarme link de acceso →'}
+                        </button>
+                        <p className="text-xs text-zinc-400 text-center -mt-1">
+                          Funciona con Gmail, Outlook, Hotmail y cualquier correo
+                        </p>
+                      </form>
+                    </div>
                   )}
 
                   {authError && <p className="text-red-500 text-xs text-center mt-2">{authError}</p>}
@@ -1007,6 +1016,9 @@ export default function OnboardingPage() {
                   <h3 className="text-lg font-extrabold text-zinc-900 mb-1">Revisá tu email</h3>
                   <p className="text-zinc-500 text-sm">
                     Te mandamos un link a <strong className="text-zinc-700">{email}</strong>. Hacé click y tu programa se activa solo.
+                  </p>
+                  <p className="text-xs text-zinc-400 mt-2">
+                    ¿No lo ves? Revisá la carpeta de spam o correo no deseado.
                   </p>
                   <button
                     onClick={() => { setEmailSent(false); setEmail('') }}
