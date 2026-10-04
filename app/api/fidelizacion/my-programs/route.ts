@@ -32,11 +32,12 @@ export async function GET(req: NextRequest) {
   }
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  // 2. Traer los negocios que le pertenecen
+  // 2. Traer los negocios que le pertenecen (solo activos)
   const { data: businesses, error: bizError } = await serviceClient
     .from('businesses')
     .select('id')
     .eq('owner_user_id', user.id)
+    .eq('active', true)
 
   if (bizError) return NextResponse.json({ error: bizError.message }, { status: 500 })
   if (!businesses || businesses.length === 0) {
@@ -54,6 +55,7 @@ export async function GET(req: NextRequest) {
       loyalty_cards(count)
     `)
     .in('business_id', bizIds)
+    .eq('active', true)
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -3259,6 +3259,11 @@ export default function NegocioDashboard() {
         }
         programsFetched = true  // ← Solo marcar éxito aquí para evitar doble carga
         const d = await res.json()
+        // Si no hay programas activos, el usuario eliminó su cuenta → ir al onboarding
+        if (!d.programs || d.programs.length === 0) {
+          window.location.replace('/fidelizacion/onboarding')
+          return
+        }
         setPrograms(d.programs ?? [])
         if (d.programs?.length > 0) {
           setSelectedProgram(d.programs[0].id)
