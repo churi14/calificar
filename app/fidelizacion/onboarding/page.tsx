@@ -406,9 +406,9 @@ export default function OnboardingPage() {
               </button>
 
               {/* Membership — coming soon */}
-              <div className="w-full bg-white/50 rounded-2xl p-4 border-2 border-zinc-200 text-left relative opacity-60">
-                <div className="absolute top-3 right-3 bg-zinc-800 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Próximamente</div>
-                <div className="rounded-xl p-3 mb-3 bg-zinc-900">
+              <div className="w-full bg-white/40 rounded-2xl p-4 border-2 border-dashed border-zinc-200 text-left relative overflow-hidden">
+                <div className="absolute top-3 right-3 bg-zinc-700 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Próximamente</div>
+                <div className="rounded-xl p-3 mb-3 bg-zinc-800 opacity-50">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
                       <span className="text-white font-bold text-xs">C</span>
@@ -418,8 +418,8 @@ export default function OnboardingPage() {
                   </div>
                   <p className="text-white/50 text-[10px] uppercase tracking-wider">Miembro desde 2025</p>
                 </div>
-                <p className="text-sm font-extrabold text-zinc-900 mb-0.5">Pase de membresía</p>
-                <p className="text-xs text-zinc-500">Niveles, beneficios y acceso VIP para los clientes que querés consentir.</p>
+                <p className="text-sm font-extrabold text-zinc-500 mb-0.5">Pase de membresía</p>
+                <p className="text-xs text-zinc-400">Niveles, beneficios y acceso VIP — disponible muy pronto.</p>
               </div>
               <Hint text="👆 Tocá una opción para seguir" />
             </>
@@ -747,7 +747,13 @@ export default function OnboardingPage() {
 
               {/* Yes */}
               <button
-                onClick={() => { setBirthdayAction('celebrate'); track(8, 'select', { value: 'celebrate' }); next() }}
+                onClick={() => {
+                  setBirthdayAction('celebrate')
+                  // Si eligió "Lo esencial" (sin cumpleaños), activamos el campo automáticamente
+                  if (clientData === 'basic') setClientData('full')
+                  track(8, 'select', { value: 'celebrate', auto_upgraded_birthday: clientData === 'basic' })
+                  next()
+                }}
                 className="w-full bg-white rounded-2xl p-4 border-2 mb-3 text-left transition-all hover:shadow-sm active:scale-[0.99]"
                 style={{ borderColor: birthdayAction === 'celebrate' ? primaryColor : '#E4E4E7', borderWidth: '2px' }}
               >
@@ -764,6 +770,12 @@ export default function OnboardingPage() {
                 </div>
                 <p className="text-sm font-extrabold text-zinc-900">Sí, celebrarlos</p>
                 <p className="text-xs text-zinc-500">Automático. Vos solo entregás el regalo.</p>
+                {/* Aviso sutil cuando el usuario eligió "Lo esencial" antes */}
+                {clientData === 'basic' && (
+                  <p className="text-xs mt-2 font-semibold" style={{ color: primaryColor }}>
+                    🎂 Activamos la fecha de cumpleaños en tu formulario
+                  </p>
+                )}
               </button>
 
               {/* No */}

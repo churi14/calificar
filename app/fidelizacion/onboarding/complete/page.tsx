@@ -43,6 +43,8 @@ function CompleteContent() {
         businessType?: string
         milestones?: { at: number; label: string }[]
         primaryColor?: string
+        birthdayAction?: 'celebrate' | 'skip'
+        collectBirthday?: boolean
       } = {}
       try {
         const raw = localStorage.getItem('cal_onboarding')
@@ -90,6 +92,22 @@ function CompleteContent() {
         if (!res.ok) {
           const data = await res.json()
           throw new Error(data.error ?? 'Error creando el programa')
+        }
+
+        const programData = await res.json()
+
+        // Si el usuario eligió celebrar cumpleaños, activar la campaña automáticamente
+        if (config.birthdayAction === 'celebrate' && programData.program?.id) {
+          fetch('/api/fidelizacion/birthday', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+            body: JSON.stringify({
+              program_id: programData.program.id,
+              enabled: true,
+              discount_type: 'percent',
+              discount_value: 20,
+            }),
+          }).catch(() => {})
         }
 
         // Track conversión final
