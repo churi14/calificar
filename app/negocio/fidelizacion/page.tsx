@@ -640,12 +640,13 @@ function SalesChart({ salesByDay, cost, color }: { salesByDay: Record<string, nu
   )
 }
 
-function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, businessName, cards, pushLogs, salesByDay, totalSales, onLogoNav }:
+function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, businessName, cards, pushLogs, salesByDay, totalSales, onLogoNav, businessCreatedAt, businessPlan, onNavPlan }:
   { program: Program | undefined; selectedProgram: string | null; stats: { total: number; stampsToday: number; rewardsTotal: number }
     transactions: Transaction[]; notifMsg: string; setNotifMsg: (v: string) => void
     notifSending: boolean; notifSent: boolean; sendNotif: () => void; businessName: string; cards: Card[]
     pushLogs: { id: string; title: string; body: string; sent_to: number; created_at: string }[]
-    salesByDay: Record<string, number>; totalSales: number; onLogoNav: () => void }) {
+    salesByDay: Record<string, number>; totalSales: number; onLogoNav: () => void
+    businessCreatedAt?: string | null; businessPlan?: string; onNavPlan?: () => void }) {
   const color = program?.color_primary ?? '#7C3AED'
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches' })()
   const totalStamps = transactions.filter(tx => tx.type === 'stamp').length
@@ -656,12 +657,41 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
   // Costo mensual de Calificar (plan starter por defecto)
   const calificarCost = 9.99
 
+  const trialDaysLeft = (() => {
+    if (businessPlan && businessPlan !== 'trial') return null
+    if (!businessCreatedAt) return null
+    const days = Math.ceil((new Date(businessCreatedAt).getTime() + 14 * 24 * 60 * 60 * 1000 - Date.now()) / (1000 * 60 * 60 * 24))
+    return Math.max(0, days)
+  })()
+
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
       <div className="mb-5">
         <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName}.</h1>
         <p className="text-zinc-400 text-sm mt-0.5">Esto es lo que está pasando hoy en {businessName}.</p>
       </div>
+
+      {/* Banner días de prueba restantes */}
+      {trialDaysLeft !== null && (
+        <div className="mb-5 rounded-2xl px-5 py-3.5 flex items-center justify-between gap-4 flex-wrap"
+          style={{ background: trialDaysLeft <= 3 ? 'linear-gradient(135deg, #FEF3C7, #FDE68A33)' : 'linear-gradient(135deg, #EDE9FE, #DDD6FE33)', border: `1px solid ${trialDaysLeft <= 3 ? '#F59E0B44' : '#7C3AED33'}` }}>
+          <div className="flex items-center gap-3">
+            <span className={`text-2xl font-extrabold tabular-nums ${trialDaysLeft <= 3 ? 'text-amber-600' : 'text-violet-700'}`}>{trialDaysLeft}</span>
+            <div>
+              <p className={`text-sm font-bold ${trialDaysLeft <= 3 ? 'text-amber-700' : 'text-violet-800'}`}>
+                {trialDaysLeft === 0 ? 'Tu prueba gratuita venció hoy' : trialDaysLeft === 1 ? 'Último día de prueba gratuita' : `días de prueba gratuita restantes`}
+              </p>
+              <p className="text-xs text-zinc-400">Elegí un plan para seguir usando Calificar sin interrupciones.</p>
+            </div>
+          </div>
+          {onNavPlan && (
+            <button onClick={onNavPlan}
+              className={`text-xs font-bold px-4 py-2 rounded-xl text-white flex-shrink-0 ${trialDaysLeft <= 3 ? 'bg-amber-500 hover:bg-amber-600' : 'bg-violet-600 hover:bg-violet-700'} transition-colors`}>
+              Ver planes →
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Modal QR ampliado */}
       {showQrBig && (
@@ -2791,12 +2821,9 @@ function ViewPlan({ onNav, businessCreatedAt = null }: { onNav: (id: string) => 
             <span className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-1">50% OFF — OFERTA DE BIENVENIDA</span>
             <p className="text-sm font-semibold text-zinc-800">Oferta de bienvenida · Se aplica automáticamente al elegir tu plan.</p>
           </div>
-          <div className="flex items-center gap-1.5 text-violet-700 font-extrabold text-lg tabular-nums flex-shrink-0">
-            <span className="bg-violet-100 px-2.5 py-1 rounded-xl">{String(h).padStart(2,'0')}</span>
-            <span>:</span>
-            <span className="bg-violet-100 px-2.5 py-1 rounded-xl">{String(m).padStart(2,'0')}</span>
-            <span>:</span>
-            <span className="bg-violet-100 px-2.5 py-1 rounded-xl">{String(s).padStart(2,'0')}</span>
+          <div className="flex items-center gap-2 text-violet-700 font-extrabold flex-shrink-0">
+            <span className="bg-violet-100 px-3 py-1.5 rounded-xl text-2xl tabular-nums">{Math.ceil((discountDeadlineMs - Date.now()) / (1000 * 60 * 60 * 24))}</span>
+            <span className="text-sm font-semibold text-violet-500">días restantes</span>
           </div>
         </div>
       )}
@@ -3530,7 +3557,9 @@ export default function NegocioDashboard() {
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
             businessName={businessName} cards={cards}
             pushLogs={pushLogs} salesByDay={salesByDay} totalSales={totalSales}
-            onLogoNav={() => setActiveNav('tarjeta')} />
+            onLogoNav={() => setActiveNav('tarjeta')}
+            businessCreatedAt={businessCreatedAt} businessPlan={businessPlan}
+            onNavPlan={() => setActiveNav('plan')} />
         )}
         {activeNav === 'tarjeta' && (
           <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} accessToken={accessToken} plan={businessPlan} planExpiresAt={planExpiresAt} stats={stats} businessCreatedAt={businessCreatedAt} />
