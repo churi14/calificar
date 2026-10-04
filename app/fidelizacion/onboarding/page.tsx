@@ -190,13 +190,13 @@ export default function OnboardingPage() {
     track(step, 'step_view')
   }, [step])
 
-  // Si el usuario ya tiene negocio registrado, redirigir al panel
+  // Si el usuario ya tiene negocio activo, redirigir al panel
   useEffect(() => {
     const supabase = createSupabaseClient()
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return
-      // Chequear vía API si ya tiene negocio
-      const res = await fetch('/api/fidelizacion/admin', {
+      // Chequear los programas del usuario (solo activos)
+      const res = await fetch('/api/fidelizacion/my-programs', {
         headers: { Authorization: `Bearer ${data.session.access_token}` },
       })
       if (res.ok) {

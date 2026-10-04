@@ -48,15 +48,16 @@ function CompleteContent() {
         if (raw) config = JSON.parse(raw)
       } catch {}
 
-      // Chequear si el usuario ya tiene un negocio registrado
+      // Chequear si el usuario ya tiene un negocio activo registrado
       const { data: existingCheck } = await supabase
         .from('businesses')
         .select('id')
         .eq('owner_user_id', user.id)
+        .eq('active', true)
         .maybeSingle()
 
       if (existingCheck) {
-        // Ya tiene negocio — ir directo al panel
+        // Ya tiene negocio activo — ir directo al panel
         router.replace('/negocio/fidelizacion')
         return
       }
