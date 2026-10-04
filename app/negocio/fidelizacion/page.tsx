@@ -3148,15 +3148,23 @@ export default function NegocioDashboard() {
 
   useEffect(() => {
     // Obtener token inicial y mantenerlo actualizado cuando Supabase lo refresca
+    let token = ''
     supabaseClient.auth.getSession().then(({ data }) => {
-      if (data.session?.access_token) setAccessToken(data.session.access_token)
+      if (data.session?.access_token) {
+        token = data.session.access_token
+        setAccessToken(token)
+      }
     })
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       if (session?.access_token) setAccessToken(session.access_token)
     })
 
-    fetch('/api/fidelizacion/my-programs')
-      .then(r => r.json())
+    supabaseClient.auth.getSession().then(({ data }) => {
+      const tok = data.session?.access_token ?? ''
+      return fetch('/api/fidelizacion/my-programs', {
+        headers: tok ? { Authorization: `Bearer ${tok}` } : {},
+      })
+    }).then(r => r.json())
       .then(d => {
         setPrograms(d.programs ?? [])
         if (d.programs?.length > 0) {
@@ -3169,11 +3177,11 @@ export default function NegocioDashboard() {
           if (biz?.plan_expires_at !== undefined) setPlanExpiresAt(biz.plan_expires_at)
           if (biz?.created_at) {
             setBusinessCreatedAt(biz.created_at)
-            // Mostrar popup de descuento solo dentro de los primeros 7 días y si no pagó
+            // Mostrar popup de descuento si no pagó y está dentro del primer mes
             const isPaidPlan = ['starter', 'pro', 'ultimate', 'gifted'].includes(biz.plan ?? '')
             if (!isPaidPlan) {
               const diffDays = (Date.now() - new Date(biz.created_at).getTime()) / (1000 * 60 * 60 * 24)
-              if (diffDays <= 7) {
+              if (diffDays <= 30) {
                 const dismissed = localStorage.getItem('cal_discount_dismissed')
                 if (!dismissed) {
                   const nextShow = parseInt(localStorage.getItem('cal_discount_next') ?? '0')
@@ -3337,8 +3345,8 @@ export default function NegocioDashboard() {
       `}</style>
       {showDiscount && (() => {
         const daysLeft = businessCreatedAt
-          ? Math.max(0, 7 - Math.floor((Date.now() - new Date(businessCreatedAt).getTime()) / (1000 * 60 * 60 * 24)))
-          : 7
+          ? Math.max(0, 30 - Math.floor((Date.now() - new Date(businessCreatedAt).getTime()) / (1000 * 60 * 60 * 24)))
+          : 30
         return <DiscountPopup onClose={() => setShowDiscount(false)} daysLeft={daysLeft} />
       })()}
       {/* Mobile top header */}
