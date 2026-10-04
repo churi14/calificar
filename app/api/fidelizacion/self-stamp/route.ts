@@ -35,14 +35,14 @@ async function consumeStampToken(program_id: string, token: string): Promise<boo
   if (!row) return false
 
   // Marcar como usado (atomically — si alguien más lo usó antes, no encontrará used_at=null)
-  const { count } = await supabase
+  const { data: updated } = await supabase
     .from('stamp_tokens')
     .update({ used_at: now })
     .eq('id', row.id)
     .is('used_at', null)
-    .select('id', { count: 'exact', head: true })
+    .select('id')
 
-  return (count ?? 0) > 0
+  return (updated?.length ?? 0) > 0
 }
 
 export async function POST(req: NextRequest) {
