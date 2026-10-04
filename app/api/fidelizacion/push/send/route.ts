@@ -37,13 +37,16 @@ export async function POST(req: NextRequest) {
   // Obtener logo del negocio (para el ícono de la notificación)
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('logo_url')
+    .select('logo_url, businesses(plan, plan_expires_at)')
     .eq('id', program_id)
     .single()
 
+  const biz = program?.businesses as { plan?: string | null; plan_expires_at?: string | null } | null
+  const isProPlus = ['pro', 'ultimate', 'gifted'].includes(biz?.plan ?? '')
+    && (!biz?.plan_expires_at || new Date(biz.plan_expires_at) > new Date())
   const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
-  // Si el negocio tiene logo, usar el endpoint que genera el ícono cuadrado con su color de fondo
-  const iconUrl = program?.logo_url
+  // Logo del negocio solo en Pro+, resto usa el ícono de Calificar
+  const iconUrl = isProPlus && program?.logo_url
     ? `${BASE}/api/fidelizacion/icon?program_id=${program_id}&size=96`
     : `${BASE}/notification-icon.png`
 
