@@ -3239,14 +3239,14 @@ export default function NegocioDashboard() {
     const res = await fetch('/api/fidelizacion/push/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
-      body: JSON.stringify({ program_id: selectedProgram, title: '📣 Novedad del local', body: notifMsg }),
+      body: JSON.stringify({ program_id: selectedProgram, title: `📣 ${businessName}`, body: notifMsg }),
     })
     const d = await res.json()
     setNotifSending(false); setNotifSent(true); setNotifMsg('')
     // Refrescar push logs
     if (d.ok && d.sent > 0) {
       setPushLogs(prev => [{
-        id: Date.now().toString(), title: '📣 Novedad del local', body: notifMsg,
+        id: Date.now().toString(), title: `📣 ${businessName}`, body: notifMsg,
         sent_to: d.sent, created_at: new Date().toISOString(),
       }, ...prev.slice(0, 4)])
     }

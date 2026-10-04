@@ -41,13 +41,10 @@ export async function POST(req: NextRequest) {
     .eq('id', program_id)
     .single()
 
-  const biz = program?.businesses as { plan?: string | null; plan_expires_at?: string | null } | null
-  const isProPlus = ['pro', 'ultimate', 'gifted'].includes(biz?.plan ?? '')
-    && (!biz?.plan_expires_at || new Date(biz.plan_expires_at) > new Date())
   const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
-  // Logo del negocio solo en Pro+, resto usa el ícono de Calificar
-  const iconUrl = isProPlus && program?.logo_url
-    ? `${BASE}/api/fidelizacion/icon?program_id=${program_id}&size=96`
+  // Usar logo del negocio si existe, sino ícono de Calificar
+  const iconUrl = program?.logo_url
+    ? `${BASE}/api/fidelizacion/icon?program_id=${program_id}&size=192`
     : `${BASE}/notification-icon.png`
 
   const vapid = getVapidConfig()
