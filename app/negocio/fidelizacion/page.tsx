@@ -27,6 +27,7 @@ type Card = {
   total_visits: number
   birth_date: string | null
   created_at: string
+  dni?: string | null
 }
 
 type Transaction = {
@@ -308,7 +309,7 @@ function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp, pla
         {isProPlus ? (
           <>
             <p className="text-sm text-zinc-500 mb-4">
-              Este link expira automáticamente cada 30 minutos. Mandalo a tus clientes — si lo guardan y lo usan después, no funciona.
+              Este link es de un solo uso y se renueva cada 10 segundos. Una vez que alguien lo usa para cargar un sello, el link deja de funcionar. Mandalo al cliente justo cuando lo necesita.
             </p>
             {loadingToken ? (
               <div className="h-12 bg-zinc-100 rounded-xl animate-pulse" />
@@ -328,14 +329,14 @@ function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp, pla
                   <div className="flex-1 h-1 bg-zinc-100 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-emerald-400 rounded-full transition-all duration-1000"
-                      style={{ width: `${(secondsLeft / (30 * 60)) * 100}%` }}
+                      style={{ width: `${Math.min(100, (secondsLeft / 10) * 100)}%` }}
                     />
                   </div>
                   <span className="text-xs text-zinc-400 tabular-nums">
-                    {secondsLeft > 0 ? `Expira en ${formatCountdown(secondsLeft)}` : 'Actualizando…'}
+                    {secondsLeft > 0 ? `${secondsLeft}s` : 'Actualizando…'}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-400 mt-1">El link se renueva automáticamente cuando expira.</p>
+                <p className="text-xs text-zinc-400 mt-1">El link se renueva cada 10 segundos o al ser usado.</p>
               </>
             ) : (
               <p className="text-sm text-red-500">No se pudo generar el link. Recargá la página.</p>
@@ -1396,7 +1397,8 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
   const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
 
   const filtered = cards.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search)
+    const q = search.toLowerCase()
+    const matchSearch = !q || c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.dni ? c.dni.includes(q) : false)
     if (filter === 'activo') return matchSearch && c.stamps > 0
     if (filter === 'inactivo') return matchSearch && c.stamps === 0
     return matchSearch
@@ -1456,7 +1458,7 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
             <div className="flex-1" />
             <div className="flex items-center gap-2 border border-zinc-200 rounded-xl px-3 py-2 bg-white">
               <span className="text-zinc-400 text-sm">🔍</span>
-              <input type="text" placeholder="Buscar por nombre, email o teléfono..." value={search} onChange={e => setSearch(e.target.value)}
+              <input type="text" placeholder="Buscar por nombre, teléfono o DNI..." value={search} onChange={e => setSearch(e.target.value)}
                 className="text-sm text-zinc-700 placeholder-zinc-400 focus:outline-none w-56" />
             </div>
           </div>

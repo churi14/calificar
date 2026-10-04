@@ -7,12 +7,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
-import { validateToken } from '@/app/api/fidelizacion/stamp-token/route'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+/**
+ * Valida y consume un token de sello de un solo uso.
+ * Devuelve true si el token era válido y fue marcado como usado.
+ * Devuelve false si no existe, ya fue usado, o expiró.
+ */
+async function consumeStampToken(program_id: string, token: string): Promise<boolean> {
+  const now = new Date().toISOString()
+
+  // Buscar token válido: no usado, no vencido, pertenece al programa
+  const { data: row } = await supabase
+    .from('stamp_tokens')
+    .select('id')
+    .eq('program_id', program_id)
+    .eq('token', token)
+    .is('used_at', null)
+    .gt('expires_at', now)
+    .limit(1)
+    .maybeSingle()
+
+  if (!row) return false
+
+  // Marcar como usado (atomically — si alguien más lo usó antes, no encontrará used_at=null)
+  const { count } = await supabase
+    .from('stamp_tokens')
+    .update({ used_at: now })
+    .eq('id', row.id)
+    .is('used_at', null)
+    .select('id', { count: 'exact', head: true })
+
+  return (count ?? 0) > 0
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,13 +69,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
     }
 
-    // Validar token rotativo si el programa lo tiene configurado
+    // Validar token de un solo uso si el programa tiene seguridad activada
     if (program.stamp_secret) {
       if (!token) {
         return NextResponse.json({ error: 'Link expirado. Pedí el link actualizado al negocio.', token_required: true }, { status: 403 })
       }
-      if (!validateToken(program.stamp_secret, token)) {
-        return NextResponse.json({ error: 'Este link ya expiró. Pedí el link actualizado al negocio.', token_required: true }, { status: 403 })
+      const valid = await consumeStampToken(program_id, token)
+      if (!valid) {
+        return NextResponse.json({ error: 'Este link ya fue usado o expiró. Pedí el link actualizado al negocio.', token_required: true }, { status: 403 })
       }
     }
 

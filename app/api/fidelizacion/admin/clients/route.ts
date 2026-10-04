@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const { data: cards, error } = await supabase
     .from('loyalty_cards')
-    .select('id, name, phone, stamps, total_visits, birth_date, created_at')
+    .select('id, name, phone, stamps, total_visits, birth_date, created_at, dni')
     .eq('program_id', program_id)
     .order('created_at', { ascending: false })
 

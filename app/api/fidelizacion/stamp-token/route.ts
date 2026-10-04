@@ -1,12 +1,17 @@
 /**
  * GET /api/fidelizacion/stamp-token?program_id=X
  * Devuelve el token rotativo actual para el programa (planes Pro+).
- * Token = HMAC-SHA256(stamp_secret, ventana_actual). Ventana: 30 minutos.
+ *
+ * Tokens de un solo uso almacenados en DB:
+ * - Se genera un nuevo token cada 10 segundos (si el anterior ya fue usado o expiró)
+ * - Cada token es válido hasta que se usa para un sello (luego queda "consumed")
+ * - Los tokens sin usar expiran a las 2 horas
+ * - Se limpian tokens vencidos en cada request
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createHmac, randomBytes } from 'crypto'
+import { randomBytes } from 'crypto'
 import { verifyProgramOwner } from '@/lib/business-auth'
 
 const supabase = createClient(
@@ -14,25 +19,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export const WINDOW_SECONDS = 30 * 60 // 30 minutos
+export const TOKEN_WINDOW_SECONDS = 10  // rotación cada 10 segundos
+export const TOKEN_TTL_HOURS = 2        // expiran a las 2 horas si no se usan
 
-export function generateToken(secret: string, windowIndex: number): string {
-  return createHmac('sha256', secret)
-    .update(windowIndex.toString())
-    .digest('hex')
-    .slice(0, 12)
-}
-
-export function currentWindowIndex(): number {
-  return Math.floor(Date.now() / 1000 / WINDOW_SECONDS)
-}
-
-export function validateToken(secret: string, token: string): boolean {
-  const current = currentWindowIndex()
-  return (
-    generateToken(secret, current) === token ||
-    generateToken(secret, current - 1) === token
-  )
+function generateRandomToken(): string {
+  return randomBytes(8).toString('hex') // 16 chars hex
 }
 
 export async function GET(req: NextRequest) {
@@ -59,25 +50,62 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'plan_required', plan_needed: 'pro' }, { status: 403 })
   }
 
-  // Obtener o generar stamp_secret
-  let secret = program.stamp_secret as string | null
-  if (!secret) {
-    secret = randomBytes(32).toString('hex')
+  // Activar stamp_secret si el programa no lo tiene (marca que usa tokens)
+  if (!program.stamp_secret) {
+    const secret = randomBytes(16).toString('hex')
     await supabase
       .from('loyalty_programs')
       .update({ stamp_secret: secret })
       .eq('id', program_id)
   }
 
-  const windowIndex = currentWindowIndex()
-  const token = generateToken(secret, windowIndex)
-  const windowEndMs = (windowIndex + 1) * WINDOW_SECONDS * 1000
-  const secondsRemaining = Math.round((windowEndMs - Date.now()) / 1000)
+  // Limpiar tokens vencidos del programa (mantenimiento ligero)
+  await supabase
+    .from('stamp_tokens')
+    .delete()
+    .eq('program_id', program_id)
+    .lt('expires_at', new Date().toISOString())
+
+  // Buscar token activo creado en los últimos TOKEN_WINDOW_SECONDS y no usado
+  const windowStart = new Date(Date.now() - TOKEN_WINDOW_SECONDS * 1000).toISOString()
+  const { data: existing } = await supabase
+    .from('stamp_tokens')
+    .select('id, token, created_at, expires_at')
+    .eq('program_id', program_id)
+    .is('used_at', null)
+    .gte('created_at', windowStart)
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  let token: string
+  let tokenCreatedAt: number
+
+  if (existing) {
+    token = existing.token
+    tokenCreatedAt = new Date(existing.created_at).getTime()
+  } else {
+    // Crear nuevo token
+    token = generateRandomToken()
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + TOKEN_TTL_HOURS * 60 * 60 * 1000)
+    const { data: inserted } = await supabase
+      .from('stamp_tokens')
+      .insert({ program_id, token, expires_at: expiresAt.toISOString() })
+      .select('created_at')
+      .single()
+    tokenCreatedAt = inserted ? new Date(inserted.created_at).getTime() : Date.now()
+  }
+
+  const ageSeconds = (Date.now() - tokenCreatedAt) / 1000
+  const secondsRemaining = Math.max(1, Math.round(TOKEN_WINDOW_SECONDS - ageSeconds))
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
 
   return NextResponse.json({
     token,
     seconds_remaining: secondsRemaining,
-    window_seconds: WINDOW_SECONDS,
-    link: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'}/s/${program_id}?t=${token}`,
+    window_seconds: TOKEN_WINDOW_SECONDS,
+    link: `${appUrl}/s/${program_id}?t=${token}`,
   })
 }
