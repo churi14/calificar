@@ -29,8 +29,10 @@ export async function GET(req: NextRequest) {
   // Fallback: logo de Calificar
   const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
 
+  const FALLBACK = `${BASE}/notification-icon.png`
+
   if (!program_id) {
-    return NextResponse.redirect(`${BASE}/logo.svg`)
+    return NextResponse.redirect(FALLBACK)
   }
 
   const { data: program } = await supabase
@@ -40,13 +42,13 @@ export async function GET(req: NextRequest) {
     .single()
 
   if (!program?.logo_url) {
-    return NextResponse.redirect(`${BASE}/logo.svg`)
+    return NextResponse.redirect(FALLBACK)
   }
 
   try {
     // Descargar logo
     const logoRes = await fetch(program.logo_url)
-    if (!logoRes.ok) return NextResponse.redirect(`${BASE}/logo.svg`)
+    if (!logoRes.ok) return NextResponse.redirect(FALLBACK)
     const logoBuffer = Buffer.from(await logoRes.arrayBuffer())
 
     const color = program.color_primary ?? '#7C3AED'
@@ -77,6 +79,6 @@ export async function GET(req: NextRequest) {
     })
   } catch (err) {
     console.error('[icon] Error generando ícono:', err)
-    return NextResponse.redirect(`${BASE}/logo.svg`)
+    return NextResponse.redirect(FALLBACK)
   }
 }

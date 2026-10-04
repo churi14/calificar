@@ -37,17 +37,15 @@ export async function POST(req: NextRequest) {
   // Obtener logo del negocio (para el ícono de la notificación)
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('logo_url, businesses(plan, plan_expires_at)')
+    .select('logo_url')
     .eq('id', program_id)
     .single()
 
-  const biz = program?.businesses as { plan?: string | null; plan_expires_at?: string | null } | null
-  const hasPaidPlan = biz?.plan && biz.plan !== 'trial'
-    && (!biz.plan_expires_at || new Date(biz.plan_expires_at) > new Date())
   const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
-  const iconUrl = hasPaidPlan && program?.logo_url
+  // Si el negocio tiene logo, usar el endpoint que genera el ícono cuadrado con su color de fondo
+  const iconUrl = program?.logo_url
     ? `${BASE}/api/fidelizacion/icon?program_id=${program_id}&size=96`
-    : `${BASE}/logo.png`
+    : `${BASE}/notification-icon.png`
 
   const vapid = getVapidConfig()
   webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey)
