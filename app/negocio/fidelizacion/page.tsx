@@ -2503,15 +2503,38 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
 }
 
 // ── Vista: PERFIL DEL NEGOCIO ────────────────────────────────────────────────
-function ViewPerfil({ program, selectedProgram, businessName, onSaved }: {
-  program: Program | undefined; selectedProgram: string | null; businessName: string; onSaved: (name: string) => void
+function ViewPerfil({ program, selectedProgram, businessName, onSaved, accessToken }: {
+  program: Program | undefined; selectedProgram: string | null; businessName: string; onSaved: (name: string) => void; accessToken?: string
 }) {
   const [name, setName] = useState(businessName)
   const [waNumber, setWaNumber] = useState('')
   const [address, setAddress] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const color = program?.color_primary ?? '#7C3AED'
+
+  async function deleteAccount() {
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/fidelizacion/delete-account', {
+        method: 'POST',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      })
+      if (res.ok) {
+        localStorage.removeItem('cal_new_biz')
+        localStorage.removeItem('cal_onboarding')
+        window.location.href = '/fidelizacion/onboarding'
+      } else {
+        alert('No se pudo eliminar la cuenta. Intentá de nuevo.')
+      }
+    } catch {
+      alert('Error de red. Intentá de nuevo.')
+    }
+    setDeleting(false)
+    setShowDeleteConfirm(false)
+  }
 
   async function save() {
     if (!selectedProgram) return
@@ -2611,6 +2634,51 @@ function ViewPerfil({ program, selectedProgram, businessName, onSaved }: {
         style={{ background: saved ? '#10B981' : color }}>
         {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar cambios'}
       </button>
+
+      {/* Zona de peligro */}
+      <div className="mt-8 border border-red-100 rounded-2xl p-5 bg-red-50/40">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-red-400 mb-3">ZONA DE PELIGRO</p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-zinc-800">Eliminar cuenta</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Desactiva tu negocio y programa. Tus clientes y su historial se conservan.</p>
+          </div>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex-shrink-0 text-xs font-bold px-4 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+
+      {/* Modal de confirmación */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <p className="text-xl mb-1">⚠️</p>
+            <h2 className="text-lg font-extrabold text-zinc-900 mb-2">¿Eliminar tu cuenta?</h2>
+            <p className="text-sm text-zinc-500 mb-1">Tu negocio y programa de fidelidad se desactivarán.</p>
+            <p className="text-sm text-zinc-500 mb-5">Los datos de tus clientes (tarjetas y transacciones) quedan guardados.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 border border-zinc-200 text-zinc-600 font-semibold py-2.5 rounded-xl text-sm hover:bg-zinc-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={deleteAccount}
+                disabled={deleting}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50"
+              >
+                {deleting ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -3482,7 +3550,7 @@ export default function NegocioDashboard() {
         {activeNav === 'imprimir' && <ViewImprimir program={program} selectedProgram={selectedProgram} />}
         {activeNav === 'perfil' && (
           <ViewPerfil program={program} selectedProgram={selectedProgram}
-            businessName={businessName} onSaved={name => setBusinessName(name)} />
+            businessName={businessName} onSaved={name => setBusinessName(name)} accessToken={accessToken} />
         )}
         {activeNav === 'plan' && <ViewPlan onNav={setActiveNav} businessCreatedAt={businessCreatedAt} />}
         {activeNav === 'ayuda' && <ViewAyuda onNav={setActiveNav} />}

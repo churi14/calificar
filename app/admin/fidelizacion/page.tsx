@@ -747,6 +747,7 @@ export default function AdminFidelizacionPage() {
         <div className="grid gap-4">
           {programs.map(p => {
             const cardCount = p.loyalty_cards?.[0]?.count ?? 0
+
             return (
               <div key={p.id} className="bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-sm transition-shadow">
                 <div className="flex items-start justify-between">
@@ -974,6 +975,43 @@ export default function AdminFidelizacionPage() {
           })}
         </div>
       )}
+
+      {/* Negocios sin programa */}
+      {!loading && (() => {
+        const bizIdsWithProgram = new Set(programs.map(p => p.businesses?.id).filter(Boolean))
+        const orphanBizs = businesses.filter(b => !bizIdsWithProgram.has(b.id))
+        if (orphanBizs.length === 0) return null
+        return (
+          <div className="mt-8">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-base font-bold text-gray-700">Registros sin programa</h2>
+              <span className="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{orphanBizs.length}</span>
+            </div>
+            <p className="text-xs text-gray-400 mb-4">Estos negocios se registraron pero no tienen un programa de fidelidad creado. Podés crearles uno desde el botón &quot;+ Nuevo programa&quot;.</p>
+            <div className="grid gap-3">
+              {orphanBizs.map(b => (
+                <div key={b.id} className="bg-white border border-amber-100 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-sm flex-shrink-0">
+                      {b.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800 text-sm">{b.name}</p>
+                      <p className="text-[11px] text-gray-400 font-mono">{b.id}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setForm(f => ({ ...f, business_id: b.id })); setEditId(null); setShowForm(true) }}
+                    className="text-xs font-bold px-3 py-1.5 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors flex-shrink-0"
+                  >
+                    + Crear programa
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
