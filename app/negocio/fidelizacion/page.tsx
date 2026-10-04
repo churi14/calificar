@@ -2684,7 +2684,7 @@ function ViewPlan({ onNav, businessCreatedAt = null }: { onNav: (id: string) => 
   ]
 
   const discountDeadlineMs = businessCreatedAt
-    ? new Date(businessCreatedAt).getTime() + 7 * 24 * 60 * 60 * 1000
+    ? new Date(businessCreatedAt).getTime() + 30 * 24 * 60 * 60 * 1000
     : 0
   const isDiscountEligible = discountDeadlineMs > Date.now()
   const { h, m, s } = useCountdown(discountDeadlineMs)
@@ -2717,7 +2717,7 @@ function ViewPlan({ onNav, businessCreatedAt = null }: { onNav: (id: string) => 
       {isDiscountEligible && (
         <div className="mb-6 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap" style={{ background: 'linear-gradient(135deg, #7C3AED22, #6366f122)', border: '1px solid #7C3AED44' }}>
           <div>
-            <span className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-1">50% OFF — Solo esta semana</span>
+            <span className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-1">50% OFF — OFERTA DE BIENVENIDA</span>
             <p className="text-sm font-semibold text-zinc-800">Oferta de bienvenida · Se aplica automáticamente al elegir tu plan.</p>
           </div>
           <div className="flex items-center gap-1.5 text-violet-700 font-extrabold text-lg tabular-nums flex-shrink-0">
