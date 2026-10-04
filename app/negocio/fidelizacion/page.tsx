@@ -3147,33 +3147,23 @@ export default function NegocioDashboard() {
   }
 
   useEffect(() => {
-    // Obtener token inicial y mantenerlo actualizado cuando Supabase lo refresca
-    let token = ''
-    supabaseClient.auth.getSession().then(({ data }) => {
-      if (data.session?.access_token) {
-        token = data.session.access_token
-        setAccessToken(token)
-      }
-    })
-    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      if (session?.access_token) setAccessToken(session.access_token)
-    })
+    let programsFetched = false
 
-    supabaseClient.auth.getSession().then(({ data }) => {
-      const tok = data.session?.access_token ?? ''
-      return fetch('/api/fidelizacion/my-programs', {
-        headers: tok ? { Authorization: `Bearer ${tok}` } : {},
-      })
-    }).then(r => r.json())
-      .then(d => {
+    async function loadPrograms(tok: string) {
+      // Guard: solo cargar una vez aunque se dispare desde getSession y onAuthStateChange
+      if (programsFetched) return
+      programsFetched = true
+      try {
+        const res = await fetch('/api/fidelizacion/my-programs', {
+          headers: tok ? { Authorization: `Bearer ${tok}` } : {},
+        })
+        const d = await res.json()
         setPrograms(d.programs ?? [])
         if (d.programs?.length > 0) {
           setSelectedProgram(d.programs[0].id)
           const biz = d.programs[0].businesses
           if (biz?.name) setBusinessName(biz.name)
-          if (biz?.plan) {
-            setBusinessPlan(biz.plan)
-          }
+          if (biz?.plan) setBusinessPlan(biz.plan)
           if (biz?.plan_expires_at !== undefined) setPlanExpiresAt(biz.plan_expires_at)
           if (biz?.created_at) {
             setBusinessCreatedAt(biz.created_at)
@@ -3194,9 +3184,27 @@ export default function NegocioDashboard() {
           }
         }
         if (d.email) setUserEmail(d.email)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+      } catch {}
+      setLoading(false)
+    }
+
+    // Intentar con la sesión actual (puede estar vacía si Supabase aún no la restauró)
+    supabaseClient.auth.getSession().then(({ data }) => {
+      const tok = data.session?.access_token ?? ''
+      if (tok) setAccessToken(tok)
+      loadPrograms(tok)
+    })
+
+    // Escuchar cambios de auth — se dispara cuando el magic link termina de procesar
+    // y el token recién está disponible. Así resolvemos la condición de carrera.
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      const tok = session?.access_token ?? ''
+      if (tok) {
+        setAccessToken(tok)
+        // Si getSession() devolvió vacío y programsFetched = false, este retry lo resuelve
+        loadPrograms(tok)
+      }
+    })
 
     return () => subscription.unsubscribe()
   }, [])
