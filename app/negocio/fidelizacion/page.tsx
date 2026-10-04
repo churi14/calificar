@@ -3147,16 +3147,22 @@ export default function NegocioDashboard() {
   }
 
   useEffect(() => {
+    // programsFetched se pone true solo cuando la carga fue EXITOSA (no en 401)
+    // Así el retry de onAuthStateChange puede reintentar si el primer call falló por falta de auth
     let programsFetched = false
 
     async function loadPrograms(tok: string) {
-      // Guard: solo cargar una vez aunque se dispare desde getSession y onAuthStateChange
       if (programsFetched) return
-      programsFetched = true
+      // NO ponemos programsFetched = true aquí — lo ponemos solo si éxito
       try {
         const res = await fetch('/api/fidelizacion/my-programs', {
           headers: tok ? { Authorization: `Bearer ${tok}` } : {},
         })
+        if (res.status === 401) {
+          // Sin auth — dejar que onAuthStateChange reintente con token real
+          return
+        }
+        programsFetched = true  // ← Solo marcar éxito aquí para evitar doble carga
         const d = await res.json()
         setPrograms(d.programs ?? [])
         if (d.programs?.length > 0) {
@@ -3184,8 +3190,10 @@ export default function NegocioDashboard() {
           }
         }
         if (d.email) setUserEmail(d.email)
-      } catch {}
-      setLoading(false)
+        setLoading(false)
+      } catch {
+        setLoading(false)
+      }
     }
 
     // Intentar con la sesión actual (puede estar vacía si Supabase aún no la restauró)
@@ -3195,13 +3203,13 @@ export default function NegocioDashboard() {
       loadPrograms(tok)
     })
 
-    // Escuchar cambios de auth — se dispara cuando el magic link termina de procesar
-    // y el token recién está disponible. Así resolvemos la condición de carrera.
+    // Escuchar cambios de auth — se dispara cuando el magic link termina de escribir
+    // la sesión en localStorage. Si getSession() devolvió vacío (race condition),
+    // este callback llega fracciones de segundo después con el token real.
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       const tok = session?.access_token ?? ''
       if (tok) {
         setAccessToken(tok)
-        // Si getSession() devolvió vacío y programsFetched = false, este retry lo resuelve
         loadPrograms(tok)
       }
     })

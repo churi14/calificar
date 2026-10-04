@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 
 function CompleteContent() {
   const router = useRouter()
@@ -11,10 +11,7 @@ function CompleteContent() {
 
   useEffect(() => {
     async function run() {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
+      const supabase = createSupabaseClient()
 
       // Esperar a que la sesión esté lista (OAuth callback puede tardar un tick)
       let user = null

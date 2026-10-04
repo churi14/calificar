@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 
 // ─── Tracking ─────────────────────────────────────────────────────────────────
 const STEP_NAMES = [
@@ -192,10 +192,7 @@ export default function OnboardingPage() {
 
   // Si el usuario ya tiene negocio registrado, redirigir al panel
   useEffect(() => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const supabase = createSupabaseClient()
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return
       // Chequear vía API si ya tiene negocio
@@ -260,10 +257,7 @@ export default function OnboardingPage() {
     } catch {}
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = createSupabaseClient()
 
   async function handleGoogle() {
     setAuthLoading(true)
