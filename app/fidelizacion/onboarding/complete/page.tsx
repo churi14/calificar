@@ -124,32 +124,10 @@ function CompleteContent() {
           created_at: new Date().toISOString(),
         }))
 
-        // Ver si el usuario eligió un plan pago
-        const chosenPlan = localStorage.getItem('cal_chosen_plan')
+        // Limpiar storage — siempre ir al dashboard primero
+        // El upgrade a plan pago se hace desde el dashboard (con el popup del 50%)
         localStorage.removeItem('cal_onboarding')
         localStorage.removeItem('cal_chosen_plan')
-
-        if (chosenPlan && ['starter', 'pro', 'ultimate'].includes(chosenPlan)) {
-          // Crear preferencia de pago en MP y redirigir
-          setStatus('done')
-          try {
-            const mpRes = await fetch('/api/mp/checkout', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-              },
-              body: JSON.stringify({ plan: chosenPlan }),
-            })
-            const mpData = await mpRes.json()
-            if (mpData.init_point) {
-              window.location.href = mpData.init_point
-              return
-            }
-          } catch (e) {
-            console.error('Error MP checkout:', e)
-          }
-        }
 
         setStatus('done')
         setTimeout(() => router.replace('/negocio/fidelizacion'), 1500)

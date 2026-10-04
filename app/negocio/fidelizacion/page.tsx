@@ -2525,6 +2525,9 @@ function ViewPerfil({ program, selectedProgram, businessName, onSaved, accessTok
       if (res.ok) {
         localStorage.removeItem('cal_new_biz')
         localStorage.removeItem('cal_onboarding')
+        localStorage.removeItem('cal_chosen_plan')
+        localStorage.removeItem('cal_discount_dismissed')
+        localStorage.removeItem('cal_discount_next')
         window.location.href = '/fidelizacion/onboarding'
       } else {
         alert('No se pudo eliminar la cuenta. Intentá de nuevo.')
