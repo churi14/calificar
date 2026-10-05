@@ -17,6 +17,8 @@ export async function POST(req: NextRequest) {
     const form = await req.formData()
     const file = form.get('file') as File | null
     const programId = form.get('program_id') as string | null
+    // 'logo' = logo del negocio (tarjeta), 'app_icon' = ícono para PWA/notificaciones
+    const field = (form.get('field') as string | null) === 'app_icon' ? 'app_icon' : 'logo'
 
     if (!file || !programId) {
       return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 })
@@ -32,12 +34,14 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase() ?? 'png'
-    const path = `logos/${programId}.${ext}`
+    const storagePath = field === 'app_icon'
+      ? `app-icons/${programId}.${ext}`
+      : `logos/${programId}.${ext}`
     const buffer = Buffer.from(await file.arrayBuffer())
 
     const { error: uploadErr } = await admin.storage
       .from('calificar-assets')
-      .upload(path, buffer, {
+      .upload(storagePath, buffer, {
         contentType: file.type,
         upsert: true,
       })
@@ -48,14 +52,15 @@ export async function POST(req: NextRequest) {
 
     const { data: { publicUrl } } = admin.storage
       .from('calificar-assets')
-      .getPublicUrl(path)
+      .getPublicUrl(storagePath)
 
+    const dbField = field === 'app_icon' ? 'app_icon_url' : 'logo_url'
     await admin
       .from('loyalty_programs')
-      .update({ logo_url: publicUrl })
+      .update({ [dbField]: publicUrl })
       .eq('id', programId)
 
-    return NextResponse.json({ url: publicUrl })
+    return NextResponse.json({ url: publicUrl, field: dbField })
   } catch (err) {
     console.error('upload-logo error:', err)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })

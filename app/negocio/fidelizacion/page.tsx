@@ -15,6 +15,7 @@ type Program = {
   reward_description: string
   color_primary: string
   logo_url: string | null
+  app_icon_url: string | null
   milestones?: Milestone[]
   businesses?: { name: string; id: string }
 }
@@ -1063,8 +1064,12 @@ function PlansModal({ onClose, isDiscountEligible = false }: { onClose: () => vo
 function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, plan = 'trial', planExpiresAt = null, stats, businessCreatedAt = null }:
   { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void; accessToken: string; plan?: string; planExpiresAt?: string | null; stats?: { total: number; stampsToday: number; rewardsTotal: number }; businessCreatedAt?: string | null }) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const appIconRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
+  const [appIconUploading, setAppIconUploading] = useState(false)
+  const [appIconError, setAppIconError] = useState('')
+  const [appIconUrl, setAppIconUrl] = useState<string | null>(program?.app_icon_url ?? null)
   const [showPlans, setShowPlans] = useState(false)
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [milestoneSaving, setMilestoneSaving] = useState(false)
@@ -1142,6 +1147,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     const form = new FormData()
     form.append('file', file)
     form.append('program_id', selectedProgram ?? '')
+    form.append('field', 'logo')
     try {
       const res = await fetch('/api/fidelizacion/upload-logo', {
         method: 'POST',
@@ -1155,6 +1161,30 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
       setUploadError('Error de red')
     }
     setUploading(false)
+  }
+
+  async function handleAppIconUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAppIconUploading(true)
+    setAppIconError('')
+    const form = new FormData()
+    form.append('file', file)
+    form.append('program_id', selectedProgram ?? '')
+    form.append('field', 'app_icon')
+    try {
+      const res = await fetch('/api/fidelizacion/upload-logo', {
+        method: 'POST',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        body: form,
+      })
+      const data = await res.json()
+      if (data.url) setAppIconUrl(data.url)
+      else setAppIconError(data.error ?? 'Error al subir')
+    } catch {
+      setAppIconError('Error de red')
+    }
+    setAppIconUploading(false)
   }
 
   if (!program) return <div className="p-4 md:p-8 text-zinc-400 text-sm">No hay programa activo.</div>
@@ -1284,8 +1314,49 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
               )}
             </div>
           </div>
+        </div>
+
+        {/* Ícono para app y notificaciones */}
+        <div className="p-5 border-b border-zinc-50">
+          <p className="text-sm font-semibold text-zinc-800 mb-1">Ícono para app y notificaciones</p>
+          <p className="text-xs text-zinc-400 mb-1">
+            Aparece cuando tus clientes instalan la app en su celular y en las notificaciones push.
+          </p>
+          <p className="text-xs text-violet-600 font-medium mb-3">
+            📐 Tamaño ideal: <strong>512 × 512 px</strong>, PNG cuadrado. El contenido tiene que estar centrado, sin bordes blancos.
+          </p>
+          {['pro', 'ultimate', 'gifted'].includes(plan) ? (
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center overflow-hidden bg-zinc-50 flex-shrink-0">
+                {appIconUrl
+                  ? <img src={appIconUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
+                  : <span className="text-3xl">📱</span>
+                }
+              </div>
+              <div>
+                <input ref={appIconRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAppIconUpload} />
+                <button onClick={() => appIconRef.current?.click()} disabled={appIconUploading}
+                  className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
+                  {appIconUploading ? 'Subiendo...' : appIconUrl ? 'Cambiar ícono' : 'Subir ícono'}
+                </button>
+                {appIconError && <p className="text-xs text-red-500 mt-1">{appIconError}</p>}
+                {appIconUrl && (
+                  <p className="text-xs text-green-600 mt-1 font-medium">✓ Ícono activo</p>
+                )}
+                <p className="text-xs text-zinc-400 mt-1">PNG · máx. 2MB</p>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-zinc-50 border border-zinc-200 px-4 py-3">
+              <p className="text-xs text-zinc-500">🔒 Disponible en plan <strong>Pro</strong> o superior.</p>
+            </div>
+          )}
+        </div>
+
+        {/* div de Google Wallet */}
+        <div className="p-5 border-b border-zinc-50">
           {/* Botón de sincronización Google Wallet */}
-          <div className="mt-4 pt-4 border-t border-zinc-50">
+          <div className="">
             {plan === 'trial' ? (
               <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
                 <p className="text-xs font-semibold text-amber-700 mb-0.5">🔒 Google Wallet no disponible en prueba gratuita</p>

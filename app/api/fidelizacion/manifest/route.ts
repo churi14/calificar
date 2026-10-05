@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('id, name, color_primary, logo_url, businesses!inner(name, plan)')
+    .select('id, name, color_primary, logo_url, app_icon_url, businesses!inner(name, plan)')
     .eq('id', program_id)
     .single()
 
@@ -39,8 +39,11 @@ export async function GET(req: NextRequest) {
   const businessName = biz?.name ?? program.name
   const color = program.color_primary ?? '#7C3AED'
 
-  // Pro/Ultimate/Gifted con logo → ícono del negocio
-  const useBusinessLogo = ['pro', 'ultimate', 'gifted'].includes(plan) && !!program.logo_url
+  // Pro/Ultimate/Gifted → usar app_icon_url si está, sino logo_url como fallback
+  const iconUrl = program.app_icon_url || (
+    ['pro', 'ultimate', 'gifted'].includes(plan) ? program.logo_url : null
+  )
+  const useBusinessLogo = !!iconUrl
 
   const startUrl = card_id
     ? `${appUrl}/fidelizacion/tarjeta?card=${card_id}&program=${program_id}`
@@ -48,8 +51,8 @@ export async function GET(req: NextRequest) {
 
   const icons = useBusinessLogo
     ? [
-        { src: program.logo_url!, sizes: 'any', type: 'image/png', purpose: 'any' },
-        { src: program.logo_url!, sizes: 'any', type: 'image/png', purpose: 'maskable' },
+        { src: iconUrl!, sizes: 'any', type: 'image/png', purpose: 'any' },
+        { src: iconUrl!, sizes: 'any', type: 'image/png', purpose: 'maskable' },
       ]
     : [
         { src: `${appUrl}/logo.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
