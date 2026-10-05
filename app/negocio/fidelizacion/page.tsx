@@ -848,7 +848,8 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
             </div>
           ) : (
             <div className="space-y-2">
-              {pushLogs.map(log => (
+              <div className="max-h-40 overflow-y-auto space-y-0">
+              {pushLogs.slice(0, 5).map(log => (
                 <div key={log.id} className="py-2 border-b border-zinc-50 last:border-0">
                   <p className="text-xs font-semibold text-zinc-800 truncate">{log.body}</p>
                   <div className="flex items-center justify-between mt-0.5">
@@ -858,6 +859,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
                   </div>
                 </div>
               ))}
+              </div>
               <div className="pt-2 space-y-2">
                 <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
                   placeholder="Nuevo push..." rows={2}
