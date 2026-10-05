@@ -1681,8 +1681,8 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp, a
 }
 
 // ── Vista: PUSH ──────────────────────────────────────────────────────────────
-function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, notifError = '', notifSentCount = 0, notifRecipients = [], setNotifSent, setNotifSentCount, setNotifRecipients, pushLogs = [], cards = [], selectedProgram, accessToken }:
-  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void; notifError?: string; notifSentCount?: number; notifRecipients?: { name: string; phone: string; ok: boolean }[]; setNotifSent?: (v: boolean) => void; setNotifSentCount?: (v: number) => void; setNotifRecipients?: (v: { name: string; phone: string; ok: boolean }[]) => void; pushLogs?: { id: string; title: string; body: string; sent_to: number; created_at: string }[]; cards?: Card[]; selectedProgram?: string | null; accessToken?: string }) {
+function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, notifError = '', notifSentCount = 0, notifRecipients = [], setNotifSent, setNotifSentCount, setNotifRecipients, pushLogs = [], pushSubscribers = [], cards = [], selectedProgram, accessToken }:
+  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void; notifError?: string; notifSentCount?: number; notifRecipients?: { name: string; phone: string; ok: boolean }[]; setNotifSent?: (v: boolean) => void; setNotifSentCount?: (v: number) => void; setNotifRecipients?: (v: { name: string; phone: string; ok: boolean }[]) => void; pushLogs?: { id: string; title: string; body: string; sent_to: number; created_at: string }[]; pushSubscribers?: { id: string; card_id: string; name: string; phone: string; subscribed_at: string }[]; cards?: Card[]; selectedProgram?: string | null; accessToken?: string }) {
   const [tab, setTab] = useState<'todos' | 'individual'>('todos')
   const [search, setSearch] = useState('')
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
@@ -1827,6 +1827,30 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, n
           </button>
         </div>
       )}
+
+      {/* Suscriptores activos */}
+      <div className="mt-8">
+        <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wide mb-3">
+          Suscriptores activos ({pushSubscribers.length})
+        </h2>
+        {pushSubscribers.length === 0 ? (
+          <p className="text-sm text-zinc-400">Ningún cliente activó notificaciones todavía.</p>
+        ) : (
+          <div className="border border-zinc-100 rounded-2xl overflow-hidden">
+            {pushSubscribers.map((s, i) => (
+              <div key={s.id} className={`flex items-center justify-between px-4 py-3 ${i < pushSubscribers.length - 1 ? 'border-b border-zinc-50' : ''}`}>
+                <div>
+                  <p className="text-sm font-medium text-zinc-800">{s.name}</p>
+                  <p className="text-xs text-zinc-400">{s.phone}</p>
+                </div>
+                <p className="text-xs text-zinc-400">
+                  {new Date(s.subscribed_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Historial de pushes enviados */}
       {pushLogs.length > 0 && (
@@ -3440,6 +3464,7 @@ export default function NegocioDashboard() {
   const [businessCreatedAt, setBusinessCreatedAt] = useState<string | null>(null)
   const [todayBdayCount, setTodayBdayCount] = useState(0)
   const [pushLogs, setPushLogs] = useState<{ id: string; title: string; body: string; sent_to: number; created_at: string }[]>([])
+  const [pushSubscribers, setPushSubscribers] = useState<{ id: string; card_id: string; name: string; phone: string; subscribed_at: string }[]>([])
   const [salesByDay, setSalesByDay] = useState<Record<string, number>>({})
   const [totalSales, setTotalSales] = useState(0)
   const [stampModal, setStampModal] = useState<{ cardId: string; name: string } | null>(null)
@@ -3594,6 +3619,7 @@ export default function NegocioDashboard() {
       .then(r => r.json())
       .then(d => {
         setPushLogs(d.push_logs ?? [])
+        setPushSubscribers(d.push_subscribers ?? [])
         setSalesByDay(d.sales_by_day ?? {})
         setTotalSales(d.total_sales ?? 0)
       }).catch(() => {})
@@ -3806,7 +3832,7 @@ export default function NegocioDashboard() {
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
             notifError={notifError} notifSentCount={notifSentCount} notifRecipients={notifRecipients}
             setNotifSent={setNotifSent} setNotifSentCount={setNotifSentCount} setNotifRecipients={setNotifRecipients}
-            pushLogs={pushLogs}
+            pushLogs={pushLogs} pushSubscribers={pushSubscribers}
             cards={cards} selectedProgram={selectedProgram} accessToken={accessToken} />
         )}
         {activeNav === 'proximidad' && (

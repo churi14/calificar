@@ -20,13 +20,13 @@ export async function GET(req: NextRequest) {
 
   const since30 = new Date(Date.now() - 30 * 86400000).toISOString()
 
-  const [pushRes, salesRes] = await Promise.all([
+  const [pushRes, salesRes, subsRes] = await Promise.all([
     admin
       .from('push_logs')
       .select('id, title, body, sent_to, created_at')
       .eq('program_id', program_id)
       .order('created_at', { ascending: false })
-      .limit(5),
+      .limit(50),
     admin
       .from('loyalty_transactions')
       .select('purchase_amount, created_at')
@@ -34,6 +34,11 @@ export async function GET(req: NextRequest) {
       .eq('type', 'stamp')
       .gte('created_at', since30)
       .not('purchase_amount', 'is', null),
+    admin
+      .from('push_subscriptions')
+      .select('id, card_id, created_at, loyalty_cards(name, phone)')
+      .eq('program_id', program_id)
+      .order('created_at', { ascending: false }),
   ])
 
   // Agrupar ventas por día
@@ -43,8 +48,21 @@ export async function GET(req: NextRequest) {
     salesByDay[day] = (salesByDay[day] ?? 0) + (tx.purchase_amount ?? 0)
   }
 
+  type SubRow = { id: string; card_id: string; created_at: string; loyalty_cards?: { name?: string; phone?: string } | { name?: string; phone?: string }[] | null }
+  const push_subscribers = (subsRes.data ?? []).map((s: SubRow) => {
+    const card = Array.isArray(s.loyalty_cards) ? s.loyalty_cards[0] : s.loyalty_cards
+    return {
+      id: s.id,
+      card_id: s.card_id,
+      name: card?.name ?? 'Sin nombre',
+      phone: card?.phone ?? '',
+      subscribed_at: s.created_at,
+    }
+  })
+
   return NextResponse.json({
     push_logs: pushRes.data ?? [],
+    push_subscribers,
     sales_by_day: salesByDay,
     total_sales: Object.values(salesByDay).reduce((a, b) => a + b, 0),
   })
