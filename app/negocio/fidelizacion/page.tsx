@@ -298,6 +298,35 @@ function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp, pla
         </p>
       </div>
 
+      {/* QR permanente para el mostrador */}
+      <div className="mt-8 pt-6 border-t border-zinc-100">
+        <h3 className="font-bold text-zinc-900 mb-1">QR para sumar sellos en el local</h3>
+        <p className="text-sm text-zinc-500 mb-4">
+          Imprimilo y ponélo en el mostrador. El cliente lo escanea, pone su teléfono y se sella solo. No tiene vencimiento — es solo para uso en el local.
+        </p>
+        <div className="flex flex-col items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-2xl p-5">
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(selfLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+            alt="QR sellos" width={160} height={160} className="rounded-xl"
+          />
+          <p className="text-xs text-zinc-400 text-center">Solo para uso en el local · Sin vencimiento</p>
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={() => window.open(selfLink, '_blank')}
+              className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
+            >
+              Ampliar QR
+            </button>
+            <button
+              onClick={() => navigator.clipboard.writeText(selfLink)}
+              className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
+            >
+              Copiar link
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Link seguro con vencimiento — Pro+ */}
       <div className="mt-8 pt-6 border-t border-zinc-100">
         <div className="flex items-center gap-2 mb-1">
@@ -732,8 +761,8 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold uppercase tracking-wide mb-0.5" style={{ color }}>LISTO PARA COMPARTIR</p>
-            <p className="font-bold text-zinc-900 text-sm">Tarjeta de sellos</p>
-            <p className="text-xs text-zinc-400 mt-0.5">Mostrásela al cliente — el primero en escanearlo aparece aquí con su nombre.</p>
+            <p className="font-bold text-zinc-900 text-sm">QR de registro</p>
+            <p className="text-xs text-zinc-400 mt-0.5">El cliente escanea, se registra y recibe su tarjeta. No suma sellos — solo para altas nuevas.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={() => setShowQrBig(true)}
@@ -1557,7 +1586,7 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp, a
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
             <p className="text-2xl mb-3">🗑️</p>
             <h2 className="text-lg font-extrabold text-zinc-900 mb-2">¿Eliminar a {deleteConfirm.name}?</h2>
-            <p className="text-sm text-zinc-500 mb-5">Se eliminará su tarjeta y todos sus sellos del programa. Esta acción no se puede deshacer.</p>
+            <p className="text-sm text-zinc-500 mb-5">El cliente desaparecerá de tu lista. Si tiene la tarjeta guardada en el Wallet, seguirá viéndola pero no podrá acumular más sellos.</p>
             <div className="flex gap-3">
               <button onClick={() => setDeleteConfirm(null)} disabled={deleting}
                 className="flex-1 border border-zinc-200 text-zinc-600 font-semibold py-2.5 rounded-xl text-sm hover:bg-zinc-50 transition-colors">
