@@ -1681,8 +1681,8 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp, a
 }
 
 // ── Vista: PUSH ──────────────────────────────────────────────────────────────
-function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, cards = [], selectedProgram, accessToken }:
-  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void; cards?: Card[]; selectedProgram?: string | null; accessToken?: string }) {
+function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, notifError = '', notifSentCount = 0, cards = [], selectedProgram, accessToken }:
+  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void; notifError?: string; notifSentCount?: number; cards?: Card[]; selectedProgram?: string | null; accessToken?: string }) {
   const [tab, setTab] = useState<'todos' | 'individual'>('todos')
   const [search, setSearch] = useState('')
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
@@ -1747,8 +1747,11 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, c
           <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
             className="font-bold px-6 py-3 rounded-2xl text-sm text-white transition-colors disabled:opacity-50"
             style={{ background: notifSent ? '#10B981' : '#7C3AED' }}>
-            {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar a todos mis clientes'}
+            {notifSent ? `✓ Enviado a ${notifSentCount} cliente${notifSentCount !== 1 ? 's' : ''}` : notifSending ? 'Enviando...' : 'Enviar a todos mis clientes'}
           </button>
+          {notifError && (
+            <p className="text-sm text-red-500 mt-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{notifError}</p>
+          )}
         </div>
       )}
 
@@ -3385,6 +3388,8 @@ export default function NegocioDashboard() {
   const [notifMsg, setNotifMsg] = useState('')
   const [notifSending, setNotifSending] = useState(false)
   const [notifSent, setNotifSent] = useState(false)
+  const [notifError, setNotifError] = useState('')
+  const [notifSentCount, setNotifSentCount] = useState(0)
   const [activeNav, setActiveNav] = useState('hoy')
   const [showDiscount, setShowDiscount] = useState(false)
   const [businessName, setBusinessName] = useState('Mi negocio')
@@ -3557,21 +3562,36 @@ export default function NegocioDashboard() {
   async function sendNotif() {
     if (!notifMsg.trim() || !selectedProgram) return
     setNotifSending(true)
-    const res = await fetch('/api/fidelizacion/push/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
-      body: JSON.stringify({ program_id: selectedProgram, title: `📣 ${businessName}`, body: notifMsg }),
-    })
-    const d = await res.json()
-    setNotifSending(false); setNotifSent(true); setNotifMsg('')
-    // Refrescar push logs
-    if (d.ok && d.sent > 0) {
+    setNotifError('')
+    try {
+      const res = await fetch('/api/fidelizacion/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+        body: JSON.stringify({ program_id: selectedProgram, title: `📣 ${businessName}`, body: notifMsg }),
+      })
+      const d = await res.json()
+      setNotifSending(false)
+      if (!res.ok || d.error) {
+        setNotifError(d.error ?? `Error ${res.status}`)
+        return
+      }
+      if (d.sent === 0) {
+        setNotifError('Sin suscriptores — ningún cliente activó las notificaciones todavía.')
+        return
+      }
+      setNotifSentCount(d.sent)
+      setNotifSent(true)
+      setNotifMsg('')
+      // Refrescar push logs
       setPushLogs(prev => [{
         id: Date.now().toString(), title: `📣 ${businessName}`, body: notifMsg,
         sent_to: d.sent, created_at: new Date().toISOString(),
       }, ...prev.slice(0, 4)])
+      setTimeout(() => { setNotifSent(false); setNotifSentCount(0) }, 4000)
+    } catch (e) {
+      setNotifSending(false)
+      setNotifError('Error de red al enviar. Revisá tu conexión.')
     }
-    setTimeout(() => setNotifSent(false), 3000)
   }
 
   async function manualStamp(cardId: string, purchaseAmount?: number) {
@@ -3743,6 +3763,7 @@ export default function NegocioDashboard() {
         {activeNav === 'push' && (
           <ViewPush notifMsg={notifMsg} setNotifMsg={setNotifMsg}
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
+            notifError={notifError} notifSentCount={notifSentCount}
             cards={cards} selectedProgram={selectedProgram} accessToken={accessToken} />
         )}
         {activeNav === 'proximidad' && (
