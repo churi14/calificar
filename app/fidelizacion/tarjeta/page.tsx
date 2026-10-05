@@ -274,11 +274,8 @@ function TarjetaContent() {
     setShowInstallBanner(false)
   }
 
-  // Fondo de página: el color de la tarjeta mezclado con negro oscuro
-  const pageBg = `linear-gradient(180deg, ${color}cc 0%, #0a0a0f 45%)`
-
   return (
-    <main className="min-h-screen flex flex-col items-center pb-24" style={{ background: pageBg }}>
+    <main className="min-h-screen flex flex-col items-center pb-24 bg-zinc-950">
 
       {/* Modal de notificaciones */}
       {showNotifModal && (
@@ -333,14 +330,18 @@ function TarjetaContent() {
 
       {/* ── TARJETA ── */}
       <div className="w-full max-w-sm px-4 pt-10 pb-2">
-        <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ background: `linear-gradient(145deg, ${color}f0, ${color}bb)` }}>
-          {/* Fondo de imagen opcional */}
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl" style={{ background: `linear-gradient(145deg, ${color}f0, ${color}bb)` }}>
+          {/* Imagen de fondo — dentro del card, no escapa */}
           {cardBgImage && (
-            <div className="absolute inset-0 pointer-events-none"
-              style={{ backgroundImage: `url(${cardBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.2, borderRadius: '1.5rem' }} />
+            <div className="absolute inset-0"
+              style={{ backgroundImage: `url(${cardBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.3 }} />
+          )}
+          {/* Overlay de color sobre la imagen para que el texto sea legible */}
+          {cardBgImage && (
+            <div className="absolute inset-0" style={{ background: `${color}99` }} />
           )}
           {/* Header */}
-          <div className="px-6 pt-7 pb-4 flex items-center justify-between relative">
+          <div className="relative px-6 pt-7 pb-4 flex items-center justify-between">
             <div>
               <p className="text-xs font-medium mb-0.5" style={{ color: `${textColor}99` }}>{card.name}</p>
               <p className="font-extrabold text-xl leading-tight" style={{ color: textColor }}>{program.businesses?.name ?? program.name}</p>
@@ -356,12 +357,8 @@ function TarjetaContent() {
             )}
           </div>
           {/* Grid sellos */}
-          <div className="px-6 pb-3 relative">
-            {cardBgImage && (
-              <div className="absolute inset-0 overflow-hidden"
-                style={{ backgroundImage: `url(${cardBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.25 }} />
-            )}
-            <div className="relative grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(goal, 5)}, 1fr)` }}>
+          <div className="relative px-6 pb-4">
+            <div className="grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(goal, 5)}, 1fr)` }}>
               {selloItems.map((filled, i) =>
                 stampIcon ? (
                   <div key={i} className={`aspect-square rounded-2xl flex items-center justify-center p-2 transition-all ${filled ? 'bg-white shadow-md' : 'bg-white/15'}`}>
@@ -378,7 +375,7 @@ function TarjetaContent() {
             </div>
           </div>
           {/* Progreso */}
-          <div className="px-6 py-5">
+          <div className="relative px-6 py-5">
             <div className="flex justify-between text-xs mb-2" style={{ color: `${textColor}b3` }}>
               <span className="font-bold text-sm" style={{ color: textColor }}>{stamps} de {goal} sellos</span>
               <span>{program.reward_description}</span>
