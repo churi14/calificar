@@ -1560,15 +1560,30 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                   : <span className="text-3xl">🔖</span>
                 }
               </div>
-              <div>
-                <input ref={stampIconRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleStampIconUpload} />
-                <button onClick={() => stampIconRef.current?.click()} disabled={stampIconUploading}
-                  className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
-                  {stampIconUploading ? 'Subiendo...' : stampIconUrl ? 'Cambiar ícono' : 'Subir ícono'}
-                </button>
-                {stampIconError && <p className="text-xs text-red-500 mt-1">{stampIconError}</p>}
-                {stampIconUrl && <p className="text-xs text-green-600 mt-1 font-medium">✓ Ícono activo</p>}
-                <p className="text-xs text-zinc-400 mt-1">PNG · máx. 2MB</p>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <input ref={stampIconRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleStampIconUpload} />
+                  <button onClick={() => stampIconRef.current?.click()} disabled={stampIconUploading}
+                    className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
+                    {stampIconUploading ? 'Subiendo...' : stampIconUrl ? 'Cambiar ícono' : 'Subir ícono'}
+                  </button>
+                  {stampIconUrl && (
+                    <button onClick={async () => {
+                      if (!selectedProgram) return
+                      await fetch('/api/fidelizacion/program', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+                        body: JSON.stringify({ program_id: selectedProgram, stamp_icon_url: null }),
+                      })
+                      setStampIconUrl(null)
+                    }} className="text-sm font-semibold border border-red-200 text-red-500 px-3 py-2 rounded-xl hover:bg-red-50 transition-colors">
+                      Eliminar
+                    </button>
+                  )}
+                </div>
+                {stampIconError && <p className="text-xs text-red-500">{stampIconError}</p>}
+                {stampIconUrl && <p className="text-xs text-green-600 font-medium">✓ Ícono activo</p>}
+                <p className="text-xs text-zinc-400">PNG · máx. 2MB</p>
               </div>
             </div>
           ) : (
@@ -1592,15 +1607,30 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                   : <span className="text-2xl">🌄</span>
                 }
               </div>
-              <div>
-                <input ref={cardBgRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleCardBgUpload} />
-                <button onClick={() => cardBgRef.current?.click()} disabled={cardBgUploading}
-                  className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
-                  {cardBgUploading ? 'Subiendo...' : cardBgUrl ? 'Cambiar imagen' : 'Subir imagen'}
-                </button>
-                {cardBgError && <p className="text-xs text-red-500 mt-1">{cardBgError}</p>}
-                {cardBgUrl && <p className="text-xs text-green-600 mt-1 font-medium">✓ Fondo activo</p>}
-                <p className="text-xs text-zinc-400 mt-1">PNG/JPG · máx. 2MB</p>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <input ref={cardBgRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleCardBgUpload} />
+                  <button onClick={() => cardBgRef.current?.click()} disabled={cardBgUploading}
+                    className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
+                    {cardBgUploading ? 'Subiendo...' : cardBgUrl ? 'Cambiar imagen' : 'Subir imagen'}
+                  </button>
+                  {cardBgUrl && (
+                    <button onClick={async () => {
+                      if (!selectedProgram) return
+                      await fetch('/api/fidelizacion/program', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+                        body: JSON.stringify({ program_id: selectedProgram, card_background_url: null }),
+                      })
+                      setCardBgUrl(null)
+                    }} className="text-sm font-semibold border border-red-200 text-red-500 px-3 py-2 rounded-xl hover:bg-red-50 transition-colors">
+                      Eliminar
+                    </button>
+                  )}
+                </div>
+                {cardBgError && <p className="text-xs text-red-500">{cardBgError}</p>}
+                {cardBgUrl && <p className="text-xs text-green-600 font-medium">✓ Fondo activo</p>}
+                <p className="text-xs text-zinc-400">PNG/JPG · máx. 2MB</p>
               </div>
             </div>
           ) : (
