@@ -6,6 +6,7 @@ import { useState, Suspense } from 'react'
 type Result = {
   success: boolean
   is_new?: boolean
+  needs_name?: boolean
   client_name?: string
   stamps?: number
   stamps_goal?: number
@@ -49,15 +50,17 @@ function SelfStampContent() {
 
   async function submit() {
     if (!phone.trim()) return
-    if (needsName && !name.trim()) return
+    // Nombre siempre requerido
+    if (!name.trim()) { setNeedsName(true); return }
     setStep('loading')
     const res = await fetch('/api/fidelizacion/self-stamp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ program_id: programId, phone: phone.trim(), name: name.trim() || undefined, dni: dni.trim() || undefined, token: stampToken }),
+      body: JSON.stringify({ program_id: programId, phone: phone.trim(), name: name.trim(), dni: dni.trim() || undefined, token: stampToken }),
     })
     const data: Result = await res.json()
-    if (data.is_new && !name.trim() && res.ok) {
+    // Backend pide nombre (usuario nuevo sin nombre)
+    if (data.needs_name) {
       setNeedsName(true)
       setStep('form')
       return
@@ -285,13 +288,26 @@ function SelfStampContent() {
           </div>
 
           <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Tu teléfono</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={e => { setPhone(e.target.value); if (e.target.value.replace(/\D/g,'').length >= 8) setNeedsName(true) }}
+                onKeyDown={e => e.key === 'Enter' && submit()}
+                placeholder="Ej: 1130001234"
+                autoFocus={!needsName}
+                className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
+              />
+            </div>
             {needsName && (
               <div>
-                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Tu nombre</label>
+                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Tu nombre <span className="text-red-400">*</span></label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && submit()}
                   placeholder="¿Cómo te llamás?"
                   autoFocus
                   required
@@ -300,18 +316,6 @@ function SelfStampContent() {
                 <p className="text-xs text-zinc-400 mt-1">Obligatorio — así te reconocemos en el local.</p>
               </div>
             )}
-            <div>
-              <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Tu teléfono</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && submit()}
-                placeholder="Ej: 1130001234"
-                autoFocus={!needsName}
-                className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
-              />
-            </div>
 
             {/* DNI opcional */}
             <div>
@@ -335,7 +339,7 @@ function SelfStampContent() {
 
             <button
               onClick={submit}
-              disabled={!phone.trim()}
+              disabled={!phone.trim() || (needsName && !name.trim())}
               className="w-full py-4 rounded-2xl font-extrabold text-lg text-white transition-all disabled:opacity-40 mt-2"
               style={{ background: '#7C3AED' }}
             >

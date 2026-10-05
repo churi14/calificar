@@ -92,6 +92,9 @@ export async function POST(req: NextRequest) {
     }) ?? null
 
     const isNew = !card
+    const cleanName = (name ?? '').trim()
+    const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
+
     if (!card) {
       // Si no se encontró con match bidireccional, verificar por últimos 8 dígitos
       // para evitar duplicados por variaciones de código de área
@@ -101,11 +104,13 @@ export async function POST(req: NextRequest) {
         // Usar la tarjeta existente en vez de crear una nueva
         card = duplicate
       } else {
-        const clientName = (name ?? '').trim() || cleanPhone
-        const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
+        // Nombre obligatorio para nuevos registros
+        if (!cleanName) {
+          return NextResponse.json({ success: false, is_new: true, needs_name: true })
+        }
         const { data: newCard, error: createErr } = await supabase
           .from('loyalty_cards')
-          .insert({ program_id, phone: cleanPhone, name: clientName, stamps: 0, total_visits: 0, ...(cleanDni ? { dni: cleanDni } : {}) })
+          .insert({ program_id, phone: cleanPhone, name: cleanName, stamps: 0, total_visits: 0, ...(cleanDni ? { dni: cleanDni } : {}) })
           .select()
           .single()
 
@@ -114,6 +119,14 @@ export async function POST(req: NextRequest) {
         }
         card = newCard
       }
+    }
+
+    // Si la tarjeta existe pero el nombre es el teléfono (registro incompleto), actualizarlo
+    if (card && cleanName && card.name === card.phone) {
+      const updates: Record<string, string> = { name: cleanName }
+      if (cleanDni && !card.dni) updates.dni = cleanDni
+      await supabase.from('loyalty_cards').update(updates).eq('id', card.id)
+      card = { ...card, name: cleanName }
     }
 
     // Anti-abuso: máximo 1 sello cada 4 horas
