@@ -4016,6 +4016,13 @@ export default function NegocioDashboard() {
       }
     }
 
+    // Timeout: si en 6s no hay sesión, redirigir al login
+    const authTimeout = setTimeout(() => {
+      if (!programsFetched) {
+        window.location.replace('/login')
+      }
+    }, 6000)
+
     // Intentar con la sesión actual (puede estar vacía si Supabase aún no la restauró)
     supabaseClient.auth.getSession().then(({ data }) => {
       const tok = data.session?.access_token ?? ''
@@ -4034,7 +4041,7 @@ export default function NegocioDashboard() {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => { subscription.unsubscribe(); clearTimeout(authTimeout) }
   }, [])
 
   useEffect(() => {
