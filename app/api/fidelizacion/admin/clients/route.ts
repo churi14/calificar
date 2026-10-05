@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     .from('loyalty_cards')
     .select('id, name, phone, stamps, total_visits, birth_date, created_at, dni')
     .eq('program_id', program_id)
-    .neq('active', false)
+    .not('active', 'is', false)
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
