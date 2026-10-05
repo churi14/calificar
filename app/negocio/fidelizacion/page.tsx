@@ -1740,7 +1740,7 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, n
       {tab === 'todos' && (
         <div className="bg-white border border-zinc-100 rounded-2xl p-6">
           <label className="block text-sm font-semibold text-zinc-700 mb-2">Mensaje para todos</label>
-          <textarea value={notifMsg} onChange={e => { setNotifMsg(e.target.value); if (notifSent) { setNotifSent(false); setNotifSentCount(0); setNotifRecipients([]) } }}
+          <textarea value={notifMsg} onChange={e => { setNotifMsg(e.target.value); if (notifSent) { setNotifSent?.(false); setNotifSentCount?.(0); setNotifRecipients?.([]) } }}
             placeholder="Ej: Esta semana 2x1 en café. ¡Te esperamos!" rows={4}
             className="w-full border border-zinc-200 focus:border-violet-400 rounded-2xl px-4 py-3 text-sm focus:outline-none resize-none transition-colors" />
           <p className="text-xs text-zinc-400 mt-1 mb-4">{notifMsg.length}/160 caracteres</p>
