@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
   const program_id = req.nextUrl.searchParams.get('program_id')
   const card_id = req.nextUrl.searchParams.get('card_id')
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
+  let appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
+  if (!appUrl.startsWith('http')) appUrl = 'https://' + appUrl
 
   // Manifest genérico si no hay programa
   if (!program_id) {
