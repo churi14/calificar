@@ -1761,9 +1761,9 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
             </>
           )}
           {/* Screen */}
-          <div className="bg-zinc-50 rounded-[2rem] overflow-hidden">
+          <div className="bg-zinc-50 rounded-[2rem] overflow-hidden" style={{ minHeight: '680px' }}>
             {/* Status bar */}
-            <div className="px-6 py-2.5 flex items-center justify-between">
+            <div className="px-6 py-3 flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-800">9:41</span>
               <div className="flex gap-1.5 items-center">
                 <div className="w-5 h-2.5 rounded-sm bg-zinc-400" />
@@ -1771,43 +1771,43 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
               </div>
             </div>
             {/* Card */}
-            <div className="mx-3 mb-3 rounded-2xl overflow-hidden shadow-lg"
+            <div className="mx-3 mb-4 rounded-3xl overflow-hidden shadow-lg"
               style={{ background: `linear-gradient(145deg, ${cardColor}f0, ${cardColor}a0)` }}>
               {/* Header */}
-              <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+              <div className="px-5 pt-6 pb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-medium mb-0.5" style={{ color: `${cardTextColor}99` }}>Juan García</p>
-                  <p className="text-base font-extrabold leading-tight" style={{ color: cardTextColor }}>
+                  <p className="text-xs font-medium mb-1" style={{ color: `${cardTextColor}99` }}>Juan García</p>
+                  <p className="text-lg font-extrabold leading-tight" style={{ color: cardTextColor }}>
                     {program.businesses?.name ?? program.name}
                   </p>
                 </div>
                 {program.logo_url ? (
-                  <div className="w-12 h-12 rounded-xl bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <img src={program.logo_url} alt="" className="w-10 h-10 object-contain" />
+                  <div className="w-14 h-14 rounded-2xl bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <img src={program.logo_url} alt="" className="w-11 h-11 object-contain" />
                   </div>
                 ) : (
-                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-base font-extrabold" style={{ color: cardTextColor }}>
+                  <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-lg font-extrabold" style={{ color: cardTextColor }}>
                     {(program.businesses?.name ?? program.name).charAt(0)}
                   </div>
                 )}
               </div>
               {/* Stamp grid */}
-              <div className="px-5 pb-2 relative">
+              <div className="px-5 pb-3 relative">
                 {cardBgUrl && (
                   <div className="absolute inset-0 rounded-lg overflow-hidden"
                     style={{ backgroundImage: `url(${cardBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.25 }} />
                 )}
-                <div className="relative grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(program.stamps_goal, 5)}, 1fr)` }}>
+                <div className="relative grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(program.stamps_goal, 5)}, 1fr)` }}>
                   {Array.from({ length: Math.min(program.stamps_goal, 10) }).map((_, i) => {
                     const previewIcon = stampIconUrl ?? program.logo_url
                     const filled = i < 3
                     return previewIcon ? (
-                      <div key={i} className={`aspect-square rounded-xl flex items-center justify-center p-1.5 ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}>
+                      <div key={i} className={`aspect-square rounded-xl flex items-center justify-center p-2 ${filled ? 'bg-white shadow' : 'bg-white/15'}`}>
                         <img src={previewIcon} alt="" className="w-full h-full object-contain"
                           style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
                       </div>
                     ) : (
-                      <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-sm font-bold ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}
+                      <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-base font-bold ${filled ? 'bg-white shadow' : 'bg-white/15'}`}
                         style={filled ? { color: cardColor } : { color: 'rgba(255,255,255,0.35)' }}>
                         {filled ? '✓' : '·'}
                       </div>
@@ -1816,10 +1816,10 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                 </div>
               </div>
               {/* Progress */}
-              <div className="px-5 py-3.5">
-                <div className="flex justify-between text-[10px] mb-2" style={{ color: `${cardTextColor}b3` }}>
+              <div className="px-5 py-4">
+                <div className="flex justify-between text-xs mb-2" style={{ color: `${cardTextColor}b3` }}>
                   <span className="font-semibold" style={{ color: cardTextColor }}>3 de {program.stamps_goal}</span>
-                  <span className="truncate max-w-[130px]">{program.reward_description}</span>
+                  <span className="truncate max-w-[140px]">{program.reward_description}</span>
                 </div>
                 <div className="rounded-full h-2" style={{ background: `${cardTextColor}33` }}>
                   <div className="h-2 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
@@ -1827,13 +1827,22 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
               </div>
             </div>
             {/* QR preview */}
-            <div className="mx-3 mb-4 bg-white rounded-2xl p-4 text-center shadow-sm">
-              <p className="text-[9px] text-zinc-400 mb-2 uppercase tracking-wider font-medium">Mostrá este QR</p>
+            <div className="mx-3 mb-4 bg-white rounded-3xl p-5 text-center shadow-sm">
+              <p className="text-[10px] text-zinc-400 mb-3 uppercase tracking-widest font-medium">Mostrá este QR</p>
               <div className="flex justify-center">
-                <div className="w-24 h-24 bg-zinc-100 rounded-xl flex items-center justify-center">
-                  <span className="text-3xl">▦</span>
+                <div className="w-36 h-36 bg-zinc-100 rounded-2xl flex items-center justify-center">
+                  <span className="text-5xl">▦</span>
                 </div>
               </div>
+            </div>
+            {/* Bottom nav hint */}
+            <div className="mx-3 px-4 py-3 bg-white rounded-2xl shadow-sm flex items-center justify-around">
+              {['🏠', '🎁', '📋', '👤'].map((icon, i) => (
+                <div key={i} className={`flex flex-col items-center gap-1 ${i === 0 ? 'opacity-100' : 'opacity-30'}`}>
+                  <span className="text-lg">{icon}</span>
+                  <div className={`w-1 h-1 rounded-full ${i === 0 ? 'bg-violet-500' : 'bg-transparent'}`} />
+                </div>
+              ))}
             </div>
           </div>
           {/* Home indicator */}
