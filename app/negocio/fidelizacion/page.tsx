@@ -1319,12 +1319,20 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
         {/* Ícono para app y notificaciones */}
         <div className="p-5 border-b border-zinc-50">
           <p className="text-sm font-semibold text-zinc-800 mb-1">Ícono para app y notificaciones</p>
-          <p className="text-xs text-zinc-400 mb-1">
+          <p className="text-xs text-zinc-400 mb-2">
             Aparece cuando tus clientes instalan la app en su celular y en las notificaciones push.
           </p>
-          <p className="text-xs text-violet-600 font-medium mb-3">
-            📐 Tamaño ideal: <strong>512 × 512 px</strong>, PNG cuadrado. El contenido tiene que estar centrado, sin bordes blancos.
-          </p>
+          {/* Guía de cómo tiene que ser el ícono */}
+          <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 mb-3 space-y-1">
+            <p className="text-xs font-semibold text-amber-800">Cómo tiene que ser el ícono para que se vea bien en Android e iPhone:</p>
+            <ul className="text-xs text-amber-700 space-y-0.5 list-none pl-0">
+              <li>• Tamaño: <strong>512 × 512 px</strong>, formato PNG</li>
+              <li>• El logo tiene que ocupar <strong>máximo el 60% del espacio</strong> y estar centrado</li>
+              <li>• El <strong>fondo tiene que ser de color sólido</strong> (el color de tu marca, no transparente ni blanco)</li>
+              <li>• Sin texto ni bordes finos — se ve muy chico en la pantalla del celu</li>
+            </ul>
+            <p className="text-xs text-amber-600 mt-1">Si subís el logo sin fondo o muy grande, en Android se va a ver cortado o mal.</p>
+          </div>
           {['pro', 'ultimate', 'gifted'].includes(plan) ? (
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center overflow-hidden bg-zinc-50 flex-shrink-0">
