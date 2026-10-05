@@ -81,10 +81,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Buscar tarjeta por teléfono + programa (match bidireccional para código de área)
+    // Solo tarjetas activas — las inactivas (eliminadas por el negocio) se ignoran
     const { data: allCards } = await supabase
       .from('loyalty_cards')
       .select('*')
       .eq('program_id', program_id)
+      .neq('active', false)
+
+    const cleanName = (name ?? '').trim()
+    const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
 
     let card = (allCards ?? []).find(c => {
       const stored = c.phone.replace(/\D/g, '')
@@ -92,8 +97,6 @@ export async function POST(req: NextRequest) {
     }) ?? null
 
     const isNew = !card
-    const cleanName = (name ?? '').trim()
-    const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
 
     if (!card) {
       // Si no se encontró con match bidireccional, verificar por últimos 8 dígitos
