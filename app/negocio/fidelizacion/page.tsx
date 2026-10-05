@@ -1728,7 +1728,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
       </div>{/* end LEFT editor card */}
 
       {/* RIGHT: sticky phone preview */}
-      <div className="sticky top-6 hidden lg:flex flex-col items-center w-[320px] flex-shrink-0">
+      <div className="sticky top-6 hidden lg:flex flex-col items-center w-[400px] flex-shrink-0">
         {/* iOS/Android toggle */}
         <div className="flex gap-1 bg-zinc-100 rounded-xl p-0.5 mb-5 self-stretch">
           {(['ios', 'android'] as const).map(d => (
@@ -1740,59 +1740,59 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
         </div>
 
         {/* Phone frame */}
-        <div className={`relative bg-zinc-900 shadow-2xl ${previewDevice === 'ios' ? 'rounded-[2.8rem] w-[300px]' : 'rounded-[2rem] w-[300px]'}`}
-          style={{ padding: '12px', paddingTop: previewDevice === 'ios' ? '48px' : '20px', paddingBottom: '18px' }}>
+        <div className={`relative bg-zinc-900 shadow-2xl ${previewDevice === 'ios' ? 'rounded-[3rem] w-[375px]' : 'rounded-[2.2rem] w-[375px]'}`}
+          style={{ padding: '14px', paddingTop: previewDevice === 'ios' ? '56px' : '22px', paddingBottom: '20px' }}>
           {/* Notch / camera */}
           {previewDevice === 'ios' ? (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-zinc-900 rounded-b-3xl z-10 flex items-center justify-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-zinc-700" />
-              <div className="w-14 h-4 rounded-full bg-zinc-800" />
+            <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-32 h-8 bg-zinc-900 rounded-b-3xl z-10 flex items-center justify-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+              <div className="w-16 h-5 rounded-full bg-zinc-800" />
             </div>
           ) : (
-            <div className="absolute top-4 right-6 w-3.5 h-3.5 rounded-full bg-zinc-700 z-10" />
+            <div className="absolute top-4 right-7 w-4 h-4 rounded-full bg-zinc-700 z-10" />
           )}
           {/* Side buttons iOS */}
           {previewDevice === 'ios' && (
             <>
-              <div className="absolute left-[-3px] top-24 w-1 h-8 bg-zinc-700 rounded-l-sm" />
-              <div className="absolute left-[-3px] top-36 w-1 h-12 bg-zinc-700 rounded-l-sm" />
-              <div className="absolute left-[-3px] top-52 w-1 h-12 bg-zinc-700 rounded-l-sm" />
-              <div className="absolute right-[-3px] top-32 w-1 h-16 bg-zinc-700 rounded-r-sm" />
+              <div className="absolute left-[-4px] top-28 w-[5px] h-9 bg-zinc-700 rounded-l" />
+              <div className="absolute left-[-4px] top-44 w-[5px] h-14 bg-zinc-700 rounded-l" />
+              <div className="absolute left-[-4px] top-60 w-[5px] h-14 bg-zinc-700 rounded-l" />
+              <div className="absolute right-[-4px] top-36 w-[5px] h-20 bg-zinc-700 rounded-r" />
             </>
           )}
           {/* Screen */}
-          <div className="bg-zinc-50 rounded-[1.8rem] overflow-hidden">
+          <div className="bg-zinc-50 rounded-[2rem] overflow-hidden">
             {/* Status bar */}
-            <div className="px-5 py-2 flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-zinc-800">9:41</span>
-              <div className="flex gap-1 items-center">
-                <div className="w-4 h-2 rounded-sm bg-zinc-400" />
-                <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+            <div className="px-6 py-2.5 flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-800">9:41</span>
+              <div className="flex gap-1.5 items-center">
+                <div className="w-5 h-2.5 rounded-sm bg-zinc-400" />
+                <div className="w-2 h-2 rounded-full bg-zinc-400" />
               </div>
             </div>
             {/* Card */}
             <div className="mx-3 mb-3 rounded-2xl overflow-hidden shadow-lg"
               style={{ background: `linear-gradient(145deg, ${cardColor}f0, ${cardColor}a0)` }}>
               {/* Header */}
-              <div className="px-4 pt-4 pb-2.5 flex items-center justify-between">
+              <div className="px-5 pt-5 pb-3 flex items-center justify-between">
                 <div>
-                  <p className="text-[9px] font-medium mb-0.5" style={{ color: `${cardTextColor}99` }}>Juan García</p>
-                  <p className="text-sm font-extrabold leading-tight" style={{ color: cardTextColor }}>
+                  <p className="text-[10px] font-medium mb-0.5" style={{ color: `${cardTextColor}99` }}>Juan García</p>
+                  <p className="text-base font-extrabold leading-tight" style={{ color: cardTextColor }}>
                     {program.businesses?.name ?? program.name}
                   </p>
                 </div>
                 {program.logo_url ? (
-                  <div className="w-10 h-10 rounded-xl bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <img src={program.logo_url} alt="" className="w-8 h-8 object-contain" />
+                  <div className="w-12 h-12 rounded-xl bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <img src={program.logo_url} alt="" className="w-10 h-10 object-contain" />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-sm font-extrabold" style={{ color: cardTextColor }}>
+                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-base font-extrabold" style={{ color: cardTextColor }}>
                     {(program.businesses?.name ?? program.name).charAt(0)}
                   </div>
                 )}
               </div>
               {/* Stamp grid */}
-              <div className="px-4 pb-2 relative">
+              <div className="px-5 pb-2 relative">
                 {cardBgUrl && (
                   <div className="absolute inset-0 rounded-lg overflow-hidden"
                     style={{ backgroundImage: `url(${cardBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.25 }} />
@@ -1802,12 +1802,12 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                     const previewIcon = stampIconUrl ?? program.logo_url
                     const filled = i < 3
                     return previewIcon ? (
-                      <div key={i} className={`aspect-square rounded-lg flex items-center justify-center p-1 ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}>
+                      <div key={i} className={`aspect-square rounded-xl flex items-center justify-center p-1.5 ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}>
                         <img src={previewIcon} alt="" className="w-full h-full object-contain"
                           style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
                       </div>
                     ) : (
-                      <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-xs font-bold ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}
+                      <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-sm font-bold ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}
                         style={filled ? { color: cardColor } : { color: 'rgba(255,255,255,0.35)' }}>
                         {filled ? '✓' : '·'}
                       </div>
@@ -1816,30 +1816,30 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                 </div>
               </div>
               {/* Progress */}
-              <div className="px-4 py-3">
-                <div className="flex justify-between text-[9px] mb-1.5" style={{ color: `${cardTextColor}b3` }}>
+              <div className="px-5 py-3.5">
+                <div className="flex justify-between text-[10px] mb-2" style={{ color: `${cardTextColor}b3` }}>
                   <span className="font-semibold" style={{ color: cardTextColor }}>3 de {program.stamps_goal}</span>
-                  <span className="truncate max-w-[110px]">{program.reward_description}</span>
+                  <span className="truncate max-w-[130px]">{program.reward_description}</span>
                 </div>
-                <div className="rounded-full h-1.5" style={{ background: `${cardTextColor}33` }}>
-                  <div className="h-1.5 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
+                <div className="rounded-full h-2" style={{ background: `${cardTextColor}33` }}>
+                  <div className="h-2 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
                 </div>
               </div>
             </div>
             {/* QR preview */}
-            <div className="mx-3 mb-4 bg-white rounded-xl p-3 text-center shadow-sm">
-              <p className="text-[8px] text-zinc-400 mb-1.5 uppercase tracking-wider">Mostrá este QR</p>
+            <div className="mx-3 mb-4 bg-white rounded-2xl p-4 text-center shadow-sm">
+              <p className="text-[9px] text-zinc-400 mb-2 uppercase tracking-wider font-medium">Mostrá este QR</p>
               <div className="flex justify-center">
-                <div className="w-20 h-20 bg-zinc-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">▦</span>
+                <div className="w-24 h-24 bg-zinc-100 rounded-xl flex items-center justify-center">
+                  <span className="text-3xl">▦</span>
                 </div>
               </div>
             </div>
           </div>
           {/* Home indicator */}
           {previewDevice === 'ios' && (
-            <div className="flex justify-center mt-2.5">
-              <div className="w-24 h-1 rounded-full bg-zinc-600" />
+            <div className="flex justify-center mt-3">
+              <div className="w-28 h-1 rounded-full bg-zinc-600" />
             </div>
           )}
         </div>
