@@ -19,8 +19,10 @@ type CardData = {
     stamps_goal: number
     reward_description: string
     color_primary: string
+    card_text_color: string | null
     logo_url: string | null
     stamp_icon_url: string | null
+    card_background_url: string | null
     businesses: { name: string; whatsapp_number?: string | null; plan?: string | null }
   }
 }
@@ -239,6 +241,7 @@ function TarjetaContent() {
 
   const program = card.loyalty_programs
   const color = program.color_primary ?? '#7C3AED'
+  const textColor = program.card_text_color ?? '#FFFFFF'
   const stamps = card.stamps
   const goal = program.stamps_goal
   const progress = Math.min((stamps / goal) * 100, 100)
@@ -250,6 +253,7 @@ function TarjetaContent() {
   const bizPlan = (program.businesses as { plan?: string | null } | null)?.plan ?? 'trial'
   const isProPlus = ['pro', 'ultimate', 'gifted'].includes(bizPlan.toLowerCase())
   const stampIcon = program.stamp_icon_url ?? (isProPlus ? program.logo_url : null)
+  const cardBgImage = program.card_background_url
 
   async function activarDesdeModal() {
     setShowNotifModal(false)
@@ -357,8 +361,8 @@ function TarjetaContent() {
         {/* Header con logo */}
         <div className="px-6 pt-6 pb-4 flex items-center justify-between">
           <div>
-            <p className="text-white/60 text-xs font-medium mb-0.5">{card.name}</p>
-            <p className="text-white font-extrabold text-lg leading-tight">{program.businesses?.name ?? program.name}</p>
+            <p className="text-xs font-medium mb-0.5" style={{ color: `${textColor}99` }}>{card.name}</p>
+            <p className="font-extrabold text-lg leading-tight" style={{ color: textColor }}>{program.businesses?.name ?? program.name}</p>
           </div>
           {program.logo_url ? (
             <div className="w-12 h-12 rounded-xl bg-white shadow-md flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -369,23 +373,32 @@ function TarjetaContent() {
               />
             </div>
           ) : (
-            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-white text-xl font-extrabold">
+            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-xl font-extrabold" style={{ color: textColor }}>
               {(program.businesses?.name ?? program.name).charAt(0).toUpperCase()}
             </div>
           )}
         </div>
 
-        {/* Grid de sellos */}
-        <div className="px-6 pb-2">
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(goal, 5)}, 1fr)` }}>
+        {/* Grid de sellos — con fondo de imagen opcional */}
+        <div className="px-6 pb-2 relative">
+          {cardBgImage && (
+            <div
+              className="absolute inset-0 rounded-xl overflow-hidden"
+              style={{
+                backgroundImage: `url(${cardBgImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                opacity: 0.25,
+              }}
+            />
+          )}
+          <div className="relative grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(goal, 5)}, 1fr)` }}>
             {selloItems.map((filled, i) => (
               stampIcon ? (
                 <div
                   key={i}
                   className={`aspect-square rounded-2xl flex items-center justify-center p-1.5 transition-all ${
-                    filled
-                      ? 'bg-white shadow-md'
-                      : 'bg-white/15'
+                    filled ? 'bg-white shadow-md' : 'bg-white/15'
                   }`}
                 >
                   <img
@@ -399,9 +412,7 @@ function TarjetaContent() {
                 <div
                   key={i}
                   className={`aspect-square rounded-full flex items-center justify-center text-base font-bold transition-all ${
-                    filled
-                      ? 'bg-white shadow-md'
-                      : 'bg-white/15'
+                    filled ? 'bg-white shadow-md' : 'bg-white/15'
                   }`}
                   style={filled ? { color } : { color: 'rgba(255,255,255,0.35)' }}
                 >
@@ -414,14 +425,14 @@ function TarjetaContent() {
 
         {/* Progreso + info */}
         <div className="px-6 py-4">
-          <div className="flex justify-between text-xs text-white/70 mb-1.5">
-            <span className="font-semibold text-white">{stamps} de {goal} sellos</span>
+          <div className="flex justify-between text-xs mb-1.5" style={{ color: `${textColor}b3` }}>
+            <span className="font-semibold" style={{ color: textColor }}>{stamps} de {goal} sellos</span>
             <span>{program.reward_description}</span>
           </div>
-          <div className="bg-white/20 rounded-full h-1.5">
+          <div className="rounded-full h-1.5" style={{ background: `${textColor}33` }}>
             <div
-              className="bg-white h-1.5 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
+              className="h-1.5 rounded-full transition-all duration-500"
+              style={{ width: `${progress}%`, background: textColor }}
             />
           </div>
         </div>

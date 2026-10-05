@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   const body = await req.json()
-  const { program_id, milestones, sync_wallet, stamps_goal, reward_description } = body
+  const { program_id, milestones, sync_wallet, stamps_goal, reward_description, color_primary, card_text_color } = body
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
 
   // Verificar que el usuario es dueño del programa
@@ -47,6 +47,18 @@ export async function PATCH(req: NextRequest) {
     const updates: Record<string, unknown> = {}
     if (stamps_goal !== undefined) updates.stamps_goal = Number(stamps_goal)
     if (reward_description !== undefined) updates.reward_description = reward_description
+    const { error } = await supabase
+      .from('loyalty_programs')
+      .update(updates)
+      .eq('id', program_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Actualizar diseño de tarjeta (color, texto)
+  if (color_primary !== undefined || card_text_color !== undefined) {
+    const updates: Record<string, unknown> = {}
+    if (color_primary !== undefined) updates.color_primary = color_primary
+    if (card_text_color !== undefined) updates.card_text_color = card_text_color
     const { error } = await supabase
       .from('loyalty_programs')
       .update(updates)

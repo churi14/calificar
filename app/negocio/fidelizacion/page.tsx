@@ -14,6 +14,8 @@ type Program = {
   stamps_goal: number
   reward_description: string
   color_primary: string
+  card_text_color: string | null
+  card_background_url: string | null
   logo_url: string | null
   app_icon_url: string | null
   stamp_icon_url: string | null
@@ -1061,12 +1063,25 @@ function PlansModal({ onClose, isDiscountEligible = false }: { onClose: () => vo
   )
 }
 
+// ── Plantillas de tarjeta ────────────────────────────────────────────────────
+const CARD_TEMPLATES = [
+  { id: 'clasico',     name: 'Clásico',    color: '#7C3AED', textColor: '#FFFFFF' },
+  { id: 'noche',       name: 'Noche',      color: '#0F172A', textColor: '#FFFFFF' },
+  { id: 'cafe',        name: 'Café',       color: '#78350F', textColor: '#FFFFFF' },
+  { id: 'fresh',       name: 'Fresh',      color: '#16A34A', textColor: '#FFFFFF' },
+  { id: 'fuego',       name: 'Fuego',      color: '#DC2626', textColor: '#FFFFFF' },
+  { id: 'oceano',      name: 'Océano',     color: '#0369A1', textColor: '#FFFFFF' },
+  { id: 'dorado',      name: 'Dorado',     color: '#92400E', textColor: '#FEF3C7' },
+  { id: 'rosa',        name: 'Rosa',       color: '#BE185D', textColor: '#FFFFFF' },
+]
+
 // ── Vista: TARJETA ───────────────────────────────────────────────────────────
 function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, plan = 'trial', planExpiresAt = null, stats, businessCreatedAt = null }:
   { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void; accessToken: string; plan?: string; planExpiresAt?: string | null; stats?: { total: number; stampsToday: number; rewardsTotal: number }; businessCreatedAt?: string | null }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const appIconRef = useRef<HTMLInputElement>(null)
   const stampIconRef = useRef<HTMLInputElement>(null)
+  const cardBgRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [appIconUploading, setAppIconUploading] = useState(false)
@@ -1075,6 +1090,14 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
   const [stampIconUploading, setStampIconUploading] = useState(false)
   const [stampIconError, setStampIconError] = useState('')
   const [stampIconUrl, setStampIconUrl] = useState<string | null>(program?.stamp_icon_url ?? null)
+  const [cardBgUploading, setCardBgUploading] = useState(false)
+  const [cardBgError, setCardBgError] = useState('')
+  const [cardBgUrl, setCardBgUrl] = useState<string | null>(program?.card_background_url ?? null)
+  const [cardColor, setCardColor] = useState<string>(program?.color_primary ?? '#7C3AED')
+  const [cardTextColor, setCardTextColor] = useState<string>(program?.card_text_color ?? '#FFFFFF')
+  const [colorSaving, setColorSaving] = useState(false)
+  const [colorSaved, setColorSaved] = useState(false)
+  const [previewDevice, setPreviewDevice] = useState<'ios' | 'android'>('ios')
   const [showPlans, setShowPlans] = useState(false)
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [milestoneSaving, setMilestoneSaving] = useState(false)
@@ -1190,6 +1213,54 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
       setAppIconError('Error de red')
     }
     setAppIconUploading(false)
+  }
+
+  async function saveCardColors() {
+    if (!selectedProgram) return
+    setColorSaving(true)
+    const res = await fetch('/api/fidelizacion/program', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: JSON.stringify({ program_id: selectedProgram, color_primary: cardColor, card_text_color: cardTextColor }),
+    })
+    const d = await res.json()
+    setColorSaving(false)
+    if (!d.error) { setColorSaved(true); setTimeout(() => setColorSaved(false), 2500) }
+  }
+
+  async function applyTemplate(tpl: typeof CARD_TEMPLATES[number]) {
+    if (!selectedProgram) return
+    setCardColor(tpl.color)
+    setCardTextColor(tpl.textColor)
+    await fetch('/api/fidelizacion/program', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: JSON.stringify({ program_id: selectedProgram, color_primary: tpl.color, card_text_color: tpl.textColor }),
+    })
+  }
+
+  async function handleCardBgUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCardBgUploading(true)
+    setCardBgError('')
+    const form = new FormData()
+    form.append('file', file)
+    form.append('program_id', selectedProgram ?? '')
+    form.append('field', 'card_background')
+    try {
+      const res = await fetch('/api/fidelizacion/upload-logo', {
+        method: 'POST',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        body: form,
+      })
+      const data = await res.json()
+      if (data.url) setCardBgUrl(data.url)
+      else setCardBgError(data.error ?? 'Error al subir')
+    } catch {
+      setCardBgError('Error de red')
+    }
+    setCardBgUploading(false)
   }
 
   async function handleStampIconUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -1320,6 +1391,88 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
           </div>
         </div>
 
+        {/* ── Diseño de tarjeta ── */}
+        <div className="p-5 border-b border-zinc-50">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-zinc-800">Diseño de tarjeta</p>
+            {!['pro', 'ultimate', 'gifted'].includes(plan) && (
+              <span className="text-[10px] bg-violet-100 text-violet-700 font-bold px-2 py-0.5 rounded-full">Pro</span>
+            )}
+          </div>
+          <p className="text-xs text-zinc-400 mb-4">Elegí una plantilla o personalizá los colores. Pro y superior para aplicar.</p>
+
+          {/* Plantillas */}
+          <div className="grid grid-cols-4 gap-2 mb-5">
+            {CARD_TEMPLATES.map(tpl => {
+              const isActive = cardColor === tpl.color
+              const canApply = ['pro', 'ultimate', 'gifted'].includes(plan)
+              return (
+                <button
+                  key={tpl.id}
+                  onClick={() => canApply ? applyTemplate(tpl) : undefined}
+                  className={`relative rounded-xl overflow-hidden transition-all ${isActive ? 'ring-2 ring-violet-500 ring-offset-1' : 'opacity-80 hover:opacity-100'} ${!canApply ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  title={canApply ? tpl.name : `${tpl.name} — disponible en Pro`}
+                >
+                  {/* Mini card preview */}
+                  <div className="p-2 pb-1.5" style={{ background: `linear-gradient(145deg, ${tpl.color}f0, ${tpl.color}a0)` }}>
+                    <p className="text-[9px] font-bold mb-1 truncate" style={{ color: tpl.textColor }}>{program.businesses?.name ?? 'Mi Negocio'}</p>
+                    <div className="grid grid-cols-5 gap-0.5 mb-1">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className={`aspect-square rounded-sm ${i < 3 ? 'bg-white/80' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <p className="text-[8px] font-semibold" style={{ color: `${tpl.textColor}cc` }}>{tpl.name}</p>
+                  </div>
+                  {!canApply && (
+                    <div className="absolute inset-0 bg-zinc-900/40 flex items-center justify-center">
+                      <span className="text-[10px] text-white font-bold">🔒</span>
+                    </div>
+                  )}
+                  {isActive && canApply && (
+                    <div className="absolute top-1 right-1 w-3.5 h-3.5 bg-violet-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-[8px] font-bold">✓</span>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Colores custom */}
+          {['pro', 'ultimate', 'gifted'].includes(plan) ? (
+            <div>
+              <p className="text-xs font-semibold text-zinc-600 mb-2">O personalizá los colores:</p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-zinc-500">Color tarjeta</label>
+                  <input type="color" value={cardColor} onChange={e => setCardColor(e.target.value)}
+                    className="w-8 h-8 rounded-lg cursor-pointer border border-zinc-200" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-zinc-500">Color texto</label>
+                  <div className="flex gap-1">
+                    <button onClick={() => setCardTextColor('#FFFFFF')}
+                      className={`w-8 h-8 rounded-lg border-2 bg-white ${cardTextColor === '#FFFFFF' ? 'border-violet-500' : 'border-zinc-200'}`}
+                      title="Texto blanco" />
+                    <button onClick={() => setCardTextColor('#0F172A')}
+                      className={`w-8 h-8 rounded-lg border-2 bg-zinc-900 ${cardTextColor === '#0F172A' ? 'border-violet-500' : 'border-zinc-200'}`}
+                      title="Texto oscuro" />
+                  </div>
+                </div>
+                <button onClick={saveCardColors} disabled={colorSaving || colorSaved}
+                  className="text-xs font-bold text-white px-4 py-2 rounded-xl disabled:opacity-50"
+                  style={{ background: colorSaved ? '#10B981' : '#7C3AED' }}>
+                  {colorSaved ? '✓ Guardado' : colorSaving ? 'Guardando...' : 'Guardar colores'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-zinc-50 border border-zinc-200 px-4 py-3">
+              <p className="text-xs text-zinc-500">🔒 Personalización de colores disponible en plan <strong>Pro</strong>.</p>
+            </div>
+          )}
+        </div>
+
         {/* Logo upload */}
         <div className="p-5 border-b border-zinc-50">
           <p className="text-sm font-semibold text-zinc-800 mb-1">Logo del negocio</p>
@@ -1419,6 +1572,38 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                 {stampIconError && <p className="text-xs text-red-500 mt-1">{stampIconError}</p>}
                 {stampIconUrl && <p className="text-xs text-green-600 mt-1 font-medium">✓ Ícono activo</p>}
                 <p className="text-xs text-zinc-400 mt-1">PNG · máx. 2MB</p>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-zinc-50 border border-zinc-200 px-4 py-3">
+              <p className="text-xs text-zinc-500">🔒 Disponible en plan <strong>Pro</strong> o superior.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Fondo de sellos */}
+        <div className="p-5 border-b border-zinc-50">
+          <p className="text-sm font-semibold text-zinc-800 mb-1">Fondo de sellos</p>
+          <p className="text-xs text-zinc-400 mb-2">
+            Imagen de fondo detrás de los sellos en la tarjeta. Recomendado: foto del local o producto.
+          </p>
+          {['pro', 'ultimate', 'gifted'].includes(plan) ? (
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-16 rounded-xl border-2 border-dashed border-zinc-200 flex items-center justify-center overflow-hidden bg-zinc-50 flex-shrink-0">
+                {cardBgUrl
+                  ? <img src={cardBgUrl} alt="" className="w-full h-full object-cover rounded-xl" />
+                  : <span className="text-2xl">🌄</span>
+                }
+              </div>
+              <div>
+                <input ref={cardBgRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleCardBgUpload} />
+                <button onClick={() => cardBgRef.current?.click()} disabled={cardBgUploading}
+                  className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
+                  {cardBgUploading ? 'Subiendo...' : cardBgUrl ? 'Cambiar imagen' : 'Subir imagen'}
+                </button>
+                {cardBgError && <p className="text-xs text-red-500 mt-1">{cardBgError}</p>}
+                {cardBgUrl && <p className="text-xs text-green-600 mt-1 font-medium">✓ Fondo activo</p>}
+                <p className="text-xs text-zinc-400 mt-1">PNG/JPG · máx. 2MB</p>
               </div>
             </div>
           ) : (
@@ -1543,57 +1728,118 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
           {milestoneError && <p className="text-xs text-red-500 mt-2">{milestoneError}</p>}
         </div>
 
-        {/* Preview tarjeta */}
+        {/* Preview tarjeta — phone mockup */}
         <div className="p-5 border-t border-zinc-100">
-          <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4">PREVIEW DE LA TARJETA</p>
-          <div className="rounded-2xl overflow-hidden max-w-xs shadow-lg" style={{ background: `linear-gradient(145deg, ${color}f0, ${color}a0)` }}>
-            {/* Header */}
-            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-xs font-medium">Nombre del cliente</p>
-                <p className="text-white font-extrabold text-base leading-tight">{program.businesses?.name ?? program.name}</p>
-              </div>
-              {program.logo_url ? (
-                <div className="w-10 h-10 rounded-xl bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  <img src={program.logo_url} alt="" className="w-8 h-8 object-contain" />
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">PREVIEW</p>
+            <div className="flex gap-1 bg-zinc-100 rounded-xl p-0.5">
+              {(['ios', 'android'] as const).map(d => (
+                <button key={d} onClick={() => setPreviewDevice(d)}
+                  className={`text-xs font-semibold px-3 py-1 rounded-lg transition-all ${previewDevice === d ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}>
+                  {d === 'ios' ? '📱 iOS' : '🤖 Android'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Phone mockup */}
+          <div className="flex justify-center">
+            <div className={`relative bg-zinc-900 shadow-2xl ${previewDevice === 'ios' ? 'rounded-[2.5rem] w-[220px]' : 'rounded-[1.8rem] w-[220px]'}`}
+              style={{ padding: '10px', paddingTop: previewDevice === 'ios' ? '36px' : '16px', paddingBottom: '14px' }}>
+              {/* Notch / camera */}
+              {previewDevice === 'ios' ? (
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-5 bg-zinc-900 rounded-b-2xl z-10 flex items-center justify-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+                  <div className="w-10 h-3 rounded-full bg-zinc-800" />
                 </div>
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white text-base font-extrabold">
-                  {(program.businesses?.name ?? program.name).charAt(0)}
+                <div className="absolute top-3 right-4 w-2.5 h-2.5 rounded-full bg-zinc-700 z-10" />
+              )}
+              {/* Screen */}
+              <div className="bg-zinc-50 rounded-[1.6rem] overflow-hidden">
+                {/* Status bar */}
+                <div className="px-4 py-1.5 flex items-center justify-between">
+                  <span className="text-[9px] font-semibold text-zinc-800">9:41</span>
+                  <div className="flex gap-1 items-center">
+                    <div className="w-3 h-1.5 rounded-sm bg-zinc-400" />
+                    <div className="w-1 h-1 rounded-full bg-zinc-400" />
+                  </div>
+                </div>
+                {/* Card */}
+                <div className="mx-2 mb-2 rounded-2xl overflow-hidden shadow-lg"
+                  style={{ background: `linear-gradient(145deg, ${cardColor}f0, ${cardColor}a0)` }}>
+                  {/* Header */}
+                  <div className="px-3 pt-3 pb-2 flex items-center justify-between">
+                    <div>
+                      <p className="text-[7px] font-medium mb-0.5" style={{ color: `${cardTextColor}99` }}>Juan García</p>
+                      <p className="text-[10px] font-extrabold leading-tight" style={{ color: cardTextColor }}>
+                        {program.businesses?.name ?? program.name}
+                      </p>
+                    </div>
+                    {program.logo_url ? (
+                      <div className="w-7 h-7 rounded-lg bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        <img src={program.logo_url} alt="" className="w-5 h-5 object-contain" />
+                      </div>
+                    ) : (
+                      <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-[10px] font-extrabold" style={{ color: cardTextColor }}>
+                        {(program.businesses?.name ?? program.name).charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  {/* Stamp grid */}
+                  <div className="px-3 pb-1 relative">
+                    {cardBgUrl && (
+                      <div className="absolute inset-0 rounded-lg overflow-hidden"
+                        style={{ backgroundImage: `url(${cardBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.25 }} />
+                    )}
+                    <div className="relative grid gap-1" style={{ gridTemplateColumns: `repeat(${Math.min(program.stamps_goal, 5)}, 1fr)` }}>
+                      {Array.from({ length: Math.min(program.stamps_goal, 10) }).map((_, i) => {
+                        const previewIcon = stampIconUrl ?? program.logo_url
+                        const filled = i < 3
+                        return previewIcon ? (
+                          <div key={i} className={`aspect-square rounded-md flex items-center justify-center p-0.5 ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}>
+                            <img src={previewIcon} alt="" className="w-full h-full object-contain"
+                              style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
+                          </div>
+                        ) : (
+                          <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-[8px] font-bold ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}
+                            style={filled ? { color: cardColor } : { color: 'rgba(255,255,255,0.35)' }}>
+                            {filled ? '✓' : '·'}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  {/* Progress */}
+                  <div className="px-3 py-2">
+                    <div className="flex justify-between text-[7px] mb-1" style={{ color: `${cardTextColor}b3` }}>
+                      <span className="font-semibold" style={{ color: cardTextColor }}>3 de {program.stamps_goal}</span>
+                      <span className="truncate max-w-[80px]">{program.reward_description}</span>
+                    </div>
+                    <div className="rounded-full h-1" style={{ background: `${cardTextColor}33` }}>
+                      <div className="h-1 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
+                    </div>
+                  </div>
+                </div>
+                {/* QR preview */}
+                <div className="mx-2 mb-3 bg-white rounded-xl p-2 text-center shadow-sm">
+                  <p className="text-[7px] text-zinc-400 mb-1 uppercase tracking-wider">Mostrá este QR</p>
+                  <div className="flex justify-center">
+                    <div className="w-14 h-14 bg-zinc-100 rounded-lg flex items-center justify-center">
+                      <span className="text-lg">▦</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Home indicator */}
+              {previewDevice === 'ios' && (
+                <div className="flex justify-center mt-2">
+                  <div className="w-16 h-1 rounded-full bg-zinc-600" />
                 </div>
               )}
             </div>
-            {/* Sellos */}
-            <div className="px-5 pb-2">
-              <div className="grid grid-cols-5 gap-1.5">
-                {Array.from({ length: Math.min(program.stamps_goal, 10) }).map((_, i) => {
-                  const previewIcon = stampIconUrl ?? program.logo_url
-                  const filled = i < 3 // preview muestra 3 llenos
-                  return previewIcon ? (
-                    <div key={i} className={`w-full aspect-square rounded-xl flex items-center justify-center p-1 transition-all ${filled ? 'bg-white shadow' : 'bg-white/15'}`}>
-                      <img src={previewIcon} alt="" className="w-full h-full object-contain"
-                        style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
-                    </div>
-                  ) : (
-                    <div key={i} className={`w-full aspect-square rounded-full flex items-center justify-center text-xs font-bold ${filled ? 'bg-white shadow' : 'bg-white/15'}`}
-                      style={filled ? { color } : { color: 'rgba(255,255,255,0.35)' }}>
-                      {filled ? '✓' : '·'}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-            {/* Barra de progreso */}
-            <div className="px-5 py-4">
-              <div className="flex justify-between text-xs text-white/60 mb-1.5">
-                <span className="text-white font-semibold">3 de {program.stamps_goal} sellos</span>
-                <span>{program.reward_description}</span>
-              </div>
-              <div className="bg-white/20 rounded-full h-1.5">
-                <div className="bg-white h-1.5 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%` }} />
-              </div>
-            </div>
           </div>
+          <p className="text-xs text-zinc-400 text-center mt-3">Preview con 3 sellos de ejemplo</p>
         </div>
       </div>
     </div>

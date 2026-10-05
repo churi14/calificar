@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const programId = form.get('program_id') as string | null
     // 'logo' = logo del negocio (tarjeta), 'app_icon' = ícono para PWA/notificaciones, 'stamp_icon' = ícono para sellos
     const rawField = form.get('field') as string | null
-    const field = rawField === 'app_icon' ? 'app_icon' : rawField === 'stamp_icon' ? 'stamp_icon' : 'logo'
+    const field = rawField === 'app_icon' ? 'app_icon' : rawField === 'stamp_icon' ? 'stamp_icon' : rawField === 'card_background' ? 'card_background' : 'logo'
 
     if (!file || !programId) {
       return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 })
@@ -39,6 +39,8 @@ export async function POST(req: NextRequest) {
       ? `app-icons/${programId}.${ext}`
       : field === 'stamp_icon'
       ? `stamp-icons/${programId}.${ext}`
+      : field === 'card_background'
+      ? `card-backgrounds/${programId}.${ext}`
       : `logos/${programId}.${ext}`
     const buffer = Buffer.from(await file.arrayBuffer())
 
@@ -57,7 +59,7 @@ export async function POST(req: NextRequest) {
       .from('calificar-assets')
       .getPublicUrl(storagePath)
 
-    const dbField = field === 'app_icon' ? 'app_icon_url' : field === 'stamp_icon' ? 'stamp_icon_url' : 'logo_url'
+    const dbField = field === 'app_icon' ? 'app_icon_url' : field === 'stamp_icon' ? 'stamp_icon_url' : field === 'card_background' ? 'card_background_url' : 'logo_url'
     await admin
       .from('loyalty_programs')
       .update({ [dbField]: publicUrl })
