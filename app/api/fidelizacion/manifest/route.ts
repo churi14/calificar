@@ -25,19 +25,21 @@ export async function GET(req: NextRequest) {
 
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('id, name, color_primary, logo_url, businesses(name, plan)')
+    .select('id, name, color_primary, logo_url, businesses!inner(name, plan)')
     .eq('id', program_id)
     .single()
 
   if (!program) return defaultManifest(appUrl)
 
-  const biz = program.businesses as unknown as { name: string; plan: string | null }
-  const plan = biz?.plan ?? 'trial'
+  // Supabase puede devolver array u objeto según el tipo de relación
+  const bizRaw = program.businesses
+  const biz = (Array.isArray(bizRaw) ? bizRaw[0] : bizRaw) as { name: string; plan: string | null } | null
+  const plan = (biz?.plan ?? 'trial').toLowerCase()
   const businessName = biz?.name ?? program.name
   const color = program.color_primary ?? '#7C3AED'
 
-  // Planes pagos usan el logo del negocio; trial usa el ícono de Calificar
-  const useBusinessLogo = ['pro', 'ultimate', 'gifted'].includes(plan) && program.logo_url
+  // Pro/Ultimate/Gifted con logo → ícono del negocio
+  const useBusinessLogo = ['pro', 'ultimate', 'gifted'].includes(plan) && !!program.logo_url
 
   const startUrl = card_id
     ? `${appUrl}/fidelizacion/tarjeta?card=${card_id}&program=${program_id}`
