@@ -37,25 +37,28 @@ export async function POST(req: NextRequest) {
   // Obtener logo del negocio (para el ícono de la notificación)
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('logo_url, businesses(plan, plan_expires_at)')
+    .select('logo_url, app_icon_url, businesses(plan, plan_expires_at)')
     .eq('id', program_id)
     .single()
 
   const bizRaw = program?.businesses
   const biz = (Array.isArray(bizRaw) ? bizRaw[0] : bizRaw) as { plan?: string | null; plan_expires_at?: string | null } | null
-  const isProPlus = ['pro', 'ultimate', 'gifted'].includes(biz?.plan ?? '')
+  const isProPlus = ['pro', 'ultimate', 'gifted'].includes((biz?.plan ?? '').toLowerCase())
     && (!biz?.plan_expires_at || new Date(biz.plan_expires_at) > new Date())
   const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
-  // Logo del negocio solo en Pro+, resto usa el ícono de Calificar
-  const iconUrl = isProPlus && program?.logo_url
-    ? `${BASE}/api/fidelizacion/icon?program_id=${program_id}&size=192`
+  // Usar app_icon_url si existe, sino logo_url — URL directa de CDN para que cargue rápido
+  const iconUrl = isProPlus
+    ? (program?.app_icon_url || program?.logo_url || `${BASE}/notification-icon.png`)
     : `${BASE}/notification-icon.png`
 
   const vapid = getVapidConfig()
   webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey)
 
-  // Traer suscripciones: individual (card_id) o todas las del programa
-  let query = supabase.from('push_subscriptions').select('*').eq('program_id', program_id)
+  // Traer suscripciones con nombre del cliente: individual (card_id) o todas las del programa
+  let query = supabase
+    .from('push_subscriptions')
+    .select('*, loyalty_cards(name, phone)')
+    .eq('program_id', program_id)
   if (card_id) query = query.eq('card_id', card_id)
   const { data: subs, error } = await query
 
@@ -91,6 +94,14 @@ export async function POST(req: NextRequest) {
 
   const sent = results.filter(r => r.status === 'fulfilled').length
 
+  // Construir lista de destinatarios: nombre + resultado
+  type SubWithCard = typeof subs[number] & { loyalty_cards?: { name?: string; phone?: string } | null }
+  const recipients = (subs as SubWithCard[]).map((sub, i) => ({
+    name: sub.loyalty_cards?.name ?? 'Cliente',
+    phone: sub.loyalty_cards?.phone ?? '',
+    ok: results[i].status === 'fulfilled',
+  }))
+
   // Guardar log (solo para pushes masivos del negocio, no los de cumpleaños individuales)
   if (!card_id && sent > 0) {
     await supabase.from('push_logs').insert({
@@ -101,5 +112,5 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  return NextResponse.json({ ok: true, sent, total: subs.length })
+  return NextResponse.json({ ok: true, sent, total: subs.length, recipients })
 }

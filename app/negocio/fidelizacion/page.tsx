@@ -1681,8 +1681,8 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp, a
 }
 
 // ── Vista: PUSH ──────────────────────────────────────────────────────────────
-function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, notifError = '', notifSentCount = 0, cards = [], selectedProgram, accessToken }:
-  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void; notifError?: string; notifSentCount?: number; cards?: Card[]; selectedProgram?: string | null; accessToken?: string }) {
+function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, notifError = '', notifSentCount = 0, notifRecipients = [], cards = [], selectedProgram, accessToken }:
+  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void; notifError?: string; notifSentCount?: number; notifRecipients?: { name: string; phone: string; ok: boolean }[]; cards?: Card[]; selectedProgram?: string | null; accessToken?: string }) {
   const [tab, setTab] = useState<'todos' | 'individual'>('todos')
   const [search, setSearch] = useState('')
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
@@ -1751,6 +1751,22 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, n
           </button>
           {notifError && (
             <p className="text-sm text-red-500 mt-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{notifError}</p>
+          )}
+          {notifSent && notifRecipients.length > 0 && (
+            <div className="mt-4 border border-zinc-100 rounded-2xl overflow-hidden">
+              <p className="text-xs font-semibold text-zinc-500 px-4 py-2 bg-zinc-50 border-b border-zinc-100">Destinatarios</p>
+              {notifRecipients.map((r, i) => (
+                <div key={i} className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-50 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-zinc-800">{r.name}</p>
+                    <p className="text-xs text-zinc-400">{r.phone}</p>
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${r.ok ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
+                    {r.ok ? '✓ Enviado' : '✗ Falló'}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -3390,6 +3406,7 @@ export default function NegocioDashboard() {
   const [notifSent, setNotifSent] = useState(false)
   const [notifError, setNotifError] = useState('')
   const [notifSentCount, setNotifSentCount] = useState(0)
+  const [notifRecipients, setNotifRecipients] = useState<{ name: string; phone: string; ok: boolean }[]>([])
   const [activeNav, setActiveNav] = useState('hoy')
   const [showDiscount, setShowDiscount] = useState(false)
   const [businessName, setBusinessName] = useState('Mi negocio')
@@ -3580,6 +3597,7 @@ export default function NegocioDashboard() {
         return
       }
       setNotifSentCount(d.sent)
+      setNotifRecipients(d.recipients ?? [])
       setNotifSent(true)
       setNotifMsg('')
       // Refrescar push logs
@@ -3763,7 +3781,7 @@ export default function NegocioDashboard() {
         {activeNav === 'push' && (
           <ViewPush notifMsg={notifMsg} setNotifMsg={setNotifMsg}
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
-            notifError={notifError} notifSentCount={notifSentCount}
+            notifError={notifError} notifSentCount={notifSentCount} notifRecipients={notifRecipients}
             cards={cards} selectedProgram={selectedProgram} accessToken={accessToken} />
         )}
         {activeNav === 'proximidad' && (
