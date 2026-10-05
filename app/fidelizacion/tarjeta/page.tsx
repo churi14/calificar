@@ -103,6 +103,41 @@ function TarjetaContent() {
     return () => { link.remove() }
   }, [programId, cardId])
 
+  // Re-suscribir silenciosamente si el permiso ya estaba granted pero la suscripción
+  // puede no estar en la DB (por el bug anterior del string/Uint8Array)
+  useEffect(() => {
+    if (!cardId || !programId) return
+    if (!('serviceWorker' in navigator) || !('Notification' in window)) return
+    if (Notification.permission !== 'granted') return
+
+    async function reSubscribeSilently() {
+      try {
+        let reg = await navigator.serviceWorker.getRegistration('/sw.js')
+        if (!reg) reg = await navigator.serviceWorker.register('/sw.js')
+        const activeReg = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+        ]) as ServiceWorkerRegistration
+        const vapidKey = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
+        // Obtener suscripción existente o crear una nueva
+        let sub = await activeReg.pushManager.getSubscription()
+        if (!sub) {
+          sub = await activeReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: vapidKey })
+        }
+        // Siempre upsert en DB para asegurar que esté guardada con las keys correctas
+        await fetch('/api/fidelizacion/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
+        })
+      } catch {
+        // Silencioso — no molestar al usuario si falla
+      }
+    }
+
+    reSubscribeSilently()
+  }, [cardId, programId])
+
   useEffect(() => {
     // Registrar service worker
     if ('serviceWorker' in navigator) {
