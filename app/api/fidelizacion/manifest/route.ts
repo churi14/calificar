@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   const color = program.color_primary ?? '#7C3AED'
 
   // Planes pagos usan el logo del negocio; trial usa el ícono de Calificar
-  const useBusinessLogo = ['starter', 'pro', 'ultimate', 'gifted'].includes(plan) && program.logo_url
+  const useBusinessLogo = ['pro', 'ultimate', 'gifted'].includes(plan) && program.logo_url
 
   const startUrl = card_id
     ? `${appUrl}/fidelizacion/tarjeta?card=${card_id}&program=${program_id}`
