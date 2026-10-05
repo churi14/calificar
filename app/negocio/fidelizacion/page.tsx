@@ -1260,15 +1260,24 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
           </div>
           {/* Botón de sincronización Google Wallet */}
           <div className="mt-4 pt-4 border-t border-zinc-50">
-            <p className="text-xs text-zinc-400 mb-2">Si Google Wallet muestra "Ocurrió un error", sincronizá la tarjeta:</p>
-            <button onClick={syncWallet} disabled={walletSyncing}
-              className="text-xs font-semibold border border-zinc-200 text-zinc-600 px-4 py-2 rounded-xl hover:bg-zinc-50 transition-colors disabled:opacity-50 flex items-center gap-2">
-              {walletSyncing ? '⏳ Sincronizando...' : '🔄 Sincronizar Google Wallet'}
-            </button>
-            {walletSyncMsg && (
-              <p className={`text-xs mt-2 font-medium ${walletSyncMsg.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>
-                {walletSyncMsg}
-              </p>
+            {plan === 'trial' ? (
+              <div className="rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
+                <p className="text-xs font-semibold text-amber-700 mb-0.5">🔒 Google Wallet no disponible en prueba gratuita</p>
+                <p className="text-xs text-amber-600">Activá un plan pago para que tus clientes puedan guardar la tarjeta en Google Wallet.</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-zinc-400 mb-2">Si Google Wallet muestra "Ocurrió un error", sincronizá la tarjeta:</p>
+                <button onClick={syncWallet} disabled={walletSyncing}
+                  className="text-xs font-semibold border border-zinc-200 text-zinc-600 px-4 py-2 rounded-xl hover:bg-zinc-50 transition-colors disabled:opacity-50 flex items-center gap-2">
+                  {walletSyncing ? '⏳ Sincronizando...' : '🔄 Sincronizar Google Wallet'}
+                </button>
+                {walletSyncMsg && (
+                  <p className={`text-xs mt-2 font-medium ${walletSyncMsg.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>
+                    {walletSyncMsg}
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -1822,6 +1831,17 @@ function ViewProximidad({ selectedProgram, isPro, notifMsg, setNotifMsg, notifSe
           )}
 
           {loadError && <p className="text-red-500 text-xs mb-4">{loadError}</p>}
+
+          {/* Aviso de demora para negocios nuevos */}
+          {isPro && (
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 mb-4 flex items-start gap-2">
+              <span className="text-base mt-0.5">⏳</span>
+              <div>
+                <p className="text-xs font-semibold text-blue-800">Puede tardar varios días en activarse</p>
+                <p className="text-xs text-blue-600 mt-0.5">Google necesita verificar la ubicación del negocio antes de enviar avisos de proximidad. Los negocios nuevos pueden esperar hasta 5-7 días hábiles.</p>
+              </div>
+            </div>
+          )}
 
           {/* Enable toggle */}
           <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
