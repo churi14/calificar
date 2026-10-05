@@ -60,9 +60,21 @@ function TarjetaContent() {
       const perm = await Notification.requestPermission()
       if (perm !== 'granted') { setNotifState('denied'); return }
 
-      const reg = await navigator.serviceWorker.ready
+      // Registrar SW si no está registrado aún
+      if (!('serviceWorker' in navigator)) { setNotifState('denied'); return }
+      let reg = await navigator.serviceWorker.getRegistration('/sw.js')
+      if (!reg) {
+        reg = await navigator.serviceWorker.register('/sw.js')
+      }
+
+      // Esperar a que el SW esté activo, con timeout de 5s para no quedar colgado
+      const activeReg = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SW timeout')), 5000)),
+      ]) as ServiceWorkerRegistration
+
       const vapidKey = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
-      const sub = await reg.pushManager.subscribe({
+      const sub = await activeReg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidKey,
       })
