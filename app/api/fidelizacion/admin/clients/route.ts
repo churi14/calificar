@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     .from('loyalty_cards')
     .select('id, name, phone, stamps, total_visits, birth_date, created_at, dni')
     .eq('program_id', program_id)
+    .neq('active', false)
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -37,9 +38,8 @@ export async function DELETE(req: NextRequest) {
   const owner = await verifyProgramOwner(req, card.program_id)
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  // Eliminar transacciones primero (FK), luego la tarjeta
-  await supabase.from('loyalty_transactions').delete().eq('card_id', card_id)
-  await supabase.from('loyalty_cards').delete().eq('id', card_id)
+  // Soft-delete: ocultar la tarjeta sin borrarla (el QR del cliente sigue funcionando)
+  await supabase.from('loyalty_cards').update({ active: false }).eq('id', card_id)
 
   return NextResponse.json({ ok: true })
 }

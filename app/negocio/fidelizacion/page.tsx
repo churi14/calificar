@@ -16,6 +16,7 @@ type Program = {
   color_primary: string
   logo_url: string | null
   app_icon_url: string | null
+  stamp_icon_url: string | null
   milestones?: Milestone[]
   businesses?: { name: string; id: string }
 }
@@ -1065,11 +1066,15 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
   { program: Program | undefined; selectedProgram: string | null; onLogoUploaded: (url: string) => void; accessToken: string; plan?: string; planExpiresAt?: string | null; stats?: { total: number; stampsToday: number; rewardsTotal: number }; businessCreatedAt?: string | null }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const appIconRef = useRef<HTMLInputElement>(null)
+  const stampIconRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [appIconUploading, setAppIconUploading] = useState(false)
   const [appIconError, setAppIconError] = useState('')
   const [appIconUrl, setAppIconUrl] = useState<string | null>(program?.app_icon_url ?? null)
+  const [stampIconUploading, setStampIconUploading] = useState(false)
+  const [stampIconError, setStampIconError] = useState('')
+  const [stampIconUrl, setStampIconUrl] = useState<string | null>(program?.stamp_icon_url ?? null)
   const [showPlans, setShowPlans] = useState(false)
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [milestoneSaving, setMilestoneSaving] = useState(false)
@@ -1185,6 +1190,30 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
       setAppIconError('Error de red')
     }
     setAppIconUploading(false)
+  }
+
+  async function handleStampIconUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setStampIconUploading(true)
+    setStampIconError('')
+    const form = new FormData()
+    form.append('file', file)
+    form.append('program_id', selectedProgram ?? '')
+    form.append('field', 'stamp_icon')
+    try {
+      const res = await fetch('/api/fidelizacion/upload-logo', {
+        method: 'POST',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        body: form,
+      })
+      const data = await res.json()
+      if (data.url) setStampIconUrl(data.url)
+      else setStampIconError(data.error ?? 'Error al subir')
+    } catch {
+      setStampIconError('Error de red')
+    }
+    setStampIconUploading(false)
   }
 
   if (!program) return <div className="p-4 md:p-8 text-zinc-400 text-sm">No hay programa activo.</div>
@@ -1361,6 +1390,44 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
           )}
         </div>
 
+        {/* Ícono de sellos */}
+        <div className="p-5 border-b border-zinc-50">
+          <p className="text-sm font-semibold text-zinc-800 mb-1">Ícono de los sellos</p>
+          <p className="text-xs text-zinc-400 mb-2">
+            Cada sello en la tarjeta del cliente muestra este ícono. Usá el logo de tu negocio o un ícono relacionado (café, burger, etc.).
+          </p>
+          <div className="rounded-xl bg-zinc-50 border border-zinc-200 px-4 py-3 mb-3 space-y-1">
+            <p className="text-xs font-semibold text-zinc-700">Recomendaciones:</p>
+            <p className="text-xs text-zinc-500">• PNG transparente o con fondo, mínimo <strong>256 × 256 px</strong></p>
+            <p className="text-xs text-zinc-500">• El ícono se muestra en color cuando el sello está ganado, y gris cuando está vacío</p>
+            <p className="text-xs text-zinc-500">• Evitá textos — se ve muy chico en la tarjeta</p>
+          </div>
+          {['pro', 'ultimate', 'gifted'].includes(plan) ? (
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center overflow-hidden bg-zinc-50 flex-shrink-0">
+                {stampIconUrl
+                  ? <img src={stampIconUrl} alt="" className="w-full h-full object-contain p-2" />
+                  : <span className="text-3xl">🔖</span>
+                }
+              </div>
+              <div>
+                <input ref={stampIconRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleStampIconUpload} />
+                <button onClick={() => stampIconRef.current?.click()} disabled={stampIconUploading}
+                  className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
+                  {stampIconUploading ? 'Subiendo...' : stampIconUrl ? 'Cambiar ícono' : 'Subir ícono'}
+                </button>
+                {stampIconError && <p className="text-xs text-red-500 mt-1">{stampIconError}</p>}
+                {stampIconUrl && <p className="text-xs text-green-600 mt-1 font-medium">✓ Ícono activo</p>}
+                <p className="text-xs text-zinc-400 mt-1">PNG · máx. 2MB</p>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl bg-zinc-50 border border-zinc-200 px-4 py-3">
+              <p className="text-xs text-zinc-500">🔒 Disponible en plan <strong>Pro</strong> o superior.</p>
+            </div>
+          )}
+        </div>
+
         {/* div de Google Wallet */}
         <div className="p-5 border-b border-zinc-50">
           {/* Botón de sincronización Google Wallet */}
@@ -1479,22 +1546,53 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
         {/* Preview tarjeta */}
         <div className="p-5 border-t border-zinc-100">
           <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4">PREVIEW DE LA TARJETA</p>
-          <div className="rounded-2xl p-5 text-white max-w-xs" style={{ background: `linear-gradient(135deg, ${color}, ${color}bb)` }}>
-            <div className="flex items-center justify-between mb-4">
+          <div className="rounded-2xl overflow-hidden max-w-xs shadow-lg" style={{ background: `linear-gradient(145deg, ${color}f0, ${color}a0)` }}>
+            {/* Header */}
+            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
               <div>
-                <p className="text-xs opacity-70 font-medium">Tarjeta de sellos</p>
-                <p className="font-extrabold text-lg leading-tight">{program.name.replace('Tarjeta de Sellos — ', '')}</p>
+                <p className="text-white/60 text-xs font-medium">Nombre del cliente</p>
+                <p className="text-white font-extrabold text-base leading-tight">{program.businesses?.name ?? program.name}</p>
               </div>
-              {program.logo_url && (
-                <img src={program.logo_url} alt="" className="h-10 w-10 object-contain rounded-xl bg-white/20 p-1" />
+              {program.logo_url ? (
+                <div className="w-10 h-10 rounded-xl bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <img src={program.logo_url} alt="" className="w-8 h-8 object-contain" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white text-base font-extrabold">
+                  {(program.businesses?.name ?? program.name).charAt(0)}
+                </div>
               )}
             </div>
-            <div className="grid grid-cols-5 gap-1.5 mb-3">
-              {Array.from({ length: program.stamps_goal > 10 ? 10 : program.stamps_goal }).map((_, i) => (
-                <div key={i} className="w-full aspect-square rounded-full border-2 border-white/40 bg-white/10" />
-              ))}
+            {/* Sellos */}
+            <div className="px-5 pb-2">
+              <div className="grid grid-cols-5 gap-1.5">
+                {Array.from({ length: Math.min(program.stamps_goal, 10) }).map((_, i) => {
+                  const previewIcon = stampIconUrl ?? program.logo_url
+                  const filled = i < 3 // preview muestra 3 llenos
+                  return previewIcon ? (
+                    <div key={i} className={`w-full aspect-square rounded-xl flex items-center justify-center p-1 transition-all ${filled ? 'bg-white shadow' : 'bg-white/15'}`}>
+                      <img src={previewIcon} alt="" className="w-full h-full object-contain"
+                        style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
+                    </div>
+                  ) : (
+                    <div key={i} className={`w-full aspect-square rounded-full flex items-center justify-center text-xs font-bold ${filled ? 'bg-white shadow' : 'bg-white/15'}`}
+                      style={filled ? { color } : { color: 'rgba(255,255,255,0.35)' }}>
+                      {filled ? '✓' : '·'}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-            <p className="text-xs opacity-60">Meta: {program.stamps_goal} sellos · {program.reward_description}</p>
+            {/* Barra de progreso */}
+            <div className="px-5 py-4">
+              <div className="flex justify-between text-xs text-white/60 mb-1.5">
+                <span className="text-white font-semibold">3 de {program.stamps_goal} sellos</span>
+                <span>{program.reward_description}</span>
+              </div>
+              <div className="bg-white/20 rounded-full h-1.5">
+                <div className="bg-white h-1.5 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%` }} />
+              </div>
+            </div>
           </div>
         </div>
       </div>

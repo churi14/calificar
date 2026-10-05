@@ -39,7 +39,7 @@ function SelfStampContent() {
   const [dni, setDni] = useState('')
   const [step, setStep] = useState<'form' | 'loading' | 'result'>('form')
   const [result, setResult] = useState<Result | null>(null)
-  const [needsName, setNeedsName] = useState(false)
+  const [needsName, setNeedsName] = useState(true)
 
   // ── Tab Ver ──
   const [viewPhone, setViewPhone] = useState('')
@@ -70,7 +70,7 @@ function SelfStampContent() {
   }
 
   function reset() {
-    setPhone(''); setName(''); setDni(''); setResult(null); setStep('form'); setNeedsName(false)
+    setPhone(''); setName(''); setDni(''); setResult(null); setStep('form'); setNeedsName(true)
   }
 
   async function viewCard() {
@@ -293,29 +293,26 @@ function SelfStampContent() {
               <input
                 type="tel"
                 value={phone}
-                onChange={e => { setPhone(e.target.value); if (e.target.value.replace(/\D/g,'').length >= 8) setNeedsName(true) }}
+                onChange={e => setPhone(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && submit()}
                 placeholder="Ej: 1130001234"
                 autoFocus={!needsName}
                 className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
               />
             </div>
-            {needsName && (
-              <div>
-                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Tu nombre <span className="text-red-400">*</span></label>
+            <div>
+                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Tu nombre y apellido <span className="text-red-400">*</span></label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && submit()}
-                  placeholder="¿Cómo te llamás?"
-                  autoFocus
+                  placeholder="Ej: Juan García"
                   required
                   className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
                 />
                 <p className="text-xs text-zinc-400 mt-1">Obligatorio — así te reconocemos en el local.</p>
               </div>
-            )}
 
             {/* DNI opcional */}
             <div>

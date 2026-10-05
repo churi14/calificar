@@ -20,7 +20,8 @@ type CardData = {
     reward_description: string
     color_primary: string
     logo_url: string | null
-    businesses: { name: string; whatsapp_number?: string | null }
+    stamp_icon_url: string | null
+    businesses: { name: string; whatsapp_number?: string | null; plan?: string | null }
   }
 }
 
@@ -245,6 +246,11 @@ function TarjetaContent() {
   // Generar grid de sellos
   const selloItems = Array.from({ length: goal }, (_, i) => i < stamps)
 
+  // Ícono de sello: stamp_icon_url (Pro+) > logo_url (Pro+) > null (básico)
+  const bizPlan = (program.businesses as { plan?: string | null } | null)?.plan ?? 'trial'
+  const isProPlus = ['pro', 'ultimate', 'gifted'].includes(bizPlan.toLowerCase())
+  const stampIcon = program.stamp_icon_url ?? (isProPlus ? program.logo_url : null)
+
   async function activarDesdeModal() {
     setShowNotifModal(false)
     await activarNotificaciones()
@@ -345,52 +351,79 @@ function TarjetaContent() {
 
       {/* Tarjeta visual */}
       <div
-        className="w-full max-w-sm rounded-3xl p-6 text-white shadow-2xl mb-6"
-        style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }}
+        className="w-full max-w-sm rounded-3xl shadow-2xl mb-6 overflow-hidden"
+        style={{ background: `linear-gradient(145deg, ${color}f0, ${color}a0)` }}
       >
-        <div className="flex flex-col items-center mb-5">
+        {/* Header con logo */}
+        <div className="px-6 pt-6 pb-4 flex items-center justify-between">
+          <div>
+            <p className="text-white/60 text-xs font-medium mb-0.5">{card.name}</p>
+            <p className="text-white font-extrabold text-lg leading-tight">{program.businesses?.name ?? program.name}</p>
+          </div>
           {program.logo_url ? (
-            <img
-              src={program.logo_url}
-              alt={program.businesses?.name ?? 'Logo'}
-              className="h-16 max-w-[180px] object-contain mb-3"
-              style={{ filter: 'brightness(0) invert(1)' }}
-            />
+            <div className="w-12 h-12 rounded-xl bg-white shadow-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <img
+                src={program.logo_url}
+                alt={program.businesses?.name ?? 'Logo'}
+                className="w-10 h-10 object-contain"
+              />
+            </div>
           ) : (
-            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl mb-3">★</div>
+            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-white text-xl font-extrabold">
+              {(program.businesses?.name ?? program.name).charAt(0).toUpperCase()}
+            </div>
           )}
-          <p className="font-extrabold text-lg leading-tight text-center opacity-95">{program.name}</p>
-          <p className="text-xs opacity-60 mt-0.5">{program.businesses?.name ?? 'Calificar'}</p>
         </div>
-
-        <p className="text-sm font-semibold opacity-80 mb-3">{card.name}</p>
 
         {/* Grid de sellos */}
-        <div className="grid gap-2 mb-4" style={{ gridTemplateColumns: `repeat(${Math.min(goal, 5)}, 1fr)` }}>
-          {selloItems.map((filled, i) => (
-            <div
-              key={i}
-              className={`aspect-square rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
-                filled
-                  ? 'bg-white text-violet-700 border-white shadow-md'
-                  : 'bg-white/10 border-white/30 text-white/40'
-              }`}
-            >
-              {filled ? '★' : '○'}
-            </div>
-          ))}
+        <div className="px-6 pb-2">
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(goal, 5)}, 1fr)` }}>
+            {selloItems.map((filled, i) => (
+              stampIcon ? (
+                <div
+                  key={i}
+                  className={`aspect-square rounded-2xl flex items-center justify-center p-1.5 transition-all ${
+                    filled
+                      ? 'bg-white shadow-md'
+                      : 'bg-white/15'
+                  }`}
+                >
+                  <img
+                    src={stampIcon}
+                    alt=""
+                    className="w-full h-full object-contain"
+                    style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }}
+                  />
+                </div>
+              ) : (
+                <div
+                  key={i}
+                  className={`aspect-square rounded-full flex items-center justify-center text-base font-bold transition-all ${
+                    filled
+                      ? 'bg-white shadow-md'
+                      : 'bg-white/15'
+                  }`}
+                  style={filled ? { color } : { color: 'rgba(255,255,255,0.35)' }}
+                >
+                  {filled ? '✓' : '·'}
+                </div>
+              )
+            ))}
+          </div>
         </div>
 
-        {/* Progreso */}
-        <div className="bg-white/20 rounded-full h-2 mb-2">
-          <div
-            className="bg-white h-2 rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <div className="flex justify-between text-xs opacity-70">
-          <span>{stamps} de {goal} sellos</span>
-          <span>Premio: {program.reward_description}</span>
+        {/* Progreso + info */}
+        <div className="px-6 py-4">
+          <div className="flex justify-between text-xs text-white/70 mb-1.5">
+            <span className="font-semibold text-white">{stamps} de {goal} sellos</span>
+            <span>{program.reward_description}</span>
+          </div>
+          <div className="bg-white/20 rounded-full h-1.5">
+            <div
+              className="bg-white h-1.5 rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
       </div>
 

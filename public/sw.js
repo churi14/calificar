@@ -5,8 +5,8 @@ self.addEventListener('push', function (event) {
   const title = data.title || 'Calificar'
   const options = {
     body: data.body || '',
-    icon: data.icon || '/logo.png',
-    badge: '/logo.png',
+    icon: data.icon || '/notification-icon.png',
+    badge: '/notification-icon.png',
     data: { url: data.url || '/' },
   }
 
