@@ -1,6 +1,6 @@
 /**
  * GET /api/fidelizacion/stamp-token?program_id=X
- * Devuelve el token rotativo actual para el programa (planes Pro+).
+ * Devuelve el token rotativo actual para el programa (todos los planes).
  *
  * Tokens de un solo uso almacenados en DB:
  * - Se genera un nuevo token cada 10 segundos (si el anterior ya fue usado o expiró)
@@ -37,18 +37,11 @@ export async function GET(req: NextRequest) {
   // Verificar plan del negocio
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('id, stamp_secret, businesses!inner(plan, plan_expires_at)')
+    .select('id, stamp_secret')
     .eq('id', program_id)
     .single()
 
   if (!program) return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
-
-  const biz = program.businesses as unknown as { plan: string | null; plan_expires_at: string | null }
-  const isExpired = biz.plan_expires_at ? new Date(biz.plan_expires_at) < new Date() : false
-  const allowedPlans = ['pro', 'ultimate', 'gifted']
-  if (!allowedPlans.includes(biz.plan ?? '') || isExpired) {
-    return NextResponse.json({ error: 'plan_required', plan_needed: 'pro' }, { status: 403 })
-  }
 
   // Activar stamp_secret si el programa no lo tiene (marca que usa tokens)
   if (!program.stamp_secret) {

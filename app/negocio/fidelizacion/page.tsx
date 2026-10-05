@@ -146,7 +146,7 @@ function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp, pla
 
   // Link seguro rotativo (Pro+)
   const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
-  const isProPlus = ['pro', 'ultimate', 'gifted'].includes(plan) && !isExpired
+  const isProPlus = true // Link rotativo disponible en todos los planes
   const [secureLink, setSecureLink] = useState<string | null>(null)
   const [secondsLeft, setSecondsLeft] = useState<number>(0)
   const [loadingToken, setLoadingToken] = useState(false)
@@ -331,9 +331,6 @@ function ViewSelloRapido({ cards, selectedProgram, accessToken, manualStamp, pla
       <div className="mt-8 pt-6 border-t border-zinc-100">
         <div className="flex items-center gap-2 mb-1">
           <h3 className="font-bold text-zinc-900">Link seguro con vencimiento</h3>
-          {!isProPlus && (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">Pro</span>
-          )}
         </div>
         {isProPlus ? (
           <>
