@@ -51,11 +51,10 @@ export async function GET(req: NextRequest) {
 
   const icons = useBusinessLogo
     ? [
-        { src: iconUrl!, sizes: 'any', type: 'image/png', purpose: 'any' },
-        { src: iconUrl!, sizes: 'any', type: 'image/png', purpose: 'maskable' },
+        { src: iconUrl!, sizes: '512x512', type: 'image/png', purpose: 'any' },
       ]
     : [
-        { src: `${appUrl}/logo.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+        { src: `${appUrl}/logo.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
       ]
 
   const manifest = {
