@@ -1681,8 +1681,8 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp, a
 }
 
 // ── Vista: PUSH ──────────────────────────────────────────────────────────────
-function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, notifError = '', notifSentCount = 0, notifRecipients = [], cards = [], selectedProgram, accessToken }:
-  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void; notifError?: string; notifSentCount?: number; notifRecipients?: { name: string; phone: string; ok: boolean }[]; cards?: Card[]; selectedProgram?: string | null; accessToken?: string }) {
+function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, notifError = '', notifSentCount = 0, notifRecipients = [], setNotifSent, setNotifSentCount, setNotifRecipients, pushLogs = [], cards = [], selectedProgram, accessToken }:
+  { notifMsg: string; setNotifMsg: (v: string) => void; notifSending: boolean; notifSent: boolean; sendNotif: () => void; notifError?: string; notifSentCount?: number; notifRecipients?: { name: string; phone: string; ok: boolean }[]; setNotifSent?: (v: boolean) => void; setNotifSentCount?: (v: number) => void; setNotifRecipients?: (v: { name: string; phone: string; ok: boolean }[]) => void; pushLogs?: { id: string; title: string; body: string; sent_to: number; created_at: string }[]; cards?: Card[]; selectedProgram?: string | null; accessToken?: string }) {
   const [tab, setTab] = useState<'todos' | 'individual'>('todos')
   const [search, setSearch] = useState('')
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
@@ -1740,7 +1740,7 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, n
       {tab === 'todos' && (
         <div className="bg-white border border-zinc-100 rounded-2xl p-6">
           <label className="block text-sm font-semibold text-zinc-700 mb-2">Mensaje para todos</label>
-          <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
+          <textarea value={notifMsg} onChange={e => { setNotifMsg(e.target.value); if (notifSent) { setNotifSent(false); setNotifSentCount(0); setNotifRecipients([]) } }}
             placeholder="Ej: Esta semana 2x1 en café. ¡Te esperamos!" rows={4}
             className="w-full border border-zinc-200 focus:border-violet-400 rounded-2xl px-4 py-3 text-sm focus:outline-none resize-none transition-colors" />
           <p className="text-xs text-zinc-400 mt-1 mb-4">{notifMsg.length}/160 caracteres</p>
@@ -1825,6 +1825,29 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, n
             style={{ background: indivSent ? '#10B981' : '#7C3AED' }}>
             {indivSent ? '✓ Enviado' : indivSending ? 'Enviando...' : selectedCard ? `Enviar a ${selectedCard.name.split(' ')[0]}` : 'Seleccioná un cliente'}
           </button>
+        </div>
+      )}
+
+      {/* Historial de pushes enviados */}
+      {pushLogs.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wide mb-3">Historial de envíos</h2>
+          <div className="space-y-2">
+            {pushLogs.map(log => (
+              <div key={log.id} className="bg-white border border-zinc-100 rounded-2xl px-5 py-4 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-zinc-800 truncate">{log.title}</p>
+                  <p className="text-sm text-zinc-500 truncate">{log.body}</p>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    {new Date(log.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <span className="flex-shrink-0 text-xs font-bold bg-violet-50 text-violet-700 px-3 py-1 rounded-full whitespace-nowrap">
+                  {log.sent_to} cliente{log.sent_to !== 1 ? 's' : ''}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -3605,7 +3628,7 @@ export default function NegocioDashboard() {
         id: Date.now().toString(), title: `📣 ${businessName}`, body: notifMsg,
         sent_to: d.sent, created_at: new Date().toISOString(),
       }, ...prev.slice(0, 4)])
-      setTimeout(() => { setNotifSent(false); setNotifSentCount(0) }, 4000)
+      // No borrar automáticamente — el historial queda visible hasta que escriban otro mensaje
     } catch (e) {
       setNotifSending(false)
       setNotifError('Error de red al enviar. Revisá tu conexión.')
@@ -3782,6 +3805,8 @@ export default function NegocioDashboard() {
           <ViewPush notifMsg={notifMsg} setNotifMsg={setNotifMsg}
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
             notifError={notifError} notifSentCount={notifSentCount} notifRecipients={notifRecipients}
+            setNotifSent={setNotifSent} setNotifSentCount={setNotifSentCount} setNotifRecipients={setNotifRecipients}
+            pushLogs={pushLogs}
             cards={cards} selectedProgram={selectedProgram} accessToken={accessToken} />
         )}
         {activeNav === 'proximidad' && (
