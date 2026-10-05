@@ -319,13 +319,22 @@ function TarjetaContent() {
             {isIOS ? (
               <div className="p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
+                  <button
+                    className="flex items-start gap-3 flex-1 text-left active:opacity-70"
+                    onClick={async () => {
+                      if (typeof navigator !== 'undefined' && navigator.share) {
+                        try {
+                          await navigator.share({ title: 'Instalá la app', url: window.location.href })
+                        } catch { /* cancelado */ }
+                      }
+                    }}
+                  >
                     <span className="text-2xl">📲</span>
                     <div>
                       <p className="font-bold text-zinc-900 text-sm">Instalá la app</p>
-                      <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">Tocá <strong>Compartir</strong> → <strong>Agregar a inicio</strong></p>
+                      <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">Tocá aquí → <strong>Agregar a inicio</strong></p>
                     </div>
-                  </div>
+                  </button>
                   <button onClick={dismissInstall} className="text-zinc-300 text-lg leading-none flex-shrink-0 mt-0.5">✕</button>
                 </div>
               </div>
