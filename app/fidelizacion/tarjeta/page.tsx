@@ -108,6 +108,20 @@ function TarjetaContent() {
     return () => { link.remove() }
   }, [programId, cardId])
 
+  // apple-touch-icon dinámico para iOS (usa logo del negocio si está disponible)
+  useEffect(() => {
+    if (!card) return
+    const iconUrl = card.loyalty_programs.logo_url
+    if (!iconUrl) return
+    const existing = document.querySelector('link[rel="apple-touch-icon"]')
+    if (existing) existing.remove()
+    const link = document.createElement('link')
+    link.rel = 'apple-touch-icon'
+    link.setAttribute('href', iconUrl)
+    document.head.appendChild(link)
+    return () => { link.remove() }
+  }, [card])
+
   // Re-suscribir silenciosamente si el permiso ya estaba granted pero la suscripción
   // puede no estar en la DB (por el bug anterior del string/Uint8Array)
   useEffect(() => {
@@ -464,19 +478,33 @@ function TarjetaContent() {
           </div>
         )}
 
-        {/* Notificaciones */}
-        {'Notification' in (typeof window !== 'undefined' ? window : {}) && notifState !== 'granted' && (
-          <button onClick={activarNotificaciones} disabled={notifState === 'loading' || notifState === 'denied'}
-            className={`flex items-center justify-center gap-2 font-semibold px-6 py-4 rounded-full text-sm transition-colors ${
-              notifState === 'denied' ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-white/15 text-white hover:bg-white/20 border border-white/20'
-            }`}>
-            {notifState === 'loading' ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>Activando...</>
-              : notifState === 'denied' ? <>🔕 Notificaciones bloqueadas</>
-              : <>🔔 Activar notificaciones de promos</>}
-          </button>
-        )}
-        {notifState === 'granted' && (
-          <p className="text-center text-sm font-semibold" style={{ color: `${textColor}cc` }}>✓ Notificaciones activadas</p>
+        {/* Notificaciones — en iOS solo funciona desde la PWA instalada */}
+        {isIOS && !isStandalone ? (
+          notifState !== 'granted' && (
+            <div className="flex items-center gap-3 bg-white/10 border border-white/10 rounded-2xl px-4 py-3">
+              <span className="text-xl flex-shrink-0">📲</span>
+              <p className="text-xs text-white/60 leading-snug">
+                Para activar notificaciones, instalá la app primero:<br />
+                <span className="text-white/80 font-semibold">Compartir → Agregar a inicio</span>
+              </p>
+            </div>
+          )
+        ) : (
+          <>
+            {'Notification' in (typeof window !== 'undefined' ? window : {}) && notifState !== 'granted' && (
+              <button onClick={activarNotificaciones} disabled={notifState === 'loading' || notifState === 'denied'}
+                className={`flex items-center justify-center gap-2 font-semibold px-6 py-4 rounded-full text-sm transition-colors ${
+                  notifState === 'denied' ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-white/15 text-white hover:bg-white/20 border border-white/20'
+                }`}>
+                {notifState === 'loading' ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>Activando...</>
+                  : notifState === 'denied' ? <>🔕 Notificaciones bloqueadas</>
+                  : <>🔔 Activar notificaciones de promos</>}
+              </button>
+            )}
+            {notifState === 'granted' && (
+              <p className="text-center text-sm font-semibold" style={{ color: `${textColor}cc` }}>✓ Notificaciones activadas</p>
+            )}
+          </>
         )}
 
         {/* Estadísticas */}
