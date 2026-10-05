@@ -1290,7 +1290,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
   if (!program) return <div className="p-4 md:p-8 text-zinc-400 text-sm">No hay programa activo.</div>
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto w-full">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
       {showPlans && <PlansModal onClose={() => setShowPlans(false)} isDiscountEligible={
         !!businessCreatedAt && (Date.now() - new Date(businessCreatedAt).getTime()) / (1000 * 60 * 60 * 24) <= 7
       } />}
@@ -1355,8 +1355,11 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
         ))}
       </div>
 
-      {/* Programa card */}
-      <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden">
+      {/* Two-column layout: editor + phone preview */}
+      <div className="flex gap-6 items-start">
+
+      {/* LEFT: editor */}
+      <div className="flex-1 min-w-0 bg-white border border-zinc-100 rounded-2xl overflow-hidden">
         {/* Header del programa */}
         <div className="p-5 border-b border-zinc-100">
           <div className="flex items-center justify-between">
@@ -1728,120 +1731,129 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
           {milestoneError && <p className="text-xs text-red-500 mt-2">{milestoneError}</p>}
         </div>
 
-        {/* Preview tarjeta — phone mockup */}
-        <div className="p-5 border-t border-zinc-100">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">PREVIEW</p>
-            <div className="flex gap-1 bg-zinc-100 rounded-xl p-0.5">
-              {(['ios', 'android'] as const).map(d => (
-                <button key={d} onClick={() => setPreviewDevice(d)}
-                  className={`text-xs font-semibold px-3 py-1 rounded-lg transition-all ${previewDevice === d ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}>
-                  {d === 'ios' ? '📱 iOS' : '🤖 Android'}
-                </button>
-              ))}
-            </div>
-          </div>
+      </div>{/* end LEFT editor card */}
 
-          {/* Phone mockup */}
-          <div className="flex justify-center">
-            <div className={`relative bg-zinc-900 shadow-2xl ${previewDevice === 'ios' ? 'rounded-[2.5rem] w-[220px]' : 'rounded-[1.8rem] w-[220px]'}`}
-              style={{ padding: '10px', paddingTop: previewDevice === 'ios' ? '36px' : '16px', paddingBottom: '14px' }}>
-              {/* Notch / camera */}
-              {previewDevice === 'ios' ? (
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-5 bg-zinc-900 rounded-b-2xl z-10 flex items-center justify-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-                  <div className="w-10 h-3 rounded-full bg-zinc-800" />
+      {/* RIGHT: sticky phone preview */}
+      <div className="sticky top-6 hidden lg:flex flex-col items-center w-[260px] flex-shrink-0">
+        {/* iOS/Android toggle */}
+        <div className="flex gap-1 bg-zinc-100 rounded-xl p-0.5 mb-5 self-stretch">
+          {(['ios', 'android'] as const).map(d => (
+            <button key={d} onClick={() => setPreviewDevice(d)}
+              className={`flex-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ${previewDevice === d ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}>
+              {d === 'ios' ? '📱 iOS' : '🤖 Android'}
+            </button>
+          ))}
+        </div>
+
+        {/* Phone frame */}
+        <div className={`relative bg-zinc-900 shadow-2xl ${previewDevice === 'ios' ? 'rounded-[2.8rem] w-[240px]' : 'rounded-[2rem] w-[240px]'}`}
+          style={{ padding: '12px', paddingTop: previewDevice === 'ios' ? '42px' : '18px', paddingBottom: '16px' }}>
+          {/* Notch / camera */}
+          {previewDevice === 'ios' ? (
+            <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-900 rounded-b-2xl z-10 flex items-center justify-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+              <div className="w-12 h-3.5 rounded-full bg-zinc-800" />
+            </div>
+          ) : (
+            <div className="absolute top-3.5 right-5 w-3 h-3 rounded-full bg-zinc-700 z-10" />
+          )}
+          {/* Side buttons iOS */}
+          {previewDevice === 'ios' && (
+            <>
+              <div className="absolute left-[-3px] top-20 w-1 h-7 bg-zinc-700 rounded-l-sm" />
+              <div className="absolute left-[-3px] top-32 w-1 h-10 bg-zinc-700 rounded-l-sm" />
+              <div className="absolute left-[-3px] top-44 w-1 h-10 bg-zinc-700 rounded-l-sm" />
+              <div className="absolute right-[-3px] top-28 w-1 h-14 bg-zinc-700 rounded-r-sm" />
+            </>
+          )}
+          {/* Screen */}
+          <div className="bg-zinc-50 rounded-[1.8rem] overflow-hidden">
+            {/* Status bar */}
+            <div className="px-4 py-1.5 flex items-center justify-between">
+              <span className="text-[9px] font-semibold text-zinc-800">9:41</span>
+              <div className="flex gap-1 items-center">
+                <div className="w-3 h-1.5 rounded-sm bg-zinc-400" />
+                <div className="w-1 h-1 rounded-full bg-zinc-400" />
+              </div>
+            </div>
+            {/* Card */}
+            <div className="mx-2 mb-2 rounded-2xl overflow-hidden shadow-lg"
+              style={{ background: `linear-gradient(145deg, ${cardColor}f0, ${cardColor}a0)` }}>
+              {/* Header */}
+              <div className="px-3 pt-3 pb-2 flex items-center justify-between">
+                <div>
+                  <p className="text-[7px] font-medium mb-0.5" style={{ color: `${cardTextColor}99` }}>Juan García</p>
+                  <p className="text-[11px] font-extrabold leading-tight" style={{ color: cardTextColor }}>
+                    {program.businesses?.name ?? program.name}
+                  </p>
                 </div>
-              ) : (
-                <div className="absolute top-3 right-4 w-2.5 h-2.5 rounded-full bg-zinc-700 z-10" />
-              )}
-              {/* Screen */}
-              <div className="bg-zinc-50 rounded-[1.6rem] overflow-hidden">
-                {/* Status bar */}
-                <div className="px-4 py-1.5 flex items-center justify-between">
-                  <span className="text-[9px] font-semibold text-zinc-800">9:41</span>
-                  <div className="flex gap-1 items-center">
-                    <div className="w-3 h-1.5 rounded-sm bg-zinc-400" />
-                    <div className="w-1 h-1 rounded-full bg-zinc-400" />
+                {program.logo_url ? (
+                  <div className="w-8 h-8 rounded-lg bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <img src={program.logo_url} alt="" className="w-6 h-6 object-contain" />
                   </div>
-                </div>
-                {/* Card */}
-                <div className="mx-2 mb-2 rounded-2xl overflow-hidden shadow-lg"
-                  style={{ background: `linear-gradient(145deg, ${cardColor}f0, ${cardColor}a0)` }}>
-                  {/* Header */}
-                  <div className="px-3 pt-3 pb-2 flex items-center justify-between">
-                    <div>
-                      <p className="text-[7px] font-medium mb-0.5" style={{ color: `${cardTextColor}99` }}>Juan García</p>
-                      <p className="text-[10px] font-extrabold leading-tight" style={{ color: cardTextColor }}>
-                        {program.businesses?.name ?? program.name}
-                      </p>
-                    </div>
-                    {program.logo_url ? (
-                      <div className="w-7 h-7 rounded-lg bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        <img src={program.logo_url} alt="" className="w-5 h-5 object-contain" />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-[11px] font-extrabold" style={{ color: cardTextColor }}>
+                    {(program.businesses?.name ?? program.name).charAt(0)}
+                  </div>
+                )}
+              </div>
+              {/* Stamp grid */}
+              <div className="px-3 pb-1 relative">
+                {cardBgUrl && (
+                  <div className="absolute inset-0 rounded-lg overflow-hidden"
+                    style={{ backgroundImage: `url(${cardBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.25 }} />
+                )}
+                <div className="relative grid gap-1.5" style={{ gridTemplateColumns: `repeat(${Math.min(program.stamps_goal, 5)}, 1fr)` }}>
+                  {Array.from({ length: Math.min(program.stamps_goal, 10) }).map((_, i) => {
+                    const previewIcon = stampIconUrl ?? program.logo_url
+                    const filled = i < 3
+                    return previewIcon ? (
+                      <div key={i} className={`aspect-square rounded-md flex items-center justify-center p-0.5 ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}>
+                        <img src={previewIcon} alt="" className="w-full h-full object-contain"
+                          style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
                       </div>
                     ) : (
-                      <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-[10px] font-extrabold" style={{ color: cardTextColor }}>
-                        {(program.businesses?.name ?? program.name).charAt(0)}
+                      <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-[9px] font-bold ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}
+                        style={filled ? { color: cardColor } : { color: 'rgba(255,255,255,0.35)' }}>
+                        {filled ? '✓' : '·'}
                       </div>
-                    )}
-                  </div>
-                  {/* Stamp grid */}
-                  <div className="px-3 pb-1 relative">
-                    {cardBgUrl && (
-                      <div className="absolute inset-0 rounded-lg overflow-hidden"
-                        style={{ backgroundImage: `url(${cardBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.25 }} />
-                    )}
-                    <div className="relative grid gap-1" style={{ gridTemplateColumns: `repeat(${Math.min(program.stamps_goal, 5)}, 1fr)` }}>
-                      {Array.from({ length: Math.min(program.stamps_goal, 10) }).map((_, i) => {
-                        const previewIcon = stampIconUrl ?? program.logo_url
-                        const filled = i < 3
-                        return previewIcon ? (
-                          <div key={i} className={`aspect-square rounded-md flex items-center justify-center p-0.5 ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}>
-                            <img src={previewIcon} alt="" className="w-full h-full object-contain"
-                              style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
-                          </div>
-                        ) : (
-                          <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-[8px] font-bold ${filled ? 'bg-white shadow-sm' : 'bg-white/15'}`}
-                            style={filled ? { color: cardColor } : { color: 'rgba(255,255,255,0.35)' }}>
-                            {filled ? '✓' : '·'}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  {/* Progress */}
-                  <div className="px-3 py-2">
-                    <div className="flex justify-between text-[7px] mb-1" style={{ color: `${cardTextColor}b3` }}>
-                      <span className="font-semibold" style={{ color: cardTextColor }}>3 de {program.stamps_goal}</span>
-                      <span className="truncate max-w-[80px]">{program.reward_description}</span>
-                    </div>
-                    <div className="rounded-full h-1" style={{ background: `${cardTextColor}33` }}>
-                      <div className="h-1 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
-                    </div>
-                  </div>
-                </div>
-                {/* QR preview */}
-                <div className="mx-2 mb-3 bg-white rounded-xl p-2 text-center shadow-sm">
-                  <p className="text-[7px] text-zinc-400 mb-1 uppercase tracking-wider">Mostrá este QR</p>
-                  <div className="flex justify-center">
-                    <div className="w-14 h-14 bg-zinc-100 rounded-lg flex items-center justify-center">
-                      <span className="text-lg">▦</span>
-                    </div>
-                  </div>
+                    )
+                  })}
                 </div>
               </div>
-              {/* Home indicator */}
-              {previewDevice === 'ios' && (
-                <div className="flex justify-center mt-2">
-                  <div className="w-16 h-1 rounded-full bg-zinc-600" />
+              {/* Progress */}
+              <div className="px-3 py-2">
+                <div className="flex justify-between text-[7px] mb-1" style={{ color: `${cardTextColor}b3` }}>
+                  <span className="font-semibold" style={{ color: cardTextColor }}>3 de {program.stamps_goal}</span>
+                  <span className="truncate max-w-[90px]">{program.reward_description}</span>
                 </div>
-              )}
+                <div className="rounded-full h-1" style={{ background: `${cardTextColor}33` }}>
+                  <div className="h-1 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
+                </div>
+              </div>
+            </div>
+            {/* QR preview */}
+            <div className="mx-2 mb-3 bg-white rounded-xl p-2 text-center shadow-sm">
+              <p className="text-[7px] text-zinc-400 mb-1 uppercase tracking-wider">Mostrá este QR</p>
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-zinc-100 rounded-lg flex items-center justify-center">
+                  <span className="text-xl">▦</span>
+                </div>
+              </div>
             </div>
           </div>
-          <p className="text-xs text-zinc-400 text-center mt-3">Preview con 3 sellos de ejemplo</p>
+          {/* Home indicator */}
+          {previewDevice === 'ios' && (
+            <div className="flex justify-center mt-2">
+              <div className="w-20 h-1 rounded-full bg-zinc-600" />
+            </div>
+          )}
         </div>
-      </div>
+
+        <p className="text-xs text-zinc-400 text-center mt-4">Preview con 3 sellos de ejemplo</p>
+      </div>{/* end RIGHT phone preview */}
+
+      </div>{/* end two-column flex */}
     </div>
   )
 }
