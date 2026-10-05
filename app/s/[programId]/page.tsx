@@ -39,7 +39,7 @@ function SelfStampContent() {
   const [dni, setDni] = useState('')
   const [step, setStep] = useState<'form' | 'loading' | 'result'>('form')
   const [result, setResult] = useState<Result | null>(null)
-  const [needsName, setNeedsName] = useState(true)
+  const [needsName, setNeedsName] = useState(false)
 
   // Auto-cargar datos guardados y enviar directo si ya se registró antes
   useEffect(() => {
@@ -54,21 +54,26 @@ function SelfStampContent() {
       // Auto-enviar después de un frame para que React procese los estados
       setTimeout(async () => {
         setStep('loading')
-        const res = await fetch('/api/fidelizacion/self-stamp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            program_id: programId,
-            phone: savedPhone,
-            name: savedName,
-            dni: savedDni || undefined,
-            token: stampToken,
-          }),
-        })
-        const data: Result = await res.json()
-        if (data.needs_name) { setNeedsName(true); setStep('form'); return }
-        setResult(data)
-        setStep('result')
+        try {
+          const res = await fetch('/api/fidelizacion/self-stamp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              program_id: programId,
+              phone: savedPhone,
+              name: savedName,
+              dni: savedDni || undefined,
+              token: stampToken,
+            }),
+          })
+          const data: Result = await res.json()
+          if (data.needs_name) { window.location.href = `/fidelizacion/unirse?program=${programId}`; return }
+          setResult(data)
+          setStep('result')
+        } catch {
+          // Si falla (sin conexión, error inesperado), volver al form
+          setStep('form')
+        }
       }, 100)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,8 +88,8 @@ function SelfStampContent() {
 
   async function submit() {
     if (!phone.trim()) return
-    // Nombre siempre requerido
-    if (!name.trim()) { setNeedsName(true); return }
+    // Nombre requerido solo si el backend lo pidió (cliente nuevo)
+    if (needsName && !name.trim()) return
     setStep('loading')
     const res = await fetch('/api/fidelizacion/self-stamp', {
       method: 'POST',
@@ -92,10 +97,9 @@ function SelfStampContent() {
       body: JSON.stringify({ program_id: programId, phone: phone.trim(), name: name.trim(), dni: dni.trim() || undefined, token: stampToken }),
     })
     const data: Result = await res.json()
-    // Backend pide nombre (usuario nuevo sin nombre)
+    // Cliente no encontrado → redirigir al registro
     if (data.needs_name) {
-      setNeedsName(true)
-      setStep('form')
+      window.location.href = `/fidelizacion/unirse?program=${programId}`
       return
     }
     // Guardar datos para auto-completar próxima vez
@@ -340,47 +344,14 @@ function SelfStampContent() {
                 onChange={e => setPhone(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && submit()}
                 placeholder="Ej: 1130001234"
-                autoFocus={!needsName}
+                autoFocus
                 className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
               />
-            </div>
-            <div>
-                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Tu nombre y apellido <span className="text-red-400">*</span></label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && submit()}
-                  placeholder="Ej: Juan García"
-                  required
-                  className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
-                />
-                <p className="text-xs text-zinc-400 mt-1">Obligatorio — así te reconocemos en el local.</p>
-              </div>
-
-            {/* DNI opcional */}
-            <div>
-              <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">
-                DNI <span className="font-normal normal-case text-zinc-400">(opcional)</span>
-              </label>
-              <input
-                type="number"
-                value={dni}
-                onChange={e => setDni(e.target.value)}
-                placeholder="Ej: 38500000"
-                className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
-              />
-              <div className="mt-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-100 flex items-start gap-2">
-                <span className="text-amber-500 text-sm flex-shrink-0 mt-0.5">⚠️</span>
-                <p className="text-xs text-amber-700 leading-relaxed">
-                  Tu tarjeta está asociada a tu número de teléfono. Si lo cambiás o perdés el celular, <strong>perdés el acceso</strong>. Con el DNI podés recuperarla sin importar el teléfono.
-                </p>
-              </div>
             </div>
 
             <button
               onClick={submit}
-              disabled={!phone.trim() || (needsName && !name.trim())}
+              disabled={!phone.trim()}
               className="w-full py-4 rounded-2xl font-extrabold text-lg text-white transition-all disabled:opacity-40 mt-2"
               style={{ background: '#7C3AED' }}
             >
