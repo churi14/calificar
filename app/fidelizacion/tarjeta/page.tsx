@@ -161,9 +161,21 @@ function TarjetaContent() {
   if (!card) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6 text-center">
-        <div>
-          <p className="text-4xl mb-4">😕</p>
-          <p className="text-zinc-500">Tarjeta no encontrada.</p>
+        <div className="max-w-xs">
+          <p className="text-5xl mb-4">😕</p>
+          <h1 className="text-lg font-extrabold text-zinc-900 mb-2">Esta tarjeta ya no existe</h1>
+          <p className="text-sm text-zinc-500 mb-6">
+            Puede que el negocio la haya eliminado, o que la cuenta fue dada de baja. Tu historial de sellos no puede recuperarse.
+          </p>
+          {programId && (
+            <a
+              href={`/s/${programId}`}
+              className="inline-block px-6 py-3 rounded-2xl font-bold text-white text-sm"
+              style={{ background: '#7C3AED' }}
+            >
+              Registrarme de nuevo
+            </a>
+          )}
         </div>
       </main>
     )
