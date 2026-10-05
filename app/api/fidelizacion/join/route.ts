@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
         stamps: 0,
         points: 0,
         total_visits: 0,
+        active: true,
         ...(cleanDni ? { dni: cleanDni } : {}),
       })
       .select()

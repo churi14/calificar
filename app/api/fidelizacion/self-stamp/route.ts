@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
         }
         const { data: newCard, error: createErr } = await supabase
           .from('loyalty_cards')
-          .insert({ program_id, phone: cleanPhone, name: cleanName, stamps: 0, total_visits: 0, ...(cleanDni ? { dni: cleanDni } : {}) })
+          .insert({ program_id, phone: cleanPhone, name: cleanName, stamps: 0, total_visits: 0, active: true, ...(cleanDni ? { dni: cleanDni } : {}) })
           .select()
           .single()
 
