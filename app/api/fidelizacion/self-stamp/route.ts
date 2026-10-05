@@ -69,17 +69,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
     }
 
-    // Validar token de un solo uso si el programa tiene seguridad activada
-    if (program.stamp_secret) {
-      if (!token) {
-        return NextResponse.json({ error: 'Link expirado. Pedí el link actualizado al negocio.', token_required: true }, { status: 403 })
-      }
-      const valid = await consumeStampToken(program_id, token)
-      if (!valid) {
-        return NextResponse.json({ error: 'Este link ya fue usado o expiró. Pedí el link actualizado al negocio.', token_required: true }, { status: 403 })
-      }
-    }
-
     // Buscar tarjeta por teléfono + programa (match bidireccional para código de área)
     // Solo tarjetas activas — las inactivas (eliminadas por el negocio) se ignoran
     const { data: allCards } = await supabase
@@ -130,6 +119,15 @@ export async function POST(req: NextRequest) {
       if (cleanDni && !card.dni) updates.dni = cleanDni
       await supabase.from('loyalty_cards').update(updates).eq('id', card.id)
       card = { ...card, name: cleanName }
+    }
+
+    // Validar token rotativo solo para clientes existentes (no para nuevos registros)
+    // El registro no requiere token — llenar el formulario lleva más de 10 segundos
+    if (!isNew && token) {
+      const valid = await consumeStampToken(program_id, token)
+      if (!valid) {
+        return NextResponse.json({ error: 'Este link ya fue usado o expiró. Pedí el link actualizado al negocio.', token_required: true }, { status: 403 })
+      }
     }
 
     // Anti-abuso: máximo 1 sello cada 4 horas
