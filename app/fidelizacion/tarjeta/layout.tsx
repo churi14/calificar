@@ -13,9 +13,10 @@ const supabase = createClient(
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ program?: string }>
+  searchParams?: Promise<{ program?: string }>
 }) {
-  const { program: programId } = await searchParams
+  const params = searchParams ? await searchParams : null
+  const programId = params?.program
 
   if (!programId) return {}
 
