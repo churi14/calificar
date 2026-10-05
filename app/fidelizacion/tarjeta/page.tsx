@@ -23,6 +23,8 @@ type CardData = {
     logo_url: string | null
     stamp_icon_url: string | null
     card_background_url: string | null
+    page_bg_color: string | null
+    stamp_icon_no_bg: boolean | null
     businesses: { name: string; whatsapp_number?: string | null; plan?: string | null }
   }
 }
@@ -254,6 +256,8 @@ function TarjetaContent() {
   const isProPlus = ['pro', 'ultimate', 'gifted'].includes(bizPlan.toLowerCase())
   const stampIcon = program.stamp_icon_url ?? (isProPlus ? program.logo_url : null)
   const cardBgImage = program.card_background_url
+  const pageBgColor = program.page_bg_color ?? '#09090b'
+  const stampNoBg = program.stamp_icon_no_bg ?? false
 
   async function activarDesdeModal() {
     setShowNotifModal(false)
@@ -275,7 +279,7 @@ function TarjetaContent() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center pb-24 bg-zinc-950">
+    <main className="min-h-screen flex flex-col items-center pb-24" style={{ backgroundColor: pageBgColor }}>
 
       {/* Modal de notificaciones */}
       {showNotifModal && (
@@ -361,10 +365,17 @@ function TarjetaContent() {
             <div className="grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(goal, 5)}, 1fr)` }}>
               {selloItems.map((filled, i) =>
                 stampIcon ? (
-                  <div key={i} className={`aspect-square rounded-2xl flex items-center justify-center p-2 transition-all ${filled ? 'bg-white shadow-md' : 'bg-white/15'}`}>
-                    <img src={stampIcon} alt="" className="w-full h-full object-contain"
-                      style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
-                  </div>
+                  stampNoBg ? (
+                    <div key={i} className="aspect-square flex items-center justify-center p-1 transition-all">
+                      <img src={stampIcon} alt="" className="w-full h-full object-contain"
+                        style={filled ? {} : { filter: 'grayscale(100%) opacity(0.25)' }} />
+                    </div>
+                  ) : (
+                    <div key={i} className={`aspect-square rounded-2xl flex items-center justify-center p-2 transition-all ${filled ? 'bg-white shadow-md' : 'bg-white/15'}`}>
+                      <img src={stampIcon} alt="" className="w-full h-full object-contain"
+                        style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
+                    </div>
+                  )
                 ) : (
                   <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-base font-bold transition-all ${filled ? 'bg-white shadow-md' : 'bg-white/15'}`}
                     style={filled ? { color } : { color: 'rgba(255,255,255,0.35)' }}>

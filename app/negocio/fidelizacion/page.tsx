@@ -16,6 +16,8 @@ type Program = {
   color_primary: string
   card_text_color: string | null
   card_background_url: string | null
+  page_bg_color: string | null
+  stamp_icon_no_bg: boolean | null
   logo_url: string | null
   app_icon_url: string | null
   stamp_icon_url: string | null
@@ -1095,6 +1097,8 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(program?.card_background_url ?? null)
   const [cardColor, setCardColor] = useState<string>(program?.color_primary ?? '#7C3AED')
   const [cardTextColor, setCardTextColor] = useState<string>(program?.card_text_color ?? '#FFFFFF')
+  const [pageBgColor, setPageBgColor] = useState<string>(program?.page_bg_color ?? '#09090b')
+  const [stampNoBg, setStampNoBg] = useState<boolean>(program?.stamp_icon_no_bg ?? false)
   const [colorSaving, setColorSaving] = useState(false)
   const [colorSaved, setColorSaved] = useState(false)
   const [previewDevice, setPreviewDevice] = useState<'ios' | 'android'>('ios')
@@ -1221,11 +1225,21 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     const res = await fetch('/api/fidelizacion/program', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
-      body: JSON.stringify({ program_id: selectedProgram, color_primary: cardColor, card_text_color: cardTextColor }),
+      body: JSON.stringify({ program_id: selectedProgram, color_primary: cardColor, card_text_color: cardTextColor, page_bg_color: pageBgColor }),
     })
     const d = await res.json()
     setColorSaving(false)
     if (!d.error) { setColorSaved(true); setTimeout(() => setColorSaved(false), 2500) }
+  }
+
+  async function saveStampNoBg(val: boolean) {
+    if (!selectedProgram) return
+    setStampNoBg(val)
+    await fetch('/api/fidelizacion/program', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: JSON.stringify({ program_id: selectedProgram, stamp_icon_no_bg: val }),
+    })
   }
 
   async function applyTemplate(tpl: typeof CARD_TEMPLATES[number]) {
@@ -1456,6 +1470,11 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                   <input type="color" value={cardTextColor} onChange={e => setCardTextColor(e.target.value)}
                     className="w-9 h-9 rounded-lg cursor-pointer border border-zinc-200 p-0.5" />
                 </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-zinc-500">Fondo de página</label>
+                  <input type="color" value={pageBgColor} onChange={e => setPageBgColor(e.target.value)}
+                    className="w-9 h-9 rounded-lg cursor-pointer border border-zinc-200 p-0.5" />
+                </div>
                 <button onClick={saveCardColors} disabled={colorSaving || colorSaved}
                   className="text-xs font-bold text-white px-4 py-2 rounded-xl disabled:opacity-50"
                   style={{ background: colorSaved ? '#10B981' : '#7C3AED' }}>
@@ -1584,6 +1603,19 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                 {stampIconError && <p className="text-xs text-red-500">{stampIconError}</p>}
                 {stampIconUrl && <p className="text-xs text-green-600 font-medium">✓ Ícono activo</p>}
                 <p className="text-xs text-zinc-400">PNG · máx. 2MB</p>
+                {stampIconUrl && (
+                  <button
+                    onClick={() => saveStampNoBg(!stampNoBg)}
+                    className={`flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-colors ${
+                      stampNoBg
+                        ? 'bg-violet-50 border-violet-200 text-violet-700'
+                        : 'bg-zinc-50 border-zinc-200 text-zinc-500'
+                    }`}
+                  >
+                    <span className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 ${stampNoBg ? 'bg-violet-600 border-violet-600' : 'border-zinc-300'}`} />
+                    Sin fondo en los sellos
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -1832,10 +1864,17 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
                     const previewIcon = stampIconUrl ?? program.logo_url
                     const filled = i < 3
                     return previewIcon ? (
-                      <div key={i} className={`aspect-square rounded-xl flex items-center justify-center p-2 ${filled ? 'bg-white shadow' : 'bg-white/15'}`}>
-                        <img src={previewIcon} alt="" className="w-full h-full object-contain"
-                          style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
-                      </div>
+                      stampNoBg ? (
+                        <div key={i} className="aspect-square flex items-center justify-center p-1">
+                          <img src={previewIcon} alt="" className="w-full h-full object-contain"
+                            style={filled ? {} : { filter: 'grayscale(100%) opacity(0.25)' }} />
+                        </div>
+                      ) : (
+                        <div key={i} className={`aspect-square rounded-xl flex items-center justify-center p-2 ${filled ? 'bg-white shadow' : 'bg-white/15'}`}>
+                          <img src={previewIcon} alt="" className="w-full h-full object-contain"
+                            style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
+                        </div>
+                      )
                     ) : (
                       <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-base font-bold ${filled ? 'bg-white shadow' : 'bg-white/15'}`}
                         style={filled ? { color: cardColor } : { color: 'rgba(255,255,255,0.35)' }}>
