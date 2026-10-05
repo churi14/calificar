@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useSearchParams } from 'next/navigation'
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 
 type Result = {
   success: boolean
@@ -41,6 +41,39 @@ function SelfStampContent() {
   const [result, setResult] = useState<Result | null>(null)
   const [needsName, setNeedsName] = useState(true)
 
+  // Auto-cargar datos guardados y enviar directo si ya se registró antes
+  useEffect(() => {
+    const savedPhone = localStorage.getItem(`cal_phone_${programId}`)
+    const savedName = localStorage.getItem(`cal_name_${programId}`)
+    const savedDni = localStorage.getItem(`cal_dni_${programId}`)
+    if (savedPhone && savedName) {
+      setPhone(savedPhone)
+      setName(savedName)
+      if (savedDni) setDni(savedDni)
+      setNeedsName(false)
+      // Auto-enviar después de un frame para que React procese los estados
+      setTimeout(async () => {
+        setStep('loading')
+        const res = await fetch('/api/fidelizacion/self-stamp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            program_id: programId,
+            phone: savedPhone,
+            name: savedName,
+            dni: savedDni || undefined,
+            token: stampToken,
+          }),
+        })
+        const data: Result = await res.json()
+        if (data.needs_name) { setNeedsName(true); setStep('form'); return }
+        setResult(data)
+        setStep('result')
+      }, 100)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // ── Tab Ver ──
   const [viewPhone, setViewPhone] = useState('')
   const [viewDni, setViewDni] = useState('')
@@ -65,11 +98,22 @@ function SelfStampContent() {
       setStep('form')
       return
     }
+    // Guardar datos para auto-completar próxima vez
+    if (data.success) {
+      localStorage.setItem(`cal_phone_${programId}`, phone.trim())
+      localStorage.setItem(`cal_name_${programId}`, name.trim())
+      if (dni.trim()) localStorage.setItem(`cal_dni_${programId}`, dni.trim())
+    }
     setResult(data)
     setStep('result')
   }
 
-  function reset() {
+  function reset(clearSaved = false) {
+    if (clearSaved) {
+      localStorage.removeItem(`cal_phone_${programId}`)
+      localStorage.removeItem(`cal_name_${programId}`)
+      localStorage.removeItem(`cal_dni_${programId}`)
+    }
     setPhone(''); setName(''); setDni(''); setResult(null); setStep('form'); setNeedsName(true)
   }
 
@@ -106,9 +150,9 @@ function SelfStampContent() {
               {new Date(result.next_available).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
             </p>
           )}
-          <div className="flex gap-3 mt-8 justify-center">
-            <button onClick={reset} className="px-6 py-3 rounded-2xl bg-zinc-100 text-zinc-700 font-semibold text-sm">
-              Volver
+          <div className="flex gap-3 mt-8 justify-center flex-wrap">
+            <button onClick={() => reset(true)} className="px-6 py-3 rounded-2xl bg-zinc-100 text-zinc-700 font-semibold text-sm">
+              Cambiar número
             </button>
             <button onClick={() => { reset(); setTab('ver') }} className="px-6 py-3 rounded-2xl bg-violet-100 text-violet-700 font-semibold text-sm">
               Ver mis sellos

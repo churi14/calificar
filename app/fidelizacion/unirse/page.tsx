@@ -81,6 +81,11 @@ function UnirseContent() {
     // Guardar card_id en localStorage para próximas visitas
     localStorage.setItem(`loyalty_card_${programId}`, data.card.id)
 
+    // Guardar teléfono y nombre para auto-reconocer en el QR de sello
+    localStorage.setItem(`cal_phone_${programId}`, phone)
+    localStorage.setItem(`cal_name_${programId}`, name)
+    if (dni.trim()) localStorage.setItem(`cal_dni_${programId}`, dni.trim())
+
     // Si hay wallet link, mostrar botón; si no, ir a la tarjeta
     if (data.wallet_link) {
       router.push(`/fidelizacion/tarjeta?card=${data.card.id}&program=${programId}&wallet=${encodeURIComponent(data.wallet_link)}`)
