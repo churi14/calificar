@@ -673,13 +673,14 @@ function SalesChart({ salesByDay, cost, color }: { salesByDay: Record<string, nu
   )
 }
 
-function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, businessName, cards, pushLogs, salesByDay, totalSales, onLogoNav, businessCreatedAt, businessPlan, onNavPlan }:
+function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, businessName, cards, pushLogs, salesByDay, totalSales, onLogoNav, businessCreatedAt, businessPlan, onNavPlan, upcomingBdays = [], onNavBday }:
   { program: Program | undefined; selectedProgram: string | null; stats: { total: number; stampsToday: number; rewardsTotal: number }
     transactions: Transaction[]; notifMsg: string; setNotifMsg: (v: string) => void
     notifSending: boolean; notifSent: boolean; sendNotif: () => void; businessName: string; cards: Card[]
     pushLogs: { id: string; title: string; body: string; sent_to: number; created_at: string }[]
     salesByDay: Record<string, number>; totalSales: number; onLogoNav: () => void
-    businessCreatedAt?: string | null; businessPlan?: string; onNavPlan?: () => void }) {
+    businessCreatedAt?: string | null; businessPlan?: string; onNavPlan?: () => void
+    upcomingBdays?: { name: string; daysLeft: number }[]; onNavBday?: () => void }) {
   const color = program?.color_primary ?? '#7C3AED'
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches' })()
   const totalStamps = transactions.filter(tx => tx.type === 'stamp').length
@@ -777,6 +778,27 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
               className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">💬 WA</a>
           </div>
         </div>
+      )}
+
+      {/* Banner cumpleaños próximos */}
+      {upcomingBdays.length > 0 && (
+        <button onClick={onNavBday}
+          className="w-full flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 text-left hover:bg-amber-100 transition-colors">
+          <span className="text-2xl flex-shrink-0">🎂</span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-amber-800">
+              {upcomingBdays.length === 1
+                ? `Cumpleaños de ${upcomingBdays[0].name} en ${upcomingBdays[0].daysLeft === 1 ? 'mañana' : `${upcomingBdays[0].daysLeft} días`}`
+                : `${upcomingBdays.length} cumpleaños en los próximos 7 días`}
+            </p>
+            {upcomingBdays.length > 1 && (
+              <p className="text-xs text-amber-600 truncate">
+                {upcomingBdays.map(b => `${b.name} (en ${b.daysLeft === 1 ? 'mañana' : `${b.daysLeft}d`})`).join(' · ')}
+              </p>
+            )}
+          </div>
+          <span className="text-amber-400 ml-auto flex-shrink-0">→</span>
+        </button>
       )}
 
       {/* KPIs */}
@@ -3893,6 +3915,7 @@ export default function NegocioDashboard() {
   const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null)
   const [businessCreatedAt, setBusinessCreatedAt] = useState<string | null>(null)
   const [todayBdayCount, setTodayBdayCount] = useState(0)
+  const [upcomingBdays, setUpcomingBdays] = useState<{ name: string; daysLeft: number }[]>([])
   const [pushLogs, setPushLogs] = useState<{ id: string; title: string; body: string; sent_to: number; created_at: string }[]>([])
   const [pushSubscribers, setPushSubscribers] = useState<{ id: string; card_id: string; name: string; phone: string; subscribed_at: string }[]>([])
   const [salesByDay, setSalesByDay] = useState<Record<string, number>>({})
@@ -4039,6 +4062,17 @@ export default function NegocioDashboard() {
         return bdM === mm && bdD === dd
       }).length
       setTodayBdayCount(bdayToday)
+      // Próximos 7 días (sin contar hoy)
+      const upcoming = c.flatMap(card => {
+        if (!card.birth_date) return []
+        const [,bdM,bdD] = card.birth_date.split('-').map(Number)
+        const thisYear = new Date(today.getFullYear(), bdM - 1, bdD)
+        if (thisYear < today) thisYear.setFullYear(today.getFullYear() + 1)
+        const diff = Math.floor((thisYear.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) / 86400000)
+        if (diff > 0 && diff <= 7) return [{ name: card.name, daysLeft: diff }]
+        return []
+      }).sort((a, b) => a.daysLeft - b.daysLeft)
+      setUpcomingBdays(upcoming)
       setLoading(false)
     }).catch(() => setLoading(false))
 
@@ -4243,7 +4277,8 @@ export default function NegocioDashboard() {
             pushLogs={pushLogs} salesByDay={salesByDay} totalSales={totalSales}
             onLogoNav={() => setActiveNav('tarjeta')}
             businessCreatedAt={businessCreatedAt} businessPlan={businessPlan}
-            onNavPlan={() => setActiveNav('plan')} />
+            onNavPlan={() => setActiveNav('plan')}
+            upcomingBdays={upcomingBdays} onNavBday={() => setActiveNav('cumple')} />
         )}
         {activeNav === 'tarjeta' && (
           <ViewTarjeta program={program} selectedProgram={selectedProgram} onLogoUploaded={handleLogoUploaded} accessToken={accessToken} plan={businessPlan} planExpiresAt={planExpiresAt} stats={stats} businessCreatedAt={businessCreatedAt} />
