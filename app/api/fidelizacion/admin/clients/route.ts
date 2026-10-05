@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyProgramOwner } from '@/lib/business-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,4 +19,27 @@ export async function GET(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ cards })
+}
+
+export async function DELETE(req: NextRequest) {
+  const card_id = req.nextUrl.searchParams.get('card_id')
+  if (!card_id) return NextResponse.json({ error: 'card_id requerido' }, { status: 400 })
+
+  // Verificar que la tarjeta pertenece a un programa del usuario
+  const { data: card } = await supabase
+    .from('loyalty_cards')
+    .select('program_id')
+    .eq('id', card_id)
+    .single()
+
+  if (!card) return NextResponse.json({ error: 'Tarjeta no encontrada' }, { status: 404 })
+
+  const owner = await verifyProgramOwner(req, card.program_id)
+  if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  // Eliminar transacciones primero (FK), luego la tarjeta
+  await supabase.from('loyalty_transactions').delete().eq('card_id', card_id)
+  await supabase.from('loyalty_cards').delete().eq('id', card_id)
+
+  return NextResponse.json({ ok: true })
 }

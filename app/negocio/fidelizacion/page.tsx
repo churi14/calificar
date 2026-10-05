@@ -1389,10 +1389,25 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
 }
 
 // ── Vista: CLIENTES ──────────────────────────────────────────────────────────
-function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
-  { cards: Card[]; program: Program | undefined; selectedProgram: string | null; loading: boolean; manualStamp: (id: string, name: string) => void }) {
+function ViewClientes({ cards, program, selectedProgram, loading, manualStamp, accessToken, onClientDeleted }:
+  { cards: Card[]; program: Program | undefined; selectedProgram: string | null; loading: boolean; manualStamp: (id: string, name: string) => void; accessToken: string; onClientDeleted: (cardId: string) => void }) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<'todos' | 'activo' | 'inactivo'>('todos')
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function deleteClient(cardId: string) {
+    setDeleting(true)
+    try {
+      await fetch(`/api/fidelizacion/admin/clients?card_id=${cardId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      onClientDeleted(cardId)
+    } catch { /* silent */ }
+    setDeleting(false)
+    setDeleteConfirm(null)
+  }
   const color = program?.color_primary ?? '#7C3AED'
   const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
 
@@ -1512,6 +1527,10 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
                             className="text-xs bg-violet-100 text-violet-700 hover:bg-violet-200 px-2.5 py-1 rounded-lg font-semibold transition-colors">
                             + Sello
                           </button>
+                          <button onClick={() => setDeleteConfirm({ id: c.id, name: c.name })}
+                            className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded-lg font-semibold transition-colors hover:bg-red-50">
+                            Eliminar
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1521,6 +1540,27 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp }:
             )}
           </div>
         </>
+      )}
+
+      {/* Modal confirmar eliminar cliente */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <p className="text-2xl mb-3">🗑️</p>
+            <h2 className="text-lg font-extrabold text-zinc-900 mb-2">¿Eliminar a {deleteConfirm.name}?</h2>
+            <p className="text-sm text-zinc-500 mb-5">Se eliminará su tarjeta y todos sus sellos del programa. Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(null)} disabled={deleting}
+                className="flex-1 border border-zinc-200 text-zinc-600 font-semibold py-2.5 rounded-xl text-sm hover:bg-zinc-50 transition-colors">
+                Cancelar
+              </button>
+              <button onClick={() => deleteClient(deleteConfirm.id)} disabled={deleting}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50">
+                {deleting ? 'Eliminando…' : 'Sí, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
@@ -3568,7 +3608,9 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'clientes' && (
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
-            loading={loading} manualStamp={(id, name) => setStampModal({ cardId: id, name })} />
+            loading={loading} manualStamp={(id, name) => setStampModal({ cardId: id, name })}
+            accessToken={accessToken}
+            onClientDeleted={(cardId) => setCards(prev => prev.filter(c => c.id !== cardId))} />
         )}
         {activeNav === 'cupones' && (
           <ViewCupones selectedProgram={selectedProgram} accessToken={accessToken} />
