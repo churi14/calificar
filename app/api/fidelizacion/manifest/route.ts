@@ -15,6 +15,7 @@ const supabase = createClient(
 export async function GET(req: NextRequest) {
   const program_id = req.nextUrl.searchParams.get('program_id')
   const card_id = req.nextUrl.searchParams.get('card_id')
+  const scope_path = req.nextUrl.searchParams.get('scope_path') // 't' → /t/{program_id}/ scope aislado
 
   let appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
   if (!appUrl.startsWith('http')) appUrl = 'https://' + appUrl
@@ -45,9 +46,18 @@ export async function GET(req: NextRequest) {
   )
   const useBusinessLogo = !!iconUrl
 
-  const startUrl = card_id
-    ? `${appUrl}/fidelizacion/tarjeta?card=${card_id}&program=${program_id}`
-    : `${appUrl}/fidelizacion/unirse?program=${program_id}`
+  // scope: aislado por negocio cuando scope_path='t', genérico sino
+  const scope = scope_path === 't'
+    ? `${appUrl}/t/${program_id}/`
+    : `${appUrl}/`
+
+  const startUrl = scope_path === 't'
+    ? (card_id
+        ? `${appUrl}/t/${program_id}?card=${card_id}`
+        : `${appUrl}/fidelizacion/unirse?program=${program_id}`)
+    : (card_id
+        ? `${appUrl}/fidelizacion/tarjeta?card=${card_id}&program=${program_id}`
+        : `${appUrl}/fidelizacion/unirse?program=${program_id}`)
 
   const icons = useBusinessLogo
     ? [
@@ -63,7 +73,7 @@ export async function GET(req: NextRequest) {
     short_name: businessName.length > 12 ? businessName.substring(0, 12) + '…' : businessName,
     description: `Tarjeta de sellos de ${businessName}`,
     start_url: startUrl,
-    scope: `${appUrl}/`,
+    scope,
     display: 'standalone',
     background_color: '#ffffff',
     theme_color: color,

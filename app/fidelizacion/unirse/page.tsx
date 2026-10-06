@@ -39,7 +39,7 @@ function UnirseContent() {
     // Si ya tiene tarjeta guardada, redirigir directo
     const savedCard = localStorage.getItem(`loyalty_card_${programId}`)
     if (savedCard) {
-      router.replace(`/fidelizacion/tarjeta?card=${savedCard}&program=${programId}`)
+      router.replace(`/t/${programId}?card=${savedCard}`)
       return
     }
 
@@ -59,7 +59,7 @@ function UnirseContent() {
     setLookupLoading(false)
     if (!data.found) { setLookupError('No encontramos una tarjeta con ese número.'); return }
     localStorage.setItem(`loyalty_card_${programId}`, data.card.id)
-    router.push(`/fidelizacion/tarjeta?card=${data.card.id}&program=${programId}`)
+    router.push(`/t/${programId}?card=${data.card.id}`)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -89,9 +89,9 @@ function UnirseContent() {
 
     // Si hay wallet link, mostrar botón; si no, ir a la tarjeta
     if (data.wallet_link) {
-      router.push(`/fidelizacion/tarjeta?card=${data.card.id}&program=${programId}&wallet=${encodeURIComponent(data.wallet_link)}`)
+      router.push(`/t/${programId}?card=${data.card.id}&wallet=${encodeURIComponent(data.wallet_link)}`)
     } else {
-      router.push(`/fidelizacion/tarjeta?card=${data.card.id}&program=${programId}`)
+      router.push(`/t/${programId}?card=${data.card.id}`)
     }
   }
 
