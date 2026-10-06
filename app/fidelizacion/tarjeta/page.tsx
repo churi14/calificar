@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
+import { QRCanvas } from './QRCanvas'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -282,9 +283,6 @@ function TarjetaContent() {
     return (r * 299 + g * 587 + b * 114) / 1000 < 128
   }
   const darkBg = isDark(pageBgColor)
-  // Colores del QR dinámicos según el fondo
-  const qrFg = darkBg ? 'FFFFFF' : '18181B'
-  const qrBg = '00000000' // siempre transparente
   const stampNoBg = program.stamp_icon_no_bg ?? false
 
   async function activarDesdeModal() {
@@ -467,14 +465,10 @@ function TarjetaContent() {
             </p>
             <p className={`text-xs mb-4 ${darkBg ? 'text-white/50' : 'text-zinc-400'}`}>para sumar tu sello</p>
             <div className="flex justify-center">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
-                  `https://calificar.com.ar/fidelizacion/stamp?program=${programId}&card=${cardId}`
-                )}&color=${qrFg}&bgcolor=${qrBg}&qzone=2`}
-                alt="Tu QR personal"
-                width={240}
-                height={240}
-                className="rounded-xl"
+              <QRCanvas
+                data={`https://calificar.com.ar/fidelizacion/stamp?program=${programId}&card=${cardId}`}
+                dark={darkBg ? '#FFFFFF' : '#18181B'}
+                size={240}
               />
             </div>
             <p className={`text-[11px] mt-4 ${darkBg ? 'text-white/50' : 'text-zinc-400'}`}>El encargado escanea y se suma automáticamente</p>
@@ -552,6 +546,13 @@ function TarjetaContent() {
             </div>
           </div>
         </div>
+
+        {/* Link a billetera */}
+        <a href="/mi-billetera"
+          className="flex items-center justify-center gap-2 text-sm font-semibold py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+          style={{ color: `${textColor}99` }}>
+          🎴 Ver todas mis tarjetas
+        </a>
 
         <p className="text-xs text-white/30 text-center pb-2">
           Guardá este link o escaneá el cartel NFC del local para sumar sellos.
