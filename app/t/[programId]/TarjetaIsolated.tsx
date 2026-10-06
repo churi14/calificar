@@ -117,7 +117,20 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
   }, [])
 
   useEffect(() => {
-    if (!cardId) return
+    // Si no hay cardId en la URL (ej. PWA abre en start_url sin ?card=...),
+    // buscar en localStorage si ya se registró en este programa.
+    // Si no hay nada guardado, redirigir al registro.
+    if (!cardId) {
+      const saved = localStorage.getItem(`loyalty_card_${programId}`)
+      if (saved) {
+        // Tenemos tarjeta guardada — redirigir con el card en la URL
+        window.location.replace(`/t/${programId}?card=${saved}`)
+      } else {
+        // No hay tarjeta — ir al registro de este negocio
+        window.location.replace(`/fidelizacion/unirse?program=${programId}`)
+      }
+      return
+    }
     if (localStorage.getItem(`wallet_saved_${cardId}`)) setWalletSaved(true)
     fetch(`/api/fidelizacion/card?card_id=${cardId}`)
       .then(r => r.json())
