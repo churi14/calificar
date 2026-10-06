@@ -96,7 +96,10 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {})
+      // Registrar SW aislado por programa (scope /t/{programId}/) en lugar del global /sw.js.
+      // Chrome usa el scope del SW + el campo "id" del manifest para identificar PWAs.
+      // Con /sw.js (scope "/"), todas las tarjetas se agrupan como una sola app.
+      navigator.serviceWorker.register(`/t/${programId}/sw.js`, { scope: `/t/${programId}/` }).catch(() => {})
     }
     if ('Notification' in window) {
       if (Notification.permission === 'granted') {
