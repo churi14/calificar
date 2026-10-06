@@ -37,7 +37,9 @@ export async function POST(req: NextRequest) {
     const cleanPhone = phone.replace(/\D/g, '')
     const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
 
-    // Verificar si ya tiene tarjeta (match bidireccional + últimos 8 dígitos)
+    // Buscar tarjeta existente para este teléfono + programa (incluyendo inactivas).
+    // NO filtrar por active: true — si la tarjeta fue soft-deleted la reactivamos,
+    // no creamos un duplicado que chocaría con la restricción UNIQUE.
     const { data: allCards } = await supabase
       .from('loyalty_cards')
       .select('*')
@@ -49,41 +51,52 @@ export async function POST(req: NextRequest) {
     }) ?? (allCards ?? []).find(c => c.phone.replace(/\D/g, '').slice(-8) === cleanPhone.slice(-8)) ?? null
 
     if (existing) {
-      // Ya tiene tarjeta — generar wallet link con objeto completo embebido en JWT
-      // Si wallet_object_id es null (falló antes), usamos ID determinístico: calificar_card_<id>
-      const objectId = existing.wallet_object_id ?? `calificar_card_${existing.id}`
+      // Si la tarjeta fue soft-deleted (active: false), reactivarla.
+      // Esto resuelve el caso "admin borró al cliente → cliente vuelve a registrarse".
+      let activeCard = existing
+      if (!existing.active) {
+        const { data: reactivated, error: reactivateErr } = await supabase
+          .from('loyalty_cards')
+          .update({ active: true })
+          .eq('id', existing.id)
+          .select()
+          .single()
+        if (reactivateErr || !reactivated) {
+          return NextResponse.json({ error: 'Error reactivando tarjeta' }, { status: 500 })
+        }
+        activeCard = reactivated
+      }
 
-      // Si no tenía wallet_object_id guardado, intentar guardarlo ahora
-      if (!existing.wallet_object_id) {
+      const objectId = activeCard.wallet_object_id ?? `calificar_card_${activeCard.id}`
+      if (!activeCard.wallet_object_id) {
         try {
           await createLoyaltyObject({
             classId: program.id,
             objectId,
-            customerName: existing.name ?? existing.phone,
-            stamps: existing.stamps,
+            customerName: activeCard.name ?? activeCard.phone,
+            stamps: activeCard.stamps,
             stampsGoal: program.stamps_goal,
             rewardDescription: program.reward_description,
           })
         } catch { /* ya puede existir en Google — ignorar */ }
-        await supabase.from('loyalty_cards').update({ wallet_object_id: objectId }).eq('id', existing.id)
+        await supabase.from('loyalty_cards').update({ wallet_object_id: objectId }).eq('id', activeCard.id)
       }
 
-      // Siempre embeber objeto completo en el JWT para que Google lo cree si no existe
       const walletLink = getWalletLink(objectId, program.id, {
-        customerName: existing.name ?? existing.phone,
-        stamps: existing.stamps,
+        customerName: activeCard.name ?? activeCard.phone,
+        stamps: activeCard.stamps,
         stampsGoal: program.stamps_goal,
         rewardDescription: program.reward_description,
       })
 
       return NextResponse.json({
-        card: { ...existing, wallet_object_id: objectId },
+        card: { ...activeCard, wallet_object_id: objectId },
         wallet_link: walletLink,
-        already_member: true,
+        already_member: !existing.active ? false : true, // reactivada = tratarla como nueva
       })
     }
 
-    // Crear tarjeta en Supabase
+    // Crear nueva tarjeta
     const { data: card, error: cardErr } = await supabase
       .from('loyalty_cards')
       .insert({
@@ -102,6 +115,24 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (cardErr || !card) {
+      // Si es violación de UNIQUE (23505), buscar y reactivar el registro conflictivo.
+      // Esto puede pasar por condición de carrera (dos requests simultáneos).
+      if (cardErr?.code === '23505') {
+        const { data: conflicting } = await supabase
+          .from('loyalty_cards')
+          .select('*')
+          .eq('program_id', program_id)
+          .eq('phone', cleanPhone)
+          .maybeSingle()
+        if (conflicting) {
+          if (!conflicting.active) {
+            await supabase.from('loyalty_cards').update({ active: true }).eq('id', conflicting.id)
+            conflicting.active = true
+          }
+          return NextResponse.json({ card: conflicting, already_member: true })
+        }
+      }
+      console.error('[JOIN] Error insertando loyalty_card:', cardErr)
       return NextResponse.json({ error: 'Error creando tarjeta' }, { status: 500 })
     }
 
