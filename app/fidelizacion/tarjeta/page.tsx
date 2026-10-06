@@ -67,12 +67,9 @@ function TarjetaContent() {
       const perm = await Notification.requestPermission()
       if (perm !== 'granted') { setNotifState('denied'); return }
 
-      // Registrar SW si no está registrado aún
+      // Esta ruta legacy no registra SW global para no romper el aislamiento de /t/[programId]
       if (!('serviceWorker' in navigator)) { setNotifState('denied'); return }
-      let reg = await navigator.serviceWorker.getRegistration('/sw.js')
-      if (!reg) {
-        reg = await navigator.serviceWorker.register('/sw.js')
-      }
+      const reg = await navigator.serviceWorker.getRegistration()
 
       // Esperar a que el SW esté activo, con timeout de 5s para no quedar colgado
       const activeReg = await Promise.race([
@@ -133,8 +130,7 @@ function TarjetaContent() {
 
     async function reSubscribeSilently() {
       try {
-        let reg = await navigator.serviceWorker.getRegistration('/sw.js')
-        if (!reg) reg = await navigator.serviceWorker.register('/sw.js')
+        const reg = await navigator.serviceWorker.getRegistration()
         const activeReg = await Promise.race([
           navigator.serviceWorker.ready,
           new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
@@ -160,10 +156,7 @@ function TarjetaContent() {
   }, [cardId, programId])
 
   useEffect(() => {
-    // Registrar service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {})
-    }
+    // Ruta legacy — NO registrar SW global para no romper el aislamiento de /t/[programId]
     // Detectar si ya tiene permiso de notificaciones
     if ('Notification' in window) {
       if (Notification.permission === 'granted') {

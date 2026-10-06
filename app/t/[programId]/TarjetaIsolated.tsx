@@ -75,8 +75,8 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
       const perm = await Notification.requestPermission()
       if (perm !== 'granted') { setNotifState('denied'); return }
       if (!('serviceWorker' in navigator)) { setNotifState('denied'); return }
-      let reg = await navigator.serviceWorker.getRegistration('/sw.js')
-      if (!reg) reg = await navigator.serviceWorker.register('/sw.js')
+      let reg = await navigator.serviceWorker.getRegistration(`/t/${programId}/sw.js`)
+      if (!reg) reg = await navigator.serviceWorker.register(`/t/${programId}/sw.js`, { scope: `/t/${programId}/` })
       const activeReg = await Promise.race([
         navigator.serviceWorker.ready,
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SW timeout')), 5000)),
