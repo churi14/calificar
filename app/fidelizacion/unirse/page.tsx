@@ -10,6 +10,7 @@ type Program = {
   reward_description: string
   color_primary: string
   logo_url: string | null
+  app_icon_url: string | null
   businesses: { name: string; whatsapp_number?: string | null }
 }
 
@@ -121,9 +122,13 @@ function UnirseContent() {
     <main className="min-h-screen flex flex-col">
       {/* Hero con color del negocio */}
       <div className="flex flex-col items-center justify-center pt-14 pb-10 px-6" style={{ backgroundColor: color }}>
-        {program?.logo_url ? (
+        {program?.app_icon_url ? (
+          <div className="w-20 h-20 rounded-2xl overflow-hidden mb-5 shadow-lg flex-shrink-0">
+            <img src={program.app_icon_url} alt="" className="w-full h-full object-cover" />
+          </div>
+        ) : program?.logo_url ? (
           <img src={program.logo_url} alt=""
-            className="h-24 max-w-[200px] object-contain mb-5 drop-shadow-lg"
+            className="h-20 max-w-[160px] object-contain mb-5 drop-shadow-lg"
             style={{ filter: lum < 0.5 ? 'brightness(0) invert(1)' : 'brightness(0)' }} />
         ) : (
           <div className="text-5xl mb-5" style={{ color: textOnColor }}>★</div>

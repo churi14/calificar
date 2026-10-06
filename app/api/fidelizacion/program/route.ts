@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   const body = await req.json()
-  const { program_id, milestones, sync_wallet, stamps_goal, reward_description, color_primary, card_text_color, card_background_url, stamp_icon_url, page_bg_color, stamp_icon_no_bg } = body
+  const { program_id, milestones, sync_wallet, stamps_goal, reward_description, color_primary, card_text_color, card_background_url, stamp_icon_url, app_icon_url, page_bg_color, stamp_icon_no_bg } = body
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
 
   // Verificar que el usuario es dueño del programa
@@ -55,12 +55,13 @@ export async function PATCH(req: NextRequest) {
   }
 
   // Actualizar diseño de tarjeta (color, texto, imágenes)
-  if (color_primary !== undefined || card_text_color !== undefined || card_background_url !== undefined || stamp_icon_url !== undefined || page_bg_color !== undefined || stamp_icon_no_bg !== undefined) {
+  if (color_primary !== undefined || card_text_color !== undefined || card_background_url !== undefined || stamp_icon_url !== undefined || app_icon_url !== undefined || page_bg_color !== undefined || stamp_icon_no_bg !== undefined) {
     const updates: Record<string, unknown> = {}
     if (color_primary !== undefined) updates.color_primary = color_primary
     if (card_text_color !== undefined) updates.card_text_color = card_text_color
     if (card_background_url !== undefined) updates.card_background_url = card_background_url
     if (stamp_icon_url !== undefined) updates.stamp_icon_url = stamp_icon_url
+    if (app_icon_url !== undefined) updates.app_icon_url = app_icon_url
     if (page_bg_color !== undefined) updates.page_bg_color = page_bg_color
     if (stamp_icon_no_bg !== undefined) updates.stamp_icon_no_bg = stamp_icon_no_bg
     const { error } = await supabase
