@@ -272,6 +272,19 @@ function TarjetaContent() {
   const stampIcon = program.stamp_icon_url ?? (isProPlus ? program.logo_url : null)
   const cardBgImage = program.card_background_url
   const pageBgColor = program.page_bg_color ?? '#09090b'
+  // Luminancia YIQ para saber si el fondo de página es oscuro
+  function isDark(hex: string): boolean {
+    const h = hex.replace('#', '')
+    if (h.length < 6) return true
+    const r = parseInt(h.slice(0, 2), 16)
+    const g = parseInt(h.slice(2, 4), 16)
+    const b = parseInt(h.slice(4, 6), 16)
+    return (r * 299 + g * 587 + b * 114) / 1000 < 128
+  }
+  const darkBg = isDark(pageBgColor)
+  // Colores del QR dinámicos según el fondo
+  const qrFg = darkBg ? 'FFFFFF' : '18181B'
+  const qrBg = '00000000' // siempre transparente
   const stampNoBg = program.stamp_icon_no_bg ?? false
 
   async function activarDesdeModal() {
@@ -446,25 +459,25 @@ function TarjetaContent() {
           </div>
         ))}
 
-        {/* QR — fondo SIEMPRE blanco, contrasta con cualquier color */}
+        {/* QR — colores dinámicos según fondo de página */}
         {cardId && programId && (
-          <div className="bg-white rounded-3xl p-6 text-center shadow-lg">
-            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1">
+          <div className={`rounded-3xl p-6 text-center ${darkBg ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+            <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${darkBg ? 'text-white/70' : 'text-zinc-500'}`}>
               Mostrá este QR en el local
             </p>
-            <p className="text-xs text-zinc-400 mb-4">para sumar tu sello</p>
+            <p className={`text-xs mb-4 ${darkBg ? 'text-white/50' : 'text-zinc-400'}`}>para sumar tu sello</p>
             <div className="flex justify-center">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
                   `https://calificar.com.ar/fidelizacion/stamp?program=${programId}&card=${cardId}`
-                )}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+                )}&color=${qrFg}&bgcolor=${qrBg}&qzone=2`}
                 alt="Tu QR personal"
-                width={200}
-                height={200}
+                width={240}
+                height={240}
                 className="rounded-xl"
               />
             </div>
-            <p className="text-[11px] text-zinc-400 mt-4">El encargado escanea y se suma automáticamente</p>
+            <p className={`text-[11px] mt-4 ${darkBg ? 'text-white/50' : 'text-zinc-400'}`}>El encargado escanea y se suma automáticamente</p>
           </div>
         )}
 
