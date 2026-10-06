@@ -81,6 +81,7 @@ export async function GET(req: NextRequest) {
       ]
 
   const manifest = {
+    id: `/t/${program_id}`,   // identificador único por negocio — Chrome lo usa para distinguir PWAs
     name: businessName,
     short_name: businessName.length > 12 ? businessName.substring(0, 12) + '…' : businessName,
     description: `Tarjeta de sellos de ${businessName}`,
