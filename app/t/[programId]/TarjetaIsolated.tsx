@@ -432,10 +432,13 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
         </p>
       </div>
 
-      {/* WhatsApp */}
-      {program.businesses?.whatsapp_number && (() => {
-        const waNum = program.businesses.whatsapp_number!.replace(/\D/g, '')
-        const bizName = program.businesses.name ?? 'el local'
+      {/* WhatsApp — solo si el NEGOCIO configuró su propio número (mín 8 dígitos) */}
+      {(() => {
+        const raw = program.businesses?.whatsapp_number ?? ''
+        const waNum = raw.replace(/\D/g, '')
+        // Ignorar si está vacío, muy corto, o es el número de la plataforma Calificar
+        if (waNum.length < 8 || waNum === '5491123867934') return null
+        const bizName = program.businesses?.name ?? 'el local'
         const href = `https://wa.me/${waNum}?text=${encodeURIComponent(`Hola ${bizName}! Tengo una consulta.`)}`
         return (
           <a href={href} target="_blank" rel="noopener noreferrer"
