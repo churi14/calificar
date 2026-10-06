@@ -60,6 +60,46 @@ function UnirseContent() {
       return
     }
 
+    // Silent Insert: si el usuario ya usó Calificar en otro local, registrarlo automáticamente aquí
+    // sin mostrar el formulario — mejora la experiencia de clientes recurrentes.
+    const globalPhone = localStorage.getItem('cal_phone')
+    const globalName = localStorage.getItem('cal_name')
+    if (globalPhone && globalName) {
+      const globalDni = localStorage.getItem('cal_dni')
+      fetch('/api/fidelizacion/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          program_id: programId,
+          phone: globalPhone,
+          name: globalName,
+          ...(globalDni ? { dni: globalDni } : {}),
+        }),
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.card) {
+            localStorage.setItem(`loyalty_card_${programId}`, d.card.id)
+            document.cookie = `cal_card_${programId}=${d.card.id};max-age=31536000;path=/;SameSite=Lax`
+            const walletParam = d.wallet_link ? `&wallet=${encodeURIComponent(d.wallet_link)}` : ''
+            router.replace(`/t/${programId}?card=${d.card.id}${walletParam}`)
+          } else {
+            // Falló el silent insert — mostrar el formulario normalmente
+            fetch(`/api/fidelizacion/program?id=${programId}`)
+              .then(r => r.json())
+              .then(d2 => setProgram(d2.program))
+              .catch(() => {})
+          }
+        })
+        .catch(() => {
+          fetch(`/api/fidelizacion/program?id=${programId}`)
+            .then(r => r.json())
+            .then(d2 => setProgram(d2.program))
+            .catch(() => {})
+        })
+      return
+    }
+
     fetch(`/api/fidelizacion/program?id=${programId}`)
       .then(r => r.json())
       .then(d => setProgram(d.program))
@@ -100,10 +140,16 @@ function UnirseContent() {
     localStorage.setItem(`loyalty_card_${programId}`, data.card.id)
     document.cookie = `cal_card_${programId}=${data.card.id};max-age=31536000;path=/;SameSite=Lax`
 
-    // Guardar teléfono y nombre para auto-reconocer en el QR de sello
+    // Guardar teléfono y nombre: tanto por programa (para QR de sello) como GLOBAL
+    // La clave global permite el "Silent Insert" en otros locales del sistema
     localStorage.setItem(`cal_phone_${programId}`, phone)
     localStorage.setItem(`cal_name_${programId}`, name)
-    if (dni.trim()) localStorage.setItem(`cal_dni_${programId}`, dni.trim())
+    localStorage.setItem('cal_phone', phone.replace(/\D/g, ''))
+    localStorage.setItem('cal_name', name.trim())
+    if (dni.trim()) {
+      localStorage.setItem(`cal_dni_${programId}`, dni.trim())
+      localStorage.setItem('cal_dni', dni.trim())
+    }
 
     // Si hay wallet link, mostrar botón; si no, ir a la tarjeta
     if (data.wallet_link) {

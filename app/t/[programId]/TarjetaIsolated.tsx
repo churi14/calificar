@@ -124,18 +124,55 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
     // buscar en localStorage si ya se registró en este programa.
     // Si no hay nada guardado, redirigir al registro.
     if (!cardId) {
-      // Buscar tarjeta en localStorage primero, luego en cookie (fallback)
+      // 1. Buscar tarjeta guardada para este programa específico
       const fromStorage = localStorage.getItem(`loyalty_card_${programId}`)
       const fromCookie = document.cookie.split(';').map(c => c.trim())
         .find(c => c.startsWith(`cal_card_${programId}=`))?.split('=')[1] ?? null
       const saved = fromStorage ?? fromCookie
       if (saved) {
-        // Si la cookie tenía el valor pero localStorage no, restaurarlo
         if (!fromStorage && fromCookie) localStorage.setItem(`loyalty_card_${programId}`, saved)
         window.location.replace(`/t/${programId}?card=${saved}`)
-      } else {
-        window.location.replace(`/fidelizacion/unirse?program=${programId}`)
+        return
       }
+
+      // 2. Silent Insert: el usuario ya usó Calificar en otro local — tenemos su teléfono global.
+      //    Llamar a /join para crear (o recuperar) su tarjeta en este programa sin mostrar el formulario.
+      const globalPhone = localStorage.getItem('cal_phone')
+      const globalName = localStorage.getItem('cal_name') ?? ''
+      const globalDni = localStorage.getItem('cal_dni') ?? null
+
+      if (globalPhone) {
+        fetch('/api/fidelizacion/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            program_id: programId,
+            phone: globalPhone,
+            name: globalName,
+            ...(globalDni ? { dni: globalDni } : {}),
+          }),
+        })
+          .then(r => r.json())
+          .then(d => {
+            if (d.card) {
+              // Tarjeta creada/encontrada — persistir y redirigir
+              localStorage.setItem(`loyalty_card_${programId}`, d.card.id)
+              document.cookie = `cal_card_${programId}=${d.card.id};max-age=31536000;path=/;SameSite=Lax`
+              const walletParam = d.wallet_link ? `&wallet=${encodeURIComponent(d.wallet_link)}` : ''
+              window.location.replace(`/t/${programId}?card=${d.card.id}${walletParam}`)
+            } else {
+              // No se pudo crear — ir al formulario de registro
+              window.location.replace(`/fidelizacion/unirse?program=${programId}`)
+            }
+          })
+          .catch(() => {
+            window.location.replace(`/fidelizacion/unirse?program=${programId}`)
+          })
+        return
+      }
+
+      // 3. Primera vez en Calificar — ir al formulario de registro
+      window.location.replace(`/fidelizacion/unirse?program=${programId}`)
       return
     }
     if (localStorage.getItem(`wallet_saved_${cardId}`)) setWalletSaved(true)
