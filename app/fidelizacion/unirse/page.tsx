@@ -37,10 +37,26 @@ function UnirseContent() {
   useEffect(() => {
     if (!programId) return
 
-    // Si ya tiene tarjeta guardada, redirigir directo
+    // Si ya tiene tarjeta guardada, verificar que siga existiendo en DB antes de redirigir
+    // (si fue borrada, limpiar y mostrar el formulario de registro)
     const savedCard = localStorage.getItem(`loyalty_card_${programId}`)
     if (savedCard) {
-      router.replace(`/t/${programId}?card=${savedCard}`)
+      fetch(`/api/fidelizacion/card?card_id=${savedCard}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.card) {
+            router.replace(`/t/${programId}?card=${savedCard}`)
+          } else {
+            // Tarjeta borrada — limpiar storage y mostrar formulario
+            localStorage.removeItem(`loyalty_card_${programId}`)
+            document.cookie = `cal_card_${programId}=;max-age=0;path=/;SameSite=Lax`
+          }
+        })
+        .catch(() => {
+          // Error de red — igual limpiamos por seguridad y mostramos el form
+          localStorage.removeItem(`loyalty_card_${programId}`)
+          document.cookie = `cal_card_${programId}=;max-age=0;path=/;SameSite=Lax`
+        })
       return
     }
 

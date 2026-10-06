@@ -141,7 +141,19 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
     if (localStorage.getItem(`wallet_saved_${cardId}`)) setWalletSaved(true)
     fetch(`/api/fidelizacion/card?card_id=${cardId}`)
       .then(r => r.json())
-      .then(d => { setCard(d.card); if (d.wallet_link) setWalletLinkFromApi(d.wallet_link); setLoading(false) })
+      .then(d => {
+        if (!d.card) {
+          // Tarjeta no existe o fue borrada → limpiar datos stale y redirigir al registro
+          // (sin esto, unirse encuentra el card_id viejo en localStorage y vuelve acá: loop infinito)
+          localStorage.removeItem(`loyalty_card_${programId}`)
+          document.cookie = `cal_card_${programId}=;max-age=0;path=/;SameSite=Lax`
+          window.location.replace(`/fidelizacion/unirse?program=${programId}`)
+          return
+        }
+        setCard(d.card)
+        if (d.wallet_link) setWalletLinkFromApi(d.wallet_link)
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
     fetch(`/api/fidelizacion/card-coupons?card_id=${cardId}`)
       .then(r => r.json())
