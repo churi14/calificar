@@ -59,13 +59,19 @@ export async function GET(req: NextRequest) {
         ? `${appUrl}/fidelizacion/tarjeta?card=${card_id}&program=${program_id}`
         : `${appUrl}/fidelizacion/unirse?program=${program_id}`)
 
+  // Chrome requiere PNG en 192x192 Y 512x512 para permitir instalación como PWA.
+  // SVG con sizes="any" NO cumple el criterio A2HS de Chromium.
   const icons = useBusinessLogo
     ? [
+        { src: iconUrl!, sizes: '192x192', type: 'image/png', purpose: 'any' },
         { src: iconUrl!, sizes: '512x512', type: 'image/png', purpose: 'any' },
         { src: iconUrl!, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
       ]
     : [
-        { src: `${appUrl}/logo.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+        // Fallback: íconos genéricos de Calificar en PNG (requerido por Chromium)
+        { src: `${appUrl}/icon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: `${appUrl}/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: `${appUrl}/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
       ]
 
   const manifest = {
@@ -100,7 +106,9 @@ function defaultManifest(appUrl: string) {
     theme_color: '#7C3AED',
     orientation: 'portrait',
     icons: [
-      { src: `${appUrl}/logo.svg`, sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+      { src: `${appUrl}/icon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: `${appUrl}/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: `${appUrl}/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   }), {
     headers: { 'Content-Type': 'application/manifest+json' },
