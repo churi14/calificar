@@ -96,10 +96,24 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      // Registrar SW aislado por programa (scope /t/{programId}/) en lugar del global /sw.js.
-      // Chrome usa el scope del SW + el campo "id" del manifest para identificar PWAs.
-      // Con /sw.js (scope "/"), todas las tarjetas se agrupan como una sola app.
-      navigator.serviceWorker.register(`/t/${programId}/sw.js`, { scope: `/t/${programId}/` }).catch(() => {})
+      // 1. Desregistrar cualquier SW con scope global ("/") que pueda estar activo de visitas anteriores.
+      //    Los SWs sobreviven al borrado de caché — Chrome los mantiene aunque el usuario "limpie".
+      //    Si el SW de scope "/" sigue activo, Chrome agrupa TODAS las /t/ como una sola PWA.
+      navigator.serviceWorker.getRegistrations()
+        .then(regs => {
+          const stale = regs.filter(r => {
+            try { return new URL(r.scope).pathname === '/' } catch { return false }
+          })
+          return Promise.all(stale.map(r => r.unregister()))
+        })
+        .then(() => {
+          // 2. Registrar el SW aislado para este programa con scope /t/{programId}/
+          return navigator.serviceWorker.register(
+            `/t/${programId}/sw.js`,
+            { scope: `/t/${programId}/` }
+          )
+        })
+        .catch(() => {})
     }
     if ('Notification' in window) {
       if (Notification.permission === 'granted') {
