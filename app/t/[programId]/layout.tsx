@@ -1,10 +1,10 @@
 /**
  * Layout server-side para /t/[programId]
- * Inyecta el manifest dinámico con scope aislado por programa.
- * Cada negocio tiene su propio scope → sus PWAs no se pisan entre sí.
+ * Inyecta el manifest dinámico con scope aislado por programa via SSR.
+ * generateMetadata corre en el servidor → el <link rel="manifest"> está en el HTML inicial.
  */
 import { createClient } from '@supabase/supabase-js'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +17,10 @@ export async function generateMetadata({
   params: Promise<{ programId: string }>
 }): Promise<Metadata> {
   const { programId } = await params
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
+
+  // Siempre inyectar el manifest — incluso si Supabase falla.
+  // Usamos path relativo (sin dominio) — Next.js lo maneja mejor que URLs absolutas.
+  const manifestHref = `/api/fidelizacion/manifest?program_id=${programId}&scope_path=t`
 
   const { data: program } = await supabase
     .from('loyalty_programs')
@@ -25,7 +28,11 @@ export async function generateMetadata({
     .eq('id', programId)
     .single()
 
-  if (!program) return {}
+  if (!program) {
+    return {
+      manifest: manifestHref,
+    }
+  }
 
   const biz = Array.isArray(program.businesses) ? program.businesses[0] : program.businesses
   const plan = (biz?.plan ?? 'trial').toLowerCase()
@@ -35,12 +42,27 @@ export async function generateMetadata({
 
   return {
     title: businessName,
-    // El manifest usa /t/{programId}/ como scope → PWA aislada por negocio
-    manifest: `${appUrl}/api/fidelizacion/manifest?program_id=${programId}&scope_path=t`,
+    manifest: manifestHref,
     icons: iconUrl
       ? { apple: iconUrl, shortcut: iconUrl }
       : undefined,
-    themeColor: program.color_primary ?? '#7C3AED',
+  }
+}
+
+// themeColor va en viewport (separado de Metadata desde Next.js 14)
+export async function generateViewport({
+  params,
+}: {
+  params: Promise<{ programId: string }>
+}): Promise<Viewport> {
+  const { programId } = await params
+  const { data: program } = await supabase
+    .from('loyalty_programs')
+    .select('color_primary')
+    .eq('id', programId)
+    .single()
+  return {
+    themeColor: program?.color_primary ?? '#7C3AED',
   }
 }
 

@@ -43,21 +43,6 @@ interface Props {
 
 export default function TarjetaIsolated({ programId, cardId, walletLink }: Props) {
   const [card, setCard] = useState<CardData | null>(null)
-
-  // Inyectar manifest dinámico en el <head> — garantiza instalabilidad PWA
-  // aunque generateMetadata del layout no lo renderice correctamente.
-  useEffect(() => {
-    if (!programId) return
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
-    const href = `${appUrl}/api/fidelizacion/manifest?program_id=${programId}&scope_path=t${cardId ? `&card_id=${cardId}` : ''}`
-    let link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null
-    if (!link) {
-      link = document.createElement('link')
-      link.rel = 'manifest'
-      document.head.appendChild(link)
-    }
-    link.href = href
-  }, [programId, cardId])
   const [walletLinkFromApi, setWalletLinkFromApi] = useState<string | null>(null)
   const [walletSaved, setWalletSaved] = useState(false)
   const [loading, setLoading] = useState(true)
