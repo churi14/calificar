@@ -1,7 +1,9 @@
 /**
  * Layout server-side para /t/[programId]
- * Inyecta el manifest dinámico con scope aislado por programa via SSR.
- * generateMetadata corre en el servidor → el <link rel="manifest"> está en el HTML inicial.
+ *
+ * React 19 (Next.js 16) soporta hoisting nativo de <link>, <meta> y <title>
+ * desde cualquier Server Component al <head>. Inyectamos el manifest directo
+ * en el JSX — sin depender de generateMetadata que ignora query params.
  */
 import { createClient } from '@supabase/supabase-js'
 import type { Metadata, Viewport } from 'next'
@@ -11,6 +13,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// generateMetadata para title, icons, etc (sin manifest — lo hacemos via JSX)
 export async function generateMetadata({
   params,
 }: {
@@ -18,21 +21,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { programId } = await params
 
-  // Siempre inyectar el manifest — incluso si Supabase falla.
-  // Usamos path relativo (sin dominio) — Next.js lo maneja mejor que URLs absolutas.
-  const manifestHref = `/api/fidelizacion/manifest?program_id=${programId}&scope_path=t`
-
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('name, color_primary, app_icon_url, logo_url, businesses!inner(name, plan)')
+    .select('name, app_icon_url, logo_url, businesses!inner(name, plan)')
     .eq('id', programId)
     .single()
 
-  if (!program) {
-    return {
-      manifest: manifestHref,
-    }
-  }
+  if (!program) return {}
 
   const biz = Array.isArray(program.businesses) ? program.businesses[0] : program.businesses
   const plan = (biz?.plan ?? 'trial').toLowerCase()
@@ -42,14 +37,10 @@ export async function generateMetadata({
 
   return {
     title: businessName,
-    manifest: manifestHref,
-    icons: iconUrl
-      ? { apple: iconUrl, shortcut: iconUrl }
-      : undefined,
+    icons: iconUrl ? { apple: iconUrl, shortcut: iconUrl } : undefined,
   }
 }
 
-// themeColor va en viewport (separado de Metadata desde Next.js 14)
 export async function generateViewport({
   params,
 }: {
@@ -61,11 +52,26 @@ export async function generateViewport({
     .select('color_primary')
     .eq('id', programId)
     .single()
-  return {
-    themeColor: program?.color_primary ?? '#7C3AED',
-  }
+  return { themeColor: program?.color_primary ?? '#7C3AED' }
 }
 
-export default function TLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+// El layout es async Server Component — puede leer params directamente.
+// React 19 hoist <link rel="manifest"> al <head> automáticamente.
+export default async function TLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ programId: string }>
+}) {
+  const { programId } = await params
+  const manifestHref = `/api/fidelizacion/manifest?program_id=${programId}&scope_path=t`
+
+  return (
+    <>
+      {/* React 19: este <link> se mueve al <head> en el HTML inicial (SSR) */}
+      <link rel="manifest" href={manifestHref} />
+      {children}
+    </>
+  )
 }
