@@ -1526,7 +1526,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
         {/* Logo upload */}
         <div className="p-5 border-b border-zinc-50">
           <p className="text-sm font-semibold text-zinc-800 mb-1">Logo del negocio</p>
-          <p className="text-xs text-zinc-400 mb-4">Aparece en la tarjeta digital de tus clientes. PNG o JPG, máx. 2MB.</p>
+          <p className="text-xs text-zinc-400 mb-4">Aparece en la tarjeta digital de tus clientes. PNG transparente recomendado, mínimo 400×400px, máx. 2MB.</p>
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-zinc-200 flex items-center justify-center overflow-hidden bg-zinc-50 flex-shrink-0">
               {program.logo_url
