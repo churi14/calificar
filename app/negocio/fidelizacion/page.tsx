@@ -1195,11 +1195,18 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     setTimeout(() => setWalletSyncMsg(''), 5000)
   }
 
+  async function getFreshToken(): Promise<string> {
+    if (accessToken) return accessToken
+    const { data } = await supabaseClient.auth.getSession()
+    return data.session?.access_token ?? ''
+  }
+
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
     setUploadError('')
+    const tok = await getFreshToken()
     const form = new FormData()
     form.append('file', file)
     form.append('program_id', selectedProgram ?? '')
@@ -1207,7 +1214,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     try {
       const res = await fetch('/api/fidelizacion/upload-logo', {
         method: 'POST',
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        headers: tok ? { Authorization: `Bearer ${tok}` } : {},
         body: form,
       })
       const data = await res.json()
@@ -1224,6 +1231,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     if (!file) return
     setAppIconUploading(true)
     setAppIconError('')
+    const tok = await getFreshToken()
     const form = new FormData()
     form.append('file', file)
     form.append('program_id', selectedProgram ?? '')
@@ -1231,7 +1239,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     try {
       const res = await fetch('/api/fidelizacion/upload-logo', {
         method: 'POST',
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        headers: tok ? { Authorization: `Bearer ${tok}` } : {},
         body: form,
       })
       const data = await res.json()
@@ -1282,6 +1290,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     if (!file) return
     setCardBgUploading(true)
     setCardBgError('')
+    const tok = await getFreshToken()
     const form = new FormData()
     form.append('file', file)
     form.append('program_id', selectedProgram ?? '')
@@ -1289,7 +1298,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     try {
       const res = await fetch('/api/fidelizacion/upload-logo', {
         method: 'POST',
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        headers: tok ? { Authorization: `Bearer ${tok}` } : {},
         body: form,
       })
       const data = await res.json()
@@ -1306,6 +1315,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     if (!file) return
     setStampIconUploading(true)
     setStampIconError('')
+    const tok = await getFreshToken()
     const form = new FormData()
     form.append('file', file)
     form.append('program_id', selectedProgram ?? '')
@@ -1313,7 +1323,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
     try {
       const res = await fetch('/api/fidelizacion/upload-logo', {
         method: 'POST',
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        headers: tok ? { Authorization: `Bearer ${tok}` } : {},
         body: form,
       })
       const data = await res.json()

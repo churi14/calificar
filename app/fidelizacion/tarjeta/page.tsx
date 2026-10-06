@@ -21,6 +21,7 @@ type CardData = {
     color_primary: string
     card_text_color: string | null
     logo_url: string | null
+    app_icon_url: string | null
     stamp_icon_url: string | null
     card_background_url: string | null
     page_bg_color: string | null
@@ -373,10 +374,18 @@ function TarjetaContent() {
               <p className="text-xs font-medium mb-0.5" style={{ color: `${textColor}99` }}>{card.name}</p>
               <p className="font-extrabold text-xl leading-tight" style={{ color: textColor }}>{program.businesses?.name ?? program.name}</p>
             </div>
-            {program.logo_url ? (
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center flex-shrink-0 overflow-hidden">
-                <img src={program.logo_url} alt="" className="w-11 h-11 object-contain" />
-              </div>
+            {(program.app_icon_url || program.logo_url) ? (
+              program.app_icon_url ? (
+                // app_icon_url tiene su propio fondo — mostrar sin contenedor blanco
+                <div className="w-14 h-14 rounded-2xl flex-shrink-0 overflow-hidden">
+                  <img src={program.app_icon_url} alt="" className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                // logo_url puede ser transparente — contenedor blanco
+                <div className="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <img src={program.logo_url!} alt="" className="w-11 h-11 object-contain" />
+                </div>
+              )
             ) : (
               <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-xl font-extrabold" style={{ color: textColor }}>
                 {(program.businesses?.name ?? program.name).charAt(0).toUpperCase()}
