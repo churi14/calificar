@@ -51,24 +51,30 @@ export async function GET(req: NextRequest) {
     ? `${appUrl}/t/${program_id}/`
     : `${appUrl}/`
 
+  // FIX 1: start_url siempre dentro del scope de la PWA.
+  // Cuando scope_path='t', el start_url es /t/{program_id} (con card si la hay).
+  // Nunca apunta a /fidelizacion/unirse porque esa URL está fuera del scope /t/.
   const startUrl = scope_path === 't'
     ? (card_id
         ? `${appUrl}/t/${program_id}?card=${card_id}`
-        : `${appUrl}/fidelizacion/unirse?program=${program_id}`)
+        : `${appUrl}/t/${program_id}`)
     : (card_id
         ? `${appUrl}/fidelizacion/tarjeta?card=${card_id}&program=${program_id}`
         : `${appUrl}/fidelizacion/unirse?program=${program_id}`)
 
-  // Chrome requiere PNG en 192x192 Y 512x512 para permitir instalación como PWA.
-  // SVG con sizes="any" NO cumple el criterio A2HS de Chromium.
+  // FIX 2: íconos del negocio con sizes="any" — Chrome no puede validar dimensiones
+  // de imágenes subidas por usuarios (pueden ser cualquier tamaño).
+  // Sumamos los genéricos con tamaños exactos para pasar el check A2HS de Chromium.
   const icons = useBusinessLogo
     ? [
-        { src: iconUrl!, sizes: '192x192', type: 'image/png', purpose: 'any' },
-        { src: iconUrl!, sizes: '512x512', type: 'image/png', purpose: 'any' },
-        { src: iconUrl!, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        // Ícono del negocio: sizes="any" evita el error de dimension mismatch
+        { src: iconUrl!, sizes: 'any', type: 'image/png', purpose: 'any' },
+        { src: iconUrl!, sizes: 'any', type: 'image/png', purpose: 'maskable' },
+        // Fallback con tamaños exactos para pasar la validación A2HS
+        { src: `${appUrl}/icon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: `${appUrl}/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' },
       ]
     : [
-        // Fallback: íconos genéricos de Calificar en PNG (requerido por Chromium)
         { src: `${appUrl}/icon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
         { src: `${appUrl}/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' },
         { src: `${appUrl}/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
@@ -90,7 +96,7 @@ export async function GET(req: NextRequest) {
   return new NextResponse(JSON.stringify(manifest), {
     headers: {
       'Content-Type': 'application/manifest+json',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': 'no-cache, no-store',
     },
   })
 }
