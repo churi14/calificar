@@ -1243,7 +1243,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
         body: form,
       })
       const data = await res.json()
-      if (data.url) setAppIconUrl(data.url)
+      if (data.url) setAppIconUrl(data.url + '?t=' + Date.now())
       else setAppIconError(data.error ?? 'Error al subir')
     } catch {
       setAppIconError('Error de red')
@@ -1575,10 +1575,25 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
               </div>
               <div>
                 <input ref={appIconRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAppIconUpload} />
-                <button onClick={() => appIconRef.current?.click()} disabled={appIconUploading}
-                  className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
-                  {appIconUploading ? 'Subiendo...' : appIconUrl ? 'Cambiar ícono' : 'Subir ícono'}
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button onClick={() => appIconRef.current?.click()} disabled={appIconUploading}
+                    className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors disabled:opacity-50">
+                    {appIconUploading ? 'Subiendo...' : appIconUrl ? 'Cambiar ícono' : 'Subir ícono'}
+                  </button>
+                  {appIconUrl && (
+                    <button onClick={async () => {
+                      if (!selectedProgram) return
+                      await fetch('/api/fidelizacion/program', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+                        body: JSON.stringify({ program_id: selectedProgram, app_icon_url: null }),
+                      })
+                      setAppIconUrl(null)
+                    }} className="text-sm font-semibold border border-red-200 text-red-500 px-3 py-2 rounded-xl hover:bg-red-50 transition-colors">
+                      Eliminar
+                    </button>
+                  )}
+                </div>
                 {appIconError && <p className="text-xs text-red-500 mt-1">{appIconError}</p>}
                 {appIconUrl && (
                   <p className="text-xs text-green-600 mt-1 font-medium">✓ Ícono activo</p>
