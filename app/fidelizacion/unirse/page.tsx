@@ -9,6 +9,7 @@ type Program = {
   stamps_goal: number
   reward_description: string
   color_primary: string
+  page_bg_color: string | null
   logo_url: string | null
   app_icon_url: string | null
   businesses: { name: string; whatsapp_number?: string | null }
@@ -79,8 +80,9 @@ function UnirseContent() {
 
     if (data.error) { setError(data.error); return }
 
-    // Guardar card_id en localStorage para próximas visitas
+    // Guardar card_id en localStorage Y en cookie (1 año) para máxima persistencia en PWA
     localStorage.setItem(`loyalty_card_${programId}`, data.card.id)
+    document.cookie = `cal_card_${programId}=${data.card.id};max-age=31536000;path=/;SameSite=Lax`
 
     // Guardar teléfono y nombre para auto-reconocer en el QR de sello
     localStorage.setItem(`cal_phone_${programId}`, phone)
@@ -96,22 +98,24 @@ function UnirseContent() {
   }
 
   const color = program?.color_primary ?? '#7C3AED'
+  const heroBg = program?.page_bg_color ?? color
 
-  // Calcular luminosidad del color primario para elegir fondo contrastante
   function hexToRgb(hex: string) {
-    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16)
+    const h = hex.replace('#', '').slice(0, 6)
+    const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16)
     return { r, g, b }
   }
+  // Luminosidad del color primario (para botones)
   const { r, g, b } = hexToRgb(color.startsWith('#') ? color : '#7C3AED')
   const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  // Si el color es oscuro → fondo claro (tinte suave); si es claro → fondo oscuro
-  const bgColor = lum < 0.4
-    ? `${color}15`   // tinte muy suave del color primario
-    : lum < 0.7
-      ? `${color}20`
-      : '#1a1a1a'    // fondo oscuro si el color es muy claro
 
-  const textOnColor = lum < 0.5 ? 'white' : '#111827'
+  // Luminosidad del fondo del hero (para texto encima)
+  const { r: hr, g: hg, b: hb } = hexToRgb(heroBg.startsWith('#') ? heroBg : '#09090b')
+  const heroLum = (0.299 * hr + 0.587 * hg + 0.114 * hb) / 255
+  const textOnColor = heroLum < 0.5 ? 'white' : '#111827'
+
+  // bgColor: fondo del formulario (no del hero)
+  const bgColor = lum < 0.4 ? `${color}15` : lum < 0.7 ? `${color}20` : '#1a1a1a'
 
   const businessWa = program?.businesses?.whatsapp_number
   const waHref = businessWa
@@ -120,8 +124,8 @@ function UnirseContent() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      {/* Hero con color del negocio */}
-      <div className="flex flex-col items-center justify-center pt-14 pb-10 px-6" style={{ backgroundColor: color }}>
+      {/* Hero: usa page_bg_color si está configurado, si no color_primary */}
+      <div className="flex flex-col items-center justify-center pt-14 pb-10 px-6" style={{ backgroundColor: program?.page_bg_color ?? color }}>
         {program?.app_icon_url ? (
           <div className="w-28 h-28 rounded-3xl overflow-hidden mb-5 shadow-xl flex-shrink-0">
             <img src={program.app_icon_url} alt="" className="w-full h-full object-cover" />

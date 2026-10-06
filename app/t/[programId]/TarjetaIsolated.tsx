@@ -121,12 +121,16 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
     // buscar en localStorage si ya se registró en este programa.
     // Si no hay nada guardado, redirigir al registro.
     if (!cardId) {
-      const saved = localStorage.getItem(`loyalty_card_${programId}`)
+      // Buscar tarjeta en localStorage primero, luego en cookie (fallback)
+      const fromStorage = localStorage.getItem(`loyalty_card_${programId}`)
+      const fromCookie = document.cookie.split(';').map(c => c.trim())
+        .find(c => c.startsWith(`cal_card_${programId}=`))?.split('=')[1] ?? null
+      const saved = fromStorage ?? fromCookie
       if (saved) {
-        // Tenemos tarjeta guardada — redirigir con el card en la URL
+        // Si la cookie tenía el valor pero localStorage no, restaurarlo
+        if (!fromStorage && fromCookie) localStorage.setItem(`loyalty_card_${programId}`, saved)
         window.location.replace(`/t/${programId}?card=${saved}`)
       } else {
-        // No hay tarjeta — ir al registro de este negocio
         window.location.replace(`/fidelizacion/unirse?program=${programId}`)
       }
       return
