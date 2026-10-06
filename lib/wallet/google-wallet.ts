@@ -141,7 +141,12 @@ export async function createLoyaltyObject(cfg: CardObjectConfig) {
     ],
     barcode: {
       type: 'QR_CODE',
-      value: fullObjectId,
+      // El objectId es 'calificar_card_<uuid>' — extraemos el uuid para armar la URL de la tarjeta
+      value: (() => {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
+        const cardUuid = cfg.objectId.replace(/^calificar_card_/, '')
+        return `${appUrl}/fidelizacion/tarjeta?card=${cardUuid}`
+      })(),
     },
     accountName: cfg.customerName,
     accountId: cfg.objectId,
