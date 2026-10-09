@@ -34,43 +34,60 @@ function detectIOSBrowser(): Browser {
 }
 
 export default function IOSPWAPrompt({ programId, cardId, color, businessName, onNotifGranted, onDismiss }: Props) {
+  // ── montado en cliente (evita SSR mismatch) ────────────────────────────────
+  const [mounted, setMounted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
   const [browser, setBrowser] = useState<Browser>('safari')
   const [dismissed, setDismissed] = useState(false)
   const [notifState, setNotifState] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
-  const [step, setStep] = useState<1 | 2>(1) // paso 1 = instrucciones, paso 2 = confirmación
+  const [notifSupported, setNotifSupported] = useState(true) // false → iOS < 16.4
+  const [step, setStep] = useState<1 | 2>(1)
 
   useEffect(() => {
+    setMounted(true)
+
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
-    const standalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+    // standalone: navigator.standalone (Safari) o display-mode (Chrome iOS)
+    const standalone =
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches
     setIsIOS(ios)
     setIsStandalone(standalone)
     if (ios) setBrowser(detectIOSBrowser())
 
-    // Chequear permiso y sincronizar suscripción con la DB si es necesario
-    if ('Notification' in window && Notification.permission === 'granted') {
-      setNotifState('granted')
-      // Re-suscribir silenciosamente si la suscripción no está en la DB
-      if (cardId && 'serviceWorker' in navigator && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
-        navigator.serviceWorker.ready
-          .then(async reg => {
-            let sub = await reg.pushManager.getSubscription()
-            if (!sub) {
-              const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-              const padding = '='.repeat((4 - (vapidKey.length % 4)) % 4)
-              const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/')
-              const raw = window.atob(base64)
-              const key = Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
-              sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })
-            }
-            await fetch('/api/fidelizacion/push/subscribe', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
+    // Verificar soporte real de notificaciones push (requiere iOS 16.4+ en standalone)
+    const hasNotifSupport = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
+    setNotifSupported(hasNotifSupport)
+
+    // Inicializar estado según permiso actual
+    if (hasNotifSupport) {
+      if (Notification.permission === 'granted') {
+        setNotifState('granted')
+        // Re-suscribir silenciosamente si la suscripción no está en la DB
+        if (cardId && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+          navigator.serviceWorker.ready
+            .then(async reg => {
+              let sub = await reg.pushManager.getSubscription()
+              if (!sub) {
+                const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+                const padding = '='.repeat((4 - (vapidKey.length % 4)) % 4)
+                const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/')
+                const raw = window.atob(base64)
+                const key = Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
+                sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })
+              }
+              await fetch('/api/fidelizacion/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
+              })
             })
-          })
-          .catch(() => {})
+            .catch(() => {})
+        }
+      } else if (Notification.permission === 'denied') {
+        // Ya bloqueadas — mostrar estado informativo en lugar de ocultar
+        setNotifState('denied')
       }
     }
 
@@ -78,7 +95,7 @@ export default function IOSPWAPrompt({ programId, cardId, color, businessName, o
     if (sessionStorage.getItem(`ios_prompt_dismissed_${programId}`)) {
       setDismissed(true)
     }
-  }, [programId])
+  }, [programId, cardId])
 
   function dismiss() {
     sessionStorage.setItem(`ios_prompt_dismissed_${programId}`, '1')
@@ -121,13 +138,48 @@ export default function IOSPWAPrompt({ programId, cardId, color, businessName, o
     }
   }
 
+  // Nada hasta estar montado en el cliente (evita SSR mismatch / hidratación)
+  if (!mounted) return null
+
   // Solo aplica a iOS
   if (!isIOS) return null
 
-  // ─── CASO B: standalone + sin notificaciones ───────────────────────────────
+  // ─── CASO B: standalone + gestión de notificaciones ──────────────────────
   if (isStandalone) {
-    if (notifState === 'granted' || notifState === 'denied') return null
+    // Ya activadas → nada que mostrar
+    if (notifState === 'granted') return null
 
+    // Sin soporte de push (iOS < 16.4 o browser incompatible)
+    if (!notifSupported) {
+      return (
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-6">
+          <div className="w-full max-w-sm rounded-2xl px-4 py-3 flex items-center gap-3"
+            style={{ background: 'rgba(24,24,27,0.92)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <span className="text-lg flex-shrink-0">📵</span>
+            <p className="text-xs text-white/50 leading-snug">
+              Tu dispositivo requiere <strong className="text-white/70">iOS 16.4+</strong> para recibir notificaciones desde la app.
+            </p>
+          </div>
+        </div>
+      )
+    }
+
+    // Permiso bloqueado por el usuario
+    if (notifState === 'denied') {
+      return (
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-6">
+          <div className="w-full max-w-sm rounded-2xl px-4 py-3 flex items-center gap-3"
+            style={{ background: 'rgba(24,24,27,0.92)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <span className="text-lg flex-shrink-0">🔕</span>
+            <p className="text-xs text-white/50 leading-snug">
+              Notificaciones bloqueadas. Para activarlas: <strong className="text-white/70">Ajustes → {businessName} → Notificaciones</strong>.
+            </p>
+          </div>
+        </div>
+      )
+    }
+
+    // Estado normal: pedir permiso
     return (
       <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-safe pb-6">
         <div className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl"
