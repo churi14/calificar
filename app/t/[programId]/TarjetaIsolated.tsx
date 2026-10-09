@@ -73,25 +73,91 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
   async function activarNotificaciones() {
     if (!cardId || !programId) return
     setNotifState('loading')
+
+    // ── DEBUG helper — visible en pantalla de celular ──────────────────────
+    function debugAlert(step: string, detail: unknown) {
+      const msg = `[PUSH DEBUG] ${step}\n${detail instanceof Error ? detail.message : JSON.stringify(detail)}`
+      console.error(msg)
+      // alert visible en móvil para debuggear en producción
+      // TODO: quitar los alert() una vez confirmado que funciona
+      alert(msg)
+    }
+
     try {
+      // PASO 1: pedir permiso
       const perm = await Notification.requestPermission()
       if (perm !== 'granted') { setNotifState('denied'); return }
-      if (!('serviceWorker' in navigator)) { setNotifState('denied'); return }
-      let reg = await navigator.serviceWorker.getRegistration(`/t/${programId}/sw.js`)
-      if (!reg) reg = await navigator.serviceWorker.register(`/t/${programId}/sw.js`, { scope: `/t/${programId}/` })
-      const activeReg = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SW timeout')), 5000)),
-      ]) as ServiceWorkerRegistration
-      const vapidKey = urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
-      const sub = await activeReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: vapidKey })
-      await fetch('/api/fidelizacion/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
-      })
+
+      // PASO 2: verificar Service Worker
+      if (!('serviceWorker' in navigator)) {
+        debugAlert('SW no disponible', 'serviceWorker no existe en navigator')
+        setNotifState('denied'); return
+      }
+
+      // PASO 3: registrar/obtener SW aislado
+      let reg: ServiceWorkerRegistration | undefined
+      try {
+        reg = await navigator.serviceWorker.getRegistration(`/t/${programId}/`)
+        if (!reg) {
+          reg = await navigator.serviceWorker.register(`/t/${programId}/sw.js`, { scope: `/t/${programId}/` })
+        }
+      } catch (e) {
+        debugAlert('SW register falló', e)
+        setNotifState('denied'); return
+      }
+
+      // PASO 4: esperar a que el SW esté activo
+      let activeReg: ServiceWorkerRegistration
+      try {
+        activeReg = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SW timeout 8s')), 8000)),
+        ]) as ServiceWorkerRegistration
+      } catch (e) {
+        debugAlert('SW ready timeout', e)
+        setNotifState('denied'); return
+      }
+
+      // PASO 5: verificar VAPID key
+      const vapidRaw = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidRaw) {
+        debugAlert('VAPID key faltante', 'NEXT_PUBLIC_VAPID_PUBLIC_KEY es undefined')
+        setNotifState('denied'); return
+      }
+
+      // PASO 6: suscribir al push
+      let sub: PushSubscription
+      try {
+        const vapidKey = urlBase64ToUint8Array(vapidRaw)
+        sub = await activeReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: vapidKey })
+      } catch (e) {
+        debugAlert('pushManager.subscribe falló', e)
+        setNotifState('denied'); return
+      }
+
+      // PASO 7: guardar suscripción en la DB
+      let apiRes: Response
+      try {
+        apiRes = await fetch('/api/fidelizacion/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
+        })
+      } catch (e) {
+        debugAlert('fetch /push/subscribe falló (red)', e)
+        setNotifState('denied'); return
+      }
+
+      if (!apiRes.ok) {
+        const body = await apiRes.text().catch(() => '(no body)')
+        debugAlert(`API respondió ${apiRes.status}`, body)
+        setNotifState('denied'); return
+      }
+
+      // ¡Todo OK!
       setNotifState('granted')
-    } catch {
+    } catch (e) {
+      debugAlert('Error inesperado', e)
       setNotifState('denied')
     }
   }

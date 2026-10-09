@@ -106,34 +106,91 @@ export default function IOSPWAPrompt({ programId, cardId, color, businessName, o
   async function activarNotificaciones() {
     if (!cardId) return
     setNotifState('loading')
+
+    // ── DEBUG helper ────────────────────────────────────────────────────────
+    function debugAlert(step: string, detail: unknown) {
+      const msg = `[PUSH iOS DEBUG] ${step}\n${detail instanceof Error ? detail.message : JSON.stringify(detail)}`
+      console.error(msg)
+      // TODO: quitar los alert() una vez confirmado que funciona
+      alert(msg)
+    }
+
     try {
+      // PASO 1: permiso
       const perm = await Notification.requestPermission()
       if (perm !== 'granted') { setNotifState('denied'); return }
 
-      if (!('serviceWorker' in navigator)) { setNotifState('denied'); return }
-      let reg = await navigator.serviceWorker.getRegistration(`/t/${programId}/sw.js`)
-      if (!reg) reg = await navigator.serviceWorker.register(`/t/${programId}/sw.js`, { scope: `/t/${programId}/` })
+      // PASO 2: SW
+      if (!('serviceWorker' in navigator)) {
+        debugAlert('SW no disponible', 'iOS < 16.4 o contexto inseguro')
+        setNotifState('denied'); return
+      }
 
-      const activeReg = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
-      ]) as ServiceWorkerRegistration
+      // PASO 3: registrar SW aislado
+      let reg: ServiceWorkerRegistration | undefined
+      try {
+        reg = await navigator.serviceWorker.getRegistration(`/t/${programId}/`)
+        if (!reg) reg = await navigator.serviceWorker.register(`/t/${programId}/sw.js`, { scope: `/t/${programId}/` })
+      } catch (e) {
+        debugAlert('SW register falló', e)
+        setNotifState('denied'); return
+      }
 
-      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-      const padding = '='.repeat((4 - (vapidKey.length % 4)) % 4)
-      const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/')
-      const rawData = window.atob(base64)
-      const key = Uint8Array.from([...rawData].map(c => c.charCodeAt(0)))
+      // PASO 4: esperar SW activo
+      let activeReg: ServiceWorkerRegistration
+      try {
+        activeReg = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SW timeout 8s')), 8000)),
+        ]) as ServiceWorkerRegistration
+      } catch (e) {
+        debugAlert('SW ready timeout', e)
+        setNotifState('denied'); return
+      }
 
-      const sub = await activeReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })
-      await fetch('/api/fidelizacion/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
-      })
+      // PASO 5: VAPID key
+      const vapidRaw = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidRaw) {
+        debugAlert('VAPID key faltante', 'NEXT_PUBLIC_VAPID_PUBLIC_KEY es undefined en cliente')
+        setNotifState('denied'); return
+      }
+
+      // PASO 6: subscribe push
+      let sub: PushSubscription
+      try {
+        const padding = '='.repeat((4 - (vapidRaw.length % 4)) % 4)
+        const base64 = (vapidRaw + padding).replace(/-/g, '+').replace(/_/g, '/')
+        const rawData = window.atob(base64)
+        const key = Uint8Array.from([...rawData].map(c => c.charCodeAt(0)))
+        sub = await activeReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })
+      } catch (e) {
+        debugAlert('pushManager.subscribe falló', e)
+        setNotifState('denied'); return
+      }
+
+      // PASO 7: guardar en DB
+      let apiRes: Response
+      try {
+        apiRes = await fetch('/api/fidelizacion/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
+        })
+      } catch (e) {
+        debugAlert('fetch /push/subscribe falló (red)', e)
+        setNotifState('denied'); return
+      }
+
+      if (!apiRes.ok) {
+        const body = await apiRes.text().catch(() => '(no body)')
+        debugAlert(`API respondió ${apiRes.status}`, body)
+        setNotifState('denied'); return
+      }
+
       setNotifState('granted')
       onNotifGranted?.()
-    } catch {
+    } catch (e) {
+      debugAlert('Error inesperado', e)
       setNotifState('denied')
     }
   }
