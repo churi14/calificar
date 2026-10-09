@@ -97,32 +97,32 @@ export async function POST(req: NextRequest) {
         activeCard = updated ?? existing
       }
 
-      const objectId = activeCard.wallet_object_id ?? `calificar_card_${activeCard.id}`
+      const objectId = String(activeCard.wallet_object_id ?? `calificar_card_${activeCard.id}`)
       if (!activeCard.wallet_object_id) {
         try {
           await createLoyaltyObject({
             classId: program.id,
             objectId,
-            customerName: activeCard.name ?? activeCard.phone,
-            stamps: activeCard.stamps,
+            customerName: String(activeCard.name ?? activeCard.phone ?? ''),
+            stamps: activeCard.stamps as number,
             stampsGoal: program.stamps_goal,
             rewardDescription: program.reward_description,
           })
         } catch { /* ya puede existir en Google — ignorar */ }
-        await supabase.from('loyalty_cards').update({ wallet_object_id: objectId }).eq('id', activeCard.id)
+        await supabase.from('loyalty_cards').update({ wallet_object_id: objectId }).eq('id', String(activeCard.id))
       }
 
       const walletLink = getWalletLink(objectId, program.id, {
-        customerName: activeCard.name ?? activeCard.phone,
-        stamps: activeCard.stamps,
+        customerName: String(activeCard.name ?? activeCard.phone ?? ''),
+        stamps: activeCard.stamps as number,
         stampsGoal: program.stamps_goal,
         rewardDescription: program.reward_description,
       })
 
       return NextResponse.json({
-        card: { ...activeCard, wallet_object_id: objectId },
+        card: { ...(activeCard as Record<string, unknown>), wallet_object_id: objectId },
         wallet_link: walletLink,
-        already_member: !existing.active ? false : true, // reactivada = tratarla como nueva
+        already_member: existing.active ? true : false,
       })
     }
 
