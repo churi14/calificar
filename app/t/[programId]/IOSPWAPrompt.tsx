@@ -66,8 +66,9 @@ export default function IOSPWAPrompt({ programId, cardId, color, businessName, o
         setNotifState('granted')
         // Re-suscribir silenciosamente si la suscripción no está en la DB
         if (cardId && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
-          navigator.serviceWorker.ready
+          navigator.serviceWorker.getRegistration(`/t/${programId}/`)
             .then(async reg => {
+              if (!reg?.active) return
               let sub = await reg.pushManager.getSubscription()
               if (!sub) {
                 const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
@@ -128,12 +129,14 @@ export default function IOSPWAPrompt({ programId, cardId, color, businessName, o
       }
 
       // PASO 3: registrar SW aislado
+      let reg: ServiceWorkerRegistration
       try {
-        let reg = await navigator.serviceWorker.getRegistration(`/t/${programId}/`)
-        if (!reg) {
+        const existing = await navigator.serviceWorker.getRegistration(`/t/${programId}/`)
+        if (!existing) {
           reg = await navigator.serviceWorker.register(`/t/${programId}/sw.js`, { scope: `/t/${programId}/` })
           alert(`Paso 2a: SW registrado\nscope: ${reg.scope}`)
         } else {
+          reg = existing
           alert(`Paso 2a: SW ya existía\nscope: ${reg.scope}`)
         }
       } catch (e) {
@@ -141,16 +144,25 @@ export default function IOSPWAPrompt({ programId, cardId, color, businessName, o
         setNotifState('denied'); return
       }
 
-      // PASO 4: esperar SW activo
-      let activeReg: ServiceWorkerRegistration
+      // PASO 4: esperar activación usando reg directamente (evita navigator.serviceWorker.ready que requiere que el SW controle la página)
       try {
-        activeReg = await Promise.race([
-          navigator.serviceWorker.ready,
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SW timeout 8s')), 8000)),
-        ]) as ServiceWorkerRegistration
-        alert(`Paso 2: Service Worker listo ✓\nscope: ${activeReg.scope}`)
+        if (!reg.active) {
+          const sw = reg.installing ?? reg.waiting
+          if (!sw) throw new Error('No hay SW en ningún estado')
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('SW activation timeout 10s')), 10000)
+            sw.addEventListener('statechange', function handler() {
+              if (sw.state === 'activated') {
+                clearTimeout(timeout); sw.removeEventListener('statechange', handler); resolve()
+              } else if (sw.state === 'redundant') {
+                clearTimeout(timeout); sw.removeEventListener('statechange', handler); reject(new Error('SW became redundant'))
+              }
+            })
+          })
+        }
+        alert(`Paso 2: SW activo ✓\nscope: ${reg.scope}`)
       } catch (e) {
-        alert('ERROR FATAL: SW ready timeout\n' + (e instanceof Error ? e.message : String(e)))
+        alert('ERROR FATAL: SW activation falló\n' + (e instanceof Error ? e.message : String(e)))
         setNotifState('denied'); return
       }
 
@@ -161,7 +173,7 @@ export default function IOSPWAPrompt({ programId, cardId, color, businessName, o
         const base64 = (vapidRaw + padding).replace(/-/g, '+').replace(/_/g, '/')
         const rawData = window.atob(base64)
         const key = Uint8Array.from([...rawData].map(c => c.charCodeAt(0)))
-        sub = await activeReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })
         alert(`Paso 3: Token generado ✓\nendpoint: ${sub.endpoint.slice(0, 60)}...`)
       } catch (e) {
         alert('ERROR FATAL: pushManager.subscribe falló\n' + (e instanceof Error ? e.message : String(e)))
