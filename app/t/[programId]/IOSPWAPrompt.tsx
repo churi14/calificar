@@ -47,9 +47,30 @@ export default function IOSPWAPrompt({ programId, cardId, color, businessName, o
     setIsStandalone(standalone)
     if (ios) setBrowser(detectIOSBrowser())
 
-    // Chequear si ya está concedido
+    // Chequear permiso y sincronizar suscripción con la DB si es necesario
     if ('Notification' in window && Notification.permission === 'granted') {
       setNotifState('granted')
+      // Re-suscribir silenciosamente si la suscripción no está en la DB
+      if (cardId && 'serviceWorker' in navigator && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+        navigator.serviceWorker.ready
+          .then(async reg => {
+            let sub = await reg.pushManager.getSubscription()
+            if (!sub) {
+              const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+              const padding = '='.repeat((4 - (vapidKey.length % 4)) % 4)
+              const base64 = (vapidKey + padding).replace(/-/g, '+').replace(/_/g, '/')
+              const raw = window.atob(base64)
+              const key = Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
+              sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })
+            }
+            await fetch('/api/fidelizacion/push/subscribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
+            })
+          })
+          .catch(() => {})
+      }
     }
 
     // Si ya descartó el banner esta sesión, no mostrarlo

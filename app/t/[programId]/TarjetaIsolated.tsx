@@ -118,6 +118,30 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
     }
     if ('Notification' in window) {
       if (Notification.permission === 'granted') {
+        // Permiso concedido: verificar que el PushSubscription realmente exista en el SW
+        // y esté guardado en la DB. Si no, re-suscribir silenciosamente.
+        // Esto resuelve la desincronización tras limpiar caché o reiniciar la BD.
+        if (cardId && 'serviceWorker' in navigator && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+          navigator.serviceWorker.ready
+            .then(async reg => {
+              let sub = await reg.pushManager.getSubscription()
+              if (!sub) {
+                // No hay suscripción activa en el SW — crearla de nuevo
+                const padding = '='.repeat((4 - (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!.length % 4)) % 4)
+                const base64 = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY! + padding).replace(/-/g, '+').replace(/_/g, '/')
+                const raw = window.atob(base64)
+                const key = Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
+                sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })
+              }
+              // Upsert en la DB (idempotente — si ya existe lo actualiza)
+              await fetch('/api/fidelizacion/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
+              })
+            })
+            .catch(() => { /* silencioso — no interrumpir la experiencia */ })
+        }
         setNotifState('granted')
       } else if (Notification.permission === 'default') {
         setTimeout(() => setShowNotifModal(true), 1500)
