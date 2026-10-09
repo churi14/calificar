@@ -37,34 +37,64 @@ export async function POST(req: NextRequest) {
     const cleanPhone = phone.replace(/\D/g, '')
     const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
 
-    // Buscar tarjeta existente para este teléfono + programa (incluyendo inactivas).
-    // NO filtrar por active: true — si la tarjeta fue soft-deleted la reactivamos,
-    // no creamos un duplicado que chocaría con la restricción UNIQUE.
-    const { data: allCards } = await supabase
+    // ─── Búsqueda de tarjeta existente (activa O inactiva) ───────────────────
+    // Estrategia en 2 pasos para máxima robustez:
+    // 1. Búsqueda exacta por phone limpio (el caso más común y rápido)
+    // 2. Búsqueda fuzzy por últimos 8 dígitos (tolera prefijos de país distintos)
+    // No filtramos por active — si está soft-deleted la reactivamos en lugar de
+    // intentar INSERT y chocar con la restricción UNIQUE.
+
+    let existing: Record<string, unknown> | null = null
+
+    // Paso 1: match exacto
+    const { data: exactMatch } = await supabase
       .from('loyalty_cards')
       .select('*')
       .eq('program_id', program_id)
+      .eq('phone', cleanPhone)
+      .maybeSingle()
 
-    const existing = (allCards ?? []).find(c => {
-      const stored = c.phone.replace(/\D/g, '')
-      return stored.endsWith(cleanPhone) || cleanPhone.endsWith(stored)
-    }) ?? (allCards ?? []).find(c => c.phone.replace(/\D/g, '').slice(-8) === cleanPhone.slice(-8)) ?? null
+    if (exactMatch) {
+      existing = exactMatch
+    } else {
+      // Paso 2: fuzzy — útil cuando el teléfono está guardado con formato distinto
+      const { data: allCards } = await supabase
+        .from('loyalty_cards')
+        .select('*')
+        .eq('program_id', program_id)
+        .limit(2000) // evitar truncamiento silencioso en programas con muchos clientes
+
+      existing = (allCards ?? []).find(c => {
+        const stored = String(c.phone ?? '').replace(/\D/g, '')
+        return stored.endsWith(cleanPhone) || cleanPhone.endsWith(stored)
+      }) ?? (allCards ?? []).find(c =>
+        String(c.phone ?? '').replace(/\D/g, '').slice(-8) === cleanPhone.slice(-8)
+      ) ?? null
+    }
 
     if (existing) {
-      // Si la tarjeta fue soft-deleted (active: false), reactivarla.
-      // Esto resuelve el caso "admin borró al cliente → cliente vuelve a registrarse".
+      // Reactivar si fue soft-deleted Y actualizar nombre si lo cambió.
+      // El UPDATE es siempre seguro aunque ya esté active=true (idempotente).
+      const needsUpdate = !existing.active || (name && existing.name !== (name ?? '').trim())
       let activeCard = existing
-      if (!existing.active) {
-        const { data: reactivated, error: reactivateErr } = await supabase
+
+      if (needsUpdate) {
+        const updatePayload: Record<string, unknown> = { active: true }
+        if (name && (name ?? '').trim()) updatePayload.name = (name as string).trim()
+        if (cleanDni) updatePayload.dni = cleanDni
+
+        const { data: updated, error: updateErr } = await supabase
           .from('loyalty_cards')
-          .update({ active: true })
+          .update(updatePayload)
           .eq('id', existing.id)
           .select()
           .single()
-        if (reactivateErr || !reactivated) {
+
+        if (updateErr) {
+          console.error('[JOIN] Error reactivando/actualizando tarjeta:', updateErr)
           return NextResponse.json({ error: 'Error reactivando tarjeta' }, { status: 500 })
         }
-        activeCard = reactivated
+        activeCard = updated ?? existing
       }
 
       const objectId = activeCard.wallet_object_id ?? `calificar_card_${activeCard.id}`
