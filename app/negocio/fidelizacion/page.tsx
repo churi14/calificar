@@ -634,42 +634,98 @@ function SalesChart({ salesByDay, cost, color }: { salesByDay: Record<string, nu
     const d = new Date(today); d.setDate(today.getDate() - (days - 1 - i))
     const key = d.toISOString().slice(0, 10)
     return {
-      label: i % 7 === 0 ? `${d.getDate()}/${d.getMonth() + 1}` : '',
+      label: i === 0 || i === 7 || i === 14 || i === 21 || i === 29
+        ? `${d.getDate()}/${d.getMonth() + 1}` : '',
       sales: salesByDay[key] ?? 0,
     }
   })
-  const maxVal = Math.max(...data.map(d => d.sales), cost * 2, 1)
-  const W = 560, H = 100, padL = 4, padR = 4, padT = 8, padB = 20
+  const maxSales = Math.max(...data.map(d => d.sales), 1)
+  const maxVal = Math.max(maxSales, cost * 1.5)
+  const W = 560, H = 130, padL = 40, padR = 16, padT = 12, padB = 24
+  const chartW = W - padL - padR
+  const chartH = H - padT - padB
+
   const pts = data.map((d, i) => {
-    const x = padL + (i / (days - 1)) * (W - padL - padR)
-    const y = padT + (1 - d.sales / maxVal) * (H - padT - padB)
+    const x = padL + (i / (days - 1)) * chartW
+    const y = padT + (1 - d.sales / maxVal) * chartH
     return { x, y, ...d }
   })
   const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
-  const area = `${path} L${pts[pts.length-1].x},${H - padB} L${pts[0].x},${H - padB} Z`
-  // Línea costo mensual prorrateada diaria acumulativa — simplificamos: línea horizontal en costo/30 por día * días
-  const costLineY = padT + (1 - (cost / days) / maxVal * days) * (H - padT - padB)
+  const area = `${path} L${pts[pts.length-1].x},${padT + chartH} L${pts[0].x},${padT + chartH} Z`
+  const costLineY = padT + (1 - cost / maxVal) * chartH
+
+  // Y-axis labels (3 levels)
+  const yLabels = [0, Math.round(maxVal / 2), Math.round(maxVal)]
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 100 }}>
-      <defs>
-        <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {/* Área ventas */}
-      <path d={area} fill="url(#salesGrad)" />
-      <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {/* Línea costo mensual */}
-      <line x1={padL} y1={costLineY} x2={W - padR} y2={costLineY} stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="4 3" />
-      <text x={W - padR - 2} y={costLineY - 4} textAnchor="end" fontSize="8" fill="#f43f5e">Costo ${cost}/mes</text>
-      {pts.map((p, i) => p.sales > 0 && (
-        <circle key={i} cx={p.x} cy={p.y} r="3" fill={color} />
-      ))}
-      {pts.map((p, i) => p.label && (
-        <text key={i} x={p.x} y={H - 4} textAnchor="middle" fontSize="9" fill="#a1a1aa">{p.label}</text>
-      ))}
-    </svg>
+    <div className="mt-3">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 130 }}>
+        <defs>
+          <linearGradient id="salesGrad2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+
+        {/* Grid horizontales */}
+        {yLabels.map((v, i) => {
+          const y = padT + (1 - v / maxVal) * chartH
+          return (
+            <g key={i}>
+              <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="#27272a" strokeWidth="1" />
+              <text x={padL - 4} y={y + 3.5} textAnchor="end" fontSize="8" fill="#52525b">
+                ${v > 999 ? `${(v/1000).toFixed(1)}k` : v}
+              </text>
+            </g>
+          )
+        })}
+
+        {/* Línea costo mensual */}
+        {costLineY > padT && costLineY < padT + chartH && (
+          <g>
+            <line x1={padL} y1={costLineY} x2={W - padR} y2={costLineY}
+              stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="5 3" />
+            <rect x={W - padR - 68} y={costLineY - 12} width={66} height={13} rx="3" fill="#1a0a0f" />
+            <text x={W - padR - 5} y={costLineY - 2} textAnchor="end" fontSize="8.5" fill="#f43f5e" fontWeight="600">
+              Costo ${cost}/mes
+            </text>
+          </g>
+        )}
+
+        {/* Área y línea de ventas */}
+        <path d={area} fill="url(#salesGrad2)" />
+        <path d={path} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Puntos en datos con ventas */}
+        {pts.map((p, i) => p.sales > 0 && (
+          <circle key={i} cx={p.x} cy={p.y} r="3.5" fill={color} stroke="#09090b" strokeWidth="1.5" />
+        ))}
+
+        {/* Eje X - etiquetas de fecha */}
+        {pts.map((p, i) => p.label && (
+          <text key={i} x={p.x} y={H - 4} textAnchor="middle" fontSize="8.5" fill="#52525b">{p.label}</text>
+        ))}
+
+        {/* Eje X - línea base */}
+        <line x1={padL} y1={padT + chartH} x2={W - padR} y2={padT + chartH} stroke="#3f3f46" strokeWidth="1" />
+      </svg>
+
+      {/* Leyenda */}
+      <div className="flex items-center gap-5 mt-1 px-1">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: color }} />
+          <span className="text-[10px] text-zinc-500">Ventas registradas</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="flex gap-0.5">
+            <div className="w-1 h-0.5 bg-rose-500 rounded-full" />
+            <div className="w-1 h-0.5 bg-rose-500 rounded-full" />
+            <div className="w-1 h-0.5 bg-rose-500 rounded-full" />
+          </div>
+          <span className="text-[10px] text-zinc-500">Costo Calificar</span>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -900,32 +956,65 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
       {/* Gráfico ventas vs costo + histórico */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="md:col-span-3 bg-white border border-zinc-100 rounded-2xl p-5">
-          <div className="flex items-start justify-between mb-1">
+          <div className="flex items-start justify-between mb-2">
             <div>
               <p className="text-sm font-bold text-zinc-900">Ventas registradas vs costo de Calificar</p>
               <p className="text-xs text-zinc-400 mt-0.5">Últimos 30 días · registrá el monto al sellar para ver el ROI</p>
             </div>
+            {totalSales > 0 && (
+              <div className="text-right flex-shrink-0 ml-4">
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-wide">ROI</p>
+                <p className={`text-lg font-extrabold ${totalSales > calificarCost ? 'text-emerald-500' : 'text-rose-500'}`}>
+                  {totalSales > calificarCost ? '+' : ''}{((totalSales / calificarCost - 1) * 100).toFixed(0)}%
+                </p>
+              </div>
+            )}
           </div>
           {totalSales === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center placeholder-glow rounded-xl">
-              <p className="text-xs text-zinc-500 font-semibold mb-1">Registrá el gasto de tus clientes al sellar</p>
-              <p className="text-[10px] text-zinc-400">En cada sello manual podés ingresar el monto de la venta</p>
+            <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border border-dashed border-zinc-200 mt-3">
+              <div className="w-10 h-10 rounded-2xl bg-zinc-50 flex items-center justify-center text-xl mb-3">📊</div>
+              <p className="text-xs font-semibold text-zinc-600 mb-1">Sin ventas registradas aún</p>
+              <p className="text-[10px] text-zinc-400 max-w-xs">Al dar un sello manual, ingresá el monto de la venta. Así vas a ver si Calificar te rinde.</p>
             </div>
           ) : (
             <SalesChart salesByDay={salesByDay} cost={calificarCost} color={color} />
           )}
         </div>
 
-        <div className="bg-white border border-zinc-100 rounded-2xl p-5 flex flex-col justify-center gap-6">
+        <div className="bg-white border border-zinc-100 rounded-2xl p-5 flex flex-col gap-4">
           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">HISTÓRICO</p>
-          <div className="text-center">
-            <p className="text-4xl font-extrabold text-zinc-900">{totalStamps}</p>
-            <p className="text-xs text-zinc-400 mt-1">Sellos entregados</p>
-          </div>
-          <div className="w-full h-px bg-zinc-100" />
-          <div className="text-center">
-            <p className="text-4xl font-extrabold text-zinc-900">{stats.rewardsTotal}</p>
-            <p className="text-xs text-zinc-400 mt-1">Recompensas entregadas</p>
+          <div className="flex-1 flex flex-col gap-3">
+            {/* Sellos */}
+            <div className="rounded-xl p-4" style={{ background: `${color}10`, border: `1px solid ${color}22` }}>
+              <div className="flex items-end justify-between mb-0.5">
+                <p className="text-3xl font-extrabold" style={{ color }}>{totalStamps}</p>
+                <span className="text-xl mb-1">⭐</span>
+              </div>
+              <p className="text-[11px] font-semibold text-zinc-400">Sellos entregados</p>
+            </div>
+            {/* Recompensas */}
+            <div className="rounded-xl p-4 bg-amber-50 border border-amber-100">
+              <div className="flex items-end justify-between mb-0.5">
+                <p className="text-3xl font-extrabold text-amber-600">{stats.rewardsTotal}</p>
+                <span className="text-xl mb-1">🏆</span>
+              </div>
+              <p className="text-[11px] font-semibold text-zinc-400">Recompensas entregadas</p>
+            </div>
+            {/* Tasa de premio */}
+            {totalStamps > 0 && (
+              <div className="rounded-xl p-4 bg-zinc-50 border border-zinc-100">
+                <div className="flex items-end justify-between mb-0.5">
+                  <p className="text-3xl font-extrabold text-zinc-700">
+                    {program?.stamps_goal
+                      ? `${Math.round((stats.rewardsTotal / Math.max(totalStamps / program.stamps_goal, 0.01)) * 100)}%`
+                      : '—'
+                    }
+                  </p>
+                  <span className="text-xl mb-1">📈</span>
+                </div>
+                <p className="text-[11px] font-semibold text-zinc-400">Conversión a premio</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
