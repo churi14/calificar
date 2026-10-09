@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { QRCanvas } from '../../fidelizacion/tarjeta/QRCanvas'
+import IOSPWAPrompt from './IOSPWAPrompt'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -305,44 +306,33 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
         </div>
       )}
 
-      {/* Banner PWA */}
-      {showInstallBanner && !installDismissed && !isStandalone && (
+      {/* Banner PWA — solo Android (iOS lo maneja IOSPWAPrompt) */}
+      {showInstallBanner && !installDismissed && !isStandalone && !isIOS && (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-4">
           <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-zinc-100 overflow-hidden">
-            {isIOS ? (
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <button className="flex items-start gap-3 flex-1 text-left active:opacity-70"
-                    onClick={async () => {
-                      if (navigator.share) {
-                        try { await navigator.share({ title: `Instalá la app de ${program.businesses?.name}`, url: window.location.href }) } catch { /* cancelado */ }
-                      }
-                    }}>
-                    <span className="text-2xl">📲</span>
-                    <div>
-                      <p className="font-bold text-zinc-900 text-sm">Instalá la app</p>
-                      <p className="text-xs text-zinc-500 mt-0.5">Tocá aquí → <strong>Agregar a inicio</strong></p>
-                    </div>
-                  </button>
-                  <button onClick={dismissInstall} className="text-zinc-300 text-lg leading-none flex-shrink-0 mt-0.5">✕</button>
-                </div>
+            <div className="flex items-center gap-3 p-4">
+              <span className="text-2xl">📲</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-zinc-900 text-sm">Instalá la app</p>
+                <p className="text-xs text-zinc-500">Accedé rápido desde tu pantalla de inicio</p>
               </div>
-            ) : (
-              <div className="flex items-center gap-3 p-4">
-                <span className="text-2xl">📲</span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-zinc-900 text-sm">Instalá la app</p>
-                  <p className="text-xs text-zinc-500">Accedé rápido desde tu pantalla de inicio</p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button onClick={dismissInstall} className="text-xs text-zinc-400 px-2 py-1.5">No, gracias</button>
-                  <button onClick={instalarApp} className="text-xs font-bold text-white px-3 py-1.5 rounded-xl" style={{ background: color }}>Instalar</button>
-                </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button onClick={dismissInstall} className="text-xs text-zinc-400 px-2 py-1.5">No, gracias</button>
+                <button onClick={instalarApp} className="text-xs font-bold text-white px-3 py-1.5 rounded-xl" style={{ background: color }}>Instalar</button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
+
+      {/* IOSPWAPrompt — maneja instalación y notificaciones para iOS */}
+      <IOSPWAPrompt
+        programId={programId}
+        cardId={cardId}
+        color={color}
+        businessName={program.businesses?.name ?? program.name}
+        onNotifGranted={() => setNotifState('granted')}
+      />
 
       {/* TARJETA */}
       <div className="w-full max-w-sm px-4 pt-10 pb-2">
@@ -451,18 +441,8 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
           </div>
         )}
 
-        {/* Notificaciones */}
-        {isIOS && !isStandalone ? (
-          notifState !== 'granted' && (
-            <div className="flex items-center gap-3 bg-white/10 border border-white/10 rounded-2xl px-4 py-3">
-              <span className="text-xl flex-shrink-0">📲</span>
-              <p className="text-xs text-white/60 leading-snug">
-                Para activar notificaciones, instalá la app primero:<br />
-                <span className="text-white/80 font-semibold">Compartir → Agregar a inicio</span>
-              </p>
-            </div>
-          )
-        ) : (
+        {/* Notificaciones — Android y otros (iOS lo maneja IOSPWAPrompt) */}
+        {!isIOS && (
           <>
             {'Notification' in (typeof window !== 'undefined' ? window : {}) && notifState !== 'granted' && (
               <button onClick={activarNotificaciones} disabled={notifState === 'loading' || notifState === 'denied'}
