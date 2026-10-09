@@ -21,6 +21,7 @@ interface Props {
   color: string
   businessName: string
   onNotifGranted?: () => void
+  onDismiss?: () => void
 }
 
 type Browser = 'safari' | 'chrome' | 'other'
@@ -32,7 +33,7 @@ function detectIOSBrowser(): Browser {
   return 'other'
 }
 
-export default function IOSPWAPrompt({ programId, cardId, color, businessName, onNotifGranted }: Props) {
+export default function IOSPWAPrompt({ programId, cardId, color, businessName, onNotifGranted, onDismiss }: Props) {
   const [isIOS, setIsIOS] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
   const [browser, setBrowser] = useState<Browser>('safari')
@@ -82,6 +83,7 @@ export default function IOSPWAPrompt({ programId, cardId, color, businessName, o
   function dismiss() {
     sessionStorage.setItem(`ios_prompt_dismissed_${programId}`, '1')
     setDismissed(true)
+    onDismiss?.()
   }
 
   async function activarNotificaciones() {
