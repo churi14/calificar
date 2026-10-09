@@ -83,26 +83,37 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
       alert(msg)
     }
 
+    // VAPID check ANTES de cualquier cosa
+    const vapidRaw = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    if (!vapidRaw) {
+      alert('ERROR: FALTA VAPID KEY EN EL FRONTEND\nNEXT_PUBLIC_VAPID_PUBLIC_KEY es undefined')
+      setNotifState('denied'); return
+    }
+    alert(`VAPID OK: ${vapidRaw.slice(0, 20)}...`)
+
     try {
       // PASO 1: pedir permiso
       const perm = await Notification.requestPermission()
       if (perm !== 'granted') { setNotifState('denied'); return }
+      alert('Paso 1: Permiso concedido ✓')
 
       // PASO 2: verificar Service Worker
       if (!('serviceWorker' in navigator)) {
-        debugAlert('SW no disponible', 'serviceWorker no existe en navigator')
+        alert('ERROR FATAL: serviceWorker no existe en navigator')
         setNotifState('denied'); return
       }
 
       // PASO 3: registrar/obtener SW aislado
-      let reg: ServiceWorkerRegistration | undefined
       try {
-        reg = await navigator.serviceWorker.getRegistration(`/t/${programId}/`)
+        let reg = await navigator.serviceWorker.getRegistration(`/t/${programId}/`)
         if (!reg) {
           reg = await navigator.serviceWorker.register(`/t/${programId}/sw.js`, { scope: `/t/${programId}/` })
+          alert(`Paso 2a: SW registrado\nscope: ${reg.scope}`)
+        } else {
+          alert(`Paso 2a: SW ya existía\nscope: ${reg.scope}`)
         }
       } catch (e) {
-        debugAlert('SW register falló', e)
+        alert('ERROR FATAL: SW register falló\n' + (e instanceof Error ? e.message : String(e)))
         setNotifState('denied'); return
       }
 
@@ -113,29 +124,24 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
           navigator.serviceWorker.ready,
           new Promise<never>((_, reject) => setTimeout(() => reject(new Error('SW timeout 8s')), 8000)),
         ]) as ServiceWorkerRegistration
+        alert(`Paso 2: Service Worker listo ✓\nscope: ${activeReg.scope}`)
       } catch (e) {
-        debugAlert('SW ready timeout', e)
+        alert('ERROR FATAL: SW ready timeout\n' + (e instanceof Error ? e.message : String(e)))
         setNotifState('denied'); return
       }
 
-      // PASO 5: verificar VAPID key
-      const vapidRaw = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-      if (!vapidRaw) {
-        debugAlert('VAPID key faltante', 'NEXT_PUBLIC_VAPID_PUBLIC_KEY es undefined')
-        setNotifState('denied'); return
-      }
-
-      // PASO 6: suscribir al push
+      // PASO 5: suscribir al push
       let sub: PushSubscription
       try {
         const vapidKey = urlBase64ToUint8Array(vapidRaw)
         sub = await activeReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: vapidKey })
+        alert(`Paso 3: Token generado ✓\nendpoint: ${sub.endpoint.slice(0, 60)}...`)
       } catch (e) {
-        debugAlert('pushManager.subscribe falló', e)
+        alert('ERROR FATAL: pushManager.subscribe falló\n' + (e instanceof Error ? e.message : String(e)))
         setNotifState('denied'); return
       }
 
-      // PASO 7: guardar suscripción en la DB
+      // PASO 6: guardar suscripción en la DB
       let apiRes: Response
       try {
         apiRes = await fetch('/api/fidelizacion/push/subscribe', {
@@ -144,20 +150,20 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
           body: JSON.stringify({ card_id: cardId, program_id: programId, subscription: sub.toJSON() }),
         })
       } catch (e) {
-        debugAlert('fetch /push/subscribe falló (red)', e)
+        alert('ERROR FATAL: fetch /push/subscribe falló (red)\n' + (e instanceof Error ? e.message : String(e)))
         setNotifState('denied'); return
       }
 
       if (!apiRes.ok) {
         const body = await apiRes.text().catch(() => '(no body)')
-        debugAlert(`API respondió ${apiRes.status}`, body)
+        alert(`ERROR FATAL: API respondió ${apiRes.status}\n${body}`)
         setNotifState('denied'); return
       }
 
-      // ¡Todo OK!
+      alert('Paso 4: Guardado en DB ✓ — ¡TODO OK!')
       setNotifState('granted')
     } catch (e) {
-      debugAlert('Error inesperado', e)
+      alert('ERROR FATAL inesperado\n' + (e instanceof Error ? e.message : String(e)))
       setNotifState('denied')
     }
   }
