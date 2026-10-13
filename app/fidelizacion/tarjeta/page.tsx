@@ -10,6 +10,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+type Milestone = { at: number; label: string; coupon_prefix?: string }
+
 type CardData = {
   id: string
   name: string
@@ -27,6 +29,7 @@ type CardData = {
     card_background_url: string | null
     page_bg_color: string | null
     stamp_icon_no_bg: boolean | null
+    milestones: Milestone[] | null
     businesses: { name: string; whatsapp_number?: string | null; plan?: string | null }
   }
 }
@@ -421,11 +424,58 @@ function TarjetaContent() {
               )}
             </div>
           </div>
+          {/* Escalera de recompensas (milestones) */}
+          {program.milestones && program.milestones.length > 0 && (
+            <div className="relative px-6 pb-3">
+              <div className="relative">
+                {/* línea base */}
+                <div className="absolute top-3 left-0 right-0 h-0.5 rounded-full" style={{ background: `${textColor}25` }} />
+                {/* línea progreso */}
+                <div className="absolute top-3 left-0 h-0.5 rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%`, background: `${textColor}70` }} />
+                <div className="flex justify-between relative">
+                  {/* Hitos intermedios */}
+                  {program.milestones.map(m => {
+                    const pct = (m.at / goal) * 100
+                    const reached = stamps >= m.at
+                    return (
+                      <div key={m.at} className="flex flex-col items-center" style={{ position: 'absolute', left: `${pct}%`, transform: 'translateX(-50%)' }}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${reached ? 'border-white' : 'border-white/30'}`}
+                          style={{ background: reached ? textColor : 'transparent', color: reached ? color : `${textColor}60` }}>
+                          🎁
+                        </div>
+                        <p className="text-[9px] mt-1 text-center leading-tight max-w-[52px]"
+                          style={{ color: reached ? textColor : `${textColor}60` }}>
+                          {m.label}
+                        </p>
+                      </div>
+                    )
+                  })}
+                  {/* Premio final */}
+                  <div className="flex flex-col items-center" style={{ position: 'absolute', left: '100%', transform: 'translateX(-50%)' }}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 transition-all ${stamps >= goal ? 'border-white' : 'border-white/30'}`}
+                      style={{ background: stamps >= goal ? textColor : 'transparent', color: stamps >= goal ? color : `${textColor}60` }}>
+                      🏆
+                    </div>
+                    <p className="text-[9px] mt-1 text-center leading-tight max-w-[52px]"
+                      style={{ color: stamps >= goal ? textColor : `${textColor}60` }}>
+                      {program.reward_description}
+                    </p>
+                  </div>
+                </div>
+                {/* Spacer para los labels */}
+                <div className="h-10" />
+              </div>
+            </div>
+          )}
+
           {/* Progreso */}
           <div className="relative px-6 py-5">
             <div className="flex justify-between text-xs mb-2" style={{ color: `${textColor}b3` }}>
               <span className="font-bold text-sm" style={{ color: textColor }}>{stamps} de {goal} sellos</span>
-              <span>{program.reward_description}</span>
+              {(!program.milestones || program.milestones.length === 0) && (
+                <span>{program.reward_description}</span>
+              )}
             </div>
             <div className="rounded-full h-2" style={{ background: `${textColor}30` }}>
               <div className="h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%`, background: textColor }} />
