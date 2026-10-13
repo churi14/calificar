@@ -1,7 +1,10 @@
 /**
  * POST /api/fidelizacion/stamp
  * Suma un sello a la tarjeta del cliente.
- * Se llama desde el NFC del mostrador (cliente logueado) o desde el panel del negocio.
+ * Se llama desde el NFC del mostrador o desde el panel del negocio.
+ *
+ * SEGURIDAD: SIEMPRE requiere Bearer token del dueño del programa,
+ * sin importar el valor de registered_by. No existe path sin auth.
  *
  * Body: { card_id, program_id, registered_by? }
  */
@@ -24,12 +27,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'card_id y program_id son requeridos' }, { status: 400 })
     }
 
-    // Los sellos manuales (desde el panel del negocio) requieren auth de dueño
-    if (registered_by === 'manual') {
-      const owner = await verifyProgramOwner(req, program_id)
-      if (!owner) {
-        return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-      }
+    // Auth obligatoria para TODOS los paths — NFC y manual por igual.
+    // Un cliente nunca puede llamar a este endpoint directamente.
+    const owner = await verifyProgramOwner(req, program_id)
+    if (!owner) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
     // Traer tarjeta y programa juntos
