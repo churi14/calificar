@@ -145,6 +145,33 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // Si llegó a la meta → push de reseña Google (no bloquea)
+    if (goalReached) {
+      supabase
+        .from('google_review_settings')
+        .select('enabled, google_maps_url, push_title, push_body')
+        .eq('program_id', program_id)
+        .single()
+        .then(({ data: gr }) => {
+          if (gr?.enabled && gr?.google_maps_url) {
+            fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'}/api/fidelizacion/push/send`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-cron-secret': process.env.CRON_SECRET ?? '',
+              },
+              body: JSON.stringify({
+                program_id,
+                card_id,
+                title: gr.push_title,
+                body:  gr.push_body,
+                url:   gr.google_maps_url,
+              }),
+            }).catch(() => {})
+          }
+        }).catch(() => {})
+    }
+
     // Actualizar Google Wallet (no bloquea la respuesta)
     let walletUpdateError: string | null = null
     if (card.wallet_object_id) {
