@@ -409,6 +409,7 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
     { id: 'proximidad',   label: 'Avisos de proximidad',   icon: '📍' },
     { id: 'cumple',        label: 'Campañas de cumpleaños', icon: '🎂' },
     { id: 'reactivacion', label: 'Reactivación',           icon: '💤' },
+    { id: 'insights',     label: 'Activity Insights',      icon: '📊' },
     { id: 'imprimir',     label: 'Imprimir y compartir',   icon: '🖨️' },
   ]
   function navigate(id: string) { onNav(id); onClose() }
@@ -2905,6 +2906,179 @@ function ViewCumple({ selectedProgram, cards, isPro }:
   )
 }
 
+// ── Vista: ACTIVITY INSIGHTS ─────────────────────────────────────────────────
+type InsightsData = {
+  period_days: number
+  total_stamps: number
+  total_cards: number
+  active_clients: number
+  conversion_rate: number
+  avg_return_days: number | null
+  peak_hour: number
+  peak_day: string
+  by_hour: number[]
+  by_dow: { label: string; count: number }[]
+  new_clients_weekly: { week: string; count: number }[]
+}
+
+function BarChart({ data, color = '#7C3AED' }: { data: { label: string; count: number }[]; color?: string }) {
+  const max = Math.max(...data.map(d => d.count), 1)
+  return (
+    <div className="flex items-end gap-1 h-24 w-full">
+      {data.map((d, i) => (
+        <div key={i} className="flex flex-col items-center flex-1 gap-1">
+          <div className="w-full rounded-t-sm transition-all" style={{
+            height: `${Math.round((d.count / max) * 80)}px`,
+            minHeight: d.count > 0 ? '4px' : '0',
+            background: color,
+            opacity: d.count === max ? 1 : 0.4,
+          }} />
+          <span className="text-[9px] text-zinc-400 leading-none">{d.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function HourChart({ data }: { data: number[] }) {
+  const max = Math.max(...data, 1)
+  const labels = data.map((_, i) => i % 6 === 0 ? `${i}h` : '')
+  return (
+    <div className="flex items-end gap-0.5 h-24 w-full">
+      {data.map((count, i) => (
+        <div key={i} className="flex flex-col items-center flex-1 gap-1">
+          <div className="w-full rounded-t-sm transition-all" style={{
+            height: `${Math.round((count / max) * 80)}px`,
+            minHeight: count > 0 ? '3px' : '0',
+            background: '#7C3AED',
+            opacity: count === max ? 1 : 0.35,
+          }} />
+          <span className="text-[8px] text-zinc-400 leading-none">{labels[i]}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function WeekChart({ data }: { data: { week: string; count: number }[] }) {
+  const max = Math.max(...data.map(d => d.count), 1)
+  return (
+    <div className="flex items-end gap-1 h-24 w-full">
+      {data.map((d, i) => {
+        const date = new Date(d.week)
+        const label = `${date.getDate()}/${date.getMonth() + 1}`
+        return (
+          <div key={i} className="flex flex-col items-center flex-1 gap-1">
+            <div className="w-full rounded-t-sm transition-all" style={{
+              height: `${Math.round((d.count / max) * 80)}px`,
+              minHeight: d.count > 0 ? '4px' : '0',
+              background: '#10B981',
+              opacity: 0.5 + 0.5 * (d.count / max),
+            }} />
+            <span className="text-[9px] text-zinc-400 leading-none">{label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function ViewInsights({ selectedProgram, isPro }:
+  { selectedProgram: string | null; isPro: boolean }) {
+  const [data, setData]     = useState<InsightsData | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [period, setPeriod]  = useState(30)
+
+  useEffect(() => {
+    if (!selectedProgram) return
+    setLoading(true)
+    fetch(`/api/fidelizacion/insights?program_id=${selectedProgram}&days=${period}`)
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [selectedProgram, period])
+
+  const formatHour = (h: number) => {
+    if (h === 0)  return '12 AM'
+    if (h < 12)   return `${h} AM`
+    if (h === 12) return '12 PM'
+    return `${h - 12} PM`
+  }
+
+  return (
+    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-2xl font-extrabold text-zinc-900">Activity Insights</h1>
+        {/* Selector de período */}
+        <div className="flex gap-1">
+          {[7, 30, 90].map(d => (
+            <button key={d} onClick={() => setPeriod(d)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${period === d ? 'bg-violet-600 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}>
+              {d}d
+            </button>
+          ))}
+        </div>
+      </div>
+      <p className="text-zinc-400 text-sm mb-6">Últimos {period} días · {data?.total_stamps ?? 0} sellos cargados</p>
+
+      {!isPro && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
+          <span className="text-xl">🔒</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Función Pro</p>
+            <p className="text-xs text-amber-600 mt-0.5">Activity Insights está disponible a partir del plan Pro.</p>
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center justify-center h-40 text-zinc-400 text-sm">Cargando datos...</div>
+      )}
+
+      {!loading && data && (
+        <>
+          {/* KPIs */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            {[
+              { label: 'CLIENTES ACTIVOS', value: data.active_clients, sub: `de ${data.total_cards} totales` },
+              { label: 'CONVERSIÓN AL PREMIO', value: `${data.conversion_rate}%`, sub: 'completaron la tarjeta' },
+              { label: 'RETORNO PROMEDIO', value: data.avg_return_days ? `${data.avg_return_days}d` : '—', sub: 'días entre visitas' },
+              { label: 'HORA PICO', value: formatHour(data.peak_hour), sub: `más sellos a las ${formatHour(data.peak_hour)}` },
+            ].map(k => (
+              <div key={k.label} className="bg-white border border-zinc-100 rounded-2xl p-4">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">{k.label}</p>
+                <p className="text-2xl font-extrabold text-zinc-900">{k.value}</p>
+                <p className="text-xs text-zinc-400 mt-0.5">{k.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Sellos por hora */}
+          <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">SELLOS POR HORA DEL DÍA</p>
+            <p className="text-xs text-zinc-400 mb-4">Hora pico: <span className="font-semibold text-violet-600">{formatHour(data.peak_hour)}</span></p>
+            <HourChart data={data.by_hour} />
+          </div>
+
+          {/* Sellos por día de la semana */}
+          <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">SELLOS POR DÍA DE LA SEMANA</p>
+            <p className="text-xs text-zinc-400 mb-4">Día más activo: <span className="font-semibold text-violet-600">{data.peak_day}</span></p>
+            <BarChart data={data.by_dow} />
+          </div>
+
+          {/* Clientes nuevos por semana */}
+          <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">CLIENTES NUEVOS POR SEMANA</p>
+            <p className="text-xs text-zinc-400 mb-4">Últimas 8 semanas</p>
+            <WeekChart data={data.new_clients_weekly} />
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Vista: REACTIVACIÓN AUTOMÁTICA ───────────────────────────────────────────
 type ReactivationCfg = {
   enabled: boolean
@@ -4596,6 +4770,9 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'reactivacion' && (
           <ViewReactivacion selectedProgram={selectedProgram} isPro={true} />
+        )}
+        {activeNav === 'insights' && (
+          <ViewInsights selectedProgram={selectedProgram} isPro={true} />
         )}
         {activeNav === 'imprimir' && <ViewImprimir program={program} selectedProgram={selectedProgram} />}
         {activeNav === 'perfil' && (
