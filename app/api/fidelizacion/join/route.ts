@@ -14,9 +14,19 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+/** Genera un ref_code de 8 caracteres alfanuméricos (sin ambiguos). */
+function generateRefCode(): string {
+  const chars = 'abcdefghjkmnpqrstuvwxyz23456789'
+  let code = ''
+  for (let i = 0; i < 8; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return code
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { program_id, phone, name, email, birth_date, dni } = await req.json()
+    const { program_id, phone, name, email, birth_date, dni, ref_code: incomingRefCode } = await req.json()
 
     if (!program_id || !phone) {
       return NextResponse.json({ error: 'program_id y phone son requeridos' }, { status: 400 })
@@ -127,6 +137,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Crear nueva tarjeta
+    const newRefCode = generateRefCode()
     const { data: card, error: cardErr } = await supabase
       .from('loyalty_cards')
       .insert({
@@ -139,6 +150,7 @@ export async function POST(req: NextRequest) {
         points: 0,
         total_visits: 0,
         active: true,
+        ref_code: newRefCode,
         ...(cleanDni ? { dni: cleanDni } : {}),
       })
       .select()
@@ -194,6 +206,76 @@ export async function POST(req: NextRequest) {
       stampsGoal: program.stamps_goal,
       rewardDescription: program.reward_description,
     })
+
+    // Procesar referido (no bloquea la respuesta)
+    if (incomingRefCode) {
+      void (async () => {
+        try {
+          // Verificar que las referencias están habilitadas en este programa
+          const { data: refSettings } = await supabase
+            .from('referral_settings')
+            .select('enabled, referrer_stamps, referred_stamps')
+            .eq('program_id', program_id)
+            .single()
+
+          if (!refSettings?.enabled) return
+
+          // Buscar la tarjeta del referente
+          const { data: referrerCard } = await supabase
+            .from('loyalty_cards')
+            .select('id, stamps, program_id')
+            .eq('ref_code', incomingRefCode)
+            .eq('program_id', program_id)
+            .eq('active', true)
+            .single()
+
+          if (!referrerCard) return
+
+          // Guardar quién refirió al nuevo cliente
+          await supabase
+            .from('loyalty_cards')
+            .update({ referred_by_card_id: referrerCard.id })
+            .eq('id', card.id)
+
+          // Dar sellos al nuevo cliente (referred_stamps)
+          if (refSettings.referred_stamps > 0) {
+            await supabase
+              .from('loyalty_cards')
+              .update({ stamps: refSettings.referred_stamps })
+              .eq('id', card.id)
+
+            await supabase.from('loyalty_transactions').insert({
+              card_id: card.id,
+              program_id,
+              type: 'stamp',
+              amount: refSettings.referred_stamps,
+              note: `Bienvenida por referido`,
+              registered_by: 'system',
+            })
+          }
+
+          // Dar sellos al referente (referrer_stamps)
+          if (refSettings.referrer_stamps > 0) {
+            const newReferrerStamps = (referrerCard.stamps ?? 0) + refSettings.referrer_stamps
+            await supabase
+              .from('loyalty_cards')
+              .update({ stamps: newReferrerStamps })
+              .eq('id', referrerCard.id)
+
+            await supabase.from('loyalty_transactions').insert({
+              card_id: referrerCard.id,
+              program_id,
+              type: 'stamp',
+              amount: refSettings.referrer_stamps,
+              note: `Premio por referir a un amigo`,
+              registered_by: 'system',
+            })
+          }
+        } catch (refErr) {
+          console.error('[REFERRAL] Error procesando referido:', refErr)
+        }
+      })()
+    }
 
     return NextResponse.json({
       card: { ...card, wallet_object_id: objectId },

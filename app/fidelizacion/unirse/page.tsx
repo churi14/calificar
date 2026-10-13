@@ -19,6 +19,7 @@ function UnirseContent() {
   const params = useSearchParams()
   const router = useRouter()
   const programId = params.get('program')
+  const refCode = params.get('ref')
 
   const [program, setProgram] = useState<Program | null>(null)
   const [phone, setPhone] = useState('')
@@ -129,7 +130,7 @@ function UnirseContent() {
     const res = await fetch('/api/fidelizacion/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ program_id: programId, phone, name, birth_date: birthDate || null, dni: dni.trim() || null }),
+      body: JSON.stringify({ program_id: programId, phone, name, birth_date: birthDate || null, dni: dni.trim() || null, ...(refCode ? { ref_code: refCode } : {}) }),
     })
     const data = await res.json()
     setLoading(false)

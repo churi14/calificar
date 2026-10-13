@@ -17,6 +17,7 @@ type CardData = {
   name: string
   stamps: number
   total_visits: number
+  ref_code: string | null
   loyalty_programs: {
     name: string
     stamps_goal: number
@@ -589,6 +590,45 @@ function TarjetaContent() {
             </div>
           </div>
         </div>
+
+        {/* Referir amigos */}
+        {card.ref_code && (() => {
+          const refUrl = `https://calificar.com.ar/ref/${card.ref_code}`
+          return (
+            <div className={`rounded-3xl p-5 ${darkBg ? 'bg-white/10 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+              <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${darkBg ? 'text-white/40' : 'text-zinc-500'}`}>
+                Referí a un amigo
+              </p>
+              <p className={`text-sm mb-4 leading-snug ${darkBg ? 'text-white/70' : 'text-zinc-700'}`}>
+                Cuando alguien se una con tu link, ¡los dos ganan sellos extra!
+              </p>
+              <button
+                onClick={async () => {
+                  if (navigator.share) {
+                    try {
+                      await navigator.share({
+                        title: `Unite a ${program.businesses?.name ?? program.name}`,
+                        text: `¡Únete al programa de fidelidad de ${program.businesses?.name ?? program.name}! Ganamos sellos extra 🎁`,
+                        url: refUrl,
+                      })
+                    } catch { /* cancelado */ }
+                  } else {
+                    try {
+                      await navigator.clipboard.writeText(refUrl)
+                      alert('Link copiado!')
+                    } catch {
+                      prompt('Copiá tu link:', refUrl)
+                    }
+                  }
+                }}
+                className="w-full flex items-center justify-center gap-2 font-bold py-3 rounded-full text-sm text-white"
+                style={{ backgroundColor: color }}
+              >
+                🎁 Compartir mi link de referido
+              </button>
+            </div>
+          )
+        })()}
 
         <p className="text-xs text-white/30 text-center pb-2">
           Guardá este link o escaneá el cartel NFC del local para sumar sellos.

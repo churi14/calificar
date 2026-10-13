@@ -411,6 +411,7 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
     { id: 'reactivacion', label: 'Reactivación',           icon: '💤' },
     { id: 'insights',     label: 'Activity Insights',      icon: '📊' },
     { id: 'reseñas',      label: 'Reseñas Google',         icon: '⭐' },
+    { id: 'referencias',  label: 'Referencias',            icon: '🔗' },
     { id: 'imprimir',     label: 'Imprimir y compartir',   icon: '🖨️' },
   ]
   function navigate(id: string) { onNav(id); onClose() }
@@ -3228,6 +3229,127 @@ function ViewReseñas({ selectedProgram, isPro }:
   )
 }
 
+// ── Vista: REFERENCIAS DIGITALES ─────────────────────────────────────────────
+function ViewReferencias({ selectedProgram, isPro }:
+  { selectedProgram: string | null; isPro: boolean }) {
+  const [cfg, setCfg] = useState({ enabled: false, referrer_stamps: 2, referred_stamps: 1 })
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved]   = useState(false)
+
+  useEffect(() => {
+    if (!selectedProgram) return
+    fetch(`/api/fidelizacion/referral?program_id=${selectedProgram}`)
+      .then(r => r.json())
+      .then(d => { if (d.settings) setCfg(c => ({ ...c, ...d.settings })) })
+  }, [selectedProgram])
+
+  async function save() {
+    setSaving(true)
+    await fetch('/api/fidelizacion/referral', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ program_id: selectedProgram, ...cfg }),
+    })
+    setSaving(false); setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  return (
+    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Referencias digitales</h1>
+      <p className="text-zinc-400 text-sm mb-6">Cada cliente tiene un link único para compartir. Cuando alguien se une por ese link, ambos ganan sellos extra.</p>
+
+      {!isPro && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
+          <span className="text-xl">🔒</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Función Pro</p>
+            <p className="text-xs text-amber-600 mt-0.5">Las referencias digitales están disponibles a partir del plan Pro.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Cómo funciona */}
+      <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">CÓMO FUNCIONA</p>
+        <div className="space-y-3">
+          {[
+            { n: '1', text: 'Cada cliente tiene un link único en su tarjeta (calificar.com.ar/ref/xxxxxxxx).' },
+            { n: '2', text: 'Lo comparte con amigos. El amigo abre el link y se une al programa.' },
+            { n: '3', text: 'Al registrarse, ambos reciben automáticamente los sellos bonus que configuraste.' },
+          ].map(s => (
+            <div key={s.n} className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>
+              <p className="text-sm text-zinc-600">{s.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Toggle activar */}
+      <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4 flex items-center justify-between gap-4">
+        <div>
+          <p className="font-semibold text-zinc-800">Activar referencias</p>
+          <p className="text-xs text-zinc-400 mt-0.5">Habilita el botón de compartir en la tarjeta de cada cliente</p>
+        </div>
+        <button
+          onClick={() => setCfg(c => ({ ...c, enabled: !c.enabled }))}
+          className={`relative w-12 h-7 rounded-full transition-colors flex-shrink-0 ${cfg.enabled ? 'bg-violet-600' : 'bg-zinc-200'}`}
+        >
+          <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${cfg.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+        </button>
+      </div>
+
+      {cfg.enabled && (
+        <>
+          {/* Sellos para el referente */}
+          <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+            <p className="font-semibold text-zinc-800 mb-1">Sellos para quien refiere</p>
+            <p className="text-xs text-zinc-400 mb-4">Cuántos sellos gana el cliente que compartió el link cuando el amigo se registra</p>
+            <div className="flex items-center gap-4">
+              <button onClick={() => setCfg(c => ({ ...c, referrer_stamps: Math.max(1, c.referrer_stamps - 1) }))}
+                className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-700 font-bold text-lg hover:bg-zinc-200">−</button>
+              <span className="text-3xl font-extrabold text-violet-700 w-12 text-center">{cfg.referrer_stamps}</span>
+              <button onClick={() => setCfg(c => ({ ...c, referrer_stamps: Math.min(10, c.referrer_stamps + 1) }))}
+                className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-700 font-bold text-lg hover:bg-zinc-200">+</button>
+            </div>
+          </div>
+
+          {/* Sellos para el referido */}
+          <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-6">
+            <p className="font-semibold text-zinc-800 mb-1">Sellos de bienvenida para el nuevo cliente</p>
+            <p className="text-xs text-zinc-400 mb-4">Cuántos sellos recibe el amigo al registrarse con el link</p>
+            <div className="flex items-center gap-4">
+              <button onClick={() => setCfg(c => ({ ...c, referred_stamps: Math.max(1, c.referred_stamps - 1) }))}
+                className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-700 font-bold text-lg hover:bg-zinc-200">−</button>
+              <span className="text-3xl font-extrabold text-violet-700 w-12 text-center">{cfg.referred_stamps}</span>
+              <button onClick={() => setCfg(c => ({ ...c, referred_stamps: Math.min(10, c.referred_stamps + 1) }))}
+                className="w-10 h-10 rounded-full bg-zinc-100 text-zinc-700 font-bold text-lg hover:bg-zinc-200">+</button>
+            </div>
+          </div>
+
+          <button
+            onClick={save}
+            disabled={saving}
+            className="w-full py-3 rounded-2xl text-white font-bold text-sm transition"
+            style={{ background: saved ? '#10B981' : '#7C3AED' }}>
+            {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
+          </button>
+        </>
+      )}
+
+      {!cfg.enabled && (
+        <button
+          onClick={save}
+          disabled={saving}
+          className="w-full py-3 rounded-2xl text-white font-bold text-sm transition"
+          style={{ background: saved ? '#10B981' : '#7C3AED' }}>
+          {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 // ── Vista: REACTIVACIÓN AUTOMÁTICA ───────────────────────────────────────────
 type ReactivationCfg = {
   enabled: boolean
@@ -4925,6 +5047,9 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'reseñas' && (
           <ViewReseñas selectedProgram={selectedProgram} isPro={true} />
+        )}
+        {activeNav === 'referencias' && (
+          <ViewReferencias selectedProgram={selectedProgram} isPro={true} />
         )}
         {activeNav === 'imprimir' && <ViewImprimir program={program} selectedProgram={selectedProgram} />}
         {activeNav === 'perfil' && (
