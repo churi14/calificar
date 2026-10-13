@@ -28,10 +28,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'program_id, title y body son requeridos' }, { status: 400 })
   }
 
-  // Verificar que el usuario autenticado es dueño del programa
-  const owner = await verifyProgramOwner(req, program_id)
-  if (!owner) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  // Verificar ownership — acepta tanto Bearer token de usuario como cron secret interno
+  const cronSecret = req.headers.get('x-cron-secret')
+  const isCron = cronSecret && cronSecret === process.env.CRON_SECRET
+  if (!isCron) {
+    const owner = await verifyProgramOwner(req, program_id)
+    if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
   // Obtener logo del negocio (para el ícono de la notificación)
