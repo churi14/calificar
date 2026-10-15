@@ -8,6 +8,7 @@ import {
   Cake, ArrowCounterClockwise, ChartBar, Star, ShareNetwork,
   CirclesThree, GitBranch, Globe, Printer, Gear, Question,
   Rocket, MagnifyingGlass, QrCode, Sun, Moon,
+  Trophy, TrendUp,
 } from '@phosphor-icons/react'
 
 const supabaseClient = createSupabaseClient()
@@ -776,7 +777,6 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
   const hasLogo = !!program?.logo_url
   const [showQrBig, setShowQrBig] = useState(false)
   const qrUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
-  // Costo mensual de Calificar (plan starter por defecto)
   const calificarCost = 9.99
 
   const trialDaysLeft = (() => {
@@ -786,269 +786,334 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
     return Math.max(0, days)
   })()
 
+  const kpis = [
+    {
+      label: 'Clientes totales',
+      value: stats.total,
+      sub: 'registrados',
+      Icon: UsersThree,
+      iconBg: 'bg-indigo-50',
+      iconColor: 'text-indigo-500',
+    },
+    {
+      label: 'Sellos hoy',
+      value: stats.stampsToday,
+      sub: 'en el día',
+      Icon: Star,
+      iconBg: 'bg-amber-50',
+      iconColor: 'text-amber-500',
+    },
+    {
+      label: 'Clientes que vuelven',
+      value: returningClients,
+      sub: 'más de 1 visita',
+      Icon: ArrowCounterClockwise,
+      iconBg: 'bg-emerald-50',
+      iconColor: 'text-emerald-500',
+    },
+    {
+      label: 'Premios entregados',
+      value: stats.rewardsTotal,
+      sub: 'en total',
+      Icon: Trophy,
+      iconBg: 'bg-rose-50',
+      iconColor: 'text-rose-500',
+    },
+  ]
+
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
-      <div className="mb-5">
-        <h1 className="text-2xl font-extrabold text-zinc-900">{greeting}, {businessName}.</h1>
-        <p className="text-zinc-400 text-sm mt-0.5">Esto es lo que está pasando hoy en {businessName}.</p>
+    <div className="min-h-screen bg-[#F8F9FA]">
+
+      {/* ── Top Bar (desktop) ─────────────────────────────────────── */}
+      <div className="hidden md:flex items-center justify-between px-8 py-3.5 bg-white border-b border-gray-100 sticky top-0 z-10">
+        <div>
+          <p className="text-[11px] text-gray-400 font-medium capitalize">
+            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+          <h1 className="text-base font-semibold text-gray-900">{greeting}, {businessName}</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+            <MagnifyingGlass size={13} className="text-gray-400 flex-shrink-0" />
+            <input placeholder="Buscar clientes..." className="bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none w-40" />
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+            {businessName.charAt(0).toUpperCase()}
+          </div>
+        </div>
       </div>
 
-      {/* Banner días de prueba restantes */}
-      {trialDaysLeft !== null && (
-        <div className="mb-5 rounded-2xl px-5 py-3.5 flex items-center justify-between gap-4 flex-wrap"
-          style={{ background: trialDaysLeft <= 3 ? 'linear-gradient(135deg, #FEF3C7, #FDE68A33)' : 'linear-gradient(135deg, #EDE9FE, #DDD6FE33)', border: `1px solid ${trialDaysLeft <= 3 ? '#F59E0B44' : '#7C3AED33'}` }}>
-          <div className="flex items-center gap-3">
-            <span className={`text-2xl font-extrabold tabular-nums ${trialDaysLeft <= 3 ? 'text-amber-600' : 'text-violet-700'}`}>{trialDaysLeft}</span>
-            <div>
-              <p className={`text-sm font-bold ${trialDaysLeft <= 3 ? 'text-amber-700' : 'text-violet-800'}`}>
-                {trialDaysLeft === 0 ? 'Tu prueba gratuita venció hoy' : trialDaysLeft === 1 ? 'Último día de prueba gratuita' : `días de prueba gratuita restantes`}
-              </p>
-              <p className="text-xs text-zinc-400">Elegí un plan para seguir usando Calificar sin interrupciones.</p>
+      <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
+
+        {/* Banner trial */}
+        {trialDaysLeft !== null && (
+          <div className="mb-5 bg-white rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap shadow-sm border border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${trialDaysLeft <= 3 ? 'bg-amber-50' : 'bg-indigo-50'}`}>
+                <span className={`text-xl font-extrabold tabular-nums ${trialDaysLeft <= 3 ? 'text-amber-600' : 'text-indigo-600'}`}>{trialDaysLeft}</span>
+              </div>
+              <div>
+                <p className={`text-sm font-semibold ${trialDaysLeft <= 3 ? 'text-amber-700' : 'text-gray-800'}`}>
+                  {trialDaysLeft === 0 ? 'Tu prueba gratuita venció hoy' : trialDaysLeft === 1 ? 'Último día de prueba gratuita' : `días de prueba restantes`}
+                </p>
+                <p className="text-xs text-gray-400">Elegí un plan para continuar sin interrupciones.</p>
+              </div>
             </div>
-          </div>
-          {onNavPlan && (
-            <button onClick={onNavPlan}
-              className={`text-xs font-bold px-4 py-2 rounded-xl text-white flex-shrink-0 ${trialDaysLeft <= 3 ? 'bg-amber-500 hover:bg-amber-600' : 'bg-violet-600 hover:bg-violet-700'} transition-colors`}>
-              Ver planes →
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Modal QR ampliado */}
-      {showQrBig && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}
-          onClick={() => setShowQrBig(false)}>
-          <div className="bg-white rounded-3xl p-8 flex flex-col items-center gap-4" onClick={e => e.stopPropagation()}>
-            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
-              alt="QR grande" width={300} height={300} className="rounded-2xl" />
-            <p className="text-sm font-bold text-zinc-900">{businessName}</p>
-            <p className="text-xs text-zinc-400">Ponélo en el mostrador para que los clientes escaneen</p>
-            <button onClick={() => setShowQrBig(false)} className="text-xs text-zinc-400 hover:text-zinc-600">Cerrar</button>
-          </div>
-        </div>
-      )}
-
-      {/* Banner logo */}
-      {!hasLogo && (
-        <div className="bg-white border border-zinc-100 rounded-2xl p-4 mb-4 flex items-center gap-4">
-          <div className="w-10 h-10 bg-zinc-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">☁️</div>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-zinc-900">Poné tu logo en la tarjeta</p>
-            <p className="text-xs text-zinc-400">Subí el logo de tu negocio para que la tarjeta se vea tuya.</p>
-          </div>
-          <button onClick={onLogoNav}
-            className="text-xs font-bold text-white px-4 py-2 rounded-xl flex-shrink-0" style={{ background: color }}>
-            Agregar logo
-          </button>
-        </div>
-      )}
-
-      {/* QR Banner */}
-      {program && (
-        <div className="bg-white border border-zinc-100 rounded-2xl p-4 mb-5 flex items-center gap-4">
-          <div className="bg-zinc-100 rounded-xl p-2 flex-shrink-0 cursor-pointer" onClick={() => setShowQrBig(true)}>
-            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
-              alt="QR" width={64} height={64} className="rounded-lg" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide mb-0.5" style={{ color }}>LISTO PARA COMPARTIR</p>
-            <p className="font-bold text-zinc-900 text-sm">QR de registro</p>
-            <p className="text-xs text-zinc-400 mt-0.5">El cliente escanea, se registra y recibe su tarjeta. No suma sellos — solo para altas nuevas.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button onClick={() => setShowQrBig(true)}
-              className="text-xs border border-zinc-200 text-zinc-700 px-3 py-2 rounded-xl hover:bg-zinc-50 font-semibold transition-colors">⊞ Ampliar</button>
-            <button onClick={() => navigator.clipboard.writeText(qrUrl)}
-              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors hidden sm:block">🔗 Copiar</button>
-            <a href={`https://wa.me/?text=${encodeURIComponent(`Acumulá sellos y ganá premios en ${businessName}! Guardá tu tarjeta digital: ${qrUrl}`)}`}
-              target="_blank" rel="noopener noreferrer"
-              className="text-xs border border-zinc-200 text-zinc-600 px-3 py-2 rounded-xl hover:bg-zinc-50 font-medium transition-colors">💬 WA</a>
-          </div>
-        </div>
-      )}
-
-      {/* Banner cumpleaños próximos */}
-      {upcomingBdays.length > 0 && (
-        <button onClick={onNavBday}
-          className="w-full flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 text-left hover:bg-amber-100 transition-colors">
-          <span className="text-2xl flex-shrink-0">🎂</span>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-amber-800">
-              {upcomingBdays.length === 1
-                ? `Cumpleaños de ${upcomingBdays[0].name} en ${upcomingBdays[0].daysLeft === 1 ? 'mañana' : `${upcomingBdays[0].daysLeft} días`}`
-                : `${upcomingBdays.length} cumpleaños en los próximos 7 días`}
-            </p>
-            {upcomingBdays.length > 1 && (
-              <p className="text-xs text-amber-600 truncate">
-                {upcomingBdays.map(b => `${b.name} (en ${b.daysLeft === 1 ? 'mañana' : `${b.daysLeft}d`})`).join(' · ')}
-              </p>
+            {onNavPlan && (
+              <button onClick={onNavPlan}
+                className={`text-xs font-semibold px-4 py-2 rounded-lg text-white flex-shrink-0 transition-colors ${trialDaysLeft <= 3 ? 'bg-amber-500 hover:bg-amber-600' : 'bg-zinc-900 hover:bg-zinc-800'}`}>
+                Ver planes →
+              </button>
             )}
           </div>
-          <span className="text-amber-400 ml-auto flex-shrink-0">→</span>
-        </button>
-      )}
+        )}
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: 'CLIENTES TOTALES',   value: stats.total,          sub: 'registrados' },
-          { label: 'SELLOS HOY',         value: stats.stampsToday,    sub: 'en el día' },
-          { label: 'VUELVEN',            value: returningClients,     sub: 'más de 1 visita' },
-          { label: 'PREMIOS ENTREGADOS', value: stats.rewardsTotal,   sub: 'en total' },
-        ].map(k => (
-          <div key={k.label} className={`bg-white border border-zinc-100 rounded-2xl p-4${k.value === 0 ? ' placeholder-glow' : ''}`}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">{k.label}</p>
-            <p className="text-3xl font-extrabold text-zinc-900">{k.value}</p>
-            <p className="text-[11px] text-zinc-400 mt-1">{k.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Mid grid: actividad + clientes + pushes */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div className="bg-white border border-zinc-100 rounded-2xl p-5">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">LO QUE ESTÁ PASANDO AHORA</p>
-          {transactions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-6 text-center placeholder-glow rounded-xl">
-              <div className="w-10 h-10 bg-zinc-50 rounded-2xl flex items-center justify-center text-xl mb-2">✨</div>
-              <p className="text-xs font-semibold text-zinc-700">La actividad aparecerá aquí.</p>
-              <p className="text-[10px] text-zinc-400 mt-1">Activá tu primer cliente con el QR.</p>
+        {/* Modal QR ampliado */}
+        {showQrBig && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.6)' }}
+            onClick={() => setShowQrBig(false)}>
+            <div className="bg-white rounded-3xl p-8 flex flex-col items-center gap-4" onClick={e => e.stopPropagation()}>
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+                alt="QR grande" width={300} height={300} className="rounded-2xl" />
+              <p className="text-sm font-semibold text-gray-900">{businessName}</p>
+              <p className="text-xs text-gray-400">Ponélo en el mostrador para que los clientes escaneen</p>
+              <button onClick={() => setShowQrBig(false)} className="text-xs text-gray-400 hover:text-gray-600">Cerrar</button>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {transactions.slice(0, 5).map(tx => (
-                <div key={tx.id} className="flex items-center gap-2 py-1">
-                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0 ${tx.type === 'reward' ? 'bg-amber-50' : 'bg-violet-50'}`}>
-                    {tx.type === 'reward' ? '🏆' : '⭐'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-zinc-800 truncate">{tx.loyalty_cards?.name}</p>
-                    <p className="text-[10px] text-zinc-400">{tx.type === 'reward' ? 'Premio' : 'Sello'}</p>
-                  </div>
+          </div>
+        )}
+
+        {/* Banner logo */}
+        {!hasLogo && (
+          <div className="bg-white rounded-2xl p-5 mb-4 flex items-center gap-4 shadow-sm border border-gray-100">
+            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Globe size={18} className="text-gray-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-800">Agregá el logo de tu negocio</p>
+              <p className="text-xs text-gray-400 mt-0.5">Aparece en la tarjeta digital de cada cliente.</p>
+            </div>
+            <button onClick={onLogoNav}
+              className="text-xs font-semibold text-white px-4 py-2 rounded-lg flex-shrink-0 bg-zinc-900 hover:bg-zinc-800 transition-colors">
+              Agregar logo
+            </button>
+          </div>
+        )}
+
+        {/* QR Banner */}
+        {program && (
+          <div className="bg-white rounded-2xl p-5 mb-5 flex items-center gap-4 shadow-sm border border-gray-100">
+            <div className="bg-gray-50 rounded-xl p-2 flex-shrink-0 cursor-pointer border border-gray-100" onClick={() => setShowQrBig(true)}>
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+                alt="QR" width={56} height={56} className="rounded-lg" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-0.5">QR DE REGISTRO</p>
+              <p className="font-semibold text-gray-900 text-sm">Listo para compartir</p>
+              <p className="text-xs text-gray-400 mt-0.5">El cliente escanea, se registra y recibe su tarjeta digital.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => setShowQrBig(true)}
+                className="text-xs border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 font-medium transition-colors">Ampliar</button>
+              <button onClick={() => navigator.clipboard.writeText(qrUrl)}
+                className="text-xs border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 font-medium transition-colors hidden sm:block">Copiar</button>
+              <a href={`https://wa.me/?text=${encodeURIComponent(`Acumulá sellos y ganá premios en ${businessName}! Guardá tu tarjeta digital: ${qrUrl}`)}`}
+                target="_blank" rel="noopener noreferrer"
+                className="text-xs border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 font-medium transition-colors">WhatsApp</a>
+            </div>
+          </div>
+        )}
+
+        {/* Banner cumpleaños */}
+        {upcomingBdays.length > 0 && (
+          <button onClick={onNavBday}
+            className="w-full flex items-center gap-4 bg-white rounded-2xl px-5 py-4 mb-4 text-left hover:bg-gray-50 transition-colors shadow-sm border border-gray-100">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+              <Cake size={18} className="text-amber-500" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-gray-800">
+                {upcomingBdays.length === 1
+                  ? `Cumpleaños de ${upcomingBdays[0].name} en ${upcomingBdays[0].daysLeft === 1 ? 'mañana' : `${upcomingBdays[0].daysLeft} días`}`
+                  : `${upcomingBdays.length} cumpleaños en los próximos 7 días`}
+              </p>
+              {upcomingBdays.length > 1 && (
+                <p className="text-xs text-gray-400 truncate mt-0.5">
+                  {upcomingBdays.map(b => `${b.name} (en ${b.daysLeft === 1 ? 'mañana' : `${b.daysLeft}d`})`).join(' · ')}
+                </p>
+              )}
+            </div>
+            <span className="text-gray-300 flex-shrink-0">→</span>
+          </button>
+        )}
+
+        {/* ── KPIs ──────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {kpis.map(k => (
+            <div key={k.label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-4 ${k.iconBg}`}>
+                <k.Icon size={18} className={k.iconColor} weight="duotone" />
+              </div>
+              <p className="text-3xl font-bold text-gray-900 tabular-nums">{k.value}</p>
+              <p className="text-sm font-semibold text-gray-700 mt-1">{k.label}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{k.sub}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Mid grid ──────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+
+          {/* Actividad reciente */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <p className="text-sm font-semibold text-gray-800 mb-1">Actividad reciente</p>
+            <p className="text-xs text-gray-400 mb-4">Lo que está pasando ahora</p>
+            {transactions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center mb-2">
+                  <ChartBar size={18} className="text-gray-300" />
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="bg-white border border-zinc-100 rounded-2xl p-5">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">CLIENTES QUE REGRESAN</p>
-          <div className="flex flex-col items-center justify-center h-28">
-            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-extrabold${returningClients === 0 ? ' placeholder-glow' : ''}`}
-              style={{ background: `${color}18`, color }}>
-              {returningClients}
-            </div>
-            <p className="text-xs text-zinc-400 mt-2">con más de 1 visita</p>
+                <p className="text-xs font-medium text-gray-500">Sin actividad todavía</p>
+                <p className="text-[11px] text-gray-400 mt-1">Activá tu primer cliente con el QR.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {transactions.slice(0, 5).map(tx => (
+                  <div key={tx.id} className="flex items-center gap-3">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${tx.type === 'reward' ? 'bg-amber-50' : 'bg-indigo-50'}`}>
+                      {tx.type === 'reward'
+                        ? <Trophy size={14} className="text-amber-500" />
+                        : <Star size={14} className="text-indigo-500" />
+                      }
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-gray-800 truncate">{tx.loyalty_cards?.name}</p>
+                      <p className="text-[11px] text-gray-400">{tx.type === 'reward' ? 'Premio canjeado' : 'Sello registrado'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
 
-        <div className="bg-white border border-zinc-100 rounded-2xl p-5">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">PUSHES RECIENTES</p>
-          {pushLogs.length === 0 ? (
-            <div className="space-y-3 mb-3">
-              <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
-                placeholder="Ej: Esta semana 2x1 en café 🎉" rows={3}
-                className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-3 py-2 text-xs focus:outline-none resize-none" />
-              <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
-                className="w-full py-2.5 rounded-xl font-bold text-white text-xs disabled:opacity-50 transition-colors"
-                style={{ background: notifSent ? '#10B981' : color }}>
-                {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar tu primer push →'}
-              </button>
+          {/* Clientes que regresan */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col">
+            <p className="text-sm font-semibold text-gray-800 mb-1">Retención</p>
+            <p className="text-xs text-gray-400 mb-4">Clientes con más de 1 visita</p>
+            <div className="flex-1 flex flex-col items-center justify-center gap-2">
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-bold text-gray-900"
+                style={{ background: `${color}12` }}>
+                {returningClients}
+              </div>
+              <p className="text-xs text-gray-400">de {stats.total} totales</p>
+              {stats.total > 0 && (
+                <div className="w-full mt-2">
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all"
+                      style={{ width: `${Math.min(100, Math.round((returningClients / stats.total) * 100))}%`, background: color }} />
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1 text-center">
+                    {Math.min(100, Math.round((returningClients / stats.total) * 100))}% de retención
+                  </p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="max-h-40 overflow-y-auto space-y-0">
-              {pushLogs.slice(0, 5).map(log => (
-                <div key={log.id} className="py-2 border-b border-zinc-50 last:border-0">
-                  <p className="text-xs font-semibold text-zinc-800 truncate">{log.body}</p>
-                  <div className="flex items-center justify-between mt-0.5">
-                    <p className="text-[10px] text-zinc-400">
+          </div>
+
+          {/* Push notifications */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <p className="text-sm font-semibold text-gray-800 mb-1">Notificaciones push</p>
+            <p className="text-xs text-gray-400 mb-4">Enviá un mensaje a todos tus clientes</p>
+            {pushLogs.length > 0 && (
+              <div className="max-h-28 overflow-y-auto space-y-0 mb-3">
+                {pushLogs.slice(0, 4).map(log => (
+                  <div key={log.id} className="py-2 border-b border-gray-50 last:border-0">
+                    <p className="text-xs font-medium text-gray-700 truncate">{log.body}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
                       {new Date(log.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })} · {log.sent_to} enviados
                     </p>
                   </div>
-                </div>
-              ))}
-              </div>
-              <div className="pt-2 space-y-2">
-                <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
-                  placeholder="Nuevo push..." rows={2}
-                  className="w-full border border-zinc-200 focus:border-violet-400 rounded-xl px-3 py-2 text-xs focus:outline-none resize-none" />
-                <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
-                  className="w-full py-2 rounded-xl font-bold text-white text-xs disabled:opacity-50 transition-colors"
-                  style={{ background: notifSent ? '#10B981' : color }}>
-                  {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : 'Enviar push →'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Gráfico ventas vs costo + histórico */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="md:col-span-3 bg-white border border-zinc-100 rounded-2xl p-5">
-          <div className="flex items-start justify-between mb-2">
-            <div>
-              <p className="text-sm font-bold text-zinc-900">Ventas registradas vs costo de Calificar</p>
-              <p className="text-xs text-zinc-400 mt-0.5">Últimos 30 días · registrá el monto al sellar para ver el ROI</p>
-            </div>
-            {totalSales > 0 && (
-              <div className="text-right flex-shrink-0 ml-4">
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-wide">ROI</p>
-                <p className={`text-lg font-extrabold ${totalSales > calificarCost ? 'text-emerald-500' : 'text-rose-500'}`}>
-                  {totalSales > calificarCost ? '+' : ''}{((totalSales / calificarCost - 1) * 100).toFixed(0)}%
-                </p>
+                ))}
               </div>
             )}
-          </div>
-          {totalSales === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border border-dashed border-zinc-200 mt-3">
-              <div className="w-10 h-10 rounded-2xl bg-zinc-50 flex items-center justify-center text-xl mb-3">📊</div>
-              <p className="text-xs font-semibold text-zinc-600 mb-1">Sin ventas registradas aún</p>
-              <p className="text-[10px] text-zinc-400 max-w-xs">Al dar un sello manual, ingresá el monto de la venta. Así vas a ver si Calificar te rinde.</p>
+            <div className="space-y-2">
+              <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
+                placeholder={pushLogs.length === 0 ? 'Ej: Esta semana 2x1 en café' : 'Nuevo mensaje...'}
+                rows={pushLogs.length === 0 ? 3 : 2}
+                className="w-full border border-gray-200 focus:border-gray-400 rounded-lg px-3 py-2 text-xs focus:outline-none resize-none text-gray-700 placeholder-gray-300" />
+              <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
+                className="w-full py-2 rounded-lg font-semibold text-white text-xs disabled:opacity-50 transition-colors"
+                style={{ background: notifSent ? '#10B981' : '#18181b' }}>
+                {notifSent ? '✓ Enviado' : notifSending ? 'Enviando...' : pushLogs.length === 0 ? 'Enviar primer push →' : 'Enviar push →'}
+              </button>
             </div>
-          ) : (
-            <SalesChart salesByDay={salesByDay} cost={calificarCost} color={color} />
-          )}
+          </div>
         </div>
 
-        <div className="bg-white border border-zinc-100 rounded-2xl p-5 flex flex-col gap-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">HISTÓRICO</p>
-          <div className="flex-1 flex flex-col gap-3">
-            {/* Sellos */}
-            <div className="rounded-xl p-4" style={{ background: `${color}10`, border: `1px solid ${color}22` }}>
-              <div className="flex items-end justify-between mb-0.5">
-                <p className="text-3xl font-extrabold" style={{ color }}>{totalStamps}</p>
-                <span className="text-xl mb-1">⭐</span>
+        {/* ── Ventas vs costo + Histórico ───────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-3 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Ventas registradas vs costo de Calificar</p>
+                <p className="text-xs text-gray-400 mt-0.5">Últimos 30 días · registrá el monto al sellar para ver el ROI</p>
               </div>
-              <p className="text-[11px] font-semibold text-zinc-400">Sellos entregados</p>
-            </div>
-            {/* Recompensas */}
-            <div className="rounded-xl p-4 bg-amber-50 border border-amber-100">
-              <div className="flex items-end justify-between mb-0.5">
-                <p className="text-3xl font-extrabold text-amber-600">{stats.rewardsTotal}</p>
-                <span className="text-xl mb-1">🏆</span>
-              </div>
-              <p className="text-[11px] font-semibold text-zinc-400">Recompensas entregadas</p>
-            </div>
-            {/* Tasa de premio */}
-            {totalStamps > 0 && (
-              <div className="rounded-xl p-4 bg-zinc-50 border border-zinc-100">
-                <div className="flex items-end justify-between mb-0.5">
-                  <p className="text-3xl font-extrabold text-zinc-700">
-                    {program?.stamps_goal
-                      ? `${Math.round((stats.rewardsTotal / Math.max(totalStamps / program.stamps_goal, 0.01)) * 100)}%`
-                      : '—'
-                    }
+              {totalSales > 0 && (
+                <div className="text-right flex-shrink-0 ml-4">
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">ROI</p>
+                  <p className={`text-xl font-bold ${totalSales > calificarCost ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    {totalSales > calificarCost ? '+' : ''}{((totalSales / calificarCost - 1) * 100).toFixed(0)}%
                   </p>
-                  <span className="text-xl mb-1">📈</span>
                 </div>
-                <p className="text-[11px] font-semibold text-zinc-400">Conversión a premio</p>
+              )}
+            </div>
+            {totalSales === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border border-dashed border-gray-200">
+                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-3">
+                  <TrendUp size={18} className="text-gray-300" />
+                </div>
+                <p className="text-xs font-medium text-gray-500 mb-1">Sin ventas registradas aún</p>
+                <p className="text-[11px] text-gray-400 max-w-xs">Al dar un sello manual, ingresá el monto de la venta. Así vas a ver si Calificar te rinde.</p>
               </div>
+            ) : (
+              <SalesChart salesByDay={salesByDay} cost={calificarCost} color={color} />
             )}
           </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4">
+            <p className="text-sm font-semibold text-gray-800">Resumen histórico</p>
+            <div className="flex-1 flex flex-col gap-3">
+              <div className="rounded-xl p-4 bg-indigo-50 border border-indigo-100">
+                <div className="flex items-start justify-between mb-1">
+                  <p className="text-2xl font-bold text-indigo-700 tabular-nums">{totalStamps}</p>
+                  <Star size={16} className="text-indigo-400 mt-1" weight="fill" />
+                </div>
+                <p className="text-xs font-medium text-indigo-500">Sellos entregados</p>
+              </div>
+              <div className="rounded-xl p-4 bg-amber-50 border border-amber-100">
+                <div className="flex items-start justify-between mb-1">
+                  <p className="text-2xl font-bold text-amber-700 tabular-nums">{stats.rewardsTotal}</p>
+                  <Trophy size={16} className="text-amber-400 mt-1" weight="fill" />
+                </div>
+                <p className="text-xs font-medium text-amber-500">Premios entregados</p>
+              </div>
+              {totalStamps > 0 && (
+                <div className="rounded-xl p-4 bg-gray-50 border border-gray-100">
+                  <div className="flex items-start justify-between mb-1">
+                    <p className="text-2xl font-bold text-gray-700 tabular-nums">
+                      {program?.stamps_goal
+                        ? `${Math.round((stats.rewardsTotal / Math.max(totalStamps / program.stamps_goal, 0.01)) * 100)}%`
+                        : '—'
+                      }
+                    </p>
+                    <TrendUp size={16} className="text-gray-400 mt-1" />
+                  </div>
+                  <p className="text-xs font-medium text-gray-400">Conversión a premio</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   )
