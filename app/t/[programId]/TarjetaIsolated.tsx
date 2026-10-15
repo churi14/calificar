@@ -43,6 +43,8 @@ interface Props {
   walletLink: string | null
 }
 
+type SpinPrize = { id: string; label: string; type: string; value: number; probability: number; color: string }
+
 export default function TarjetaIsolated({ programId, cardId, walletLink }: Props) {
   const [card, setCard] = useState<CardData | null>(null)
   const [walletLinkFromApi, setWalletLinkFromApi] = useState<string | null>(null)
@@ -56,6 +58,16 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
   const [showInstallBanner, setShowInstallBanner] = useState(false)
   const [installDismissed, setInstallDismissed] = useState(false)
   const [iosPromptDismissed, setIosPromptDismissed] = useState(false)
+
+  // Ruleta
+  type WheelSettings = { enabled: boolean; frequency: string; prizes: SpinPrize[] }
+  const [wheelSettings, setWheelSettings] = useState<WheelSettings | null>(null)
+  const [spinning, setSpinning] = useState(false)
+  const [spinAngle, setSpinAngle] = useState(0)
+  const [spinResult, setSpinResult] = useState<{ label: string; type: string; value: number; color: string; coupon_code: string | null } | null>(null)
+  const [spinCooldown, setSpinCooldown] = useState(false)
+  const [spinNextAt, setSpinNextAt] = useState<string | null>(null)
+  const [showSpinModal, setShowSpinModal] = useState(false)
 
   const isAndroid = typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent)
   const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -325,6 +337,10 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
       .then(r => r.json())
       .then(d => { if (d.coupons) setCoupons(d.coupons) })
       .catch(() => {})
+    fetch(`/api/fidelizacion/spin-wheel?program_id=${programId}`)
+      .then(r => r.json())
+      .then(d => { if (d.settings?.enabled) setWheelSettings(d.settings) })
+      .catch(() => {})
     const channel = supabase
       .channel(`card-${cardId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'loyalty_cards', filter: `id=eq.${cardId}` },
@@ -358,6 +374,43 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
         </div>
       </main>
     )
+  }
+
+  async function handleSpin() {
+    if (!cardId || !wheelSettings || spinning) return
+    setSpinning(true)
+    setSpinResult(null)
+
+    // Animación: girar 5 vueltas + ángulo del resultado
+    const baseRotations = 5 * 360
+    const randomExtra = Math.floor(Math.random() * 360)
+    const targetAngle = spinAngle + baseRotations + randomExtra
+    setSpinAngle(targetAngle)
+
+    // Esperar que termine la animación (2.5s) y luego llamar a la API
+    await new Promise(r => setTimeout(r, 2500))
+
+    try {
+      const res = await fetch('/api/fidelizacion/spin-wheel/spin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ card_id: cardId, program_id: programId }),
+      })
+      const data = await res.json()
+
+      if (res.status === 429) {
+        setSpinCooldown(true)
+        setSpinNextAt(data.next_spin_at ?? null)
+      } else if (data.prize) {
+        setSpinResult(data.prize)
+        if (data.new_stamps !== undefined) {
+          setCard(prev => prev ? { ...prev, stamps: data.new_stamps } : prev)
+        }
+      }
+    } catch { /* silencioso */ }
+
+    setSpinning(false)
+    setShowSpinModal(true)
   }
 
   const program = card.loyalty_programs
@@ -584,6 +637,115 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
             </div>
           </div>
         </div>
+
+        {/* Ruleta de la suerte */}
+        {wheelSettings && (
+          <div className={`rounded-3xl p-5 ${darkBg ? 'bg-white/10 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+            <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${darkBg ? 'text-white/40' : 'text-zinc-500'}`}>
+              Ruleta de la suerte
+            </p>
+            <p className={`text-sm mb-4 leading-snug ${darkBg ? 'text-white/70' : 'text-zinc-700'}`}>
+              {wheelSettings.frequency === 'daily' ? 'Girá una vez al día' : 'Girá una vez por semana'} para ganar premios
+            </p>
+
+            {/* Wheel SVG */}
+            <div className="relative flex justify-center mb-4">
+              {/* Puntero fijo arriba */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 w-0 h-0"
+                style={{ borderLeft: '10px solid transparent', borderRight: '10px solid transparent', borderTop: '20px solid #1f2937', marginTop: '-2px' }} />
+              <div
+                className="w-52 h-52 rounded-full overflow-hidden"
+                style={{
+                  transform: `rotate(${spinAngle}deg)`,
+                  transition: spinning ? 'transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+                }}
+              >
+                <svg viewBox="0 0 240 240" className="w-full h-full">
+                  {(() => {
+                    const prizes = wheelSettings.prizes
+                    const total = prizes.reduce((s: number, p: {probability: number}) => s + p.probability, 0) || 1
+                    let cum = 0
+                    function polar(cx: number, cy: number, r: number, deg: number) {
+                      const rad = ((deg - 90) * Math.PI) / 180
+                      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) }
+                    }
+                    return prizes.map((p: SpinPrize, i: number) => {
+                      const angle = (p.probability / total) * 360
+                      const start = polar(120, 120, 110, cum)
+                      const end   = polar(120, 120, 110, cum + angle)
+                      const large = angle > 180 ? 1 : 0
+                      const d = `M 120 120 L ${start.x} ${start.y} A 110 110 0 ${large} 1 ${end.x} ${end.y} Z`
+                      const mid = polar(120, 120, 72, cum + angle / 2)
+                      const rot = (cum + angle / 2) - 90
+                      cum += angle
+                      const short = p.label.length > 10 ? p.label.slice(0, 9) + '…' : p.label
+                      return (
+                        <g key={i}>
+                          <path d={d} fill={p.color} stroke="white" strokeWidth="2" />
+                          <text x={mid.x} y={mid.y} fill="white" fontSize="9" fontWeight="bold"
+                            textAnchor="middle" dominantBaseline="middle"
+                            transform={`rotate(${rot}, ${mid.x}, ${mid.y})`}>
+                            {short}
+                          </text>
+                        </g>
+                      )
+                    })
+                  })()}
+                  <circle cx="120" cy="120" r="16" fill="white" stroke="#e5e7eb" strokeWidth="2" />
+                  <text x="120" y="120" textAnchor="middle" dominantBaseline="middle" fontSize="14">🎰</text>
+                </svg>
+              </div>
+            </div>
+
+            {spinCooldown ? (
+              <div className={`text-center text-sm ${darkBg ? 'text-white/50' : 'text-zinc-500'}`}>
+                Ya giraste hoy. Volvé
+                {spinNextAt ? ` el ${new Date(spinNextAt).toLocaleDateString('es-AR', { weekday: 'long', hour: '2-digit', minute: '2-digit' })}` : ' mañana'}.
+              </div>
+            ) : (
+              <button
+                onClick={handleSpin}
+                disabled={spinning}
+                className="w-full flex items-center justify-center gap-2 font-bold py-3 rounded-full text-sm text-white disabled:opacity-60"
+                style={{ backgroundColor: color }}
+              >
+                {spinning ? '🎰 Girando…' : '🎰 ¡Girar!'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Modal resultado */}
+        {showSpinModal && spinResult && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-8" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+            <div className="w-full max-w-sm bg-white rounded-3xl p-7 shadow-2xl text-center">
+              <div className="text-5xl mb-3">🎉</div>
+              <p className="text-2xl font-extrabold text-zinc-900 mb-1">{spinResult.label}</p>
+              {spinResult.type === 'stamps' && spinResult.value > 0 && (
+                <p className="text-zinc-500 text-sm mb-2">¡Sumaste {spinResult.value} sello{spinResult.value > 1 ? 's' : ''} a tu tarjeta!</p>
+              )}
+              {spinResult.type === 'coupon' && spinResult.coupon_code && (
+                <>
+                  <p className="text-zinc-500 text-sm mb-3">Mostrá este código al encargado:</p>
+                  <div className="bg-zinc-900 rounded-xl px-4 py-3 mb-2">
+                    <p className="text-lg font-mono font-extrabold text-white tracking-widest">{spinResult.coupon_code}</p>
+                  </div>
+                  <p className="text-xs text-zinc-400">Un solo uso</p>
+                </>
+              )}
+              {spinResult.type === 'none' && (
+                <p className="text-zinc-500 text-sm">¡No te desanimes, volvé mañana!</p>
+              )}
+              <button
+                onClick={() => setShowSpinModal(false)}
+                className="mt-5 w-full font-bold py-3 rounded-full text-sm text-white"
+                style={{ backgroundColor: color }}
+              >
+                ¡Genial!
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Referir amigos */}
         {card.ref_code && (() => {
