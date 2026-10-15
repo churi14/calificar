@@ -2987,11 +2987,28 @@ function WeekChart({ data }: { data: { week: string; count: number }[] }) {
   )
 }
 
-function ViewInsights({ selectedProgram, isPro }:
-  { selectedProgram: string | null; isPro: boolean }) {
+type AdvancedData = {
+  trend: {
+    stamps:         { cur: number; prev: number; pct: number }
+    active_clients: { cur: number; prev: number; pct: number }
+    new_clients:    { cur: number; prev: number; pct: number }
+    rewards:        { cur: number; prev: number; pct: number }
+  }
+  funnel: { stage: string; count: number; pct: number }[]
+  stamp_distribution: { stamps: number; count: number; label: string }[]
+  top_clients: { name: string; visits: number; stamps: number }[]
+  churn_risk: number
+  avg_visits: number
+}
+
+function ViewInsights({ selectedProgram, isPro, accessToken }:
+  { selectedProgram: string | null; isPro: boolean; accessToken: string }) {
   const [data, setData]     = useState<InsightsData | null>(null)
   const [loading, setLoading] = useState(false)
   const [period, setPeriod]  = useState(30)
+  const [tab, setTab]        = useState<'basic' | 'advanced'>('basic')
+  const [advData, setAdvData]     = useState<AdvancedData | null>(null)
+  const [advLoading, setAdvLoading] = useState(false)
 
   useEffect(() => {
     if (!selectedProgram) return
@@ -3001,6 +3018,17 @@ function ViewInsights({ selectedProgram, isPro }:
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
   }, [selectedProgram, period])
+
+  useEffect(() => {
+    if (!selectedProgram || tab !== 'advanced') return
+    setAdvLoading(true)
+    fetch(`/api/fidelizacion/insights/advanced?program_id=${selectedProgram}&days=${period}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then(r => r.json())
+      .then(d => { setAdvData(d); setAdvLoading(false) })
+      .catch(() => setAdvLoading(false))
+  }, [selectedProgram, period, tab, accessToken])
 
   const formatHour = (h: number) => {
     if (h === 0)  return '12 AM'
@@ -3035,48 +3063,195 @@ function ViewInsights({ selectedProgram, isPro }:
         </div>
       )}
 
-      {loading && (
-        <div className="flex items-center justify-center h-40 text-zinc-400 text-sm">Cargando datos...</div>
+      {/* Toggle Básico / Avanzado */}
+      <div className="flex gap-1 bg-zinc-100 rounded-xl p-1 w-fit mb-5">
+        {(['basic', 'advanced'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+              tab === t ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+            }`}
+          >
+            {t === 'basic' ? 'Básico' : 'Avanzado'}
+          </button>
+        ))}
+      </div>
+
+      {/* ── PANEL BÁSICO ─────────────────────────────────────────────────────── */}
+      {tab === 'basic' && (
+        <>
+          {loading && (
+            <div className="flex items-center justify-center h-40 text-zinc-400 text-sm">Cargando datos...</div>
+          )}
+          {!loading && data && (
+            <>
+              {/* KPIs */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                {[
+                  { label: 'CLIENTES ACTIVOS', value: data.active_clients, sub: `de ${data.total_cards} totales` },
+                  { label: 'CONVERSIÓN AL PREMIO', value: `${data.conversion_rate}%`, sub: 'completaron la tarjeta' },
+                  { label: 'RETORNO PROMEDIO', value: data.avg_return_days ? `${data.avg_return_days}d` : '—', sub: 'días entre visitas' },
+                  { label: 'HORA PICO', value: formatHour(data.peak_hour), sub: `más sellos a las ${formatHour(data.peak_hour)}` },
+                ].map(k => (
+                  <div key={k.label} className="bg-white border border-zinc-100 rounded-2xl p-4">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">{k.label}</p>
+                    <p className="text-2xl font-extrabold text-zinc-900">{k.value}</p>
+                    <p className="text-xs text-zinc-400 mt-0.5">{k.sub}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Sellos por hora */}
+              <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">SELLOS POR HORA DEL DÍA</p>
+                <p className="text-xs text-zinc-400 mb-4">Hora pico: <span className="font-semibold text-violet-600">{formatHour(data.peak_hour)}</span></p>
+                <HourChart data={data.by_hour} />
+              </div>
+
+              {/* Sellos por día de la semana */}
+              <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">SELLOS POR DÍA DE LA SEMANA</p>
+                <p className="text-xs text-zinc-400 mb-4">Día más activo: <span className="font-semibold text-violet-600">{data.peak_day}</span></p>
+                <BarChart data={data.by_dow} />
+              </div>
+
+              {/* Clientes nuevos por semana */}
+              <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">CLIENTES NUEVOS POR SEMANA</p>
+                <p className="text-xs text-zinc-400 mb-4">Últimas 8 semanas</p>
+                <WeekChart data={data.new_clients_weekly} />
+              </div>
+            </>
+          )}
+        </>
       )}
 
-      {!loading && data && (
+      {/* ── PANEL AVANZADO ───────────────────────────────────────────────────── */}
+      {tab === 'advanced' && (
         <>
-          {/* KPIs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-            {[
-              { label: 'CLIENTES ACTIVOS', value: data.active_clients, sub: `de ${data.total_cards} totales` },
-              { label: 'CONVERSIÓN AL PREMIO', value: `${data.conversion_rate}%`, sub: 'completaron la tarjeta' },
-              { label: 'RETORNO PROMEDIO', value: data.avg_return_days ? `${data.avg_return_days}d` : '—', sub: 'días entre visitas' },
-              { label: 'HORA PICO', value: formatHour(data.peak_hour), sub: `más sellos a las ${formatHour(data.peak_hour)}` },
-            ].map(k => (
-              <div key={k.label} className="bg-white border border-zinc-100 rounded-2xl p-4">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">{k.label}</p>
-                <p className="text-2xl font-extrabold text-zinc-900">{k.value}</p>
-                <p className="text-xs text-zinc-400 mt-0.5">{k.sub}</p>
+          {advLoading && (
+            <div className="flex items-center justify-center h-40 text-zinc-400 text-sm">Cargando datos avanzados...</div>
+          )}
+          {!advLoading && advData && (
+            <>
+              {/* Tendencia vs período anterior */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                {([
+                  { label: 'SELLOS', key: 'stamps' as const },
+                  { label: 'CLIENTES ACTIVOS', key: 'active_clients' as const },
+                  { label: 'CLIENTES NUEVOS', key: 'new_clients' as const },
+                  { label: 'PREMIOS', key: 'rewards' as const },
+                ] as { label: string; key: keyof AdvancedData['trend'] }[]).map(({ label, key }) => {
+                  const t = advData.trend[key]
+                  const up = t.pct >= 0
+                  return (
+                    <div key={key} className="bg-white border border-zinc-100 rounded-2xl p-4">
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-1">{label}</p>
+                      <p className="text-2xl font-extrabold text-zinc-900">{t.cur}</p>
+                      <p className={`text-xs font-semibold mt-0.5 flex items-center gap-1 ${up ? 'text-emerald-600' : 'text-red-500'}`}>
+                        <span>{up ? '▲' : '▼'}</span>
+                        <span>{Math.abs(t.pct)}% vs período anterior</span>
+                      </p>
+                    </div>
+                  )
+                })}
               </div>
-            ))}
-          </div>
 
-          {/* Sellos por hora */}
-          <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">SELLOS POR HORA DEL DÍA</p>
-            <p className="text-xs text-zinc-400 mb-4">Hora pico: <span className="font-semibold text-violet-600">{formatHour(data.peak_hour)}</span></p>
-            <HourChart data={data.by_hour} />
-          </div>
+              {/* Funnel de conversión */}
+              <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">FUNNEL DE CONVERSIÓN</p>
+                <div className="space-y-3">
+                  {advData.funnel.map((f, i) => (
+                    <div key={i}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-zinc-700 font-medium">{f.stage}</span>
+                        <span className="text-zinc-500">{f.count} <span className="text-zinc-400 text-xs">({f.pct}%)</span></span>
+                      </div>
+                      <div className="h-2.5 bg-zinc-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${f.pct}%`,
+                            background: i === 0 ? '#7C3AED' : i === 1 ? '#8B5CF6' : i === 2 ? '#A78BFA' : '#C4B5FD',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* Sellos por día de la semana */}
-          <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">SELLOS POR DÍA DE LA SEMANA</p>
-            <p className="text-xs text-zinc-400 mb-4">Día más activo: <span className="font-semibold text-violet-600">{data.peak_day}</span></p>
-            <BarChart data={data.by_dow} />
-          </div>
+              {/* Distribución de sellos actuales */}
+              <div className="bg-white border border-zinc-100 rounded-2xl p-5 mb-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">DISTRIBUCIÓN DE SELLOS (HOY)</p>
+                <div className="flex items-end gap-1 h-20">
+                  {advData.stamp_distribution.map((b) => {
+                    const max = Math.max(...advData.stamp_distribution.map(x => x.count), 1)
+                    const pct = (b.count / max) * 100
+                    return (
+                      <div key={b.stamps} className="flex-1 flex flex-col items-center gap-1">
+                        <div className="w-full bg-violet-500 rounded-t" style={{ height: `${pct}%`, minHeight: b.count > 0 ? 4 : 0 }} />
+                        <span className="text-[9px] text-zinc-400">{b.stamps}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-zinc-400 mt-2 text-center">Número de sellos actuales de cada cliente</p>
+              </div>
 
-          {/* Clientes nuevos por semana */}
-          <div className="bg-white border border-zinc-100 rounded-2xl p-5">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">CLIENTES NUEVOS POR SEMANA</p>
-            <p className="text-xs text-zinc-400 mb-4">Últimas 8 semanas</p>
-            <WeekChart data={data.new_clients_weekly} />
-          </div>
+              {/* Top 5 clientes + Riesgo de churn */}
+              <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                {/* Top clientes */}
+                <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">TOP 5 CLIENTES</p>
+                  <div className="space-y-3">
+                    {advData.top_clients.map((c, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold flex items-center justify-center">
+                          {i + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-zinc-800 truncate">{c.name || '—'}</p>
+                          <p className="text-xs text-zinc-400">{c.visits} visitas · {c.stamps} sellos</p>
+                        </div>
+                      </div>
+                    ))}
+                    {advData.top_clients.length === 0 && (
+                      <p className="text-sm text-zinc-400">Sin datos aún</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Riesgo de churn */}
+                <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">RIESGO DE CHURN</p>
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-extrabold border-4 shrink-0"
+                      style={{
+                        borderColor: advData.churn_risk >= 60 ? '#EF4444' : advData.churn_risk >= 30 ? '#F59E0B' : '#10B981',
+                        color: advData.churn_risk >= 60 ? '#EF4444' : advData.churn_risk >= 30 ? '#F59E0B' : '#10B981',
+                      }}
+                    >
+                      {advData.churn_risk}%
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-800">
+                        {advData.churn_risk >= 60 ? 'Riesgo alto' : advData.churn_risk >= 30 ? 'Riesgo medio' : 'Riesgo bajo'}
+                      </p>
+                      <p className="text-xs text-zinc-400 mt-1">
+                        Clientes sin actividad en los últimos 30 días. Promedio de {advData.avg_visits} visitas por cliente activo.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+          {!advLoading && !advData && (
+            <div className="flex items-center justify-center h-40 text-zinc-400 text-sm">No hay datos para mostrar.</div>
+          )}
         </>
       )}
     </div>
@@ -5548,7 +5723,7 @@ export default function NegocioDashboard() {
           <ViewReactivacion selectedProgram={selectedProgram} isPro={true} />
         )}
         {activeNav === 'insights' && (
-          <ViewInsights selectedProgram={selectedProgram} isPro={true} />
+          <ViewInsights selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
         )}
         {activeNav === 'reseñas' && (
           <ViewReseñas selectedProgram={selectedProgram} isPro={true} />
