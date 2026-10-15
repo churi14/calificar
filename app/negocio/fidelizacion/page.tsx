@@ -843,7 +843,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
         </div>
       </div>
 
-      <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
+      <div className="p-4 md:p-8 w-full">
 
         {/* Banner trial */}
         {trialDaysLeft !== null && (
