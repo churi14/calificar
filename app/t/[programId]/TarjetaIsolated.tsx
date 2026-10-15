@@ -600,10 +600,17 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
             {walletSaved ? 'Ver en Google Wallet' : 'Agregar a Google Wallet'}
           </a>
         )}
-        {isIOS && (
-          <div className="flex items-center justify-center gap-2 bg-white/10 text-white/40 font-semibold px-6 py-4 rounded-full text-sm cursor-not-allowed">
-            Apple Wallet — Próximamente
-          </div>
+        {isIOS && cardId && (
+          <a
+            href={`/api/fidelizacion/apple-wallet?card_id=${cardId}`}
+            className="flex items-center justify-center gap-2 bg-black text-white font-bold px-6 py-4 rounded-full text-sm shadow-lg border border-white/10 active:scale-95 transition-transform"
+          >
+            {/* Apple Wallet official SVG mark */}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+            </svg>
+            Agregar a Apple Wallet
+          </a>
         )}
 
         {/* Notificaciones — Android y otros (iOS lo maneja IOSPWAPrompt) */}
