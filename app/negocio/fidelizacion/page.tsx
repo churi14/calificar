@@ -1,8 +1,14 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
+import {
+  House, Lightning, IdentificationCard, UsersThree, Tag, Bell, MapPin,
+  Cake, ArrowCounterClockwise, ChartBar, Star, ShareNetwork,
+  CirclesThree, GitBranch, Globe, Printer, Gear, Question,
+  Rocket, MagnifyingGlass, QrCode, Sun, Moon,
+} from '@phosphor-icons/react'
 
 const supabaseClient = createSupabaseClient()
 
@@ -399,22 +405,23 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
   plan?: string; planExpiresAt?: string | null
 }) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
-  const nav = [
-    { id: 'hoy',          label: 'Hoy',                    icon: '⊞' },
-    { id: 'sello-rapido', label: 'Sello rápido',           icon: '⚡' },
-    { id: 'tarjeta',      label: 'Tarjeta',                icon: '🪪' },
-    { id: 'clientes',     label: 'Clientes',               icon: '👥' },
-    { id: 'cupones',      label: 'Cupones',                icon: '🎟' },
-    { id: 'push',         label: 'Avisos push',            icon: '🔔' },
-    { id: 'proximidad',   label: 'Avisos de proximidad',   icon: '📍' },
-    { id: 'cumple',        label: 'Campañas de cumpleaños', icon: '🎂' },
-    { id: 'reactivacion', label: 'Reactivación',           icon: '💤' },
-    { id: 'insights',     label: 'Activity Insights',      icon: '📊' },
-    { id: 'reseñas',      label: 'Reseñas Google',         icon: '⭐' },
-    { id: 'referencias',  label: 'Referencias',            icon: '🔗' },
-    { id: 'ruleta',       label: 'Ruleta de la suerte',    icon: '🎰' },
-    { id: 'metricas',     label: 'Métricas por sucursal',  icon: '📍' },
-    { id: 'imprimir',     label: 'Imprimir y compartir',   icon: '🖨️' },
+  const nav: { id: string; label: string; Icon: React.ElementType }[] = [
+    { id: 'hoy',          label: 'Hoy',                    Icon: House },
+    { id: 'sello-rapido', label: 'Sello rápido',           Icon: Lightning },
+    { id: 'tarjeta',      label: 'Tarjeta',                Icon: IdentificationCard },
+    { id: 'clientes',     label: 'Clientes',               Icon: UsersThree },
+    { id: 'cupones',      label: 'Cupones',                Icon: Tag },
+    { id: 'push',         label: 'Avisos push',            Icon: Bell },
+    { id: 'proximidad',   label: 'Avisos de proximidad',   Icon: MapPin },
+    { id: 'cumple',       label: 'Campañas de cumpleaños', Icon: Cake },
+    { id: 'reactivacion', label: 'Reactivación',           Icon: ArrowCounterClockwise },
+    { id: 'insights',     label: 'Activity Insights',      Icon: ChartBar },
+    { id: 'reseñas',      label: 'Reseñas Google',         Icon: Star },
+    { id: 'referencias',  label: 'Referencias',            Icon: ShareNetwork },
+    { id: 'ruleta',       label: 'Ruleta de la suerte',    Icon: CirclesThree },
+    { id: 'metricas',     label: 'Métricas por sucursal',  Icon: GitBranch },
+    { id: 'dominio',      label: 'Dominio personalizado',  Icon: Globe },
+    { id: 'imprimir',     label: 'Imprimir y compartir',   Icon: Printer },
   ]
   function navigate(id: string) { onNav(id); onClose() }
   return (
@@ -425,49 +432,67 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
       )}
       <aside className={`w-60 flex-shrink-0 border-r border-zinc-100 bg-white flex flex-col h-screen overflow-y-auto z-50 transition-transform duration-200
         fixed top-0 left-0 md:static md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-      <div className="px-5 py-5 border-b border-zinc-50">
-        <button onClick={() => onNav('hoy')} className="font-extrabold text-xl text-zinc-900 tracking-tight">calificar</button>
+      <div className="px-5 py-5 border-b border-zinc-100">
+        <button onClick={() => onNav('hoy')} className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-md bg-zinc-900 flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-[10px] font-black tracking-tighter">ca</span>
+          </span>
+          <span className="font-semibold text-sm text-zinc-900 tracking-tight">calificar</span>
+        </button>
       </div>
-      <div className="px-4 pt-4 pb-2">
-        <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2">
-          <span className="text-zinc-400 text-sm">🔍</span>
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-150 rounded-lg px-3 py-2">
+          <MagnifyingGlass size={14} className="text-zinc-400 flex-shrink-0" weight="regular" />
           <input type="text" placeholder="Buscar un cliente"
             className="bg-transparent text-sm text-zinc-700 placeholder-zinc-400 focus:outline-none w-full" />
         </div>
       </div>
       <div className="px-4 pb-3 pt-1">
         <button onClick={() => navigate('clientes')}
-          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl font-semibold text-sm text-white"
-          style={{ background: '#7C3AED' }}>
-          ⊙ Escanear un cliente
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-lg font-medium text-sm text-white bg-zinc-900 hover:bg-zinc-800 transition-colors active:scale-[0.98]">
+          <QrCode size={15} weight="bold" />
+          Escanear un cliente
         </button>
       </div>
       <nav className="flex-1 px-3 space-y-0.5 pb-2">
-        {nav.map(item => (
-          <button key={item.id} onClick={() => navigate(item.id)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${
-              active === item.id ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-zinc-600 hover:bg-zinc-50'}`}>
-            <span className="text-base leading-none w-5 text-center">{item.icon}</span>
-            <span className="flex-1">{item.label}</span>
-            {item.id === 'cumple' && bdayBadge > 0 && (
-              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-                {bdayBadge}
-              </span>
-            )}
-          </button>
-        ))}
+        {nav.map(item => {
+          const isActive = active === item.id
+          return (
+            <button key={item.id} onClick={() => navigate(item.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all text-left ${
+                isActive
+                  ? 'bg-zinc-900 text-white font-medium'
+                  : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800'
+              }`}>
+              <item.Icon
+                size={16}
+                weight={isActive ? 'fill' : 'regular'}
+                className="flex-shrink-0"
+              />
+              <span className="flex-1">{item.label}</span>
+              {item.id === 'cumple' && bdayBadge > 0 && (
+                <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+                  {bdayBadge}
+                </span>
+              )}
+            </button>
+          )
+        })}
         <div>
           <button onClick={() => setSettingsOpen(o => !o)}
-            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-all">
-            <span className="flex items-center gap-3"><span className="w-5 text-center">⚙️</span>Ajustes</span>
-            <span className="text-zinc-400 text-xs">{settingsOpen ? '▲' : '▼'}</span>
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800 transition-all">
+            <span className="flex items-center gap-3">
+              <Gear size={16} weight="regular" className="flex-shrink-0" />
+              Ajustes
+            </span>
+            <span className="text-zinc-400 text-[10px]">{settingsOpen ? '▲' : '▼'}</span>
           </button>
           {settingsOpen && (
             <div className="ml-8 mt-0.5 space-y-0.5">
               {[['perfil', 'Perfil del negocio'], ['plan', 'Plan']].map(([id, label]) => (
                 <button key={id} onClick={() => navigate(id)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all ${
-                    active === id ? 'text-violet-700 font-semibold bg-violet-50' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50'}`}>
+                    active === id ? 'text-zinc-900 font-semibold bg-zinc-100' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50'}`}>
                   {label}
                 </button>
               ))}
@@ -475,18 +500,17 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
           )}
         </div>
         <button onClick={() => navigate('ayuda')}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 text-left">
-          <span className="w-5 text-center">❓</span> Ayuda
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800 transition-all text-left">
+          <Question size={16} weight="regular" className="flex-shrink-0" /> Ayuda
         </button>
         <button onClick={() => navigate('primeros-pasos')}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 text-left">
-          <span className="w-5 text-center">🚀</span> Primeros pasos
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800 transition-all text-left">
+          <Rocket size={16} weight="regular" className="flex-shrink-0" /> Primeros pasos
         </button>
       </nav>
       <div className="border-t border-zinc-100 p-4">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-            style={{ background: '#7C3AED' }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0 bg-zinc-800">
             {businessName.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
@@ -523,14 +547,14 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
           return (
             <button
               onClick={() => navigate('plan')}
-              className={`w-full rounded-xl px-3 py-2.5 mb-2 text-left transition-opacity hover:opacity-90 ${
-                isExpired ? 'bg-red-600' : 'bg-violet-600'
+              className={`w-full rounded-lg px-3 py-2.5 mb-2 text-left transition-all hover:opacity-90 active:scale-[0.98] ${
+                isExpired ? 'bg-red-600' : 'bg-zinc-900'
               }`}
             >
-              <p className="text-white font-bold text-xs">
-                {isExpired ? '⚠️ Plan vencido' : '✨ Prueba gratuita'}
+              <p className="text-white font-semibold text-xs">
+                {isExpired ? 'Plan vencido' : 'Prueba gratuita'}
               </p>
-              <p className="text-white/70 text-[10px] mt-0.5">
+              <p className="text-white/60 text-[10px] mt-0.5">
                 {isExpired ? 'Renovar plan →' : 'Mejorar plan →'}
               </p>
             </button>
@@ -544,9 +568,11 @@ function Sidebar({ active, onNav, businessName, email, bdayBadge = 0, isDark, on
             }}
             className="text-[10px] text-zinc-400 hover:text-zinc-600 transition-colors">↩ Cerrar sesión</button>
           <button onClick={onDarkToggle} title={isDark ? 'Modo claro' : 'Modo oscuro'}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-all hover:bg-zinc-100"
-            style={{ background: isDark ? '#3f3f46' : '' }}>
-            {isDark ? '☀️' : '🌙'}
+            className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:bg-zinc-100 ${isDark ? 'bg-zinc-700' : ''}`}>
+            {isDark
+              ? <Sun size={15} weight="regular" className="text-zinc-300" />
+              : <Moon size={15} weight="regular" className="text-zinc-500" />
+            }
           </button>
         </div>
       </div>
@@ -3855,6 +3881,204 @@ type SucursalMetrics = {
   rewards_redeemed: number
 }
 
+// ── Vista: DOMINIO PERSONALIZADO ─────────────────────────────────────────────
+function ViewDominioPersonalizado({
+  selectedProgram,
+  accessToken,
+}: {
+  selectedProgram: string | null
+  accessToken: string
+}) {
+  const [domain, setDomain] = useState('')
+  const [savedDomain, setSavedDomain]     = useState<string | null>(null)
+  const [verified, setVerified]           = useState(false)
+  const [isUltimate, setIsUltimate]       = useState(false)
+  const [loading, setLoading]             = useState(false)
+  const [saving, setSaving]               = useState(false)
+  const [deleting, setDeleting]           = useState(false)
+  const [error, setError]                 = useState('')
+  const [success, setSuccess]             = useState('')
+  const [cnameTarget, setCnameTarget]     = useState('cname.vercel-dns.com')
+  const [showDnsHelp, setShowDnsHelp]     = useState(false)
+
+  useEffect(() => {
+    if (!selectedProgram) return
+    setLoading(true)
+    fetch(`/api/fidelizacion/custom-domain?program_id=${selectedProgram}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then(r => r.json())
+      .then(d => {
+        setSavedDomain(d.custom_domain ?? null)
+        setDomain(d.custom_domain ?? '')
+        setVerified(d.verified ?? false)
+        setIsUltimate(d.is_ultimate ?? false)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [selectedProgram, accessToken])
+
+  async function save() {
+    if (!domain.trim()) return
+    setSaving(true); setError(''); setSuccess('')
+    const res = await fetch('/api/fidelizacion/custom-domain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ program_id: selectedProgram, domain: domain.trim() }),
+    })
+    const d = await res.json()
+    setSaving(false)
+    if (!res.ok) { setError(d.error ?? 'Error guardando'); return }
+    setSavedDomain(d.domain)
+    setCnameTarget(d.cname_target ?? 'cname.vercel-dns.com')
+    setSuccess('Dominio guardado. Configurá el CNAME en tu proveedor de DNS.')
+    setShowDnsHelp(true)
+  }
+
+  async function remove() {
+    if (!confirm('¿Eliminar el dominio personalizado?')) return
+    setDeleting(true); setError(''); setSuccess('')
+    await fetch(`/api/fidelizacion/custom-domain?program_id=${selectedProgram}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    setDeleting(false)
+    setSavedDomain(null); setDomain(''); setVerified(false); setShowDnsHelp(false)
+    setSuccess('Dominio eliminado.')
+  }
+
+  return (
+    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
+      <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Dominio personalizado</h1>
+      <p className="text-zinc-400 text-sm mb-6">
+        Hacé que tu tarjeta de fidelización sea accesible desde tu propio dominio —
+        por ejemplo <span className="font-mono text-violet-600">tarjeta.milocal.com</span> en vez de calificar.com.ar.
+      </p>
+
+      {!isUltimate && !loading && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
+          <span className="text-xl">🔒</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Función Ultimate</p>
+            <p className="text-xs text-amber-600 mt-0.5">El dominio personalizado está disponible en el plan Ultimate.</p>
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center justify-center h-32 text-zinc-400 text-sm">Cargando...</div>
+      )}
+
+      {!loading && (
+        <>
+          {/* Estado actual */}
+          {savedDomain && (
+            <div className={`rounded-2xl p-4 mb-5 flex items-start gap-3 ${verified ? 'bg-emerald-50 border border-emerald-200' : 'bg-zinc-50 border border-zinc-200'}`}>
+              <span className="text-xl">{verified ? '✅' : '⏳'}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-zinc-800 truncate">{savedDomain}</p>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  {verified ? 'Dominio verificado y activo' : 'Esperando configuración DNS'}
+                </p>
+              </div>
+              <button
+                onClick={remove}
+                disabled={deleting}
+                className="text-xs text-red-500 hover:text-red-700 font-semibold shrink-0"
+              >
+                {deleting ? '...' : 'Eliminar'}
+              </button>
+            </div>
+          )}
+
+          {/* Input */}
+          <div className="bg-white border border-zinc-200 rounded-2xl p-5 mb-4">
+            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 block mb-2">
+              Tu dominio
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={domain}
+                onChange={e => { setDomain(e.target.value); setError('') }}
+                placeholder="tarjeta.milocal.com"
+                disabled={!isUltimate}
+                className="flex-1 border border-zinc-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50 disabled:bg-zinc-50"
+              />
+              <button
+                onClick={save}
+                disabled={saving || !isUltimate || !domain.trim()}
+                className="bg-violet-600 hover:bg-violet-700 text-white font-bold px-5 py-3 rounded-xl text-sm disabled:opacity-50 transition-colors"
+              >
+                {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+            {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+            {success && <p className="text-xs text-emerald-600 mt-2">{success}</p>}
+          </div>
+
+          {/* Instrucciones DNS */}
+          {(showDnsHelp || savedDomain) && (
+            <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-5 mb-4">
+              <button
+                onClick={() => setShowDnsHelp(v => !v)}
+                className="flex items-center justify-between w-full text-sm font-semibold text-zinc-700"
+              >
+                <span>📡 Instrucciones de configuración DNS</span>
+                <span className="text-zinc-400">{showDnsHelp ? '▲' : '▼'}</span>
+              </button>
+              {showDnsHelp && (
+                <div className="mt-4 space-y-3 text-sm text-zinc-600">
+                  <p>Entrá al panel de DNS de tu dominio (Godaddy, Namecheap, NIC.ar, Cloudflare, etc.) y creá este registro:</p>
+                  <div className="bg-white border border-zinc-200 rounded-xl p-4 font-mono text-xs space-y-2">
+                    <div className="flex gap-4">
+                      <span className="text-zinc-400 w-16 shrink-0">Tipo</span>
+                      <span className="font-bold text-zinc-900">CNAME</span>
+                    </div>
+                    <div className="flex gap-4">
+                      <span className="text-zinc-400 w-16 shrink-0">Nombre</span>
+                      <span className="font-bold text-violet-600">{savedDomain ?? domain}</span>
+                    </div>
+                    <div className="flex gap-4">
+                      <span className="text-zinc-400 w-16 shrink-0">Valor</span>
+                      <span className="font-bold text-zinc-900">{cnameTarget}</span>
+                    </div>
+                    <div className="flex gap-4">
+                      <span className="text-zinc-400 w-16 shrink-0">TTL</span>
+                      <span className="text-zinc-600">3600 (o el valor más bajo disponible)</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-zinc-400">
+                    Los cambios DNS pueden tardar entre 5 minutos y 48 horas en propagarse.
+                    Una vez activo, tu tarjeta quedará disponible en <span className="font-mono">{savedDomain ?? domain}</span>.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Cómo funciona */}
+          <div className="bg-white border border-zinc-100 rounded-2xl p-5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">CÓMO FUNCIONA</p>
+            <div className="space-y-3">
+              {[
+                { n: '1', text: 'Configurás un subdominio tuyo (ej: tarjeta.milocal.com) apuntando a nuestros servidores con un registro CNAME.' },
+                { n: '2', text: 'Cuando un cliente visita ese dominio, ve tu tarjeta de fidelización — sin ninguna mención a calificar.com.ar.' },
+                { n: '3', text: 'El QR de tu mostrador puede apuntar directamente a tu dominio para una experiencia 100% propia.' },
+              ].map(s => (
+                <div key={s.n} className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{s.n}</span>
+                  <p className="text-sm text-zinc-600">{s.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function ViewMetricasSucursal({ accessToken }: { accessToken: string }) {
   const [days, setDays] = useState(30)
   const [results, setResults] = useState<SucursalMetrics[]>([])
@@ -5736,6 +5960,9 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'metricas' && (
           <ViewMetricasSucursal accessToken={accessToken} />
+        )}
+        {activeNav === 'dominio' && (
+          <ViewDominioPersonalizado selectedProgram={selectedProgram} accessToken={accessToken} />
         )}
         {activeNav === 'imprimir' && <ViewImprimir program={program} selectedProgram={selectedProgram} />}
         {activeNav === 'perfil' && (
