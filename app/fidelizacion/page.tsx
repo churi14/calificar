@@ -143,7 +143,7 @@ export default function FidelizacionLanding() {
 
       {/* HERO */}
       <section className="min-h-[100dvh] flex items-center pt-16">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-20">
+        <div className="max-w-7xl mx-auto px-6 py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
             <p className="text-violet-400 font-semibold text-sm uppercase tracking-widest mb-4">Programa de fidelidad digital</p>
             <h1 className="text-5xl md:text-6xl font-extrabold leading-[1.05] tracking-tight mb-6">
@@ -171,73 +171,100 @@ export default function FidelizacionLanding() {
             <p className="text-slate-500 text-xs mt-4">Sin tarjeta de crédito. Sin compromiso.</p>
           </div>
 
-          {/* Card mockup */}
-          <div className="flex justify-center">
-            <div className="relative">
-              {/* Phone frame */}
-              {/* Botones laterales (fuera del overflow-hidden del chasis) */}
-              <div className="absolute -left-[16px] top-28 w-[3px] h-8 bg-gray-700 rounded-l-sm" />
-              <div className="absolute -left-[16px] top-44 w-[3px] h-14 bg-gray-700 rounded-l-sm" />
-              <div className="absolute -left-[16px] top-64 w-[3px] h-14 bg-gray-700 rounded-l-sm" />
-              <div className="absolute -right-[16px] top-48 w-[3px] h-20 bg-gray-700 rounded-r-sm" />
-              <div className="relative w-[320px] h-[650px] border-[14px] border-gray-800 rounded-[3rem] bg-gray-950 shadow-2xl shadow-indigo-500/20 overflow-hidden mx-auto">
-                {/* Dynamic Island */}
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-50" />
-                <div className="h-full flex flex-col bg-zinc-900">
-                  {/* Status bar */}
-                  <div className="flex justify-between items-center px-6 pt-4 pb-2">
-                    <span className="text-white text-xs font-semibold">9:41</span>
-                    <div className="flex gap-1">
-                      <div className="w-4 h-2 bg-white rounded-sm opacity-80" />
-                      <div className="w-4 h-2 bg-white rounded-sm opacity-80" />
-                    </div>
-                  </div>
-                  <div className="h-8" />
-                  {/* Wallet card */}
-                  <div className="mx-3 mb-3">
-                    <div className="bg-gradient-to-br from-violet-600 to-violet-800 rounded-3xl p-5 text-white">
-                      <div className="flex flex-col items-center mb-4">
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl mb-2">★</div>
-                        <p className="font-extrabold text-sm">La Cocina Fidelidad</p>
-                        <p className="text-xs opacity-60">La Cocina</p>
-                      </div>
-                      <p className="text-xs font-semibold opacity-80 mb-2">María García</p>
-                      <div className="grid grid-cols-5 gap-1.5 mb-3">
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-xs font-bold border-2 ${i < 3 ? 'bg-white text-violet-700 border-white' : 'bg-white/10 border-white/30 text-white/40'}`}>
-                            {i < 3 ? '★' : '○'}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="bg-white/20 rounded-full h-1.5">
-                        <div className="bg-white h-1.5 rounded-full" style={{ width: '60%' }} />
-                      </div>
-                      <div className="flex justify-between text-[10px] opacity-70 mt-1">
-                        <span>3 de 5 sellos</span>
-                        <span>Premio: Café gratis</span>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Google Wallet button */}
-                  <div className="mx-3 mb-6 mt-auto">
-                    <div className="bg-black rounded-2xl px-4 py-2.5 flex items-center justify-center gap-2">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                        <path d="M21.56 10.738l-9.52-9.52A1.5 1.5 0 0010.978.5H3.5A3 3 0 00.5 3.5v7.478c0 .398.158.78.44 1.062l9.52 9.52a3 3 0 004.242 0l6.858-6.858a3 3 0 000-4.243zM5.5 8a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
-                      </svg>
-                      <span className="text-white text-xs font-semibold">Guardar en Google Wallet</span>
-                    </div>
+          {/* iPhone 15 Pro mockup */}
+          <div className="relative mx-auto lg:ml-auto lg:mr-0 w-[340px] h-[680px]">
+            {/* Sombra de fondo y resplandor violeta */}
+            <div className="absolute inset-0 bg-indigo-500/10 blur-[100px] rounded-full -z-10" />
+
+            {/* Botones físicos (izquierda) */}
+            <div className="absolute top-[90px] -left-[16px] w-[3px] h-[15px] bg-[#3a3a3c] rounded-l" />
+            <div className="absolute top-[130px] -left-[16px] w-[3px] h-[35px] bg-[#3a3a3c] rounded-l" />
+            <div className="absolute top-[175px] -left-[16px] w-[3px] h-[35px] bg-[#3a3a3c] rounded-l" />
+            {/* Botón físico (derecha) */}
+            <div className="absolute top-[150px] -right-[16px] w-[3px] h-[55px] bg-[#3a3a3c] rounded-r" />
+
+            {/* Chasis de titanio oscuro */}
+            <div className="relative w-full h-full border-[12px] border-[#1c1c1e] rounded-[48px] bg-[#09090b] shadow-2xl overflow-visible">
+              {/* Borde interior metálico sutil */}
+              <div className="absolute inset-[0px] rounded-[36px] border border-[#2c2c2e] pointer-events-none z-40" />
+
+              {/* Dynamic Island */}
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[95px] h-[26px] bg-black rounded-full z-50 flex items-center justify-end px-3 gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#111] border border-[#222]" />
+                <div className="w-[10px] h-[10px] rounded-full bg-[#05050e] border border-[#1a1a1a]" />
+              </div>
+
+              {/* Auricular */}
+              <div className="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-1 bg-black/40 rounded-full z-40" />
+
+              {/* Pantalla */}
+              <div className="relative w-full h-full rounded-[36px] overflow-hidden bg-[#09090b] flex flex-col pt-12 pb-6 px-4">
+                {/* Barra de estado iOS */}
+                <div className="flex justify-between items-center text-[10px] font-semibold text-white/90 px-3 absolute top-3.5 left-0 right-0 z-30 pointer-events-none">
+                  <span>9:41</span>
+                  <div className="flex items-center gap-1">
+                    <span>📶</span>
+                    <span>🔋</span>
                   </div>
                 </div>
+
+                <p className="text-center font-bold text-lg text-white mt-2 mb-4 tracking-wide drop-shadow-md">
+                  calificar
+                </p>
+
+                {/* Tarjeta violeta */}
+                <div className="flex-1 flex flex-col justify-between bg-gradient-to-b from-indigo-700 to-indigo-900 rounded-3xl p-5 border border-indigo-500/30 shadow-lg shadow-indigo-900/50">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-indigo-500/35 border border-indigo-300/30 flex items-center justify-center text-white text-lg">
+                      ★
+                    </div>
+                    <div className="text-center">
+                      <h2 className="text-white font-bold text-sm leading-tight">La Cocina Fidelidad</h2>
+                      <p className="text-indigo-200 text-[10px] font-medium">La Cocina</p>
+                    </div>
+                  </div>
+
+                  <div className="my-6">
+                    <p className="text-indigo-100/80 text-[10px] font-medium mb-2 pl-1">María García</p>
+                    <div className="flex justify-between gap-1.5">
+                      {[0, 1, 2, 3, 4].map(i => (
+                        i < 3 ? (
+                          <div key={i} className="flex-1 aspect-square rounded-full bg-white flex items-center justify-center shadow-md">
+                            <span className="text-indigo-700 text-xs font-bold">★</span>
+                          </div>
+                        ) : (
+                          <div key={i} className="flex-1 aspect-square rounded-full bg-indigo-950/45 border border-indigo-400/20 flex items-center justify-center">
+                            <span className="text-indigo-400/30 text-xs">★</span>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                    <div className="flex justify-between text-[8px] text-indigo-200 mt-2.5 px-1 font-semibold">
+                      <span>5 sellos</span>
+                      <span>Premio: Café gratis</span>
+                    </div>
+                  </div>
+
+                  <button type="button" className="w-full bg-black hover:bg-zinc-900 border border-zinc-800 rounded-xl py-2 px-3 flex items-center justify-center gap-2 transition shadow-lg">
+                    <span className="text-[10px] text-white font-medium flex items-center gap-1.5">
+                      💳 Guardar en Google Wallet
+                    </span>
+                  </button>
+                </div>
+
+                {/* Indicador de inicio iOS */}
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-[4px] bg-white/40 rounded-full z-40 pointer-events-none" />
               </div>
-              {/* Floating badges */}
-              <div className="absolute -right-4 sm:-right-16 top-24 z-50 rotate-3 bg-white rounded-2xl shadow-xl px-4 py-3 border border-zinc-100">
-                <p className="text-xs text-zinc-400 font-medium">Nuevos clientes hoy</p>
-                <p className="text-2xl font-extrabold text-zinc-900">+12</p>
-              </div>
-              <div className="absolute -left-4 sm:-left-16 bottom-32 z-50 -rotate-3 bg-violet-600 rounded-2xl shadow-xl px-4 py-3">
-                <p className="text-xs text-white/80 font-medium">Sellos sumados</p>
-                <p className="text-2xl font-extrabold text-white">847</p>
-              </div>
+            </div>
+
+            {/* Popups flotantes 3D */}
+            <div className="absolute left-[-20px] bottom-[160px] bg-indigo-600 border border-indigo-400/45 rounded-2xl p-4 shadow-xl shadow-indigo-950/50 flex flex-col z-50 transform hover:-translate-y-1 transition duration-300">
+              <span className="text-[10px] text-indigo-100/80 font-medium">Sellos sumados</span>
+              <span className="text-2xl font-black text-white">847</span>
+            </div>
+            <div className="absolute right-[-24px] top-[140px] bg-white border border-zinc-200 rounded-2xl p-4 shadow-2xl flex flex-col gap-0.5 z-50 transform hover:-translate-y-1 transition duration-300">
+              <span className="text-[10px] text-zinc-500 font-medium whitespace-nowrap">Nuevos clientes hoy</span>
+              <span className="text-2xl font-black text-zinc-900">+12</span>
             </div>
           </div>
         </div>
