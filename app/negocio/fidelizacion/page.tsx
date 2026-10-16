@@ -7,28 +7,26 @@ import { Sun, Moon } from '@phosphor-icons/react'
 // ── Componentes extraídos ────────────────────────────────────────────────────
 import Sidebar from '@/components/dashboard/Sidebar'
 
-// ── Vistas (Fase 2 — se crean en la próxima entrega) ────────────────────────
-// Hasta que existan, mantenemos las definiciones inline al final de este archivo.
-// Una vez que Fase 2 esté lista, reemplazá cada comentario por el import correspondiente:
-// import ViewHoy        from '@/components/dashboard/views/ViewHoy'
-// import ViewSelloRapido from '@/components/dashboard/views/ViewSelloRapido'
-// import ViewTarjeta    from '@/components/dashboard/views/ViewTarjeta'
-// import ViewClientes   from '@/components/dashboard/views/ViewClientes'
-// import ViewCupones    from '@/components/dashboard/views/ViewCupones'
-// import ViewPush       from '@/components/dashboard/views/ViewPush'
-// import ViewProximidad from '@/components/dashboard/views/ViewProximidad'
-// import ViewCumple     from '@/components/dashboard/views/ViewCumple'
-// import ViewReactivacion from '@/components/dashboard/views/ViewReactivacion'
-// import ViewInsights   from '@/components/dashboard/views/ViewInsights'
-// import ViewReseñas    from '@/components/dashboard/views/ViewReseñas'
-// import ViewReferencias from '@/components/dashboard/views/ViewReferencias'
-// import ViewRuleta     from '@/components/dashboard/views/ViewRuleta'
-// import ViewMetricasSucursal from '@/components/dashboard/views/ViewMetricasSucursal'
-// import ViewDominioPersonalizado from '@/components/dashboard/views/ViewDominioPersonalizado'
-// import ViewImprimir   from '@/components/dashboard/views/ViewImprimir'
-// import ViewPerfil     from '@/components/dashboard/views/ViewPerfil'
-// import ViewPlan       from '@/components/dashboard/views/ViewPlan'
-// import ViewAyuda      from '@/components/dashboard/views/ViewAyuda'
+// ── Vistas extraídas ─────────────────────────────────────────────────────────
+import ViewHoy              from '@/components/dashboard/views/ViewHoy'
+import ViewSelloRapido      from '@/components/dashboard/views/ViewSelloRapido'
+import ViewTarjeta          from '@/components/dashboard/views/ViewTarjeta'
+import ViewClientes         from '@/components/dashboard/views/ViewClientes'
+import ViewCupones          from '@/components/dashboard/views/ViewCupones'
+import ViewPush             from '@/components/dashboard/views/ViewPush'
+import ViewProximidad       from '@/components/dashboard/views/ViewProximidad'
+import ViewCumple           from '@/components/dashboard/views/ViewCumpleanos'
+import ViewReactivacion     from '@/components/dashboard/views/ViewReactivacion'
+import ViewInsights         from '@/components/dashboard/views/ViewActivityInsights'
+import ViewReseñas          from '@/components/dashboard/views/ViewResenas'
+import ViewReferencias      from '@/components/dashboard/views/ViewReferencias'
+import ViewRuleta           from '@/components/dashboard/views/ViewRuleta'
+import ViewMetricasSucursal      from '@/components/dashboard/views/ViewMetricasSucursal'
+import ViewDominioPersonalizado  from '@/components/dashboard/views/ViewDominioPersonalizado'
+import ViewImprimir         from '@/components/dashboard/views/ViewImprimir'
+import ViewPerfil           from '@/components/dashboard/views/ViewPerfil'
+import ViewPlan             from '@/components/dashboard/views/ViewPlan'
+import ViewAyuda            from '@/components/dashboard/views/ViewAyuda'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 import type {
@@ -641,47 +639,13 @@ export default function NegocioDashboard() {
             accessToken={accessToken} />
         )}
         {activeNav === 'plan' && (
-          <ViewPlan onNav={setActiveNav} businessCreatedAt={businessCreatedAt} />
+          <ViewPlan onNav={(id) => setActiveNav(id as ViewType)} businessCreatedAt={businessCreatedAt} />
         )}
-        {activeNav === 'ayuda' && <ViewAyuda onNav={setActiveNav} />}
-        {activeNav === 'primeros-pasos' && <ViewAyuda onNav={setActiveNav} mode="primeros-pasos" />}
+        {activeNav === 'ayuda' && <ViewAyuda onNav={(id) => setActiveNav(id as ViewType)} />}
+        {activeNav === 'primeros-pasos' && <ViewAyuda onNav={(id) => setActiveNav(id as ViewType)} mode="primeros-pasos" />}
       </main>
     </div>
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// VISTAS INLINE — Fase 2 las moverá a components/dashboard/views/*.tsx
-// Al migrar cada vista, eliminá su definición de acá y agregá su import arriba.
-// ─────────────────────────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyProps = any
-
-// Stub placeholder — reemplazar con implementación real en Fase 2
-function _Placeholder({ label }: { label: string }) {
-  return <div className="p-8 text-zinc-400 text-sm">{label} — pendiente migración (Fase 2)</div>
-}
-
-// ── Declaraciones de las vistas (inline hasta Fase 2) ────────────────────────
-// Las implementaciones reales están en el archivo original (6100 líneas).
-// Copiarlas acá es el trabajo de Fase 2.
-
-declare function ViewHoy(props: AnyProps): JSX.Element
-declare function ViewSelloRapido(props: AnyProps): JSX.Element
-declare function ViewTarjeta(props: AnyProps): JSX.Element
-declare function ViewClientes(props: AnyProps): JSX.Element
-declare function ViewCupones(props: AnyProps): JSX.Element
-declare function ViewPush(props: AnyProps): JSX.Element
-declare function ViewProximidad(props: AnyProps): JSX.Element
-declare function ViewCumple(props: AnyProps): JSX.Element
-declare function ViewReactivacion(props: AnyProps): JSX.Element
-declare function ViewInsights(props: AnyProps): JSX.Element
-declare function ViewReseñas(props: AnyProps): JSX.Element
-declare function ViewReferencias(props: AnyProps): JSX.Element
-declare function ViewRuleta(props: AnyProps): JSX.Element
-declare function ViewMetricasSucursal(props: AnyProps): JSX.Element
-declare function ViewDominioPersonalizado(props: AnyProps): JSX.Element
-declare function ViewImprimir(props: AnyProps): JSX.Element
-declare function ViewPerfil(props: AnyProps): JSX.Element
-declare function ViewPlan(props: AnyProps): JSX.Element
-declare function ViewAyuda(props: AnyProps): JSX.Element
+// ── Todas las vistas están en components/dashboard/views/ ────────────────────
