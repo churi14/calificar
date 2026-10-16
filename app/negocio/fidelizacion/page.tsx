@@ -1532,7 +1532,7 @@ function ViewTarjeta({ program, selectedProgram, onLogoUploaded, accessToken, pl
   if (!program) return <div className="p-4 md:p-8 text-zinc-400 text-sm">No hay programa activo.</div>
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       {showPlans && <PlansModal onClose={() => setShowPlans(false)} isDiscountEligible={
         !!businessCreatedAt && (Date.now() - new Date(businessCreatedAt).getTime()) / (1000 * 60 * 60 * 24) <= 7
       } />}
@@ -2205,7 +2205,7 @@ function ViewClientes({ cards, program, selectedProgram, loading, manualStamp, a
   })
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-zinc-900">Clientes</h1>
@@ -2392,7 +2392,7 @@ function ViewPush({ notifMsg, setNotifMsg, notifSending, notifSent, sendNotif, n
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Avisos push</h1>
       <p className="text-zinc-400 text-sm mb-6">Mandá mensajes directos a los clientes que activaron notificaciones.</p>
 
@@ -2616,7 +2616,7 @@ function ViewProximidad({ selectedProgram, isPro, notifMsg, setNotifMsg, notifSe
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Avisos de proximidad</h1>
       <p className="text-zinc-400 text-sm mb-6">Alguien que guardó tu tarjeta pasa cerca de tu negocio y ve tu recordatorio en la pantalla de bloqueo. Se envía solo — tú no enviás nada.</p>
 
@@ -2830,7 +2830,7 @@ function ViewCumple({ selectedProgram, cards, isPro }:
   const totalWithBdayPct = cards.length > 0 ? Math.round((totalWithBday / cards.length) * 100) : 0
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Campañas de cumpleaños</h1>
       <p className="text-zinc-400 text-sm mb-6">Felicitá a tus clientes con un código exclusivo válido por 30 días.</p>
 
@@ -3137,7 +3137,7 @@ function ViewInsights({ selectedProgram, isPro, accessToken }:
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-2xl font-extrabold text-zinc-900">Activity Insights</h1>
         {/* Selector de período */}
@@ -3399,7 +3399,7 @@ function ViewReseñas({ selectedProgram, isPro }:
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Potenciador de reseñas Google</h1>
       <p className="text-zinc-400 text-sm mb-6">Cuando un cliente completa su tarjeta, le mandamos un push invitándolo a dejarte una reseña.</p>
 
@@ -3530,7 +3530,7 @@ function ViewReferencias({ selectedProgram, isPro }:
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Referencias digitales</h1>
       <p className="text-zinc-400 text-sm mb-6">Cada cliente tiene un link único para compartir. Cuando alguien se une por ese link, ambos ganan sellos extra.</p>
 
@@ -3755,7 +3755,7 @@ function ViewRuleta({ selectedProgram, isPro }: { selectedProgram: string | null
   const probOk = totalProb === 100
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Ruleta de la suerte</h1>
       <p className="text-zinc-400 text-sm mb-6">Los clientes giran una vez al día (o semana) para ganar premios. Configurá los segmentos y sus probabilidades.</p>
 
@@ -4021,7 +4021,7 @@ function ViewDominioPersonalizado({
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Dominio personalizado</h1>
       <p className="text-zinc-400 text-sm mb-6">
         Hacé que tu tarjeta de fidelización sea accesible desde tu propio dominio —
@@ -4174,7 +4174,7 @@ function ViewMetricasSucursal({ accessToken }: { accessToken: string }) {
 
   if (upgradeRequired) {
     return (
-      <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+      <div className="p-4 md:p-8 w-full">
         <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Métricas por sucursal</h1>
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mt-4 flex items-start gap-3">
           <span className="text-2xl">🔒</span>
@@ -4198,7 +4198,7 @@ function ViewMetricasSucursal({ accessToken }: { accessToken: string }) {
   const maxClients = Math.max(...results.map(r => r.active_clients), 1)
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-zinc-900">Métricas por sucursal</h1>
@@ -4392,7 +4392,7 @@ function ViewReactivacion({ selectedProgram, isPro }:
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Reactivación automática</h1>
       <p className="text-zinc-400 text-sm mb-6">Recuperá clientes que dejaron de venir con un push en el momento justo.</p>
 
@@ -4829,7 +4829,7 @@ function ViewImprimir({ program, selectedProgram }: ImprimirProps) {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Compartí tu tarjeta</h1>
       <p className="text-zinc-400 text-sm mb-6">Todos los formatos con tu QR y colores de marca, listos para usar.</p>
 
@@ -4974,7 +4974,7 @@ function ViewPerfil({ program, selectedProgram, businessName, onSaved, accessTok
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Perfil del negocio</h1>
       <p className="text-zinc-400 text-sm mb-6">Así te ven tus clientes en su wallet y en la app.</p>
 
@@ -5197,7 +5197,7 @@ function ViewPlan({ onNav, businessCreatedAt = null }: { onNav: (id: string) => 
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">Tu plan</h1>
       <p className="text-zinc-400 text-sm mb-4">Estás en el período de prueba gratuita. Elegí el plan que mejor se adapta a tu negocio.</p>
 
@@ -5312,7 +5312,7 @@ function ViewAyuda({ onNav, mode = 'ayuda' }: { onNav: (id: string) => void; mod
   ]
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">{mode === 'primeros-pasos' ? 'Primeros pasos' : 'Ayuda'}</h1>
       <p className="text-zinc-400 text-sm mb-6">{mode === 'primeros-pasos' ? 'Todo lo que necesitás para arrancar con Calificar.' : 'Respuestas a las preguntas más frecuentes sobre Calificar.'}</p>
 
@@ -5467,7 +5467,7 @@ function ViewCupones({ selectedProgram, accessToken }: { selectedProgram: string
     : coupons
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl mx-auto w-full">
+    <div className="p-4 md:p-8 w-full">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-zinc-900">Cupones</h1>
         <p className="text-zinc-400 text-sm mt-0.5">
