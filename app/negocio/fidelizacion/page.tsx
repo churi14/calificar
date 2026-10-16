@@ -563,7 +563,7 @@ export default function NegocioDashboard() {
               cards={cards}
               selectedProgram={selectedProgram}
               accessToken={accessToken}
-              manualStamp={(id, name) => setStampModal({ cardId: id, name })}
+              manualStamp={(id: string, name: string) => setStampModal({ cardId: id, name })}
               plan={businessPlan}
               planExpiresAt={planExpiresAt}
             />
@@ -587,7 +587,7 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'clientes' && (
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
-            loading={loading} manualStamp={(id, name) => setStampModal({ cardId: id, name })}
+            loading={loading} manualStamp={(id: string, name: string) => setStampModal({ cardId: id, name })}
             accessToken={accessToken}
             onClientDeleted={(cardId) => setCards(prev => prev.filter(c => c.id !== cardId))} />
         )}
