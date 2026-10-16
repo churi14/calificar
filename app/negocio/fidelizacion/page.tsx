@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { Sun, Moon } from '@phosphor-icons/react'
 
-// ── Componentes extraídos ────────────────────────────────────────────────────
-import Sidebar from '@/components/dashboard/Sidebar'
+// ── Componentes de UI ─────────────────────────────────────────────────────────
+import Sidebar        from '@/components/dashboard/Sidebar'
+import DiscountPopup  from '@/components/dashboard/ui/DiscountPopup'
+import StampModal     from '@/components/dashboard/ui/StampModal'
 
-// ── Vistas extraídas ─────────────────────────────────────────────────────────
+// ── Vistas ────────────────────────────────────────────────────────────────────
 import ViewHoy              from '@/components/dashboard/views/ViewHoy'
 import ViewSelloRapido      from '@/components/dashboard/views/ViewSelloRapido'
 import ViewTarjeta          from '@/components/dashboard/views/ViewTarjeta'
@@ -21,250 +23,54 @@ import ViewInsights         from '@/components/dashboard/views/ViewActivityInsig
 import ViewReseñas          from '@/components/dashboard/views/ViewResenas'
 import ViewReferencias      from '@/components/dashboard/views/ViewReferencias'
 import ViewRuleta           from '@/components/dashboard/views/ViewRuleta'
-import ViewMetricasSucursal      from '@/components/dashboard/views/ViewMetricasSucursal'
-import ViewDominioPersonalizado  from '@/components/dashboard/views/ViewDominioPersonalizado'
+import ViewMetricasSucursal     from '@/components/dashboard/views/ViewMetricasSucursal'
+import ViewDominioPersonalizado from '@/components/dashboard/views/ViewDominioPersonalizado'
 import ViewImprimir         from '@/components/dashboard/views/ViewImprimir'
 import ViewPerfil           from '@/components/dashboard/views/ViewPerfil'
 import ViewPlan             from '@/components/dashboard/views/ViewPlan'
 import ViewAyuda            from '@/components/dashboard/views/ViewAyuda'
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 import type {
   Program, Card, Transaction, Stats,
   PushLog, PushSubscriber, NotifRecipient,
   StampModalState, ViewType,
 } from '@/types/dashboard'
 
-// ── Inline temporal (hasta Fase 2) ──────────────────────────────────────────
-// Estas funciones están definidas al final del archivo.
-// Al agregar los imports de Fase 2, eliminá las definiciones inline correspondientes.
-
+// ── Supabase client ───────────────────────────────────────────────────────────
 const supabaseClient = createSupabaseClient()
-
-// ── Popup de descuento ───────────────────────────────────────────────────────
-const DISCOUNT_PLANS = [
-  { id: 'starter', name: 'Starter', origPrice: '$14.999', discPrice: '$7.499',   savings: '$7.500',  pill: 'Para empezar' },
-  { id: 'pro',     name: 'Pro',     origPrice: '$29.999', discPrice: '$14.999',  savings: '$15.000', pill: 'Más popular', highlight: true },
-  { id: 'ultimate',name: 'Ultimate',origPrice: '$69.999', discPrice: '$34.999',  savings: '$35.000', pill: 'Sin límites' },
-]
-
-function DiscountPopup({ onClose, daysLeft }: { onClose: () => void; daysLeft: number }) {
-  const [loading, setLoading] = useState<string | null>(null)
-  const [err, setErr] = useState('')
-
-  async function checkout(planId: string) {
-    setLoading(planId); setErr('')
-    try {
-      const res = await fetch('/api/mp/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId, discount: true }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setErr(data.error || 'Error al procesar'); setLoading(null); return }
-      localStorage.setItem('cal_discount_dismissed', '1')
-      window.location.href = data.init_point
-    } catch { setErr('Error de conexión'); setLoading(null) }
-  }
-
-  function dismiss() {
-    localStorage.setItem('cal_discount_next', String(Date.now() + 3 * 60 * 60 * 1000))
-    onClose()
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.72)' }}>
-      <div className="bg-zinc-950 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
-        <div className="px-6 pt-6 pb-5 text-center border-b border-zinc-800 relative">
-          <button onClick={dismiss} className="absolute right-5 top-5 text-zinc-500 hover:text-zinc-300 text-xl leading-none">✕</button>
-          <div className="inline-block bg-violet-600 text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
-            50% OFF — PRIMER MES
-          </div>
-          <h2 className="text-white font-black text-2xl leading-tight">Quedan {daysLeft} días de prueba</h2>
-          <p className="text-zinc-400 text-sm mt-2">Activá tu plan ahora con 50% de descuento en el primer mes.</p>
-        </div>
-        <div className="p-4 space-y-3">
-          {DISCOUNT_PLANS.map(p => (
-            <button key={p.id} onClick={() => checkout(p.id)} disabled={!!loading}
-              className={`w-full rounded-xl px-4 py-3.5 text-left transition-all ${
-                p.highlight
-                  ? 'bg-violet-600 hover:bg-violet-500 border-2 border-violet-400'
-                  : 'bg-zinc-800 hover:bg-zinc-700 border border-zinc-700'
-              } ${loading === p.id ? 'opacity-60 cursor-not-allowed' : ''}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full mr-2 ${p.highlight ? 'bg-white/20 text-white' : 'bg-zinc-600 text-zinc-300'}`}>{p.pill}</span>
-                  <span className="text-white font-bold">{p.name}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-zinc-400 line-through text-xs mr-1">{p.origPrice}</span>
-                  <span className="text-white font-black">{p.discPrice}</span>
-                  <span className="text-zinc-400 text-xs">/mes</span>
-                </div>
-              </div>
-              {loading === p.id && <p className="text-xs text-zinc-300 mt-1">Procesando...</p>}
-            </button>
-          ))}
-          {err && <p className="text-red-400 text-xs text-center">{err}</p>}
-        </div>
-        <div className="px-6 pb-5 text-center">
-          <button onClick={() => { localStorage.setItem('cal_discount_dismissed', '1'); onClose() }}
-            className="text-zinc-500 hover:text-zinc-300 text-xs transition-colors">
-            No, seguir con la prueba gratuita
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Modal de sello con monto ─────────────────────────────────────────────────
-function StampModal({ cardName, onConfirm, onClose }: {
-  cardName: string; onConfirm: (amount?: number) => Promise<void>; onClose: () => void
-}) {
-  const [amount, setAmount] = useState('')
-  const [loading, setLoading] = useState(false)
-  async function confirm() {
-    setLoading(true)
-    await onConfirm(amount ? parseFloat(amount) : undefined)
-    setLoading(false)
-  }
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
-        <h3 className="font-bold text-zinc-900 text-lg mb-1">Dar sello a {cardName}</h3>
-        <p className="text-zinc-500 text-sm mb-4">Ingresá el monto de compra (opcional)</p>
-        <input type="number" value={amount} onChange={e => setAmount(e.target.value)}
-          placeholder="Ej: 5000"
-          className="w-full border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:outline-none focus:border-violet-400 mb-4" />
-        <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-zinc-200 text-zinc-600 text-sm font-medium hover:bg-zinc-50 transition-colors">Cancelar</button>
-          <button onClick={confirm} disabled={loading}
-            className="flex-1 py-2.5 rounded-xl bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors disabled:opacity-50">
-            {loading ? 'Guardando...' : 'Dar sello ✓'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Dashboard styles (dark mode overrides) ───────────────────────────────────
-// Nota: Tailwind dark: classes activan con data-dark="true" (ver tailwind.config.ts).
-// Este bloque de CSS maneja clases de zinc/gray que no tienen selector data-* en Tailwind.
-const DASHBOARD_STYLES = `
-  [data-dark="true"] { background-color: #09090b; color-scheme: dark; }
-  [data-dark="true"] .bg-white { background-color: #18181b !important; }
-  [data-dark="true"] .bg-zinc-50 { background-color: #27272a !important; }
-  [data-dark="true"] .bg-zinc-100 { background-color: #3f3f46 !important; }
-  [data-dark="true"] .bg-zinc-200 { background-color: #52525b !important; }
-  [data-dark="true"] .border-zinc-50 { border-color: #27272a !important; }
-  [data-dark="true"] .border-zinc-100 { border-color: #3f3f46 !important; }
-  [data-dark="true"] .border-zinc-200 { border-color: #52525b !important; }
-  [data-dark="true"] .border-r { border-color: #3f3f46 !important; }
-  [data-dark="true"] .border-b { border-color: #3f3f46 !important; }
-  [data-dark="true"] .border-t { border-color: #3f3f46 !important; }
-  [data-dark="true"] .text-zinc-900 { color: #f4f4f5 !important; }
-  [data-dark="true"] .text-zinc-800 { color: #e4e4e7 !important; }
-  [data-dark="true"] .text-zinc-700 { color: #d4d4d8 !important; }
-  [data-dark="true"] .text-zinc-600 { color: #a1a1aa !important; }
-  [data-dark="true"] .text-zinc-500 { color: #71717a !important; }
-  [data-dark="true"] .text-zinc-400 { color: #52525b !important; }
-  [data-dark="true"] .hover\\:bg-zinc-50:hover { background-color: #27272a !important; }
-  [data-dark="true"] .hover\\:bg-zinc-100:hover { background-color: #3f3f46 !important; }
-  [data-dark="true"] .bg-violet-50 { background-color: rgba(109,40,217,0.18) !important; }
-  [data-dark="true"] .bg-violet-100 { background-color: rgba(109,40,217,0.25) !important; }
-  [data-dark="true"] .text-violet-700 { color: #a78bfa !important; }
-  [data-dark="true"] .text-violet-600 { color: #8b5cf6 !important; }
-  [data-dark="true"] .bg-amber-50 { background-color: rgba(217,119,6,0.15) !important; }
-  [data-dark="true"] .bg-[\\#F5F0E8] { background-color: #27272a !important; }
-  [data-dark="true"] input:not([type="range"]),
-  [data-dark="true"] textarea,
-  [data-dark="true"] select {
-    background-color: #27272a !important;
-    color: #f4f4f5 !important;
-    border-color: #52525b !important;
-  }
-  [data-dark="true"] input::placeholder,
-  [data-dark="true"] textarea::placeholder { color: #52525b !important; }
-  [data-dark="true"] .focus\\:border-violet-400:focus { border-color: #7c3aed !important; }
-  [data-dark="true"] header { background-color: #18181b !important; border-color: #3f3f46 !important; }
-  .placeholder-glow {
-    box-shadow: 0 0 0 1.5px rgba(124,58,237,0.18), 0 0 28px rgba(124,58,237,0.10);
-    transition: box-shadow 0.2s;
-  }
-  [data-dark="true"] .placeholder-glow {
-    box-shadow: 0 0 0 1.5px rgba(139,92,246,0.30), 0 0 32px rgba(139,92,246,0.18);
-  }
-  [data-dark="true"] .placeholder-glow:hover {
-    box-shadow: 0 0 0 1.5px rgba(139,92,246,0.45), 0 0 40px rgba(139,92,246,0.28);
-  }
-  [data-dark="true"] .bg-[\\#F8F9FA] { background-color: #0a0a0a !important; }
-  [data-dark="true"] .bg-gray-50  { background-color: #18181b !important; }
-  [data-dark="true"] .bg-gray-100 { background-color: #27272a !important; }
-  [data-dark="true"] .border-gray-50  { border-color: #27272a !important; }
-  [data-dark="true"] .border-gray-100 { border-color: #3f3f46 !important; }
-  [data-dark="true"] .border-gray-200 { border-color: #52525b !important; }
-  [data-dark="true"] .text-gray-900 { color: #f9fafb !important; }
-  [data-dark="true"] .text-gray-800 { color: #e5e7eb !important; }
-  [data-dark="true"] .text-gray-700 { color: #d1d5db !important; }
-  [data-dark="true"] .text-gray-600 { color: #9ca3af !important; }
-  [data-dark="true"] .text-gray-500 { color: #9ca3af !important; }
-  [data-dark="true"] .text-gray-400 { color: #6b7280 !important; }
-  [data-dark="true"] .text-gray-300 { color: #4b5563 !important; }
-  [data-dark="true"] .hover\\:bg-gray-50:hover  { background-color: #27272a !important; }
-  [data-dark="true"] .hover\\:bg-gray-100:hover { background-color: #3f3f46 !important; }
-  [data-dark="true"] .hover\\:bg-gray-800:hover { background-color: #27272a !important; }
-  [data-dark="true"] .bg-indigo-50  { background-color: rgba(99,102,241,0.15) !important; }
-  [data-dark="true"] .bg-emerald-50 { background-color: rgba(16,185,129,0.15) !important; }
-  [data-dark="true"] .bg-rose-50    { background-color: rgba(244,63,94,0.15)  !important; }
-  [data-dark="true"] .border-indigo-100  { border-color: rgba(99,102,241,0.25) !important; }
-  [data-dark="true"] .border-amber-100   { border-color: rgba(217,119,6,0.25)  !important; }
-  [data-dark="true"] .border-emerald-100 { border-color: rgba(16,185,129,0.25) !important; }
-  [data-dark="true"] .border-rose-100    { border-color: rgba(244,63,94,0.25)  !important; }
-  [data-dark="true"] .text-indigo-700 { color: #818cf8 !important; }
-  [data-dark="true"] .text-indigo-500 { color: #818cf8 !important; }
-  [data-dark="true"] .text-indigo-400 { color: #a5b4fc !important; }
-  [data-dark="true"] .text-amber-700  { color: #fbbf24 !important; }
-  [data-dark="true"] .text-amber-500  { color: #fcd34d !important; }
-  [data-dark="true"] .text-emerald-500 { color: #34d399 !important; }
-  [data-dark="true"] .text-rose-500   { color: #fb7185 !important; }
-  [data-dark="true"] .sticky { background-color: #18181b !important; border-color: #3f3f46 !important; }
-  [data-dark="true"] .focus\\:border-gray-400:focus { border-color: #6b7280 !important; }
-`
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function NegocioDashboard() {
   // ── State ──────────────────────────────────────────────────────────────────
-  const [programs, setPrograms] = useState<Program[]>([])
-  const [selectedProgram, setSelectedProgram] = useState<string | null>(null)
-  const [cards, setCards] = useState<Card[]>([])
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [stats, setStats] = useState<Stats>({ total: 0, stampsToday: 0, rewardsTotal: 0 })
-  const [loading, setLoading] = useState(true)
-  const [activeNav, setActiveNav] = useState<ViewType>('hoy')
-  const [showDiscount, setShowDiscount] = useState(false)
-  const [businessName, setBusinessName] = useState('Mi negocio')
-  const [userEmail, setUserEmail] = useState('')
-  const [accessToken, setAccessToken] = useState('')
-  const [businessPlan, setBusinessPlan] = useState('trial')
-  const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null)
+  const [programs, setPrograms]                   = useState<Program[]>([])
+  const [selectedProgram, setSelectedProgram]     = useState<string | null>(null)
+  const [cards, setCards]                         = useState<Card[]>([])
+  const [transactions, setTransactions]           = useState<Transaction[]>([])
+  const [stats, setStats]                         = useState<Stats>({ total: 0, stampsToday: 0, rewardsTotal: 0 })
+  const [loading, setLoading]                     = useState(true)
+  const [activeNav, setActiveNav]                 = useState<ViewType>('hoy')
+  const [showDiscount, setShowDiscount]           = useState(false)
+  const [businessName, setBusinessName]           = useState('Mi negocio')
+  const [userEmail, setUserEmail]                 = useState('')
+  const [accessToken, setAccessToken]             = useState('')
+  const [businessPlan, setBusinessPlan]           = useState('trial')
+  const [planExpiresAt, setPlanExpiresAt]         = useState<string | null>(null)
   const [businessCreatedAt, setBusinessCreatedAt] = useState<string | null>(null)
-  const [todayBdayCount, setTodayBdayCount] = useState(0)
-  const [upcomingBdays, setUpcomingBdays] = useState<{ name: string; daysLeft: number }[]>([])
-  const [pushLogs, setPushLogs] = useState<PushLog[]>([])
-  const [pushSubscribers, setPushSubscribers] = useState<PushSubscriber[]>([])
-  const [salesByDay, setSalesByDay] = useState<Record<string, number>>({})
-  const [totalSales, setTotalSales] = useState(0)
-  const [stampModal, setStampModal] = useState<StampModalState | null>(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [notifMsg, setNotifMsg] = useState('')
-  const [notifSending, setNotifSending] = useState(false)
-  const [notifSent, setNotifSent] = useState(false)
-  const [notifError, setNotifError] = useState('')
-  const [notifSentCount, setNotifSentCount] = useState(0)
-  const [notifRecipients, setNotifRecipients] = useState<NotifRecipient[]>([])
+  const [todayBdayCount, setTodayBdayCount]       = useState(0)
+  const [upcomingBdays, setUpcomingBdays]         = useState<{ name: string; daysLeft: number }[]>([])
+  const [pushLogs, setPushLogs]                   = useState<PushLog[]>([])
+  const [pushSubscribers, setPushSubscribers]     = useState<PushSubscriber[]>([])
+  const [salesByDay, setSalesByDay]               = useState<Record<string, number>>({})
+  const [totalSales, setTotalSales]               = useState(0)
+  const [stampModal, setStampModal]               = useState<StampModalState | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen]       = useState(false)
+  const [notifMsg, setNotifMsg]                   = useState('')
+  const [notifSending, setNotifSending]           = useState(false)
+  const [notifSent, setNotifSent]                 = useState(false)
+  const [notifError, setNotifError]               = useState('')
+  const [notifSentCount, setNotifSentCount]       = useState(0)
+  const [notifRecipients, setNotifRecipients]     = useState<NotifRecipient[]>([])
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('cal_dark') === '1'
     return false
@@ -482,7 +288,6 @@ export default function NegocioDashboard() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex min-h-screen bg-zinc-50" data-dark={String(isDark)}>
-      <style>{DASHBOARD_STYLES}</style>
 
       {/* Popup descuento */}
       {showDiscount && (
@@ -647,5 +452,3 @@ export default function NegocioDashboard() {
     </div>
   )
 }
-
-// ── Todas las vistas están en components/dashboard/views/ ────────────────────
