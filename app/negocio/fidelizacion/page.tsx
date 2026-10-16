@@ -589,7 +589,7 @@ export default function NegocioDashboard() {
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
             loading={loading} manualStamp={(id: string, name: string) => setStampModal({ cardId: id, name })}
             accessToken={accessToken}
-            onClientDeleted={(cardId) => setCards(prev => prev.filter(c => c.id !== cardId))} />
+            onClientDeleted={(cardId: string) => setCards(prev => prev.filter(c => c.id !== cardId))} />
         )}
         {activeNav === 'cupones' && (
           <ViewCupones selectedProgram={selectedProgram} accessToken={accessToken} />
