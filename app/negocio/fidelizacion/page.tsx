@@ -5906,6 +5906,43 @@ export default function NegocioDashboard() {
         [data-dark="true"] .placeholder-glow:hover {
           box-shadow: 0 0 0 1.5px rgba(139,92,246,0.45), 0 0 40px rgba(139,92,246,0.28);
         }
+        /* ── gray-* palette — ViewHoy rediseño ── */
+        [data-dark="true"] .bg-[\\#F8F9FA] { background-color: #0a0a0a !important; }
+        [data-dark="true"] .bg-gray-50  { background-color: #18181b !important; }
+        [data-dark="true"] .bg-gray-100 { background-color: #27272a !important; }
+        [data-dark="true"] .border-gray-50  { border-color: #27272a !important; }
+        [data-dark="true"] .border-gray-100 { border-color: #3f3f46 !important; }
+        [data-dark="true"] .border-gray-200 { border-color: #52525b !important; }
+        [data-dark="true"] .text-gray-900 { color: #f9fafb !important; }
+        [data-dark="true"] .text-gray-800 { color: #e5e7eb !important; }
+        [data-dark="true"] .text-gray-700 { color: #d1d5db !important; }
+        [data-dark="true"] .text-gray-600 { color: #9ca3af !important; }
+        [data-dark="true"] .text-gray-500 { color: #9ca3af !important; }
+        [data-dark="true"] .text-gray-400 { color: #6b7280 !important; }
+        [data-dark="true"] .text-gray-300 { color: #4b5563 !important; }
+        [data-dark="true"] .hover\\:bg-gray-50:hover  { background-color: #27272a !important; }
+        [data-dark="true"] .hover\\:bg-gray-100:hover { background-color: #3f3f46 !important; }
+        [data-dark="true"] .hover\\:bg-gray-800:hover { background-color: #27272a !important; }
+        /* pastel icon tiles */
+        [data-dark="true"] .bg-indigo-50  { background-color: rgba(99,102,241,0.15) !important; }
+        [data-dark="true"] .bg-emerald-50 { background-color: rgba(16,185,129,0.15) !important; }
+        [data-dark="true"] .bg-rose-50    { background-color: rgba(244,63,94,0.15)  !important; }
+        [data-dark="true"] .border-indigo-100 { border-color: rgba(99,102,241,0.25) !important; }
+        [data-dark="true"] .border-amber-100  { border-color: rgba(217,119,6,0.25)  !important; }
+        [data-dark="true"] .border-emerald-100 { border-color: rgba(16,185,129,0.25) !important; }
+        [data-dark="true"] .border-rose-100   { border-color: rgba(244,63,94,0.25)  !important; }
+        /* pastel text — mantiene tono, sube luminosidad */
+        [data-dark="true"] .text-indigo-700 { color: #818cf8 !important; }
+        [data-dark="true"] .text-indigo-500 { color: #818cf8 !important; }
+        [data-dark="true"] .text-indigo-400 { color: #a5b4fc !important; }
+        [data-dark="true"] .text-amber-700  { color: #fbbf24 !important; }
+        [data-dark="true"] .text-amber-500  { color: #fcd34d !important; }
+        [data-dark="true"] .text-emerald-500 { color: #34d399 !important; }
+        [data-dark="true"] .text-rose-500   { color: #fb7185 !important; }
+        /* top bar sticky en dark */
+        [data-dark="true"] .sticky { background-color: #18181b !important; border-color: #3f3f46 !important; }
+        /* focus ring del textarea en dark */
+        [data-dark="true"] .focus\\:border-gray-400:focus { border-color: #6b7280 !important; }
       `}</style>
       {showDiscount && (() => {
         const daysLeft = businessCreatedAt
