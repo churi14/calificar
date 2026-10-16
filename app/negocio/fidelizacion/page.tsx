@@ -637,7 +637,7 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'perfil' && (
           <ViewPerfil program={program} selectedProgram={selectedProgram}
-            businessName={businessName} onSaved={name => setBusinessName(name)}
+            businessName={businessName} onSaved={(name: string) => setBusinessName(name)}
             accessToken={accessToken} />
         )}
         {activeNav === 'plan' && (
