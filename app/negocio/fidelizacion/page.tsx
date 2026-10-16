@@ -3110,13 +3110,19 @@ function ViewInsights({ selectedProgram, isPro, accessToken }:
   const [advLoading, setAdvLoading] = useState(false)
 
   useEffect(() => {
-    if (!selectedProgram) return
+    if (!selectedProgram || !accessToken) return
     setLoading(true)
-    fetch(`/api/fidelizacion/insights?program_id=${selectedProgram}&days=${period}`)
+    fetch(`/api/fidelizacion/insights?program_id=${selectedProgram}&days=${period}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false) })
+      .then(d => {
+        if (d?.error) { setLoading(false); return }
+        setData(d)
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
-  }, [selectedProgram, period])
+  }, [selectedProgram, period, accessToken])
 
   useEffect(() => {
     if (!selectedProgram || tab !== 'advanced') return
