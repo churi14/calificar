@@ -792,32 +792,40 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
       value: stats.total,
       sub: 'registrados',
       Icon: UsersThree,
-      iconBg: 'bg-indigo-50 dark:bg-indigo-950',
-      iconColor: 'text-indigo-500 dark:text-indigo-400',
+      cardBg: 'bg-indigo-50 dark:bg-gray-900',
+      cardBorder: 'border-indigo-100 dark:border-indigo-500/20',
+      iconBg: 'bg-indigo-500 dark:bg-indigo-950',
+      iconColor: 'text-white dark:text-indigo-400',
     },
     {
       label: 'Sellos hoy',
       value: stats.stampsToday,
       sub: 'en el día',
       Icon: Star,
-      iconBg: 'bg-amber-50 dark:bg-amber-950',
-      iconColor: 'text-amber-500 dark:text-amber-400',
+      cardBg: 'bg-amber-50 dark:bg-gray-900',
+      cardBorder: 'border-amber-100 dark:border-amber-500/20',
+      iconBg: 'bg-amber-500 dark:bg-amber-950',
+      iconColor: 'text-white dark:text-amber-400',
     },
     {
       label: 'Clientes que vuelven',
       value: returningClients,
       sub: 'más de 1 visita',
       Icon: ArrowCounterClockwise,
-      iconBg: 'bg-emerald-50 dark:bg-emerald-950',
-      iconColor: 'text-emerald-500 dark:text-emerald-400',
+      cardBg: 'bg-emerald-50 dark:bg-gray-900',
+      cardBorder: 'border-emerald-100 dark:border-emerald-500/20',
+      iconBg: 'bg-emerald-500 dark:bg-emerald-950',
+      iconColor: 'text-white dark:text-emerald-400',
     },
     {
       label: 'Premios entregados',
       value: stats.rewardsTotal,
       sub: 'en total',
       Icon: Trophy,
-      iconBg: 'bg-rose-50 dark:bg-rose-950',
-      iconColor: 'text-rose-500 dark:text-rose-400',
+      cardBg: 'bg-rose-50 dark:bg-gray-900',
+      cardBorder: 'border-rose-100 dark:border-rose-500/20',
+      iconBg: 'bg-rose-500 dark:bg-rose-950',
+      iconColor: 'text-white dark:text-rose-400',
     },
   ]
 
@@ -949,7 +957,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
         {/* ── KPIs ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {kpis.map(k => (
-            <div key={k.label} className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+            <div key={k.label} className={`rounded-2xl p-5 shadow-sm border ${k.cardBg} ${k.cardBorder}`}>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-4 ${k.iconBg}`}>
                 <k.Icon size={18} className={k.iconColor} weight="duotone" />
               </div>
