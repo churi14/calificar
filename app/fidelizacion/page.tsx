@@ -171,100 +171,118 @@ export default function FidelizacionLanding() {
             <p className="text-slate-500 text-xs mt-4">Sin tarjeta de crédito. Sin compromiso.</p>
           </div>
 
-          {/* iPhone 15 Pro mockup */}
-          <div className="relative mx-auto lg:ml-auto lg:mr-0 w-[340px] h-[680px]">
-            {/* Sombra de fondo y resplandor violeta */}
-            <div className="absolute inset-0 bg-indigo-500/10 blur-[100px] rounded-full -z-10" />
+          {/* iPhone 15 Pro mockup 3D */}
+          <div className="relative mx-auto lg:ml-auto lg:mr-0 w-[380px] max-w-full h-[720px] flex items-center justify-center [perspective:1500px]">
+            {/* Resplandor violeta/azul de fondo */}
+            <div className="absolute top-12 left-12 w-[300px] h-[450px] bg-indigo-600/30 blur-[120px] rounded-full -z-10 pointer-events-none" />
 
-            {/* Botones físicos (izquierda) */}
-            <div className="absolute top-[90px] -left-[16px] w-[3px] h-[15px] bg-[#3a3a3c] rounded-l" />
-            <div className="absolute top-[130px] -left-[16px] w-[3px] h-[35px] bg-[#3a3a3c] rounded-l" />
-            <div className="absolute top-[175px] -left-[16px] w-[3px] h-[35px] bg-[#3a3a3c] rounded-l" />
-            {/* Botón físico (derecha) */}
-            <div className="absolute top-[150px] -right-[16px] w-[3px] h-[55px] bg-[#3a3a3c] rounded-r" />
+            {/* Contenedor con rotación 3D */}
+            <div
+              className="relative w-[300px] h-[610px] [transform-style:preserve-3d] [transform:rotateY(-18deg)_rotateX(10deg)_rotateZ(3deg)] transition-all duration-500 ease-out hover:[transform:rotateY(-14deg)_rotateX(8deg)_rotateZ(2deg)_scale(1.02)]"
+            >
+              {/* Extrusión: borde lateral metálico (titanio) */}
+              <div
+                className="absolute inset-0 rounded-[44px] bg-gradient-to-r from-[#8e8e93] via-[#c7c7cc] to-[#3a3a3c] border border-white/20 shadow-2xl z-0"
+                style={{ transform: 'translate3d(-9px, 0, -8px)' }}
+              />
 
-            {/* Chasis de titanio oscuro */}
-            <div className="relative w-full h-full border-[12px] border-[#1c1c1e] rounded-[48px] bg-[#09090b] shadow-2xl overflow-visible">
-              {/* Borde interior metálico sutil */}
-              <div className="absolute inset-[0px] rounded-[36px] border border-[#2c2c2e] pointer-events-none z-40" />
+              {/* Sombra proyectada en el piso */}
+              <div
+                className="absolute -inset-x-12 bottom-[-40px] h-12 bg-black/50 blur-[30px] rounded-full pointer-events-none"
+                style={{ transform: 'rotateX(80deg) translateZ(-20px)' }}
+              />
 
-              {/* Dynamic Island */}
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[95px] h-[26px] bg-black rounded-full z-50 flex items-center justify-end px-3 gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#111] border border-[#222]" />
-                <div className="w-[10px] h-[10px] rounded-full bg-[#05050e] border border-[#1a1a1a]" />
-              </div>
+              {/* Botones físicos del lateral izquierdo */}
+              <div className="absolute top-[80px] -left-[11px] w-[2px] h-[15px] bg-[#a2a2a7] rounded-l border-r border-black/30" style={{ transform: 'translateZ(-2px)' }} />
+              <div className="absolute top-[115px] -left-[11px] w-[2px] h-[35px] bg-[#a2a2a7] rounded-l border-r border-black/30" style={{ transform: 'translateZ(-2px)' }} />
+              <div className="absolute top-[160px] -left-[11px] w-[2px] h-[35px] bg-[#a2a2a7] rounded-l border-r border-black/30" style={{ transform: 'translateZ(-2px)' }} />
 
-              {/* Auricular */}
-              <div className="absolute top-1 left-1/2 -translate-x-1/2 w-16 h-1 bg-black/40 rounded-full z-40" />
+              {/* Chasis frontal / pantalla */}
+              <div className="absolute inset-0 rounded-[42px] border-[10px] border-[#1c1c1e] bg-[#09090b] shadow-[inset_0_0_2px_rgba(255,255,255,0.4)] overflow-visible z-10 [transform:translateZ(4px)]">
+                <div className="absolute inset-[0px] rounded-[32px] border border-white/10 pointer-events-none z-40" />
 
-              {/* Pantalla */}
-              <div className="relative w-full h-full rounded-[36px] overflow-hidden bg-[#09090b] flex flex-col pt-12 pb-6 px-4">
-                {/* Barra de estado iOS */}
-                <div className="flex justify-between items-center text-[10px] font-semibold text-white/90 px-3 absolute top-3.5 left-0 right-0 z-30 pointer-events-none">
-                  <span>9:41</span>
-                  <div className="flex items-center gap-1">
-                    <span>📶</span>
-                    <span>🔋</span>
-                  </div>
+                {/* Dynamic Island */}
+                <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-[85px] h-[24px] bg-[#000] rounded-full z-50 flex items-center justify-end px-2.5 gap-0.5 shadow-inner">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#0d0d0d] border border-zinc-900" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#04040a] border border-[#121212]" />
                 </div>
 
-                <p className="text-center font-bold text-lg text-white mt-2 mb-4 tracking-wide drop-shadow-md">
-                  calificar
-                </p>
+                {/* Auricular */}
+                <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-black/40 rounded-full z-40" />
 
-                {/* Tarjeta violeta */}
-                <div className="flex-1 flex flex-col justify-between bg-gradient-to-b from-indigo-700 to-indigo-900 rounded-3xl p-5 border border-indigo-500/30 shadow-lg shadow-indigo-900/50">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-indigo-500/35 border border-indigo-300/30 flex items-center justify-center text-white text-lg">
-                      ★
-                    </div>
-                    <div className="text-center">
-                      <h2 className="text-white font-bold text-sm leading-tight">La Cocina Fidelidad</h2>
-                      <p className="text-indigo-200 text-[10px] font-medium">La Cocina</p>
+                {/* Pantalla interna */}
+                <div className="relative w-full h-full rounded-[32px] overflow-hidden bg-gradient-to-b from-[#0e0c15] to-[#040409] flex flex-col pt-10 pb-5 px-3">
+                  <div className="flex justify-between items-center text-[9px] font-semibold text-white/90 px-3 absolute top-3 left-0 right-0 z-30 pointer-events-none">
+                    <span>9:41</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="scale-[0.8] opacity-80">📶</span>
+                      <span className="scale-[0.8] opacity-80">🔋</span>
                     </div>
                   </div>
 
-                  <div className="my-6">
-                    <p className="text-indigo-100/80 text-[10px] font-medium mb-2 pl-1">María García</p>
-                    <div className="flex justify-between gap-1.5">
-                      {[0, 1, 2, 3, 4].map(i => (
-                        i < 3 ? (
-                          <div key={i} className="flex-1 aspect-square rounded-full bg-white flex items-center justify-center shadow-md">
-                            <span className="text-indigo-700 text-xs font-bold">★</span>
-                          </div>
-                        ) : (
-                          <div key={i} className="flex-1 aspect-square rounded-full bg-indigo-950/45 border border-indigo-400/20 flex items-center justify-center">
-                            <span className="text-indigo-400/30 text-xs">★</span>
-                          </div>
-                        )
-                      ))}
+                  <p className="text-center font-bold text-base text-white/90 mt-1 mb-3 tracking-wider select-none">
+                    calificar
+                  </p>
+
+                  {/* Tarjeta violeta (estilo Wallet) */}
+                  <div className="flex-1 flex flex-col justify-between bg-gradient-to-b from-[#6b21a8] to-[#3b0764] rounded-[24px] p-4 border border-violet-500/35 shadow-[0_8px_32px_rgba(107,33,168,0.4)]">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-violet-600/40 border border-violet-300/35 flex items-center justify-center text-white text-base shadow-inner">
+                        ★
+                      </div>
+                      <div className="text-center">
+                        <h2 className="text-white font-extrabold text-xs tracking-wide">La Cocina Fidelidad</h2>
+                        <p className="text-violet-300/80 text-[8px] font-semibold">La Cocina</p>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-[8px] text-indigo-200 mt-2.5 px-1 font-semibold">
-                      <span>5 sellos</span>
-                      <span>Premio: Café gratis</span>
+
+                    <div className="my-2">
+                      <p className="text-violet-200/90 text-[8px] font-semibold mb-2 pl-1 select-none">María García</p>
+                      <div className="flex justify-between gap-1.5">
+                        {[-6, 3, -4].map((deg, i) => (
+                          <div key={i} className="flex-1 aspect-square rounded-full bg-white flex items-center justify-center shadow-lg" style={{ transform: `rotate(${deg}deg)` }}>
+                            <span className="text-violet-800 text-[10px] font-black">★</span>
+                          </div>
+                        ))}
+                        {[3, 4].map(i => (
+                          <div key={i} className="flex-1 aspect-square rounded-full bg-black/40 border border-violet-400/20 flex items-center justify-center">
+                            <span className="text-violet-400/15 text-[10px]">★</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-between text-[7.5px] text-violet-300/80 mt-3 px-1 font-bold">
+                        <span>5 sellos</span>
+                        <span>Premio: Café gratis</span>
+                      </div>
                     </div>
+
+                    <button type="button" className="w-full bg-black border border-zinc-800 rounded-xl py-2 px-3 flex items-center justify-center gap-2 transition hover:bg-zinc-900 active:scale-[0.98]">
+                      <span className="text-[9px] text-white font-semibold flex items-center gap-1.5">
+                        💳 Guardar en Google Wallet
+                      </span>
+                    </button>
                   </div>
 
-                  <button type="button" className="w-full bg-black hover:bg-zinc-900 border border-zinc-800 rounded-xl py-2 px-3 flex items-center justify-center gap-2 transition shadow-lg">
-                    <span className="text-[10px] text-white font-medium flex items-center gap-1.5">
-                      💳 Guardar en Google Wallet
-                    </span>
-                  </button>
+                  <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-[3px] bg-white/30 rounded-full z-40 pointer-events-none" />
                 </div>
-
-                {/* Indicador de inicio iOS */}
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-[4px] bg-white/40 rounded-full z-40 pointer-events-none" />
               </div>
-            </div>
 
-            {/* Popups flotantes 3D */}
-            <div className="absolute left-[-20px] bottom-[160px] bg-indigo-600 border border-indigo-400/45 rounded-2xl p-4 shadow-xl shadow-indigo-950/50 flex flex-col z-50 transform hover:-translate-y-1 transition duration-300">
-              <span className="text-[10px] text-indigo-100/80 font-medium">Sellos sumados</span>
-              <span className="text-2xl font-black text-white">847</span>
-            </div>
-            <div className="absolute right-[-24px] top-[140px] bg-white border border-zinc-200 rounded-2xl p-4 shadow-2xl flex flex-col gap-0.5 z-50 transform hover:-translate-y-1 transition duration-300">
-              <span className="text-[10px] text-zinc-500 font-medium whitespace-nowrap">Nuevos clientes hoy</span>
-              <span className="text-2xl font-black text-zinc-900">+12</span>
+              {/* Popups flotantes: desplazados en Z para salirse de la pantalla */}
+              <div
+                className="absolute left-[-24px] bottom-[140px] bg-violet-600 border border-violet-400/50 rounded-2xl p-4 shadow-[-20px_20px_40px_rgba(0,0,0,0.5)] flex flex-col z-30"
+                style={{ transform: 'translateZ(45px) rotateY(10deg)' }}
+              >
+                <span className="text-[9px] text-violet-200/95 font-bold uppercase tracking-wider">Sellos sumados</span>
+                <span className="text-2xl font-black text-white mt-0.5 tracking-tight drop-shadow-md">847</span>
+              </div>
+
+              <div
+                className="absolute right-[-28px] top-[150px] bg-white border border-zinc-200 rounded-2xl p-4 shadow-[20px_20px_40px_rgba(0,0,0,0.4)] flex flex-col gap-0.5 z-30"
+                style={{ transform: 'translateZ(55px) rotateY(-8deg)' }}
+              >
+                <span className="text-[9.5px] text-zinc-500 font-bold uppercase tracking-wider whitespace-nowrap">Nuevos clientes hoy</span>
+                <span className="text-[26px] leading-8 font-black text-zinc-950 mt-0.5 tracking-tight">+12</span>
+              </div>
             </div>
           </div>
         </div>
