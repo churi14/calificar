@@ -792,50 +792,50 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
       value: stats.total,
       sub: 'registrados',
       Icon: UsersThree,
-      iconBg: 'bg-indigo-50',
-      iconColor: 'text-indigo-500',
+      iconBg: 'bg-indigo-50 dark:bg-indigo-950',
+      iconColor: 'text-indigo-500 dark:text-indigo-400',
     },
     {
       label: 'Sellos hoy',
       value: stats.stampsToday,
       sub: 'en el día',
       Icon: Star,
-      iconBg: 'bg-amber-50',
-      iconColor: 'text-amber-500',
+      iconBg: 'bg-amber-50 dark:bg-amber-950',
+      iconColor: 'text-amber-500 dark:text-amber-400',
     },
     {
       label: 'Clientes que vuelven',
       value: returningClients,
       sub: 'más de 1 visita',
       Icon: ArrowCounterClockwise,
-      iconBg: 'bg-emerald-50',
-      iconColor: 'text-emerald-500',
+      iconBg: 'bg-emerald-50 dark:bg-emerald-950',
+      iconColor: 'text-emerald-500 dark:text-emerald-400',
     },
     {
       label: 'Premios entregados',
       value: stats.rewardsTotal,
       sub: 'en total',
       Icon: Trophy,
-      iconBg: 'bg-rose-50',
-      iconColor: 'text-rose-500',
+      iconBg: 'bg-rose-50 dark:bg-rose-950',
+      iconColor: 'text-rose-500 dark:text-rose-400',
     },
   ]
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA]">
+    <div className="min-h-screen bg-[#F8F9FA] dark:bg-gray-950">
 
       {/* ── Top Bar (desktop) ─────────────────────────────────────── */}
-      <div className="hidden md:flex items-center justify-between px-8 py-3.5 bg-white border-b border-gray-100 sticky top-0 z-10">
+      <div className="hidden md:flex items-center justify-between px-8 py-3.5 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-10">
         <div>
-          <p className="text-[11px] text-gray-400 font-medium capitalize">
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 font-medium capitalize">
             {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
-          <h1 className="text-base font-semibold text-gray-900">{greeting}, {businessName}</h1>
+          <h1 className="text-base font-semibold text-gray-900 dark:text-white">{greeting}, {businessName}</h1>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-            <MagnifyingGlass size={13} className="text-gray-400 flex-shrink-0" />
-            <input placeholder="Buscar clientes..." className="bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none w-40" />
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+            <MagnifyingGlass size={13} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <input placeholder="Buscar clientes..." className="bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none w-40" />
           </div>
           <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
             {businessName.charAt(0).toUpperCase()}
@@ -847,16 +847,16 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
 
         {/* Banner trial */}
         {trialDaysLeft !== null && (
-          <div className="mb-5 bg-white rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap shadow-sm border border-gray-100">
+          <div className="mb-5 bg-white dark:bg-gray-900 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap shadow-sm border border-gray-100 dark:border-gray-800">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${trialDaysLeft <= 3 ? 'bg-amber-50' : 'bg-indigo-50'}`}>
-                <span className={`text-xl font-extrabold tabular-nums ${trialDaysLeft <= 3 ? 'text-amber-600' : 'text-indigo-600'}`}>{trialDaysLeft}</span>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${trialDaysLeft <= 3 ? 'bg-amber-50 dark:bg-amber-950' : 'bg-indigo-50 dark:bg-indigo-950'}`}>
+                <span className={`text-xl font-extrabold tabular-nums ${trialDaysLeft <= 3 ? 'text-amber-600 dark:text-amber-400' : 'text-indigo-600 dark:text-indigo-400'}`}>{trialDaysLeft}</span>
               </div>
               <div>
-                <p className={`text-sm font-semibold ${trialDaysLeft <= 3 ? 'text-amber-700' : 'text-gray-800'}`}>
+                <p className={`text-sm font-semibold ${trialDaysLeft <= 3 ? 'text-amber-700 dark:text-amber-400' : 'text-gray-800 dark:text-gray-100'}`}>
                   {trialDaysLeft === 0 ? 'Tu prueba gratuita venció hoy' : trialDaysLeft === 1 ? 'Último día de prueba gratuita' : `días de prueba restantes`}
                 </p>
-                <p className="text-xs text-gray-400">Elegí un plan para continuar sin interrupciones.</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Elegí un plan para continuar sin interrupciones.</p>
               </div>
             </div>
             {onNavPlan && (
@@ -872,25 +872,25 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
         {showQrBig && (
           <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.6)' }}
             onClick={() => setShowQrBig(false)}>
-            <div className="bg-white rounded-3xl p-8 flex flex-col items-center gap-4" onClick={e => e.stopPropagation()}>
+            <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 flex flex-col items-center gap-4" onClick={e => e.stopPropagation()}>
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
                 alt="QR grande" width={300} height={300} className="rounded-2xl" />
-              <p className="text-sm font-semibold text-gray-900">{businessName}</p>
-              <p className="text-xs text-gray-400">Ponélo en el mostrador para que los clientes escaneen</p>
-              <button onClick={() => setShowQrBig(false)} className="text-xs text-gray-400 hover:text-gray-600">Cerrar</button>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">{businessName}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Ponélo en el mostrador para que los clientes escaneen</p>
+              <button onClick={() => setShowQrBig(false)} className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">Cerrar</button>
             </div>
           </div>
         )}
 
         {/* Banner logo */}
         {!hasLogo && (
-          <div className="bg-white rounded-2xl p-5 mb-4 flex items-center gap-4 shadow-sm border border-gray-100">
-            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Globe size={18} className="text-gray-400" />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 mb-4 flex items-center gap-4 shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Globe size={18} className="text-gray-400 dark:text-gray-500" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-800">Agregá el logo de tu negocio</p>
-              <p className="text-xs text-gray-400 mt-0.5">Aparece en la tarjeta digital de cada cliente.</p>
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Agregá el logo de tu negocio</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Aparece en la tarjeta digital de cada cliente.</p>
             </div>
             <button onClick={onLogoNav}
               className="text-xs font-semibold text-white px-4 py-2 rounded-lg flex-shrink-0 bg-zinc-900 hover:bg-zinc-800 transition-colors">
@@ -901,24 +901,24 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
 
         {/* QR Banner */}
         {program && (
-          <div className="bg-white rounded-2xl p-5 mb-5 flex items-center gap-4 shadow-sm border border-gray-100">
-            <div className="bg-gray-50 rounded-xl p-2 flex-shrink-0 cursor-pointer border border-gray-100" onClick={() => setShowQrBig(true)}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 mb-5 flex items-center gap-4 shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-2 flex-shrink-0 cursor-pointer border border-gray-100 dark:border-gray-700" onClick={() => setShowQrBig(true)}>
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(qrUrl)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
                 alt="QR" width={56} height={56} className="rounded-lg" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-0.5">QR DE REGISTRO</p>
-              <p className="font-semibold text-gray-900 text-sm">Listo para compartir</p>
-              <p className="text-xs text-gray-400 mt-0.5">El cliente escanea, se registra y recibe su tarjeta digital.</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-0.5">QR DE REGISTRO</p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">Listo para compartir</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">El cliente escanea, se registra y recibe su tarjeta digital.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button onClick={() => setShowQrBig(true)}
-                className="text-xs border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 font-medium transition-colors">Ampliar</button>
+                className="text-xs border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors">Ampliar</button>
               <button onClick={() => navigator.clipboard.writeText(qrUrl)}
-                className="text-xs border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 font-medium transition-colors hidden sm:block">Copiar</button>
+                className="text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors hidden sm:block">Copiar</button>
               <a href={`https://wa.me/?text=${encodeURIComponent(`Acumulá sellos y ganá premios en ${businessName}! Guardá tu tarjeta digital: ${qrUrl}`)}`}
                 target="_blank" rel="noopener noreferrer"
-                className="text-xs border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 font-medium transition-colors">WhatsApp</a>
+                className="text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors">WhatsApp</a>
             </div>
           </div>
         )}
@@ -926,36 +926,36 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
         {/* Banner cumpleaños */}
         {upcomingBdays.length > 0 && (
           <button onClick={onNavBday}
-            className="w-full flex items-center gap-4 bg-white rounded-2xl px-5 py-4 mb-4 text-left hover:bg-gray-50 transition-colors shadow-sm border border-gray-100">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
-              <Cake size={18} className="text-amber-500" />
+            className="w-full flex items-center gap-4 bg-white dark:bg-gray-900 rounded-2xl px-5 py-4 mb-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950 flex items-center justify-center flex-shrink-0">
+              <Cake size={18} className="text-amber-500 dark:text-amber-400" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-gray-800">
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                 {upcomingBdays.length === 1
                   ? `Cumpleaños de ${upcomingBdays[0].name} en ${upcomingBdays[0].daysLeft === 1 ? 'mañana' : `${upcomingBdays[0].daysLeft} días`}`
                   : `${upcomingBdays.length} cumpleaños en los próximos 7 días`}
               </p>
               {upcomingBdays.length > 1 && (
-                <p className="text-xs text-gray-400 truncate mt-0.5">
+                <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">
                   {upcomingBdays.map(b => `${b.name} (en ${b.daysLeft === 1 ? 'mañana' : `${b.daysLeft}d`})`).join(' · ')}
                 </p>
               )}
             </div>
-            <span className="text-gray-300 flex-shrink-0">→</span>
+            <span className="text-gray-300 dark:text-gray-600 flex-shrink-0">→</span>
           </button>
         )}
 
         {/* ── KPIs ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {kpis.map(k => (
-            <div key={k.label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <div key={k.label} className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-4 ${k.iconBg}`}>
                 <k.Icon size={18} className={k.iconColor} weight="duotone" />
               </div>
-              <p className="text-3xl font-bold text-gray-900 tabular-nums">{k.value}</p>
-              <p className="text-sm font-semibold text-gray-700 mt-1">{k.label}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{k.sub}</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">{k.value}</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mt-1">{k.label}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{k.sub}</p>
             </div>
           ))}
         </div>
@@ -964,30 +964,30 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
 
           {/* Actividad reciente */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-gray-800 mb-1">Actividad reciente</p>
-            <p className="text-xs text-gray-400 mb-4">Lo que está pasando ahora</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">Actividad reciente</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Lo que está pasando ahora</p>
             {transactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-6 text-center">
-                <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center mb-2">
-                  <ChartBar size={18} className="text-gray-300" />
+                <div className="w-10 h-10 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-center mb-2">
+                  <ChartBar size={18} className="text-gray-300 dark:text-gray-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-500">Sin actividad todavía</p>
-                <p className="text-[11px] text-gray-400 mt-1">Activá tu primer cliente con el QR.</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Sin actividad todavía</p>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Activá tu primer cliente con el QR.</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {transactions.slice(0, 5).map(tx => (
                   <div key={tx.id} className="flex items-center gap-3">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${tx.type === 'reward' ? 'bg-amber-50' : 'bg-indigo-50'}`}>
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${tx.type === 'reward' ? 'bg-amber-50 dark:bg-amber-950' : 'bg-indigo-50 dark:bg-indigo-950'}`}>
                       {tx.type === 'reward'
-                        ? <Trophy size={14} className="text-amber-500" />
-                        : <Star size={14} className="text-indigo-500" />
+                        ? <Trophy size={14} className="text-amber-500 dark:text-amber-400" />
+                        : <Star size={14} className="text-indigo-500 dark:text-indigo-400" />
                       }
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-gray-800 truncate">{tx.loyalty_cards?.name}</p>
-                      <p className="text-[11px] text-gray-400">{tx.type === 'reward' ? 'Premio canjeado' : 'Sello registrado'}</p>
+                      <p className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">{tx.loyalty_cards?.name}</p>
+                      <p className="text-[11px] text-gray-400 dark:text-gray-500">{tx.type === 'reward' ? 'Premio canjeado' : 'Sello registrado'}</p>
                     </div>
                   </div>
                 ))}
@@ -996,22 +996,22 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
           </div>
 
           {/* Clientes que regresan */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col">
-            <p className="text-sm font-semibold text-gray-800 mb-1">Retención</p>
-            <p className="text-xs text-gray-400 mb-4">Clientes con más de 1 visita</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">Retención</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Clientes con más de 1 visita</p>
             <div className="flex-1 flex flex-col items-center justify-center gap-2">
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-bold text-gray-900"
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-bold text-gray-900 dark:text-white"
                 style={{ background: `${color}12` }}>
                 {returningClients}
               </div>
-              <p className="text-xs text-gray-400">de {stats.total} totales</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">de {stats.total} totales</p>
               {stats.total > 0 && (
                 <div className="w-full mt-2">
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all"
                       style={{ width: `${Math.min(100, Math.round((returningClients / stats.total) * 100))}%`, background: color }} />
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-1 text-center">
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1 text-center">
                     {Math.min(100, Math.round((returningClients / stats.total) * 100))}% de retención
                   </p>
                 </div>
@@ -1020,15 +1020,15 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
           </div>
 
           {/* Push notifications */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-gray-800 mb-1">Notificaciones push</p>
-            <p className="text-xs text-gray-400 mb-4">Enviá un mensaje a todos tus clientes</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">Notificaciones push</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Enviá un mensaje a todos tus clientes</p>
             {pushLogs.length > 0 && (
               <div className="max-h-28 overflow-y-auto space-y-0 mb-3">
                 {pushLogs.slice(0, 4).map(log => (
-                  <div key={log.id} className="py-2 border-b border-gray-50 last:border-0">
-                    <p className="text-xs font-medium text-gray-700 truncate">{log.body}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
+                  <div key={log.id} className="py-2 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-200 truncate">{log.body}</p>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
                       {new Date(log.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })} · {log.sent_to} enviados
                     </p>
                   </div>
@@ -1039,7 +1039,7 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
               <textarea value={notifMsg} onChange={e => setNotifMsg(e.target.value)}
                 placeholder={pushLogs.length === 0 ? 'Ej: Esta semana 2x1 en café' : 'Nuevo mensaje...'}
                 rows={pushLogs.length === 0 ? 3 : 2}
-                className="w-full border border-gray-200 focus:border-gray-400 rounded-lg px-3 py-2 text-xs focus:outline-none resize-none text-gray-700 placeholder-gray-300" />
+                className="w-full border border-gray-200 dark:border-gray-700 focus:border-gray-400 dark:focus:border-gray-500 rounded-lg px-3 py-2 text-xs focus:outline-none resize-none text-gray-700 dark:text-gray-200 placeholder-gray-300 dark:placeholder-gray-600 bg-transparent dark:bg-gray-800" />
               <button onClick={sendNotif} disabled={notifSending || !notifMsg.trim() || notifSent}
                 className="w-full py-2 rounded-lg font-semibold text-white text-xs disabled:opacity-50 transition-colors"
                 style={{ background: notifSent ? '#10B981' : '#18181b' }}>
@@ -1051,15 +1051,15 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
 
         {/* ── Ventas vs costo + Histórico ───────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-3 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="md:col-span-3 bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-sm font-semibold text-gray-800">Ventas registradas vs costo de Calificar</p>
-                <p className="text-xs text-gray-400 mt-0.5">Últimos 30 días · registrá el monto al sellar para ver el ROI</p>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Ventas registradas vs costo de Calificar</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Últimos 30 días · registrá el monto al sellar para ver el ROI</p>
               </div>
               {totalSales > 0 && (
                 <div className="text-right flex-shrink-0 ml-4">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">ROI</p>
+                  <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">ROI</p>
                   <p className={`text-xl font-bold ${totalSales > calificarCost ? 'text-emerald-500' : 'text-rose-500'}`}>
                     {totalSales > calificarCost ? '+' : ''}{((totalSales / calificarCost - 1) * 100).toFixed(0)}%
                   </p>
@@ -1067,47 +1067,47 @@ function ViewHoy({ program, selectedProgram, stats, transactions, notifMsg, setN
               )}
             </div>
             {totalSales === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border border-dashed border-gray-200">
-                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-3">
-                  <TrendUp size={18} className="text-gray-300" />
+              <div className="flex flex-col items-center justify-center py-10 text-center rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+                <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center mb-3">
+                  <TrendUp size={18} className="text-gray-300 dark:text-gray-600" />
                 </div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Sin ventas registradas aún</p>
-                <p className="text-[11px] text-gray-400 max-w-xs">Al dar un sello manual, ingresá el monto de la venta. Así vas a ver si Calificar te rinde.</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Sin ventas registradas aún</p>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 max-w-xs">Al dar un sello manual, ingresá el monto de la venta. Así vas a ver si Calificar te rinde.</p>
               </div>
             ) : (
               <SalesChart salesByDay={salesByDay} cost={calificarCost} color={color} />
             )}
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4">
-            <p className="text-sm font-semibold text-gray-800">Resumen histórico</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-4">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Resumen histórico</p>
             <div className="flex-1 flex flex-col gap-3">
-              <div className="rounded-xl p-4 bg-indigo-50 border border-indigo-100">
+              <div className="rounded-xl p-4 bg-indigo-50 dark:bg-indigo-950 border border-indigo-100 dark:border-indigo-900">
                 <div className="flex items-start justify-between mb-1">
-                  <p className="text-2xl font-bold text-indigo-700 tabular-nums">{totalStamps}</p>
-                  <Star size={16} className="text-indigo-400 mt-1" weight="fill" />
+                  <p className="text-2xl font-bold text-indigo-700 dark:text-indigo-400 tabular-nums">{totalStamps}</p>
+                  <Star size={16} className="text-indigo-400 dark:text-indigo-500 mt-1" weight="fill" />
                 </div>
-                <p className="text-xs font-medium text-indigo-500">Sellos entregados</p>
+                <p className="text-xs font-medium text-indigo-500 dark:text-indigo-400">Sellos entregados</p>
               </div>
-              <div className="rounded-xl p-4 bg-amber-50 border border-amber-100">
+              <div className="rounded-xl p-4 bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-900">
                 <div className="flex items-start justify-between mb-1">
-                  <p className="text-2xl font-bold text-amber-700 tabular-nums">{stats.rewardsTotal}</p>
-                  <Trophy size={16} className="text-amber-400 mt-1" weight="fill" />
+                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-400 tabular-nums">{stats.rewardsTotal}</p>
+                  <Trophy size={16} className="text-amber-400 dark:text-amber-500 mt-1" weight="fill" />
                 </div>
-                <p className="text-xs font-medium text-amber-500">Premios entregados</p>
+                <p className="text-xs font-medium text-amber-500 dark:text-amber-400">Premios entregados</p>
               </div>
               {totalStamps > 0 && (
-                <div className="rounded-xl p-4 bg-gray-50 border border-gray-100">
+                <div className="rounded-xl p-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                   <div className="flex items-start justify-between mb-1">
-                    <p className="text-2xl font-bold text-gray-700 tabular-nums">
+                    <p className="text-2xl font-bold text-gray-700 dark:text-gray-200 tabular-nums">
                       {program?.stamps_goal
                         ? `${Math.round((stats.rewardsTotal / Math.max(totalStamps / program.stamps_goal, 0.01)) * 100)}%`
                         : '—'
                       }
                     </p>
-                    <TrendUp size={16} className="text-gray-400 mt-1" />
+                    <TrendUp size={16} className="text-gray-400 dark:text-gray-500 mt-1" />
                   </div>
-                  <p className="text-xs font-medium text-gray-400">Conversión a premio</p>
+                  <p className="text-xs font-medium text-gray-400 dark:text-gray-500">Conversión a premio</p>
                 </div>
               )}
             </div>
