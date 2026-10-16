@@ -143,7 +143,7 @@ export default function FidelizacionLanding() {
 
       {/* HERO */}
       <section className="min-h-[100dvh] flex items-center pt-16">
-        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center py-20">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-20">
           <div>
             <p className="text-violet-400 font-semibold text-sm uppercase tracking-widest mb-4">Programa de fidelidad digital</p>
             <h1 className="text-5xl md:text-6xl font-extrabold leading-[1.05] tracking-tight mb-6">
@@ -175,8 +175,15 @@ export default function FidelizacionLanding() {
           <div className="flex justify-center">
             <div className="relative">
               {/* Phone frame */}
-              <div className="w-[280px] bg-zinc-900 rounded-[48px] p-3 shadow-2xl">
-                <div className="bg-zinc-800 rounded-[40px] overflow-hidden">
+              {/* Botones laterales (fuera del overflow-hidden del chasis) */}
+              <div className="absolute -left-[16px] top-28 w-[3px] h-8 bg-gray-700 rounded-l-sm" />
+              <div className="absolute -left-[16px] top-44 w-[3px] h-14 bg-gray-700 rounded-l-sm" />
+              <div className="absolute -left-[16px] top-64 w-[3px] h-14 bg-gray-700 rounded-l-sm" />
+              <div className="absolute -right-[16px] top-48 w-[3px] h-20 bg-gray-700 rounded-r-sm" />
+              <div className="relative w-[320px] h-[650px] border-[14px] border-gray-800 rounded-[3rem] bg-gray-950 shadow-2xl shadow-indigo-500/20 overflow-hidden mx-auto">
+                {/* Dynamic Island */}
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-50" />
+                <div className="h-full flex flex-col bg-zinc-900">
                   {/* Status bar */}
                   <div className="flex justify-between items-center px-6 pt-4 pb-2">
                     <span className="text-white text-xs font-semibold">9:41</span>
@@ -185,6 +192,7 @@ export default function FidelizacionLanding() {
                       <div className="w-4 h-2 bg-white rounded-sm opacity-80" />
                     </div>
                   </div>
+                  <div className="h-8" />
                   {/* Wallet card */}
                   <div className="mx-3 mb-3">
                     <div className="bg-gradient-to-br from-violet-600 to-violet-800 rounded-3xl p-5 text-white">
@@ -211,7 +219,7 @@ export default function FidelizacionLanding() {
                     </div>
                   </div>
                   {/* Google Wallet button */}
-                  <div className="mx-3 mb-4">
+                  <div className="mx-3 mb-6 mt-auto">
                     <div className="bg-black rounded-2xl px-4 py-2.5 flex items-center justify-center gap-2">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
                         <path d="M21.56 10.738l-9.52-9.52A1.5 1.5 0 0010.978.5H3.5A3 3 0 00.5 3.5v7.478c0 .398.158.78.44 1.062l9.52 9.52a3 3 0 004.242 0l6.858-6.858a3 3 0 000-4.243zM5.5 8a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
@@ -222,11 +230,11 @@ export default function FidelizacionLanding() {
                 </div>
               </div>
               {/* Floating badges */}
-              <div className="absolute -right-8 top-16 bg-white rounded-2xl shadow-xl px-4 py-3 border border-zinc-100">
+              <div className="absolute -right-4 sm:-right-16 top-24 z-50 rotate-3 bg-white rounded-2xl shadow-xl px-4 py-3 border border-zinc-100">
                 <p className="text-xs text-zinc-400 font-medium">Nuevos clientes hoy</p>
                 <p className="text-2xl font-extrabold text-zinc-900">+12</p>
               </div>
-              <div className="absolute -left-8 bottom-20 bg-violet-600 rounded-2xl shadow-xl px-4 py-3">
+              <div className="absolute -left-4 sm:-left-16 bottom-32 z-50 -rotate-3 bg-violet-600 rounded-2xl shadow-xl px-4 py-3">
                 <p className="text-xs text-white/80 font-medium">Sellos sumados</p>
                 <p className="text-2xl font-extrabold text-white">847</p>
               </div>
