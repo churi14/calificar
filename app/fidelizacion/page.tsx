@@ -171,118 +171,97 @@ export default function FidelizacionLanding() {
             <p className="text-slate-500 text-xs mt-4">Sin tarjeta de crédito. Sin compromiso.</p>
           </div>
 
-          {/* iPhone 15 Pro mockup 3D */}
-          <div className="relative mx-auto lg:ml-auto lg:mr-0 w-[380px] max-w-full h-[720px] flex items-center justify-center [perspective:1500px]">
-            {/* Resplandor violeta/azul de fondo */}
-            <div className="absolute top-12 left-12 w-[300px] h-[450px] bg-indigo-600/30 blur-[120px] rounded-full -z-10 pointer-events-none" />
+          {/* iPhone 15 Pro mockup isométrico */}
+          <div className="relative mx-auto lg:mx-0 w-[300px] sm:w-[320px] h-[640px] flex items-center justify-center [perspective:2000px] mt-12 lg:mt-0">
 
-            {/* Contenedor con rotación 3D */}
+            {/* Glow de fondo */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[400px] bg-indigo-600/30 blur-[100px] rounded-full -z-10 pointer-events-none" />
+
+            {/* Contenedor rotado */}
             <div
-              className="relative w-[300px] h-[610px] [transform-style:preserve-3d] [transform:rotateY(-18deg)_rotateX(10deg)_rotateZ(3deg)] transition-all duration-500 ease-out hover:[transform:rotateY(-14deg)_rotateX(8deg)_rotateZ(2deg)_scale(1.02)]"
+              className="relative w-full h-full transition-transform duration-700 ease-out hover:scale-105 [transform-style:preserve-3d]"
+              style={{ transform: 'rotateY(-25deg) rotateX(15deg) rotateZ(5deg)' }}
             >
-              {/* Extrusión: borde lateral metálico (titanio) */}
-              <div
-                className="absolute inset-0 rounded-[44px] bg-gradient-to-r from-[#8e8e93] via-[#c7c7cc] to-[#3a3a3c] border border-white/20 shadow-2xl z-0"
-                style={{ transform: 'translate3d(-9px, 0, -8px)' }}
-              />
 
-              {/* Sombra proyectada en el piso */}
-              <div
-                className="absolute -inset-x-12 bottom-[-40px] h-12 bg-black/50 blur-[30px] rounded-full pointer-events-none"
-                style={{ transform: 'rotateX(80deg) translateZ(-20px)' }}
-              />
+              {/* Grosor del teléfono (extrusión 3D fake): lateral metálico izquierdo/abajo */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#71717a] to-[#3f3f46] rounded-[48px] translate-x-[-14px] translate-y-[10px] shadow-2xl border border-white/10" />
 
-              {/* Botones físicos del lateral izquierdo */}
-              <div className="absolute top-[80px] -left-[11px] w-[2px] h-[15px] bg-[#a2a2a7] rounded-l border-r border-black/30" style={{ transform: 'translateZ(-2px)' }} />
-              <div className="absolute top-[115px] -left-[11px] w-[2px] h-[35px] bg-[#a2a2a7] rounded-l border-r border-black/30" style={{ transform: 'translateZ(-2px)' }} />
-              <div className="absolute top-[160px] -left-[11px] w-[2px] h-[35px] bg-[#a2a2a7] rounded-l border-r border-black/30" style={{ transform: 'translateZ(-2px)' }} />
-
-              {/* Chasis frontal / pantalla */}
-              <div className="absolute inset-0 rounded-[42px] border-[10px] border-[#1c1c1e] bg-[#09090b] shadow-[inset_0_0_2px_rgba(255,255,255,0.4)] overflow-visible z-10 [transform:translateZ(4px)]">
-                <div className="absolute inset-[0px] rounded-[32px] border border-white/10 pointer-events-none z-40" />
+              {/* Chasis principal y pantalla */}
+              <div className="absolute inset-0 bg-[#09090b] rounded-[48px] border-[6px] border-[#27272a] shadow-[inset_0_0_10px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-10">
 
                 {/* Dynamic Island */}
-                <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-[85px] h-[24px] bg-[#000] rounded-full z-50 flex items-center justify-end px-2.5 gap-0.5 shadow-inner">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#0d0d0d] border border-zinc-900" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#04040a] border border-[#121212]" />
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[90px] h-[28px] bg-black rounded-full z-50 flex items-center justify-end px-3 gap-1.5 shadow-[0_0_0_1px_rgba(255,255,255,0.05)]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#111] border border-white/10" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#05050e] border border-white/10" />
                 </div>
 
-                {/* Auricular */}
-                <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-black/40 rounded-full z-40" />
+                {/* Marcos de pantalla (padding negro) y contenido */}
+                <div className="flex-1 w-full h-full bg-black pt-14 pb-6 px-4 flex flex-col relative">
 
-                {/* Pantalla interna */}
-                <div className="relative w-full h-full rounded-[32px] overflow-hidden bg-gradient-to-b from-[#0e0c15] to-[#040409] flex flex-col pt-10 pb-5 px-3">
-                  <div className="flex justify-between items-center text-[9px] font-semibold text-white/90 px-3 absolute top-3 left-0 right-0 z-30 pointer-events-none">
-                    <span>9:41</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="scale-[0.8] opacity-80">📶</span>
-                      <span className="scale-[0.8] opacity-80">🔋</span>
-                    </div>
-                  </div>
+                  {/* Barra de estado */}
+                  <div className="absolute top-4 left-5 text-[10px] font-bold text-white/90">9:41</div>
+                  <div className="absolute top-4 right-5 flex gap-1 text-[10px] text-white/90">📶 🔋</div>
 
-                  <p className="text-center font-bold text-base text-white/90 mt-1 mb-3 tracking-wider select-none">
-                    calificar
-                  </p>
+                  <p className="text-center font-bold text-white text-base mb-3 tracking-wide">calificar</p>
 
-                  {/* Tarjeta violeta (estilo Wallet) */}
-                  <div className="flex-1 flex flex-col justify-between bg-gradient-to-b from-[#6b21a8] to-[#3b0764] rounded-[24px] p-4 border border-violet-500/35 shadow-[0_8px_32px_rgba(107,33,168,0.4)]">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-violet-600/40 border border-violet-300/35 flex items-center justify-center text-white text-base shadow-inner">
+                  {/* Tarjeta violeta tipo Wallet */}
+                  <div className="flex-1 bg-gradient-to-b from-violet-600 to-violet-950 rounded-[28px] p-5 border border-violet-400/30 flex flex-col justify-between shadow-lg relative overflow-hidden">
+
+                    {/* Brillo superior */}
+                    <div className="absolute top-0 left-0 right-0 h-20 bg-white/5 blur-xl" />
+
+                    <div className="flex flex-col items-center gap-2 relative z-10">
+                      <div className="w-12 h-12 rounded-full bg-violet-500/50 border border-violet-300/40 flex items-center justify-center text-white text-xl shadow-inner">
                         ★
                       </div>
                       <div className="text-center">
-                        <h2 className="text-white font-extrabold text-xs tracking-wide">La Cocina Fidelidad</h2>
-                        <p className="text-violet-300/80 text-[8px] font-semibold">La Cocina</p>
+                        <h2 className="text-white font-extrabold text-sm">La Cocina Fidelidad</h2>
+                        <p className="text-violet-300 text-[10px] font-medium">La Cocina</p>
                       </div>
                     </div>
 
-                    <div className="my-2">
-                      <p className="text-violet-200/90 text-[8px] font-semibold mb-2 pl-1 select-none">María García</p>
-                      <div className="flex justify-between gap-1.5">
-                        {[-6, 3, -4].map((deg, i) => (
-                          <div key={i} className="flex-1 aspect-square rounded-full bg-white flex items-center justify-center shadow-lg" style={{ transform: `rotate(${deg}deg)` }}>
-                            <span className="text-violet-800 text-[10px] font-black">★</span>
-                          </div>
-                        ))}
-                        {[3, 4].map(i => (
-                          <div key={i} className="flex-1 aspect-square rounded-full bg-black/40 border border-violet-400/20 flex items-center justify-center">
-                            <span className="text-violet-400/15 text-[10px]">★</span>
-                          </div>
-                        ))}
+                    <div className="my-2 relative z-10">
+                      <p className="text-violet-200 text-[10px] font-medium mb-2">María García</p>
+                      <div className="flex justify-between gap-2">
+                        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-md transform -rotate-6"><span className="text-violet-800 text-xs font-bold">★</span></div>
+                        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-md transform rotate-3"><span className="text-violet-800 text-xs font-bold">★</span></div>
+                        <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-md transform -rotate-3"><span className="text-violet-800 text-xs font-bold">★</span></div>
+                        <div className="w-9 h-9 rounded-full bg-black/30 border border-violet-400/20 flex items-center justify-center"><span className="text-violet-400/20 text-xs">★</span></div>
+                        <div className="w-9 h-9 rounded-full bg-black/30 border border-violet-400/20 flex items-center justify-center"><span className="text-violet-400/20 text-xs">★</span></div>
                       </div>
-                      <div className="flex justify-between text-[7.5px] text-violet-300/80 mt-3 px-1 font-bold">
+                      <div className="flex justify-between text-[9px] text-violet-300 mt-4 font-semibold px-1">
                         <span>5 sellos</span>
                         <span>Premio: Café gratis</span>
                       </div>
                     </div>
 
-                    <button type="button" className="w-full bg-black border border-zinc-800 rounded-xl py-2 px-3 flex items-center justify-center gap-2 transition hover:bg-zinc-900 active:scale-[0.98]">
-                      <span className="text-[9px] text-white font-semibold flex items-center gap-1.5">
-                        💳 Guardar en Google Wallet
-                      </span>
+                    <button type="button" className="w-full bg-black border border-zinc-700/50 hover:bg-zinc-900 rounded-xl py-3 flex items-center justify-center gap-2 transition relative z-10">
+                      <span className="text-[11px] text-white font-semibold">💳 Guardar en Google Wallet</span>
                     </button>
                   </div>
 
-                  <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-[3px] bg-white/30 rounded-full z-40 pointer-events-none" />
+                  {/* Home bar iOS */}
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/30 rounded-full" />
                 </div>
               </div>
 
-              {/* Popups flotantes: desplazados en Z para salirse de la pantalla */}
+              {/* Popups flotantes (translateZ para flotar fuera del teléfono) */}
               <div
-                className="absolute left-[-24px] bottom-[140px] bg-violet-600 border border-violet-400/50 rounded-2xl p-4 shadow-[-20px_20px_40px_rgba(0,0,0,0.5)] flex flex-col z-30"
-                style={{ transform: 'translateZ(45px) rotateY(10deg)' }}
+                className="absolute -left-12 bottom-24 bg-violet-500 rounded-2xl p-4 shadow-[0_20px_40px_rgba(0,0,0,0.6)] border border-violet-400 flex flex-col z-50 transition-transform duration-300 hover:scale-110"
+                style={{ transform: 'translateZ(80px)' }}
               >
-                <span className="text-[9px] text-violet-200/95 font-bold uppercase tracking-wider">Sellos sumados</span>
-                <span className="text-2xl font-black text-white mt-0.5 tracking-tight drop-shadow-md">847</span>
+                <span className="text-[10px] text-violet-100 font-bold uppercase tracking-wider">Sellos sumados</span>
+                <span className="text-3xl font-black text-white leading-none mt-1">847</span>
               </div>
 
               <div
-                className="absolute right-[-28px] top-[150px] bg-white border border-zinc-200 rounded-2xl p-4 shadow-[20px_20px_40px_rgba(0,0,0,0.4)] flex flex-col gap-0.5 z-30"
-                style={{ transform: 'translateZ(55px) rotateY(-8deg)' }}
+                className="absolute -right-8 top-32 bg-white rounded-2xl p-4 shadow-[0_20px_40px_rgba(0,0,0,0.6)] border border-zinc-200 flex flex-col z-50 transition-transform duration-300 hover:scale-110"
+                style={{ transform: 'translateZ(60px)' }}
               >
-                <span className="text-[9.5px] text-zinc-500 font-bold uppercase tracking-wider whitespace-nowrap">Nuevos clientes hoy</span>
-                <span className="text-[26px] leading-8 font-black text-zinc-950 mt-0.5 tracking-tight">+12</span>
+                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Nuevos clientes</span>
+                <span className="text-3xl font-black text-black leading-none mt-1">+12</span>
               </div>
+
             </div>
           </div>
         </div>
