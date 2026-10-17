@@ -748,17 +748,24 @@ export default function ViewTarjeta({
             <div className="absolute right-[-13px] top-36 w-[3px] h-20 bg-zinc-700 rounded-r" />
 
             {/* Display */}
-            <div className={`w-full h-full overflow-hidden bg-white dark:bg-zinc-950 ${previewDevice === 'ios' ? 'rounded-[2.2rem]' : 'rounded-[1.6rem]'}`}>
-              <div className="px-7 pt-3 pb-2 flex items-center justify-between">
-                <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">9:41</span>
-                <div className="flex gap-1.5 items-center">
-                  <div className="w-5 h-2.5 rounded-sm bg-zinc-400" />
-                  <div className="w-2 h-2 rounded-full bg-zinc-400" />
+            <div
+              className={`relative w-full h-full overflow-hidden ${previewDevice === 'ios' ? 'rounded-[2.2rem]' : 'rounded-[1.6rem]'}`}
+              style={{ backgroundColor: pageBgColor }}
+            >
+              {/* Barra de estado sobre el fondo de página */}
+              <div
+                className="absolute top-0 inset-x-0 px-7 pt-3.5 flex items-center justify-between z-10"
+                style={{ color: isLightColor(pageBgColor) ? '#18181b' : '#ffffff' }}
+              >
+                <span className="text-xs font-semibold">9:41</span>
+                <div className="flex gap-1.5 items-center opacity-80">
+                  <div className="w-5 h-2.5 rounded-sm bg-current" />
+                  <div className="w-2 h-2 rounded-full bg-current" />
                 </div>
               </div>
 
               {/* Card preview — reactive to live state */}
-              <div className="mx-3 mb-4 rounded-3xl overflow-hidden shadow-lg"
+              <div className="mx-4 mt-14 mb-4 rounded-3xl overflow-hidden shadow-2xl"
                 style={{ background: `linear-gradient(145deg, ${cardColor}f0, ${cardColor}a0)` }}>
                 <div className="px-5 pt-6 pb-4 flex items-center justify-between">
                   <div>
@@ -819,8 +826,8 @@ export default function ViewTarjeta({
               </div>
 
               {/* QR preview */}
-              <div className="mx-3 mb-4 bg-white rounded-3xl p-5 text-center shadow-sm">
-                <p className="text-[10px] text-zinc-400 mb-3 uppercase tracking-widest font-medium">Mostrá este QR</p>
+              <div className="mx-4 bg-white rounded-3xl p-5 text-center shadow-sm">
+                <p className="text-[10px] text-zinc-400 mb-3 uppercase tracking-widest font-medium">Mostrá este QR en el local</p>
                 <div className="flex justify-center">
                   <div className="w-36 h-36 bg-zinc-100 rounded-2xl flex items-center justify-center">
                     <span className="text-5xl">▦</span>
@@ -828,15 +835,11 @@ export default function ViewTarjeta({
                 </div>
               </div>
 
-              {/* Bottom nav hint */}
-              <div className="mx-3 px-4 py-3 bg-white rounded-2xl shadow-sm flex items-center justify-around">
-                {['🏠', '🎁', '📋', '👤'].map((icon, i) => (
-                  <div key={i} className={`flex flex-col items-center gap-1 ${i === 0 ? 'opacity-100' : 'opacity-30'}`}>
-                    <span className="text-lg">{icon}</span>
-                    <div className={`w-1 h-1 rounded-full ${i === 0 ? 'bg-violet-500' : 'bg-transparent'}`} />
-                  </div>
-                ))}
-              </div>
+              {/* Barra de inicio */}
+              {previewDevice === 'ios' && (
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-28 h-1 rounded-full"
+                  style={{ background: isLightColor(pageBgColor) ? '#18181b66' : '#ffffff66' }} />
+              )}
             </div>
           </div>
 
@@ -846,4 +849,14 @@ export default function ViewTarjeta({
       </div>{/* end two-column flex */}
     </div>
   )
+}
+
+/** true si el color hex es claro (para elegir texto oscuro/claro encima) */
+function isLightColor(hex: string): boolean {
+  const h = hex.replace('#', '')
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h.slice(0, 6)
+  const n = parseInt(full, 16)
+  if (Number.isNaN(n)) return false
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6
 }
