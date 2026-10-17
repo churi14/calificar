@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { QRCanvas } from '@/app/fidelizacion/tarjeta/QRCanvas'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import type { Program, Milestone } from '@/types/dashboard'
 
@@ -733,7 +734,7 @@ export default function ViewTarjeta({
 
           {/* Phone frame */}
           <div
-            className={`relative w-[340px] h-[700px] border-[10px] border-zinc-800 bg-zinc-800 shadow-xl ${previewDevice === 'ios' ? 'rounded-[3rem]' : 'rounded-[2.2rem]'}`}
+            className={`relative w-[380px] h-[780px] border-[10px] border-zinc-800 bg-zinc-800 shadow-xl ${previewDevice === 'ios' ? 'rounded-[3rem]' : 'rounded-[2.2rem]'}`}
           >
             {/* Cámara / notch */}
             {previewDevice === 'ios' ? (
@@ -747,15 +748,15 @@ export default function ViewTarjeta({
             <div className="absolute left-[-13px] top-56 w-[3px] h-14 bg-zinc-700 rounded-l" />
             <div className="absolute right-[-13px] top-36 w-[3px] h-20 bg-zinc-700 rounded-r" />
 
-            {/* Display */}
+            {/* Display: muestra la página real de la tarjeta (390px de ancho) escalada al celu */}
             <div
               className={`relative w-full h-full overflow-hidden ${previewDevice === 'ios' ? 'rounded-[2.2rem]' : 'rounded-[1.6rem]'}`}
               style={{ backgroundColor: pageBgColor }}
             >
-              {/* Barra de estado sobre el fondo de página */}
+              {/* Barra de estado */}
               <div
                 className="absolute top-0 inset-x-0 px-7 pt-3.5 flex items-center justify-between z-10"
-                style={{ color: isLightColor(pageBgColor) ? '#18181b' : '#ffffff' }}
+                style={{ color: isDarkColor(pageBgColor) ? '#ffffff' : '#18181b' }}
               >
                 <span className="text-xs font-semibold">9:41</span>
                 <div className="flex gap-1.5 items-center opacity-80">
@@ -764,81 +765,163 @@ export default function ViewTarjeta({
                 </div>
               </div>
 
-              {/* Card preview — reactive to live state */}
-              <div className="mx-4 mt-14 mb-4 rounded-3xl overflow-hidden shadow-2xl"
-                style={{ background: `linear-gradient(145deg, ${cardColor}f0, ${cardColor}a0)` }}>
-                <div className="px-5 pt-6 pb-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium mb-1" style={{ color: `${cardTextColor}99` }}>Juan García</p>
-                    <p className="text-lg font-extrabold leading-tight" style={{ color: cardTextColor }}>
-                      {program.businesses?.name ?? program.name}
-                    </p>
-                  </div>
-                  {program.logo_url ? (
-                    <div className="w-14 h-14 rounded-2xl bg-white shadow flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      <img src={program.logo_url} alt="" className="w-11 h-11 object-contain" />
-                    </div>
-                  ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-lg font-extrabold" style={{ color: cardTextColor }}>
-                      {(program.businesses?.name ?? program.name).charAt(0)}
-                    </div>
-                  )}
-                </div>
-                <div className="px-5 pb-3 relative">
-                  {cardBgUrl && (
-                    <div className="absolute inset-0 rounded-lg overflow-hidden"
-                      style={{ backgroundImage: `url(${cardBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.25 }} />
-                  )}
-                  <div className="relative grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(program.stamps_goal, 5)}, 1fr)` }}>
-                    {Array.from({ length: Math.min(program.stamps_goal, 10) }).map((_, i) => {
-                      const previewIcon = stampIconUrl ?? program.logo_url
-                      const filled = i < 3
-                      return previewIcon ? (
-                        stampNoBg ? (
-                          <div key={i} className="aspect-square flex items-center justify-center p-1">
-                            <img src={previewIcon} alt="" className="w-full h-full object-contain"
-                              style={filled ? {} : { filter: 'grayscale(100%) opacity(0.25)' }} />
+              <div className="flex flex-col items-center origin-top-left" style={{ width: 390, height: 823, transform: 'scale(0.9231)' }}>
+
+                {/* ── TARJETA ── */}
+                <div className="w-full max-w-sm px-4 pt-10 pb-2">
+                  <div className="relative rounded-3xl overflow-hidden shadow-2xl"
+                    style={{ background: `linear-gradient(145deg, ${cardColor}f0, ${cardColor}bb)` }}>
+                    {cardBgUrl && (
+                      <div className="absolute inset-0"
+                        style={{ backgroundImage: `url(${cardBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.3 }} />
+                    )}
+                    {cardBgUrl && (
+                      <div className="absolute inset-0" style={{ background: `${cardColor}99` }} />
+                    )}
+                    {/* Header */}
+                    <div className="relative px-6 pt-7 pb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-medium mb-0.5" style={{ color: `${cardTextColor}99` }}>Juan García</p>
+                        <p className="font-extrabold text-xl leading-tight" style={{ color: cardTextColor }}>
+                          {program.businesses?.name ?? program.name}
+                        </p>
+                      </div>
+                      {(appIconUrl || program.logo_url) ? (
+                        appIconUrl ? (
+                          <div className="w-14 h-14 rounded-2xl flex-shrink-0 overflow-hidden">
+                            <img src={appIconUrl} alt="" className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          <div key={i} className={`aspect-square rounded-xl flex items-center justify-center p-2 ${filled ? 'bg-white shadow' : 'bg-white/15'}`}>
-                            <img src={previewIcon} alt="" className="w-full h-full object-contain"
-                              style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
+                          <div className="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            <img src={program.logo_url!} alt="" className="w-11 h-11 object-contain" />
                           </div>
                         )
                       ) : (
-                        <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-base font-bold ${filled ? 'bg-white shadow' : 'bg-white/15'}`}
-                          style={filled ? { color: cardColor } : { color: 'rgba(255,255,255,0.35)' }}>
-                          {filled ? '✓' : '·'}
+                        <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-xl font-extrabold" style={{ color: cardTextColor }}>
+                          {(program.businesses?.name ?? program.name).charAt(0).toUpperCase()}
                         </div>
-                      )
-                    })}
+                      )}
+                    </div>
+                    {/* Grid sellos */}
+                    <div className="relative px-6 pb-4">
+                      <div className="grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(program.stamps_goal, 5)}, 1fr)` }}>
+                        {Array.from({ length: Math.min(program.stamps_goal, 10) }).map((_, i) => {
+                          const previewIcon = stampIconUrl ?? program.logo_url
+                          const filled = i < 3
+                          return previewIcon ? (
+                            stampNoBg ? (
+                              <div key={i} className="aspect-square flex items-center justify-center p-1">
+                                <img src={previewIcon} alt="" className="w-full h-full object-contain"
+                                  style={filled ? {} : { filter: 'grayscale(100%) opacity(0.25)' }} />
+                              </div>
+                            ) : (
+                              <div key={i} className={`aspect-square rounded-2xl flex items-center justify-center p-2 ${filled ? 'bg-white shadow-md' : 'bg-white/15'}`}>
+                                <img src={previewIcon} alt="" className="w-full h-full object-contain"
+                                  style={filled ? {} : { filter: 'grayscale(100%) brightness(1.5) opacity(0.3)' }} />
+                              </div>
+                            )
+                          ) : (
+                            <div key={i} className={`aspect-square rounded-full flex items-center justify-center text-base font-bold ${filled ? 'bg-white shadow-md' : 'bg-white/15'}`}
+                              style={filled ? { color: cardColor } : { color: 'rgba(255,255,255,0.35)' }}>
+                              {filled ? '✓' : '·'}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                    {/* Escalera de recompensas */}
+                    {milestones.length > 0 && (
+                      <div className="relative px-6 pb-3">
+                        <div className="relative">
+                          <div className="absolute top-3 left-0 right-0 h-0.5 rounded-full" style={{ background: `${cardTextColor}25` }} />
+                          <div className="absolute top-3 left-0 h-0.5 rounded-full"
+                            style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: `${cardTextColor}70` }} />
+                          <div className="flex justify-between relative">
+                            {milestones.map(m => {
+                              const reached = 3 >= m.at
+                              return (
+                                <div key={m.at} className="flex flex-col items-center" style={{ position: 'absolute', left: `${(m.at / program.stamps_goal) * 100}%`, transform: 'translateX(-50%)' }}>
+                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 ${reached ? 'border-white' : 'border-white/30'}`}
+                                    style={{ background: reached ? cardTextColor : 'transparent', color: reached ? cardColor : `${cardTextColor}60` }}>
+                                    🎁
+                                  </div>
+                                  <p className="text-[9px] mt-1 text-center leading-tight max-w-[52px]"
+                                    style={{ color: reached ? cardTextColor : `${cardTextColor}60` }}>
+                                    {m.label}
+                                  </p>
+                                </div>
+                              )
+                            })}
+                            <div className="flex flex-col items-center" style={{ position: 'absolute', left: '100%', transform: 'translateX(-50%)' }}>
+                              <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 border-white/30"
+                                style={{ background: 'transparent', color: `${cardTextColor}60` }}>
+                                🏆
+                              </div>
+                              <p className="text-[9px] mt-1 text-center leading-tight max-w-[52px]" style={{ color: `${cardTextColor}60` }}>
+                                {program.reward_description}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="h-10" />
+                        </div>
+                      </div>
+                    )}
+                    {/* Progreso */}
+                    <div className="relative px-6 py-5">
+                      <div className="flex justify-between text-xs mb-2" style={{ color: `${cardTextColor}b3` }}>
+                        <span className="font-bold text-sm" style={{ color: cardTextColor }}>3 de {program.stamps_goal} sellos</span>
+                        {milestones.length === 0 && <span>{program.reward_description}</span>}
+                      </div>
+                      <div className="rounded-full h-2" style={{ background: `${cardTextColor}30` }}>
+                        <div className="h-2 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="px-5 py-4">
-                  <div className="flex justify-between text-xs mb-2" style={{ color: `${cardTextColor}b3` }}>
-                    <span className="font-semibold" style={{ color: cardTextColor }}>3 de {program.stamps_goal}</span>
-                    <span className="truncate max-w-[140px]">{program.reward_description}</span>
-                  </div>
-                  <div className="rounded-full h-2" style={{ background: `${cardTextColor}33` }}>
-                    <div className="h-2 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
-                  </div>
-                </div>
-              </div>
 
-              {/* QR preview */}
-              <div className="mx-4 bg-white rounded-3xl p-5 text-center shadow-sm">
-                <p className="text-[10px] text-zinc-400 mb-3 uppercase tracking-widest font-medium">Mostrá este QR en el local</p>
-                <div className="flex justify-center">
-                  <div className="w-36 h-36 bg-zinc-100 rounded-2xl flex items-center justify-center">
-                    <span className="text-5xl">▦</span>
+                {/* ── SECCIÓN INFERIOR ── */}
+                <div className="w-full max-w-sm px-4 mt-4 flex flex-col gap-3">
+                  {/* QR */}
+                  <div className={`rounded-3xl p-6 text-center ${isDarkColor(pageBgColor) ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+                    <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${isDarkColor(pageBgColor) ? 'text-white/70' : 'text-zinc-500'}`}>
+                      Mostrá este QR en el local
+                    </p>
+                    <p className={`text-xs mb-4 ${isDarkColor(pageBgColor) ? 'text-white/50' : 'text-zinc-400'}`}>para sumar tu sello</p>
+                    <div className="flex justify-center">
+                      <QRCanvas
+                        data={`https://calificar.com.ar/fidelizacion/stamp?program=${program.id}&card=preview`}
+                        dark={isDarkColor(pageBgColor) ? '#FFFFFF' : '#18181B'}
+                        size={240}
+                      />
+                    </div>
+                    <p className={`text-[11px] mt-4 ${isDarkColor(pageBgColor) ? 'text-white/50' : 'text-zinc-400'}`}>El encargado escanea y se suma automáticamente</p>
                   </div>
+
+                  {/* Wallet */}
+                  {previewDevice === 'ios' ? (
+                    <div className="flex items-center justify-center gap-2 bg-black text-white font-bold px-6 py-4 rounded-full text-sm shadow-lg border border-white/10">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.18 1.27-2.16 3.8.02 3.02 2.65 4.03 2.68 4.04l-.07.28zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                      </svg>
+                      Agregar a Apple Wallet
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 bg-zinc-900 text-white font-bold px-6 py-4 rounded-full text-sm shadow-lg border border-white/10">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21.56 10.738l-9.52-9.52A1.5 1.5 0 0010.978.5H3.5A3 3 0 00.5 3.5v7.478c0 .398.158.78.44 1.062l9.52 9.52a3 3 0 004.242 0l6.858-6.858a3 3 0 000-4.243zM5.5 8a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
+                      </svg>
+                      Agregar a Google Wallet
+                    </div>
+                  )}
+
+                  <p className="text-center text-sm font-semibold" style={{ color: `${cardTextColor}cc` }}>✓ Notificaciones activadas</p>
                 </div>
               </div>
 
               {/* Barra de inicio */}
               {previewDevice === 'ios' && (
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-28 h-1 rounded-full"
-                  style={{ background: isLightColor(pageBgColor) ? '#18181b66' : '#ffffff66' }} />
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-28 h-1 rounded-full z-10"
+                  style={{ background: isDarkColor(pageBgColor) ? '#ffffff66' : '#18181b66' }} />
               )}
             </div>
           </div>
@@ -851,12 +934,12 @@ export default function ViewTarjeta({
   )
 }
 
-/** true si el color hex es claro (para elegir texto oscuro/claro encima) */
-function isLightColor(hex: string): boolean {
+/** misma lógica que la página real de la tarjeta: true si el fondo es oscuro */
+function isDarkColor(hex: string): boolean {
   const h = hex.replace('#', '')
-  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h.slice(0, 6)
-  const n = parseInt(full, 16)
-  if (Number.isNaN(n)) return false
-  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6
+  if (h.length < 6) return true
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return (r * 299 + g * 587 + b * 114) / 1000 < 128
 }
