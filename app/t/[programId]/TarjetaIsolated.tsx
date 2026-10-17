@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { QRCanvas } from '../../fidelizacion/tarjeta/QRCanvas'
 import IOSPWAPrompt from './IOSPWAPrompt'
+import { wheelTargetAngle } from '@/lib/wheel'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,6 +66,7 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
   const [spinning, setSpinning] = useState(false)
   const [spinAngle, setSpinAngle] = useState(0)
   const [spinResult, setSpinResult] = useState<{ label: string; type: string; value: number; color: string; coupon_code: string | null } | null>(null)
+  const [spinExtra, setSpinExtra] = useState<{ kind: 'milestone' | 'reward'; label: string; code: string }[]>([])
   const [spinCooldown, setSpinCooldown] = useState(false)
   const [spinNextAt, setSpinNextAt] = useState<string | null>(null)
   const [showSpinModal, setShowSpinModal] = useState(false)
@@ -380,17 +382,10 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
     if (!cardId || !wheelSettings || spinning) return
     setSpinning(true)
     setSpinResult(null)
-
-    // Animación: girar 5 vueltas + ángulo del resultado
-    const baseRotations = 5 * 360
-    const randomExtra = Math.floor(Math.random() * 360)
-    const targetAngle = spinAngle + baseRotations + randomExtra
-    setSpinAngle(targetAngle)
-
-    // Esperar que termine la animación (2.5s) y luego llamar a la API
-    await new Promise(r => setTimeout(r, 2500))
+    setSpinExtra([])
 
     try {
+      // Primero el servidor sortea el premio; después la rueda gira hasta ese segmento
       const res = await fetch('/api/fidelizacion/spin-wheel/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -401,16 +396,26 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
       if (res.status === 429) {
         setSpinCooldown(true)
         setSpinNextAt(data.next_spin_at ?? null)
-      } else if (data.prize) {
+        setSpinning(false)
+        return
+      }
+
+      if (data.prize) {
+        if (typeof data.prize_index === 'number' && data.prize_index >= 0) {
+          setSpinAngle(wheelTargetAngle(spinAngle, wheelSettings.prizes, data.prize_index))
+        }
+        // Esperar que termine la animación (2.5s)
+        await new Promise(r => setTimeout(r, 2500))
         setSpinResult(data.prize)
+        setSpinExtra(data.extra_coupons ?? [])
         if (data.new_stamps !== undefined) {
           setCard(prev => prev ? { ...prev, stamps: data.new_stamps } : prev)
         }
+        setShowSpinModal(true)
       }
     } catch { /* silencioso */ }
 
     setSpinning(false)
-    setShowSpinModal(true)
   }
 
   const program = card.loyalty_programs
@@ -743,6 +748,18 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
               {spinResult.type === 'none' && (
                 <p className="text-zinc-500 text-sm">¡No te desanimes, volvé mañana!</p>
               )}
+              {spinExtra.map((c, i) => (
+                <div key={i} className="mt-4 text-left">
+                  <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-1">
+                    {c.kind === 'reward' ? '¡Completaste la tarjeta! 🏆' : '¡Llegaste a un hito! 🎁'}
+                  </p>
+                  <p className="text-sm font-semibold text-zinc-800 mb-2">{c.label}</p>
+                  <div className="bg-zinc-900 rounded-xl px-4 py-3 text-center">
+                    <p className="text-lg font-mono font-extrabold text-white tracking-widest">{c.code}</p>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-1 text-center">Mostralo al encargado — un solo uso</p>
+                </div>
+              ))}
               <button
                 onClick={() => setShowSpinModal(false)}
                 className="mt-5 w-full font-bold py-3 rounded-full text-sm text-white"

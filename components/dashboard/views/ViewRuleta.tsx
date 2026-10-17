@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { wheelTargetAngle, weightedIndex } from '@/lib/wheel'
 
 // ── tipos y constantes ────────────────────────────────────────────────────────
 type SpinPrize = {
@@ -26,7 +27,7 @@ const DEFAULT_PRIZES: SpinPrize[] = [
 ]
 
 // ── rueda SVG ─────────────────────────────────────────────────────────────────
-function WheelPreview({ prizes }: { prizes: SpinPrize[] }) {
+function WheelPreview({ prizes, angle = 0, spinning = false }: { prizes: SpinPrize[]; angle?: number; spinning?: boolean }) {
   const total = prizes.reduce((s, p) => s + p.probability, 0) || 1
   let cumAngle = 0
   const segments = prizes.map(p => {
@@ -45,6 +46,12 @@ function WheelPreview({ prizes }: { prizes: SpinPrize[] }) {
 
   return (
     <svg viewBox="0 0 240 240" className="w-full max-w-[220px] mx-auto drop-shadow-xl">
+      {/* Segmentos: giran. El puntero y el centro quedan fijos. */}
+      <g style={{
+        transform: `rotate(${angle}deg)`,
+        transformOrigin: '120px 120px',
+        transition: spinning ? 'transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+      }}>
       {segments.map((seg, i) => {
         const start = polarToCartesian(cx, cy, r, seg.startAngle)
         const end   = polarToCartesian(cx, cy, r, seg.startAngle + seg.angle)
@@ -73,6 +80,7 @@ function WheelPreview({ prizes }: { prizes: SpinPrize[] }) {
           </g>
         )
       })}
+      </g>
       {/* Centro */}
       <circle cx={cx} cy={cy} r={16} fill="white" stroke="#e5e7eb" strokeWidth="2" />
       <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize="14">🎰</text>
@@ -86,10 +94,11 @@ function WheelPreview({ prizes }: { prizes: SpinPrize[] }) {
 interface ViewRuletaProps {
   selectedProgram: string | null
   isPro: boolean
+  accessToken?: string
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewRuleta({ selectedProgram, isPro }: ViewRuletaProps) {
+export default function ViewRuleta({ selectedProgram, isPro, accessToken }: ViewRuletaProps) {
   const [cfg, setCfg] = useState<{
     enabled:    boolean
     frequency:  'daily' | 'weekly'
@@ -98,10 +107,40 @@ export default function ViewRuleta({ selectedProgram, isPro }: ViewRuletaProps) 
   const [saving,     setSaving]     = useState(false)
   const [saved,      setSaved]      = useState(false)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
+  const [saveError,  setSaveError]  = useState('')
+  // Simulación (no crea sellos ni cupones reales)
+  const [demoAngle,    setDemoAngle]    = useState(0)
+  const [demoSpinning, setDemoSpinning] = useState(false)
+  const [demoResult,   setDemoResult]   = useState<{ prize: SpinPrize; code: string | null } | null>(null)
+
+  // La API exige el token del dueño del programa
+  const authHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  }
+
+  function spinDemo() {
+    if (demoSpinning || cfg.prizes.length < 2) return
+    const idx = weightedIndex(cfg.prizes)
+    setDemoResult(null)
+    setDemoSpinning(true)
+    setDemoAngle(a => wheelTargetAngle(a, cfg.prizes, idx))
+    setTimeout(() => {
+      const prize = cfg.prizes[idx]
+      let code: string | null = null
+      if (prize.type === 'coupon') {
+        const clean = (prize.coupon_prefix ?? prize.label).substring(0, 6).toUpperCase().replace(/\s/g, '')
+        const part = () => Math.random().toString(36).substring(2, 6).toUpperCase()
+        code = `${clean}-${part()}-${part()}`
+      }
+      setDemoResult({ prize, code })
+      setDemoSpinning(false)
+    }, 2500)
+  }
 
   useEffect(() => {
     if (!selectedProgram) return
-    fetch(`/api/fidelizacion/spin-wheel?program_id=${selectedProgram}&owner=1`)
+    fetch(`/api/fidelizacion/spin-wheel?program_id=${selectedProgram}&owner=1`, { headers: authHeaders })
       .then(r => r.json())
       .then(d => {
         if (d.settings)
@@ -111,16 +150,21 @@ export default function ViewRuleta({ selectedProgram, isPro }: ViewRuletaProps) 
             prizes: d.settings.prizes?.length ? d.settings.prizes : DEFAULT_PRIZES,
           }))
       })
-  }, [selectedProgram])
+  }, [selectedProgram, accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
     setSaving(true)
-    await fetch('/api/fidelizacion/spin-wheel', {
+    setSaveError('')
+    const r = await fetch('/api/fidelizacion/spin-wheel', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body:    JSON.stringify({ program_id: selectedProgram, ...cfg }),
     })
     setSaving(false)
+    if (!r.ok) {
+      setSaveError(r.status === 401 ? 'No autorizado. Volvé a iniciar sesión.' : 'No se pudo guardar. Intentá de nuevo.')
+      return
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -370,17 +414,61 @@ export default function ViewRuleta({ selectedProgram, isPro }: ViewRuletaProps) 
           >
             {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
           </button>
+          {saveError && <p className="text-sm text-red-500">{saveError}</p>}
         </div>
 
-        {/* Panel derecho: preview */}
-        <div className="lg:w-56 flex flex-col items-center gap-4">
+        {/* Panel derecho: preview interactiva */}
+        <div className="lg:w-64 flex flex-col items-center gap-4">
           <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-gray-500">Vista previa</p>
-          <WheelPreview prizes={cfg.prizes} />
+          <WheelPreview prizes={cfg.prizes} angle={demoAngle} spinning={demoSpinning} />
+          <button
+            type="button"
+            onClick={spinDemo}
+            disabled={demoSpinning || cfg.prizes.length < 2}
+            className="w-full py-3 rounded-full text-sm font-bold text-white transition-colors disabled:opacity-60"
+            style={{ background: '#7C3AED' }}
+          >
+            {demoSpinning ? '🎰 Girando…' : '🎰 Probar ruleta'}
+          </button>
           <p className="text-xs text-zinc-400 dark:text-gray-500 text-center leading-relaxed">
-            Así verá el cliente la ruleta antes de girar.
+            Demo con tus premios y probabilidades. No suma sellos ni crea cupones reales.
           </p>
         </div>
       </div>
+
+      {/* Modal de premio (igual al que ve el cliente) */}
+      {demoResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-sm bg-white rounded-3xl p-7 shadow-2xl text-center">
+            <div className="text-5xl mb-3">{demoResult.prize.type === 'none' ? '😅' : '🎉'}</div>
+            <p className="text-2xl font-extrabold text-zinc-900 mb-1">{demoResult.prize.label}</p>
+            {demoResult.prize.type === 'stamps' && demoResult.prize.value > 0 && (
+              <p className="text-zinc-500 text-sm mb-2">¡Sumaste {demoResult.prize.value} sello{demoResult.prize.value > 1 ? 's' : ''} a tu tarjeta!</p>
+            )}
+            {demoResult.prize.type === 'coupon' && demoResult.code && (
+              <>
+                <p className="text-zinc-500 text-sm mb-3">Mostrá este código al encargado:</p>
+                <div className="bg-zinc-900 rounded-xl px-4 py-3 mb-2">
+                  <p className="text-lg font-mono font-extrabold text-white tracking-widest">{demoResult.code}</p>
+                </div>
+                <p className="text-xs text-zinc-400">Un solo uso</p>
+              </>
+            )}
+            {demoResult.prize.type === 'none' && (
+              <p className="text-zinc-500 text-sm">¡No te desanimes, volvé mañana!</p>
+            )}
+            <p className="text-[11px] text-zinc-400 mt-4">Simulación: no se creó ningún cupón real.</p>
+            <button
+              type="button"
+              onClick={() => setDemoResult(null)}
+              className="mt-3 w-full font-bold py-3 rounded-full text-sm text-white"
+              style={{ backgroundColor: '#7C3AED' }}
+            >
+              ¡Genial!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

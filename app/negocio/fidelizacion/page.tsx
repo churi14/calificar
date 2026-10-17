@@ -427,7 +427,7 @@ export default function NegocioDashboard() {
           <ViewReferencias selectedProgram={selectedProgram} isPro={true} />
         )}
         {activeNav === 'ruleta' && (
-          <ViewRuleta selectedProgram={selectedProgram} isPro={true} />
+          <ViewRuleta selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
         )}
         {activeNav === 'metricas' && (
           <ViewMetricasSucursal accessToken={accessToken} />
