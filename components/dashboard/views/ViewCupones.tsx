@@ -40,7 +40,7 @@ export default function ViewCupones({ selectedProgram, accessToken }: ViewCupone
     setLoadingCoupons(true)
     try {
       const res = await fetch(
-        `/api/fidelizacion/coupons?program_id=${selectedProgram}`,
+        `/api/fidelizacion/admin/coupons?program_id=${selectedProgram}`,
         { headers: authHeaders }
       )
       const d = await res.json()
@@ -60,16 +60,22 @@ export default function ViewCupones({ selectedProgram, accessToken }: ViewCupone
       setCouponResult(null)
     }
 
-    const res = await fetch('/api/fidelizacion/coupons/redeem', {
+    const res = await fetch('/api/fidelizacion/redeem-coupon', {
       method: 'POST',
       headers: authHeaders,
-      body: JSON.stringify({ coupon_code: code.trim(), program_id: selectedProgram }),
+      body: JSON.stringify({ coupon_code: code.trim().toUpperCase() }),
     })
-    const d = await res.json()
+    const raw = await res.json().catch(() => ({}))
+    const d: { ok: boolean; message: string } = res.ok
+      ? { ok: true, message: raw.note ? `Canjeado: ${raw.note}` : '¡Cupón canjeado!' }
+      : res.status === 409 ? { ok: false, message: 'Este cupón ya fue canjeado' }
+      : res.status === 404 ? { ok: false, message: 'Cupón no encontrado. Revisá el código.' }
+      : res.status === 401 ? { ok: false, message: 'No autorizado' }
+      : { ok: false, message: 'Error al canjear. Intentá de nuevo.' }
 
     if (rowId) {
       setRedeemingId(null)
-      setRowResult(prev => ({ ...prev, [rowId]: { ok: d.ok, message: d.message ?? (d.ok ? 'Canjeado' : 'Error') } }))
+      setRowResult(prev => ({ ...prev, [rowId]: { ok: d.ok, message: d.message } }))
       if (d.ok) {
         setTimeout(() => {
           setRowResult(prev => { const n = { ...prev }; delete n[rowId]; return n })
@@ -78,7 +84,7 @@ export default function ViewCupones({ selectedProgram, accessToken }: ViewCupone
       }
     } else {
       setCouponLoading(false)
-      setCouponResult({ ok: d.ok, message: d.message ?? (d.ok ? '¡Cupón canjeado!' : 'Código no válido') })
+      setCouponResult({ ok: d.ok, message: d.message })
       if (d.ok) {
         setCouponInput('')
         refreshList()
