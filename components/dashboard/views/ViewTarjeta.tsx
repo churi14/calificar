@@ -733,30 +733,24 @@ export default function ViewTarjeta({
 
           {/* Phone frame */}
           <div
-            className={`relative bg-zinc-900 shadow-2xl ${previewDevice === 'ios' ? 'rounded-[3rem]' : 'rounded-[2.2rem]'} w-[375px]`}
-            style={{ padding: '14px', paddingTop: previewDevice === 'ios' ? '56px' : '22px', paddingBottom: '20px' }}
+            className={`relative w-[340px] h-[700px] border-[10px] border-zinc-800 bg-zinc-800 shadow-xl ${previewDevice === 'ios' ? 'rounded-[3rem]' : 'rounded-[2.2rem]'}`}
           >
+            {/* Cámara / notch */}
             {previewDevice === 'ios' ? (
-              <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-32 h-8 bg-zinc-900 rounded-b-3xl z-10 flex items-center justify-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
-                <div className="w-16 h-5 rounded-full bg-zinc-800" />
-              </div>
+              <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-full z-20" />
             ) : (
-              <div className="absolute top-4 right-7 w-4 h-4 rounded-full bg-zinc-700 z-10" />
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-black rounded-full z-20" />
             )}
-            {previewDevice === 'ios' && (
-              <>
-                <div className="absolute left-[-4px] top-28 w-[5px] h-9 bg-zinc-700 rounded-l" />
-                <div className="absolute left-[-4px] top-44 w-[5px] h-14 bg-zinc-700 rounded-l" />
-                <div className="absolute left-[-4px] top-60 w-[5px] h-14 bg-zinc-700 rounded-l" />
-                <div className="absolute right-[-4px] top-36 w-[5px] h-20 bg-zinc-700 rounded-r" />
-              </>
-            )}
+            {/* Botones físicos */}
+            <div className="absolute left-[-13px] top-24 w-[3px] h-8 bg-zinc-700 rounded-l" />
+            <div className="absolute left-[-13px] top-40 w-[3px] h-14 bg-zinc-700 rounded-l" />
+            <div className="absolute left-[-13px] top-56 w-[3px] h-14 bg-zinc-700 rounded-l" />
+            <div className="absolute right-[-13px] top-36 w-[3px] h-20 bg-zinc-700 rounded-r" />
 
-            {/* Screen */}
-            <div className="bg-zinc-50 rounded-[2rem] overflow-hidden" style={{ minHeight: '680px' }}>
-              <div className="px-6 py-3 flex items-center justify-between">
-                <span className="text-xs font-semibold text-zinc-800">9:41</span>
+            {/* Display */}
+            <div className={`w-full h-full overflow-hidden bg-white dark:bg-zinc-950 ${previewDevice === 'ios' ? 'rounded-[2.2rem]' : 'rounded-[1.6rem]'}`}>
+              <div className="px-7 pt-3 pb-2 flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">9:41</span>
                 <div className="flex gap-1.5 items-center">
                   <div className="w-5 h-2.5 rounded-sm bg-zinc-400" />
                   <div className="w-2 h-2 rounded-full bg-zinc-400" />
@@ -844,12 +838,6 @@ export default function ViewTarjeta({
                 ))}
               </div>
             </div>
-
-            {previewDevice === 'ios' && (
-              <div className="flex justify-center mt-3">
-                <div className="w-28 h-1 rounded-full bg-zinc-600" />
-              </div>
-            )}
           </div>
 
           <p className="text-xs text-zinc-400 text-center mt-4">Preview con 3 sellos de ejemplo</p>
