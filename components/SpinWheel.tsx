@@ -208,7 +208,9 @@ const SpinWheel = forwardRef<SpinWheelHandle, SpinWheelProps>(function SpinWheel
           s.ticker += s.tickerVel
 
           draw()
-          if (t < 1 || Math.abs(s.ticker) > 0.01) {
+          // Termina por tiempo (no por cantidad de cuadros): en una pestaña en segundo plano
+          // el navegador dibuja muy pocos cuadros y el resorte de la flecha tardaría demasiado.
+          if (t < 1 || (Math.abs(s.ticker) > 0.01 && now - t0 < SPIN_MS + 600)) {
             s.raf = requestAnimationFrame(frame)
           } else {
             s.ticker = 0
