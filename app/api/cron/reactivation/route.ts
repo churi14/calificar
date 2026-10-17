@@ -23,13 +23,25 @@ export async function GET(req: NextRequest) {
   }
 
   // Traer todos los programas con campaña de reactivación activa
-  const { data: campaigns, error } = await admin
+  const { data: allCampaigns, error } = await admin
     .from('reactivation_campaigns')
-    .select('program_id')
+    .select('*')
     .eq('enabled', true)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  if (!campaigns || campaigns.length === 0) {
+
+  // Modo horario (cron cada hora, requiere plan Pro de Vercel): cada programa se procesa
+  // solo en SU hora de envío (hora de Argentina). Sin REACTIVATION_HOURLY=1 se procesan
+  // todos en cada ejecución, como antes (cron diario).
+  const hourly = process.env.REACTIVATION_HOURLY === '1'
+  const nowHourAR = Number(new Date().toLocaleString('en-US', {
+    timeZone: 'America/Argentina/Buenos_Aires', hour: 'numeric', hour12: false,
+  })) % 24
+  const campaigns = (allCampaigns ?? []).filter(c =>
+    !hourly || (c.send_hour ?? 10) === nowHourAR
+  )
+
+  if (campaigns.length === 0) {
     return NextResponse.json({ ok: true, processed: 0 })
   }
 

@@ -415,7 +415,7 @@ export default function NegocioDashboard() {
           <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={true} />
         )}
         {activeNav === 'reactivacion' && (
-          <ViewReactivacion selectedProgram={selectedProgram} isPro={true} />
+          <ViewReactivacion selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
         )}
         {activeNav === 'insights' && (
           <ViewInsights selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />

@@ -26,6 +26,14 @@ const DEFAULT_MESSAGES: Record<number, { title: string; body: string }> = {
   30: { title: 'Un mes sin verte', body: 'Hace un mes que no pasás. ¡Tu próximo sello puede acercarte al premio! 🏆' },
 }
 
+const TZ = 'America/Argentina/Buenos_Aires'
+
+/** Fecha 'YYYY-MM-DD' en hora de Argentina, restando `daysAgo` días */
+function arDate(daysAgo = 0): string {
+  const d = new Date(Date.now() - daysAgo * 86_400_000)
+  return d.toLocaleDateString('en-CA', { timeZone: TZ })
+}
+
 // ── GET: leer configuración ───────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   const program_id = req.nextUrl.searchParams.get('program_id')
@@ -55,6 +63,7 @@ export async function POST(req: NextRequest) {
     enabled,
     trigger_5_enabled, trigger_15_enabled, trigger_30_enabled,
     message_5, message_15, message_30,
+    send_hour,
   } = body
 
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
@@ -62,7 +71,9 @@ export async function POST(req: NextRequest) {
   const owner = await verifyProgramOwner(req, program_id)
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const { error } = await admin.from('reactivation_campaigns').upsert({
+  const hour = Number.isInteger(send_hour) && send_hour >= 0 && send_hour <= 23 ? send_hour : 10
+
+  const row = {
     program_id,
     enabled: enabled ?? false,
     trigger_5_enabled:  trigger_5_enabled  ?? true,
@@ -72,7 +83,15 @@ export async function POST(req: NextRequest) {
     message_15: message_15 ?? null,
     message_30: message_30 ?? null,
     updated_at: new Date().toISOString(),
-  }, { onConflict: 'program_id' })
+  }
+
+  let { error } = await admin.from('reactivation_campaigns')
+    .upsert({ ...row, send_hour: hour }, { onConflict: 'program_id' })
+
+  // Si la columna send_hour todavía no existe (migración pendiente), guardar el resto igual
+  if (error && /send_hour/.test(error.message)) {
+    ;({ error } = await admin.from('reactivation_campaigns').upsert(row, { onConflict: 'program_id' }))
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
@@ -107,9 +126,7 @@ export async function PUT(req: NextRequest) {
   let totalSent = 0
 
   for (const days of triggers) {
-    const targetDate = new Date()
-    targetDate.setDate(targetDate.getDate() - days)
-    const dateStr = targetDate.toISOString().slice(0, 10) // 'YYYY-MM-DD'
+    const dateStr = arDate(days) // 'YYYY-MM-DD' en hora de Argentina
 
     // Clientes cuyo último sello fue exactamente hace `days` días
     // Usamos una función RPC o query directa agrupando por card_id
@@ -121,7 +138,7 @@ export async function PUT(req: NextRequest) {
     if (!candidates || candidates.length === 0) continue
 
     // Filtrar los que ya recibieron este trigger hoy
-    const today = new Date().toISOString().slice(0, 10)
+    const today = arDate(0)
     const cardIds = candidates.map((c: { card_id: string }) => c.card_id)
 
     const { data: alreadySent } = await admin

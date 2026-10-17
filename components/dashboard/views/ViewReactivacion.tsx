@@ -11,9 +11,11 @@ type ReactivationCfg = {
   message_5:  string
   message_15: string
   message_30: string
+  send_hour:  number   // 0-23, hora de Argentina
 }
 
 const REACTIVATION_DEFAULTS: ReactivationCfg = {
+  send_hour:          10,
   enabled:            false,
   trigger_5_enabled:  true,
   trigger_15_enabled: true,
@@ -38,31 +40,46 @@ const TRIGGERS: {
 interface ViewReactivacionProps {
   selectedProgram: string | null
   isPro: boolean
+  accessToken?: string
 }
 
+const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`
+
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewReactivacion({ selectedProgram, isPro }: ViewReactivacionProps) {
+export default function ViewReactivacion({ selectedProgram, isPro, accessToken }: ViewReactivacionProps) {
   const [cfg,        setCfg]        = useState<ReactivationCfg>(REACTIVATION_DEFAULTS)
   const [saving,     setSaving]     = useState(false)
   const [saved,      setSaved]      = useState(false)
+  const [saveError,  setSaveError]  = useState('')
   const [triggering, setTriggering] = useState(false)
   const [triggerMsg, setTriggerMsg] = useState('')
 
+  // La API exige el token del dueño del programa
+  const authHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  }
+
   useEffect(() => {
     if (!selectedProgram) return
-    fetch(`/api/fidelizacion/reactivation?program_id=${selectedProgram}`)
+    fetch(`/api/fidelizacion/reactivation?program_id=${selectedProgram}`, { headers: authHeaders })
       .then(r => r.json())
-      .then(d => { if (d.config) setCfg(c => ({ ...c, ...d.config })) })
-  }, [selectedProgram])
+      .then(d => { if (d.config) setCfg(c => ({ ...c, ...d.config, send_hour: d.config.send_hour ?? 10 })) })
+  }, [selectedProgram, accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
     setSaving(true)
-    await fetch('/api/fidelizacion/reactivation', {
+    setSaveError('')
+    const r = await fetch('/api/fidelizacion/reactivation', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({ program_id: selectedProgram, ...cfg }),
     })
     setSaving(false)
+    if (!r.ok) {
+      setSaveError(r.status === 401 ? 'No autorizado. Volvé a iniciar sesión.' : 'No se pudo guardar. Intentá de nuevo.')
+      return
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -71,11 +88,11 @@ export default function ViewReactivacion({ selectedProgram, isPro }: ViewReactiv
     setTriggering(true)
     const r = await fetch('/api/fidelizacion/reactivation', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({ program_id: selectedProgram }),
     })
-    const d = await r.json()
-    setTriggerMsg(d.sent > 0 ? `✓ ${d.sent} push(es) enviados` : 'Sin clientes para reactivar ahora')
+    const d = await r.json().catch(() => ({}))
+    setTriggerMsg(!r.ok ? 'No se pudo ejecutar' : d.sent > 0 ? `✓ ${d.sent} push(es) enviados` : 'Sin clientes para reactivar ahora')
     setTriggering(false)
     setTimeout(() => setTriggerMsg(''), 4000)
   }
@@ -123,7 +140,7 @@ export default function ViewReactivacion({ selectedProgram, isPro }: ViewReactiv
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-bold text-zinc-900 dark:text-white">Activar reactivación automática</p>
-            <p className="text-xs text-zinc-400 dark:text-gray-500 mt-0.5">El cron se ejecuta todos los días a las 10 AM</p>
+            <p className="text-xs text-zinc-400 dark:text-gray-500 mt-0.5">Se envía todos los días a las {hourLabel(cfg.send_hour)} (hora de Argentina)</p>
           </div>
           <button
             onClick={() => isPro && setCfg(c => ({ ...c, enabled: !c.enabled }))}
@@ -132,6 +149,28 @@ export default function ViewReactivacion({ selectedProgram, isPro }: ViewReactiv
           >
             <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${cfg.enabled && isPro ? 'left-7' : 'left-1'}`} />
           </button>
+        </div>
+      </div>
+
+      {/* Horario de envío */}
+      <div className="bg-white dark:bg-gray-900 border border-zinc-100 dark:border-gray-800 rounded-2xl p-5 mb-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-sm font-bold text-zinc-900 dark:text-white">Horario de envío</p>
+            <p className="text-xs text-zinc-400 dark:text-gray-500 mt-0.5">
+              Elegí a qué hora llega el push (hora de Argentina). Conviene un rato antes de que abras o antes del horario en que tus clientes suelen pedir.
+            </p>
+          </div>
+          <select
+            value={cfg.send_hour}
+            disabled={!isPro}
+            onChange={e => setCfg(c => ({ ...c, send_hour: Number(e.target.value) }))}
+            className="border border-zinc-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-zinc-900 dark:text-white rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-400 disabled:opacity-50"
+          >
+            {Array.from({ length: 24 }, (_, h) => (
+              <option key={h} value={h}>{hourLabel(h)}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -188,6 +227,7 @@ export default function ViewReactivacion({ selectedProgram, isPro }: ViewReactiv
           >
             {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
           </button>
+          {saveError && <p className="text-sm text-red-500 mt-2">{saveError}</p>}
         </>
       )}
     </div>
