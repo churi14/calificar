@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Toggle from '@/components/dashboard/ui/Toggle'
 
 // ── props ─────────────────────────────────────────────────────────────────────
 interface ViewReferenciasProps {
@@ -106,12 +107,7 @@ export default function ViewReferencias({ selectedProgram, isPro }: ViewReferenc
           <p className="font-semibold text-zinc-800 dark:text-gray-100">Activar referencias</p>
           <p className="text-xs text-zinc-400 dark:text-gray-500 mt-0.5">Habilita el botón de compartir en la tarjeta de cada cliente</p>
         </div>
-        <button
-          onClick={() => setCfg(c => ({ ...c, enabled: !c.enabled }))}
-          className={`relative w-12 h-7 rounded-full transition-colors flex-shrink-0 ${cfg.enabled ? 'bg-violet-600' : 'bg-zinc-200 dark:bg-gray-700'}`}
-        >
-          <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${cfg.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-        </button>
+        <Toggle checked={cfg.enabled} onChange={enabled => setCfg(c => ({ ...c, enabled }))} aria-label="Activar referencias" />
       </div>
 
       {cfg.enabled && (

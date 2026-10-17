@@ -5,11 +5,11 @@
  * Se usa desde /t/[programId] para aislar el scope de la PWA por negocio.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { QRCanvas } from '../../fidelizacion/tarjeta/QRCanvas'
 import IOSPWAPrompt from './IOSPWAPrompt'
-import { wheelTargetAngle } from '@/lib/wheel'
+import SpinWheel, { type SpinWheelHandle } from '@/components/SpinWheel'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -64,7 +64,9 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
   type WheelSettings = { enabled: boolean; frequency: string; prizes: SpinPrize[] }
   const [wheelSettings, setWheelSettings] = useState<WheelSettings | null>(null)
   const [spinning, setSpinning] = useState(false)
-  const [spinAngle, setSpinAngle] = useState(0)
+  const wheelRef = useRef<SpinWheelHandle>(null)
+  const [showWheel, setShowWheel] = useState(false)
+  const [wheelSize, setWheelSize] = useState(340)
   const [spinResult, setSpinResult] = useState<{ label: string; type: string; value: number; color: string; coupon_code: string | null } | null>(null)
   const [spinExtra, setSpinExtra] = useState<{ kind: 'milestone' | 'reward'; label: string; code: string }[]>([])
   const [spinCooldown, setSpinCooldown] = useState(false)
@@ -339,9 +341,12 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
       .then(r => r.json())
       .then(d => { if (d.coupons) setCoupons(d.coupons) })
       .catch(() => {})
-    fetch(`/api/fidelizacion/spin-wheel?program_id=${programId}`)
+    fetch(`/api/fidelizacion/spin-wheel?program_id=${programId}&card_id=${cardId}`)
       .then(r => r.json())
-      .then(d => { if (d.settings?.enabled) setWheelSettings(d.settings) })
+      .then(d => {
+        if (d.settings?.enabled) setWheelSettings(d.settings)
+        if (d.can_spin === false) { setSpinCooldown(true); setSpinNextAt(d.next_spin_at ?? null) }
+      })
       .catch(() => {})
     const channel = supabase
       .channel(`card-${cardId}`)
@@ -354,13 +359,24 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
     return () => { supabase.removeChannel(channel) }
   }, [cardId])
 
-  // Si llega desde el botón del sello o desde el push (#ruleta), bajar hasta la ruleta
+  // Tamaño de la ruleta según el ancho de pantalla
+  useEffect(() => {
+    if (!showWheel) return
+    const fit = () => setWheelSize(Math.max(240, Math.min(380, window.innerWidth - 64)))
+    fit()
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [showWheel])
+
+  // Si llega desde el botón del sello o desde el push (#ruleta): abrir la ruleta directo,
+  // o bajar hasta la sección si ya giró en este período
   useEffect(() => {
     if (loading || !wheelSettings || typeof window === 'undefined') return
     if (window.location.hash !== '#ruleta') return
+    if (!spinCooldown) { setShowWheel(true); return }
     const t = setTimeout(() => document.getElementById('ruleta')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150)
     return () => clearTimeout(t)
-  }, [loading, wheelSettings])
+  }, [loading, wheelSettings]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
@@ -405,15 +421,14 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
         setSpinCooldown(true)
         setSpinNextAt(data.next_spin_at ?? null)
         setSpinning(false)
+        setShowWheel(false)
         return
       }
 
       if (data.prize) {
         if (typeof data.prize_index === 'number' && data.prize_index >= 0) {
-          setSpinAngle(wheelTargetAngle(spinAngle, wheelSettings.prizes, data.prize_index))
+          await wheelRef.current?.spinTo(data.prize_index)
         }
-        // Esperar que termine la animación (2.5s)
-        await new Promise(r => setTimeout(r, 2500))
         setSpinResult(data.prize)
         setSpinExtra(data.extra_coupons ?? [])
         if (data.new_stamps !== undefined) {
@@ -668,55 +683,6 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
               {wheelSettings.frequency === 'daily' ? 'Girá una vez al día' : 'Girá una vez por semana'} para ganar premios
             </p>
 
-            {/* Wheel SVG */}
-            <div className="relative flex justify-center mb-4">
-              {/* Puntero fijo arriba */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 w-0 h-0"
-                style={{ borderLeft: '10px solid transparent', borderRight: '10px solid transparent', borderTop: '20px solid #1f2937', marginTop: '-2px' }} />
-              <div
-                className="w-52 h-52 rounded-full overflow-hidden"
-                style={{
-                  transform: `rotate(${spinAngle}deg)`,
-                  transition: spinning ? 'transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
-                }}
-              >
-                <svg viewBox="0 0 240 240" className="w-full h-full">
-                  {(() => {
-                    const prizes = wheelSettings.prizes
-                    const total = prizes.reduce((s: number, p: {probability: number}) => s + p.probability, 0) || 1
-                    let cum = 0
-                    function polar(cx: number, cy: number, r: number, deg: number) {
-                      const rad = ((deg - 90) * Math.PI) / 180
-                      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) }
-                    }
-                    return prizes.map((p: SpinPrize, i: number) => {
-                      const angle = (p.probability / total) * 360
-                      const start = polar(120, 120, 110, cum)
-                      const end   = polar(120, 120, 110, cum + angle)
-                      const large = angle > 180 ? 1 : 0
-                      const d = `M 120 120 L ${start.x} ${start.y} A 110 110 0 ${large} 1 ${end.x} ${end.y} Z`
-                      const mid = polar(120, 120, 72, cum + angle / 2)
-                      const rot = (cum + angle / 2) - 90
-                      cum += angle
-                      const short = p.label.length > 10 ? p.label.slice(0, 9) + '…' : p.label
-                      return (
-                        <g key={i}>
-                          <path d={d} fill={p.color} stroke="white" strokeWidth="2" />
-                          <text x={mid.x} y={mid.y} fill="white" fontSize="9" fontWeight="bold"
-                            textAnchor="middle" dominantBaseline="middle"
-                            transform={`rotate(${rot}, ${mid.x}, ${mid.y})`}>
-                            {short}
-                          </text>
-                        </g>
-                      )
-                    })
-                  })()}
-                  <circle cx="120" cy="120" r="16" fill="white" stroke="#e5e7eb" strokeWidth="2" />
-                  <text x="120" y="120" textAnchor="middle" dominantBaseline="middle" fontSize="14">🎰</text>
-                </svg>
-              </div>
-            </div>
-
             {spinCooldown ? (
               <div className={`text-center text-sm ${darkBg ? 'text-white/50' : 'text-zinc-500'}`}>
                 Ya giraste hoy. Volvé
@@ -724,20 +690,53 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
               </div>
             ) : (
               <button
-                onClick={handleSpin}
-                disabled={spinning}
-                className="w-full flex items-center justify-center gap-2 font-bold py-3 rounded-full text-sm text-white disabled:opacity-60"
+                onClick={() => setShowWheel(true)}
+                className="w-full flex items-center justify-center gap-2 font-bold py-3 rounded-full text-sm text-white"
                 style={{ backgroundColor: color }}
               >
-                {spinning ? '🎰 Girando…' : '🎰 ¡Girar!'}
+                🎰 ¡Girar la ruleta!
               </button>
             )}
           </div>
         )}
 
+        {/* Popup de la ruleta */}
+        {showWheel && wheelSettings && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+            style={{ background: 'radial-gradient(circle at 50% 30%, rgba(76,29,149,0.94), rgba(9,9,11,0.97))' }}
+          >
+            <div className="relative w-full max-w-md flex flex-col items-center text-center py-6">
+              <button
+                onClick={() => !spinning && setShowWheel(false)}
+                disabled={spinning}
+                aria-label="Cerrar"
+                className="absolute top-0 right-0 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white text-lg leading-none disabled:opacity-30"
+              >
+                ✕
+              </button>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-violet-300 mb-1">
+                {program.businesses?.name ?? program.name}
+              </p>
+              <h2 className="text-2xl font-extrabold text-white mb-5">¡Girá la ruleta de la suerte!</h2>
+
+              <SpinWheel ref={wheelRef} prizes={wheelSettings.prizes} size={wheelSize} />
+
+              <button
+                onClick={handleSpin}
+                disabled={spinning}
+                className="mt-6 w-full max-w-xs py-4 rounded-full text-base font-extrabold text-white shadow-lg shadow-black/40 transition-transform active:scale-95 disabled:opacity-70"
+                style={{ backgroundColor: color }}
+              >
+                {spinning ? '🎰 Girando…' : '🎰 ¡GIRAR!'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Modal resultado */}
         {showSpinModal && spinResult && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-8" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <div className="fixed inset-0 z-[60] flex items-end justify-center px-4 pb-8" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
             <div className="w-full max-w-sm bg-white rounded-3xl p-7 shadow-2xl text-center">
               <div className="text-5xl mb-3">🎉</div>
               <p className="text-2xl font-extrabold text-zinc-900 mb-1">{spinResult.label}</p>
@@ -769,7 +768,7 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
                 </div>
               ))}
               <button
-                onClick={() => setShowSpinModal(false)}
+                onClick={() => { setShowSpinModal(false); setShowWheel(false) }}
                 className="mt-5 w-full font-bold py-3 rounded-full text-sm text-white"
                 style={{ backgroundColor: color }}
               >

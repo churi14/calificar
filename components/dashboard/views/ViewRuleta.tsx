@@ -1,7 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { wheelTargetAngle, weightedIndex } from '@/lib/wheel'
+import React, { useState, useEffect, useRef } from 'react'
+import { weightedIndex } from '@/lib/wheel'
+import SpinWheel, { type SpinWheelHandle } from '@/components/SpinWheel'
+import Toggle from '@/components/dashboard/ui/Toggle'
 
 // ── tipos y constantes ────────────────────────────────────────────────────────
 type SpinPrize = {
@@ -27,7 +29,7 @@ const DEFAULT_PRIZES: SpinPrize[] = [
 ]
 
 // ── rueda SVG ─────────────────────────────────────────────────────────────────
-function WheelPreview({ prizes, angle = 0, spinning = false }: { prizes: SpinPrize[]; angle?: number; spinning?: boolean }) {
+function WheelPreview({ prizes }: { prizes: SpinPrize[] }) {
   const total = prizes.reduce((s, p) => s + p.probability, 0) || 1
   let cumAngle = 0
   const segments = prizes.map(p => {
@@ -46,12 +48,6 @@ function WheelPreview({ prizes, angle = 0, spinning = false }: { prizes: SpinPri
 
   return (
     <svg viewBox="0 0 240 240" className="w-full max-w-[220px] mx-auto drop-shadow-xl">
-      {/* Segmentos: giran. El puntero y el centro quedan fijos. */}
-      <g style={{
-        transform: `rotate(${angle}deg)`,
-        transformOrigin: '120px 120px',
-        transition: spinning ? 'transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
-      }}>
       {segments.map((seg, i) => {
         const start = polarToCartesian(cx, cy, r, seg.startAngle)
         const end   = polarToCartesian(cx, cy, r, seg.startAngle + seg.angle)
@@ -80,7 +76,6 @@ function WheelPreview({ prizes, angle = 0, spinning = false }: { prizes: SpinPri
           </g>
         )
       })}
-      </g>
       {/* Centro */}
       <circle cx={cx} cy={cy} r={16} fill="white" stroke="#e5e7eb" strokeWidth="2" />
       <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fontSize="14">🎰</text>
@@ -109,10 +104,20 @@ export default function ViewRuleta({ selectedProgram, isPro, accessToken }: View
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
   const [saveError,  setSaveError]  = useState('')
   const [announceMsg, setAnnounceMsg] = useState('')
-  // Simulación (no crea sellos ni cupones reales)
-  const [demoAngle,    setDemoAngle]    = useState(0)
+  // Simulación en popup (no crea sellos ni cupones reales)
+  const wheelRef = useRef<SpinWheelHandle>(null)
+  const [showDemo,     setShowDemo]     = useState(false)
   const [demoSpinning, setDemoSpinning] = useState(false)
   const [demoResult,   setDemoResult]   = useState<{ prize: SpinPrize; code: string | null } | null>(null)
+  const [wheelSize,    setWheelSize]    = useState(340)
+
+  useEffect(() => {
+    if (!showDemo) return
+    const fit = () => setWheelSize(Math.max(240, Math.min(380, window.innerWidth - 64)))
+    fit()
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [showDemo])
 
   // La API exige el token del dueño del programa
   const authHeaders: HeadersInit = {
@@ -120,23 +125,26 @@ export default function ViewRuleta({ selectedProgram, isPro, accessToken }: View
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   }
 
-  function spinDemo() {
+  async function spinDemo() {
     if (demoSpinning || cfg.prizes.length < 2) return
     const idx = weightedIndex(cfg.prizes)
     setDemoResult(null)
     setDemoSpinning(true)
-    setDemoAngle(a => wheelTargetAngle(a, cfg.prizes, idx))
-    setTimeout(() => {
-      const prize = cfg.prizes[idx]
-      let code: string | null = null
-      if (prize.type === 'coupon') {
-        const clean = (prize.coupon_prefix ?? prize.label).substring(0, 6).toUpperCase().replace(/\s/g, '')
-        const part = () => Math.random().toString(36).substring(2, 6).toUpperCase()
-        code = `${clean}-${part()}-${part()}`
-      }
-      setDemoResult({ prize, code })
-      setDemoSpinning(false)
-    }, 2500)
+    await wheelRef.current?.spinTo(idx)
+    const prize = cfg.prizes[idx]
+    let code: string | null = null
+    if (prize.type === 'coupon') {
+      const clean = (prize.coupon_prefix ?? prize.label).substring(0, 6).toUpperCase().replace(/\s/g, '')
+      const part = () => Math.random().toString(36).substring(2, 6).toUpperCase()
+      code = `${clean}-${part()}-${part()}`
+    }
+    setDemoResult({ prize, code })
+    setDemoSpinning(false)
+  }
+
+  function openDemo() {
+    setDemoResult(null)
+    setShowDemo(true)
   }
 
   useEffect(() => {
@@ -232,12 +240,7 @@ export default function ViewRuleta({ selectedProgram, isPro, accessToken }: View
                 <p className="font-semibold text-zinc-800 dark:text-gray-100">Activar ruleta</p>
                 <p className="text-xs text-zinc-400 dark:text-gray-500 mt-0.5">Muestra el botón "Girar" en la tarjeta del cliente</p>
               </div>
-              <button
-                onClick={() => setCfg(c => ({ ...c, enabled: !c.enabled }))}
-                className={`relative w-12 h-7 rounded-full transition-colors flex-shrink-0 ${cfg.enabled ? 'bg-violet-600' : 'bg-zinc-200 dark:bg-gray-700'}`}
-              >
-                <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${cfg.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-              </button>
+              <Toggle checked={cfg.enabled} onChange={enabled => setCfg(c => ({ ...c, enabled }))} aria-label="Activar ruleta" />
             </div>
             <div>
               <p className="text-xs font-semibold text-zinc-600 dark:text-gray-400 mb-2">Frecuencia de giro</p>
@@ -432,52 +435,86 @@ export default function ViewRuleta({ selectedProgram, isPro, accessToken }: View
         {/* Panel derecho: preview interactiva */}
         <div className="lg:w-64 flex flex-col items-center gap-4">
           <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-gray-500">Vista previa</p>
-          <WheelPreview prizes={cfg.prizes} angle={demoAngle} spinning={demoSpinning} />
+          <WheelPreview prizes={cfg.prizes} />
           <button
             type="button"
-            onClick={spinDemo}
-            disabled={demoSpinning || cfg.prizes.length < 2}
+            onClick={openDemo}
+            disabled={cfg.prizes.length < 2}
             className="w-full py-3 rounded-full text-sm font-bold text-white transition-colors disabled:opacity-60"
             style={{ background: '#7C3AED' }}
           >
-            {demoSpinning ? '🎰 Girando…' : '🎰 Probar ruleta'}
+            🎰 Probar ruleta
           </button>
           <p className="text-xs text-zinc-400 dark:text-gray-500 text-center leading-relaxed">
-            Demo con tus premios y probabilidades. No suma sellos ni crea cupones reales.
+            Se abre en grande, como la ve el cliente. Demo con tus premios y probabilidades: no suma sellos ni crea cupones reales.
           </p>
         </div>
       </div>
 
-      {/* Modal de premio (igual al que ve el cliente) */}
-      {demoResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-          <div className="w-full max-w-sm bg-white rounded-3xl p-7 shadow-2xl text-center">
-            <div className="text-5xl mb-3">{demoResult.prize.type === 'none' ? '😅' : '🎉'}</div>
-            <p className="text-2xl font-extrabold text-zinc-900 mb-1">{demoResult.prize.label}</p>
-            {demoResult.prize.type === 'stamps' && demoResult.prize.value > 0 && (
-              <p className="text-zinc-500 text-sm mb-2">¡Sumaste {demoResult.prize.value} sello{demoResult.prize.value > 1 ? 's' : ''} a tu tarjeta!</p>
-            )}
-            {demoResult.prize.type === 'coupon' && demoResult.code && (
-              <>
-                <p className="text-zinc-500 text-sm mb-3">Mostrá este código al encargado:</p>
-                <div className="bg-zinc-900 rounded-xl px-4 py-3 mb-2">
-                  <p className="text-lg font-mono font-extrabold text-white tracking-widest">{demoResult.code}</p>
-                </div>
-                <p className="text-xs text-zinc-400">Un solo uso</p>
-              </>
-            )}
-            {demoResult.prize.type === 'none' && (
-              <p className="text-zinc-500 text-sm">¡No te desanimes, volvé mañana!</p>
-            )}
-            <p className="text-[11px] text-zinc-400 mt-4">Simulación: no se creó ningún cupón real.</p>
+      {/* Popup de la ruleta (demo) */}
+      {showDemo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+          style={{ background: 'radial-gradient(circle at 50% 30%, rgba(76,29,149,0.92), rgba(9,9,11,0.96))' }}
+          onClick={e => { if (e.target === e.currentTarget && !demoSpinning) setShowDemo(false) }}
+        >
+          <div className="relative w-full max-w-md flex flex-col items-center text-center py-6">
             <button
               type="button"
-              onClick={() => setDemoResult(null)}
-              className="mt-3 w-full font-bold py-3 rounded-full text-sm text-white"
-              style={{ backgroundColor: '#7C3AED' }}
+              onClick={() => !demoSpinning && setShowDemo(false)}
+              disabled={demoSpinning}
+              aria-label="Cerrar"
+              className="absolute top-0 right-0 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white text-lg leading-none disabled:opacity-30"
             >
-              ¡Genial!
+              ✕
             </button>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-violet-300 mb-1">Demo</p>
+            <h2 className="text-2xl font-extrabold text-white mb-5">¡Girá la ruleta de la suerte!</h2>
+
+            <SpinWheel ref={wheelRef} prizes={cfg.prizes} size={wheelSize} />
+
+            {!demoResult ? (
+              <button
+                type="button"
+                onClick={spinDemo}
+                disabled={demoSpinning}
+                className="mt-6 w-full max-w-xs py-4 rounded-full text-base font-extrabold text-white shadow-lg shadow-violet-900/50 transition-transform active:scale-95 disabled:opacity-70"
+                style={{ background: 'linear-gradient(135deg,#8B5CF6,#6D28D9)' }}
+              >
+                {demoSpinning ? '🎰 Girando…' : '🎰 ¡GIRAR!'}
+              </button>
+            ) : (
+              <div className="mt-6 w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl">
+                <div className="text-5xl mb-2">{demoResult.prize.type === 'none' ? '😅' : '🎉'}</div>
+                <p className="text-2xl font-extrabold text-zinc-900 mb-1">{demoResult.prize.label}</p>
+                {demoResult.prize.type === 'stamps' && demoResult.prize.value > 0 && (
+                  <p className="text-zinc-500 text-sm">¡Sumaste {demoResult.prize.value} sello{demoResult.prize.value > 1 ? 's' : ''} a tu tarjeta!</p>
+                )}
+                {demoResult.prize.type === 'coupon' && demoResult.code && (
+                  <>
+                    <p className="text-zinc-500 text-sm mb-3">Mostrá este código al encargado:</p>
+                    <div className="bg-zinc-900 rounded-xl px-4 py-3 mb-1">
+                      <p className="text-lg font-mono font-extrabold text-white tracking-widest">{demoResult.code}</p>
+                    </div>
+                    <p className="text-xs text-zinc-400">Un solo uso</p>
+                  </>
+                )}
+                {demoResult.prize.type === 'none' && (
+                  <p className="text-zinc-500 text-sm">¡No te desanimes, volvé mañana!</p>
+                )}
+                <p className="text-[11px] text-zinc-400 mt-3">Simulación: no se creó ningún cupón real.</p>
+                <div className="flex gap-2 mt-4">
+                  <button type="button" onClick={() => setDemoResult(null)}
+                    className="flex-1 font-bold py-3 rounded-full text-sm text-white" style={{ backgroundColor: '#7C3AED' }}>
+                    Girar de nuevo
+                  </button>
+                  <button type="button" onClick={() => setShowDemo(false)}
+                    className="flex-1 font-bold py-3 rounded-full text-sm text-zinc-600 bg-zinc-100 hover:bg-zinc-200">
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
