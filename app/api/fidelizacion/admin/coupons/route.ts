@@ -5,15 +5,52 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { verifyProgramOwner } from '@/lib/business-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+/** ¿Es un admin de Calificar? (Bearer o cookie de sesión del panel admin) */
+async function isCalificarAdmin(req: NextRequest): Promise<boolean> {
+  let userId: string | null = null
+
+  const auth = req.headers.get('authorization')
+  if (auth?.startsWith('Bearer ')) {
+    const { data: { user } } = await supabase.auth.getUser(auth.slice(7))
+    userId = user?.id ?? null
+  }
+
+  if (!userId) {
+    try {
+      const cookieStore = await cookies()
+      const serverClient = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { cookies: { getAll() { return cookieStore.getAll() }, setAll() { /* read-only */ } } }
+      )
+      const { data: { user } } = await serverClient.auth.getUser()
+      userId = user?.id ?? null
+    } catch { /* sin sesión */ }
+  }
+
+  if (!userId) return false
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single()
+  return profile?.role === 'admin'
+}
+
 export async function GET(req: NextRequest) {
   const programId = req.nextUrl.searchParams.get('program_id')
   if (!programId) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
+
+  // Solo el dueño del programa o un admin de Calificar
+  const owner = await verifyProgramOwner(req, programId)
+  if (!owner && !(await isCalificarAdmin(req))) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
 
   const { data, error } = await supabase
     .from('loyalty_transactions')
