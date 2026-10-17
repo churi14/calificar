@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
   // Agrupar ventas por día
   const salesByDay: Record<string, number> = {}
   for (const tx of salesRes.data ?? []) {
-    const day = tx.created_at.slice(0, 10)
+    // Día en hora de Argentina (UTC-3): una venta de las 22:00 cuenta ese día, no el siguiente
+    const day = new Date(new Date(tx.created_at).getTime() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10)
     salesByDay[day] = (salesByDay[day] ?? 0) + (tx.purchase_amount ?? 0)
   }
 

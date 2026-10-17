@@ -43,7 +43,8 @@ function SalesChart({ salesByDay, cost, color }: {
   const data = Array.from({ length: days }, (_, i) => {
     const d = new Date(today)
     d.setDate(today.getDate() - (days - 1 - i))
-    const key = d.toISOString().slice(0, 10)
+    // Día en hora de Argentina (UTC-3), igual que el servidor: una venta de las 22:00 es de ese día
+    const key = new Date(d.getTime() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10)
     return {
       label:
         i === 0 || i === 7 || i === 14 || i === 21 || i === 29
@@ -54,7 +55,7 @@ function SalesChart({ salesByDay, cost, color }: {
   })
 
   const maxSales = Math.max(...data.map(d => d.sales), 1)
-  const maxVal = Math.max(maxSales, cost * 1.5)
+  const maxVal = Math.max(maxSales, cost > 0 ? cost * 1.5 : 0, 1)
   const W = 560, H = 130, padL = 40, padR = 16, padT = 12, padB = 24
   const chartW = W - padL - padR
   const chartH = H - padT - padB
@@ -66,7 +67,7 @@ function SalesChart({ salesByDay, cost, color }: {
   }))
   const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
   const area = `${path} L${pts[pts.length - 1].x},${padT + chartH} L${pts[0].x},${padT + chartH} Z`
-  const costLineY = padT + (1 - cost / maxVal) * chartH
+  const costLineY = cost > 0 ? padT + (1 - cost / maxVal) * chartH : -1
 
   const yLabels = [0, Math.round(maxVal / 2), Math.round(maxVal)]
 
@@ -100,9 +101,9 @@ function SalesChart({ salesByDay, cost, color }: {
               x1={padL} y1={costLineY} x2={W - padR} y2={costLineY}
               stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="5 3"
             />
-            <rect x={W - padR - 68} y={costLineY - 12} width={66} height={13} rx="3" fill="#1a0a0f" />
+            <rect x={W - padR - 96} y={costLineY - 12} width={94} height={13} rx="3" fill="#1a0a0f" />
             <text x={W - padR - 5} y={costLineY - 2} textAnchor="end" fontSize="8.5" fill="#f43f5e" fontWeight="600">
-              Costo ${cost}/mes
+              Plan ${Math.round(cost).toLocaleString('es-AR')}/mes
             </text>
           </g>
         )}
@@ -137,14 +138,16 @@ function SalesChart({ salesByDay, cost, color }: {
           <div className="w-3 h-0.5 rounded-full" style={{ backgroundColor: color }} />
           <span className="text-[10px] text-zinc-500">Ventas registradas</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="flex gap-0.5">
-            <div className="w-1 h-0.5 bg-rose-500 rounded-full" />
-            <div className="w-1 h-0.5 bg-rose-500 rounded-full" />
-            <div className="w-1 h-0.5 bg-rose-500 rounded-full" />
+        {cost > 0 && (
+          <div className="flex items-center gap-1.5">
+            <div className="flex gap-0.5">
+              <div className="w-1 h-0.5 bg-rose-500 rounded-full" />
+              <div className="w-1 h-0.5 bg-rose-500 rounded-full" />
+              <div className="w-1 h-0.5 bg-rose-500 rounded-full" />
+            </div>
+            <span className="text-[10px] text-zinc-500">Costo del plan</span>
           </div>
-          <span className="text-[10px] text-zinc-500">Costo Calificar</span>
-        </div>
+        )}
       </div>
     </div>
   )
@@ -184,7 +187,10 @@ export default function ViewHoy({
   const hasLogo = !!program?.logo_url
   const [showQrBig, setShowQrBig] = useState(false)
   const qrUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
-  const calificarCost = 9.99
+  // Costo mensual real del plan en pesos (los mismos precios que se cobran). Prueba y regalo: sin costo.
+  const PLAN_COST_ARS: Record<string, number> = { starter: 14999, pro: 29999, ultimate: 69999 }
+  const calificarCost = PLAN_COST_ARS[(businessPlan ?? '').toLowerCase()] ?? 0
+  const fmtARS = (n: number) => `$${Math.round(n).toLocaleString('es-AR')}`
 
   const trialDaysLeft = (() => {
     if (businessPlan && businessPlan !== 'trial') return null
@@ -614,25 +620,29 @@ export default function ViewHoy({
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                  Ventas registradas vs costo de Calificar
+                  Ventas registradas vs costo de tu plan
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                  Últimos 30 días · registrá el monto al sellar para ver el ROI
+                  Últimos 30 días · solo cuentan las ventas cuyo monto registrás al sellar
                 </p>
               </div>
               {totalSales > 0 && (
                 <div className="text-right flex-shrink-0 ml-4">
                   <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                    ROI
+                    {calificarCost > 0 ? 'Ventas vs plan' : 'Ventas 30 días'}
                   </p>
-                  <p
-                    className={`text-xl font-bold ${
-                      totalSales > calificarCost ? 'text-emerald-500' : 'text-rose-500'
-                    }`}
-                  >
-                    {totalSales > calificarCost ? '+' : ''}
-                    {((totalSales / calificarCost - 1) * 100).toFixed(0)}%
-                  </p>
+                  {calificarCost > 0 ? (
+                    <>
+                      <p className={`text-xl font-bold ${totalSales >= calificarCost ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        ×{(totalSales / calificarCost).toFixed(1).replace('.', ',')}
+                      </p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                        {fmtARS(totalSales)} en ventas · plan {fmtARS(calificarCost)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-xl font-bold text-emerald-500">{fmtARS(totalSales)}</p>
+                  )}
                 </div>
               )}
             </div>

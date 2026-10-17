@@ -1,12 +1,14 @@
 /**
  * GET  /api/fidelizacion/custom-domain?program_id=xxx  — obtiene estado del dominio
  * POST /api/fidelizacion/custom-domain                 — guarda dominio + lo registra en Vercel
+ * PUT    /api/fidelizacion/custom-domain               — verifica el DNS (CNAME) y marca el dominio como verificado
  * DELETE /api/fidelizacion/custom-domain               — elimina dominio
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
+import { promises as dns } from 'dns'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -144,6 +146,44 @@ export async function POST(req: NextRequest) {
     cname_target: `cname.vercel-dns.com`,
     instructions: `Configurá un registro CNAME en tu DNS apuntando "${domain}" → "cname.vercel-dns.com"`,
   })
+}
+
+// ── PUT: verificar el DNS ─────────────────────────────────────────────────────
+// Comprueba que el subdominio tenga un CNAME que apunte a Vercel. Es lo que hace que la tarjeta
+// se vea en el dominio del cliente, así que si está bien lo marcamos como verificado.
+export async function PUT(req: NextRequest) {
+  const { program_id } = await req.json().catch(() => ({ program_id: null }))
+  if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
+
+  const owner = await verifyProgramOwner(req, program_id)
+  if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const { data: prog } = await supabase
+    .from('loyalty_programs')
+    .select('custom_domain')
+    .eq('id', program_id)
+    .single()
+
+  const domain = prog?.custom_domain as string | null | undefined
+  if (!domain) return NextResponse.json({ error: 'Todavía no guardaste ningún dominio' }, { status: 400 })
+
+  let reason: 'ok' | 'not_found' | 'wrong_target' = 'not_found'
+  let found: string[] = []
+  try {
+    found = await dns.resolveCname(domain)
+    reason = found.some(t => /vercel-dns/i.test(t)) ? 'ok' : 'wrong_target'
+  } catch {
+    // ENODATA / ENOTFOUND: todavía no hay CNAME (o el DNS no se propagó)
+    reason = 'not_found'
+  }
+
+  const verified = reason === 'ok'
+  await supabase
+    .from('loyalty_programs')
+    .update({ custom_domain_verified: verified })
+    .eq('id', program_id)
+
+  return NextResponse.json({ verified, reason, found, domain })
 }
 
 // ── DELETE ────────────────────────────────────────────────────────────────────
