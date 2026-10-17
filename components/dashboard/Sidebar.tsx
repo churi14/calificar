@@ -24,6 +24,13 @@ interface SidebarProps {
   onClose: () => void
   plan?: string
   planExpiresAt?: string | null
+  /** Sucursales (programas) del negocio y la elegida */
+  branches?: { id: string; label: string }[]
+  selectedBranch?: string | null
+  onSelectBranch?: (id: string) => void
+  /** Solo Ultimate/gifted: muestra "+ Nueva sucursal" */
+  canAddBranch?: boolean
+  onAddBranch?: () => void
 }
 
 const NAV_ITEMS: { id: ViewType; label: string; Icon: React.ElementType }[] = [
@@ -57,8 +64,17 @@ export default function Sidebar({
   onClose,
   plan = 'trial',
   planExpiresAt = null,
+  branches = [],
+  selectedBranch = null,
+  onSelectBranch,
+  canAddBranch = false,
+  onAddBranch,
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
+  const [branchOpen, setBranchOpen] = useState(false)
+  // Se muestra el selector si hay más de una sucursal o si puede agregar
+  const showBranchPicker = branches.length > 1 || canAddBranch
+  const currentBranch = branches.find(b => b.id === selectedBranch) ?? branches[0]
 
   function navigate(id: ViewType) {
     onNav(id)
@@ -84,6 +100,47 @@ export default function Sidebar({
             <span className="font-semibold text-sm text-zinc-900 tracking-tight">calificar</span>
           </button>
         </div>
+
+        {/* Selector de sucursal */}
+        {showBranchPicker && (
+          <div className="px-4 pt-3">
+            <button
+              onClick={() => setBranchOpen(o => !o)}
+              className="w-full flex items-center gap-2 bg-zinc-50 border border-zinc-150 hover:border-zinc-300 rounded-lg px-3 py-2 text-left transition-colors"
+              aria-expanded={branchOpen}
+            >
+              <GitBranch size={14} className="text-violet-500 flex-shrink-0" weight="bold" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-[9px] font-bold uppercase tracking-widest text-zinc-400 leading-none mb-0.5">Sucursal</span>
+                <span className="block text-sm font-medium text-zinc-800 truncate">{currentBranch?.label ?? 'Principal'}</span>
+              </span>
+              <span className="text-zinc-400 text-[10px]">{branchOpen ? '▲' : '▼'}</span>
+            </button>
+            {branchOpen && (
+              <div className="mt-1 rounded-lg border border-zinc-150 bg-white shadow-sm overflow-hidden">
+                {branches.map(b => (
+                  <button
+                    key={b.id}
+                    onClick={() => { onSelectBranch?.(b.id); setBranchOpen(false); onClose() }}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                      b.id === selectedBranch ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-zinc-600 hover:bg-zinc-50'
+                    }`}
+                  >
+                    {b.id === selectedBranch ? '✓ ' : ''}{b.label}
+                  </button>
+                ))}
+                {canAddBranch && (
+                  <button
+                    onClick={() => { setBranchOpen(false); onAddBranch?.() }}
+                    className="w-full text-left px-3 py-2 text-sm font-semibold text-violet-600 hover:bg-violet-50 border-t border-zinc-100 transition-colors"
+                  >
+                    ＋ Nueva sucursal
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Búsqueda + CTA */}
         <div className="px-4 pt-3 pb-2">

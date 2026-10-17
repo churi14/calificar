@@ -56,7 +56,8 @@ export async function GET(req: NextRequest) {
     `)
     .in('business_id', bizIds)
     .eq('active', true)
-    .order('created_at', { ascending: false })
+    // El más antiguo primero: es el programa principal y el que abre el panel por defecto
+    .order('created_at', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

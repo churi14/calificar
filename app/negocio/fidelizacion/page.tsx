@@ -8,6 +8,7 @@ import { Sun, Moon } from '@phosphor-icons/react'
 import Sidebar        from '@/components/dashboard/Sidebar'
 import DiscountPopup  from '@/components/dashboard/ui/DiscountPopup'
 import StampModal     from '@/components/dashboard/ui/StampModal'
+import NewBranchModal from '@/components/dashboard/ui/NewBranchModal'
 
 // ── Vistas ────────────────────────────────────────────────────────────────────
 import ViewHoy              from '@/components/dashboard/views/ViewHoy'
@@ -51,6 +52,8 @@ export default function NegocioDashboard() {
   const [loading, setLoading]                     = useState(true)
   const [activeNav, setActiveNav]                 = useState<ViewType>('hoy')
   const [showDiscount, setShowDiscount]           = useState(false)
+  const [showNewBranch, setShowNewBranch]         = useState(false)
+  const [branchNotice, setBranchNotice]           = useState('')
   const [businessName, setBusinessName]           = useState('Mi negocio')
   const [userEmail, setUserEmail]                 = useState('')
   const [accessToken, setAccessToken]             = useState('')
@@ -128,7 +131,11 @@ export default function NegocioDashboard() {
         }
         setPrograms(d.programs ?? [])
         if (d.programs?.length > 0) {
-          setSelectedProgram(d.programs[0].id)
+          // Recordar la sucursal elegida la última vez (si todavía existe)
+          let saved: string | null = null
+          try { saved = localStorage.getItem('cal_selected_program') } catch {}
+          const initial = d.programs.find((p: { id: string }) => p.id === saved) ?? d.programs[0]
+          setSelectedProgram(initial.id)
           const biz = d.programs[0].businesses
           if (biz?.name) setBusinessName(biz.name)
           if (biz?.plan) setBusinessPlan(biz.plan)
@@ -265,13 +272,36 @@ export default function NegocioDashboard() {
     }
   }
 
+  function selectBranch(id: string) {
+    if (id === selectedProgram) return
+    setSelectedProgram(id)
+    try { localStorage.setItem('cal_selected_program', id) } catch {}
+  }
+
+  function handleBranchCreated(newProgram: Program, walletFailed: boolean) {
+    setPrograms(ps => [...ps, newProgram])
+    selectBranch(newProgram.id)
+    setActiveNav('tarjeta')
+    setShowNewBranch(false)
+    setBranchNotice(walletFailed
+      ? 'Sucursal creada. La tarjeta de Google Wallet no se pudo preparar todavía: probá guardar el diseño más tarde.'
+      : '¡Sucursal creada! Está lista para personalizar desde esta vista.')
+    setTimeout(() => setBranchNotice(''), 8000)
+  }
+
   function handleLogoUploaded(url: string) {
     setPrograms(ps => ps.map(p => p.id === selectedProgram ? { ...p, logo_url: url } : p))
   }
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const program = programs.find(p => p.id === selectedProgram)
+  // Etiqueta de cada sucursal: lo que va entre paréntesis en el nombre; la primera es la principal
+  const branchOptions = programs.map((p, i) => ({
+    id: p.id,
+    label: p.name.match(/\(([^)]+)\)\s*$/)?.[1] ?? (i === 0 ? 'Principal' : p.name),
+  }))
   const planExpired = !!(planExpiresAt && new Date(planExpiresAt) < new Date())
+  const canAddBranch = ['ultimate', 'gifted'].includes(businessPlan.toLowerCase()) && !planExpired
   const daysLeftDiscount = businessCreatedAt
     ? Math.max(0, 30 - Math.floor((Date.now() - new Date(businessCreatedAt).getTime()) / (1000 * 60 * 60 * 24)))
     : 30
@@ -323,7 +353,22 @@ export default function NegocioDashboard() {
         onClose={() => setMobileMenuOpen(false)}
         plan={businessPlan}
         planExpiresAt={planExpiresAt}
+        branches={branchOptions}
+        selectedBranch={selectedProgram}
+        onSelectBranch={selectBranch}
+        canAddBranch={canAddBranch}
+        onAddBranch={() => setShowNewBranch(true)}
       />
+
+      {/* Nueva sucursal */}
+      {showNewBranch && (
+        <NewBranchModal
+          accessToken={accessToken}
+          businessName={businessName}
+          onClose={() => setShowNewBranch(false)}
+          onCreated={handleBranchCreated}
+        />
+      )}
 
       {/* Stamp modal */}
       {stampModal && (
@@ -348,7 +393,15 @@ export default function NegocioDashboard() {
           </div>
         )}
 
-        {/* ── Vistas ── */}
+        {/* Aviso al crear una sucursal */}
+        {branchNotice && (
+          <div className="px-5 py-3 text-sm bg-emerald-50 text-emerald-800 border-b border-emerald-100 font-medium">
+            {branchNotice}
+          </div>
+        )}
+
+        {/* ── Vistas (se remontan al cambiar de sucursal para no arrastrar datos de la otra) ── */}
+        <div key={selectedProgram ?? 'none'}>
         {activeNav === 'hoy' && (
           <ViewHoy program={program} selectedProgram={selectedProgram} stats={stats}
             transactions={transactions} notifMsg={notifMsg} setNotifMsg={setNotifMsg}
@@ -448,6 +501,7 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'ayuda' && <ViewAyuda onNav={(id) => setActiveNav(id as ViewType)} />}
         {activeNav === 'primeros-pasos' && <ViewAyuda onNav={(id) => setActiveNav(id as ViewType)} mode="primeros-pasos" />}
+        </div>
       </main>
     </div>
   )
