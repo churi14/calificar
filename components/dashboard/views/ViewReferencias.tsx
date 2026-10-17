@@ -7,29 +7,42 @@ import Toggle from '@/components/dashboard/ui/Toggle'
 interface ViewReferenciasProps {
   selectedProgram: string | null
   isPro: boolean
+  accessToken?: string
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewReferencias({ selectedProgram, isPro }: ViewReferenciasProps) {
+export default function ViewReferencias({ selectedProgram, isPro, accessToken }: ViewReferenciasProps) {
   const [cfg, setCfg] = useState({ enabled: false, referrer_stamps: 2, referred_stamps: 1 })
   const [saving, setSaving] = useState(false)
   const [saved,  setSaved]  = useState(false)
+  const [saveError, setSaveError] = useState('')
+
+  // La API exige el token del dueño del programa
+  const authHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  }
 
   useEffect(() => {
     if (!selectedProgram) return
-    fetch(`/api/fidelizacion/referral?program_id=${selectedProgram}`)
+    fetch(`/api/fidelizacion/referral?program_id=${selectedProgram}`, { headers: authHeaders })
       .then(r => r.json())
       .then(d => { if (d.settings) setCfg(c => ({ ...c, ...d.settings })) })
-  }, [selectedProgram])
+  }, [selectedProgram, accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
     setSaving(true)
-    await fetch('/api/fidelizacion/referral', {
+    setSaveError('')
+    const r = await fetch('/api/fidelizacion/referral', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body:    JSON.stringify({ program_id: selectedProgram, ...cfg }),
     })
     setSaving(false)
+    if (!r.ok) {
+      setSaveError(r.status === 401 ? 'No autorizado. Volvé a iniciar sesión.' : 'No se pudo guardar. Intentá de nuevo.')
+      return
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -135,6 +148,7 @@ export default function ViewReferencias({ selectedProgram, isPro }: ViewReferenc
       >
         {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
       </button>
+      {saveError && <p className="text-sm text-red-500 mt-2">{saveError}</p>}
     </div>
   )
 }

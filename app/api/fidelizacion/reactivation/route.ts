@@ -89,12 +89,14 @@ export async function POST(req: NextRequest) {
     .upsert({ ...row, send_hour: hour }, { onConflict: 'program_id' })
 
   // Si la columna send_hour todavía no existe (migración pendiente), guardar el resto igual
+  let sendHourSaved = true
   if (error && /send_hour/.test(error.message)) {
+    sendHourSaved = false
     ;({ error } = await admin.from('reactivation_campaigns').upsert(row, { onConflict: 'program_id' }))
   }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, send_hour_saved: sendHourSaved })
 }
 
 // ── PUT: ejecutar trigger (llamado por cron o manual) ─────────────────────────

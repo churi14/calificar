@@ -6,10 +6,11 @@ import React, { useState, useEffect } from 'react'
 interface ViewResenasProps {
   selectedProgram: string | null
   isPro: boolean
+  accessToken?: string
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewResenas({ selectedProgram, isPro }: ViewResenasProps) {
+export default function ViewResenas({ selectedProgram, isPro, accessToken }: ViewResenasProps) {
   const [cfg, setCfg] = useState({
     enabled:         false,
     google_maps_url: '',
@@ -19,13 +20,20 @@ export default function ViewResenas({ selectedProgram, isPro }: ViewResenasProps
   const [saving,   setSaving]   = useState(false)
   const [saved,    setSaved]    = useState(false)
   const [urlError, setUrlError] = useState('')
+  const [saveError, setSaveError] = useState('')
+
+  // La API exige el token del dueño del programa
+  const authHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  }
 
   useEffect(() => {
     if (!selectedProgram) return
-    fetch(`/api/fidelizacion/google-review?program_id=${selectedProgram}`)
+    fetch(`/api/fidelizacion/google-review?program_id=${selectedProgram}`, { headers: authHeaders })
       .then(r => r.json())
       .then(d => { if (d.config) setCfg(c => ({ ...c, ...d.config })) })
-  }, [selectedProgram])
+  }, [selectedProgram, accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function validateUrl(url: string) {
     if (!url) return ''
@@ -44,12 +52,17 @@ export default function ViewResenas({ selectedProgram, isPro }: ViewResenasProps
     if (err) { setUrlError(err); return }
     setUrlError('')
     setSaving(true)
-    await fetch('/api/fidelizacion/google-review', {
+    setSaveError('')
+    const r = await fetch('/api/fidelizacion/google-review', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body:    JSON.stringify({ program_id: selectedProgram, ...cfg }),
     })
     setSaving(false)
+    if (!r.ok) {
+      setSaveError(r.status === 401 ? 'No autorizado. Volvé a iniciar sesión.' : 'No se pudo guardar. Intentá de nuevo.')
+      return
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -163,14 +176,17 @@ export default function ViewResenas({ selectedProgram, isPro }: ViewResenasProps
       </div>
 
       {isPro && (
-        <button
-          onClick={save}
-          disabled={saving}
-          className="w-full py-3 rounded-2xl text-white font-bold text-sm transition-colors disabled:opacity-50"
-          style={{ background: saved ? '#10B981' : '#7C3AED' }}
-        >
-          {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
-        </button>
+        <>
+          <button
+            onClick={save}
+            disabled={saving}
+            className="w-full py-3 rounded-2xl text-white font-bold text-sm transition-colors disabled:opacity-50"
+            style={{ background: saved ? '#10B981' : '#7C3AED' }}
+          >
+            {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
+          </button>
+          {saveError && <p className="text-sm text-red-500 mt-2">{saveError}</p>}
+        </>
       )}
     </div>
   )

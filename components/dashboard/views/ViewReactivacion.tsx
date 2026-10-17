@@ -51,6 +51,7 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
   const [saving,     setSaving]     = useState(false)
   const [saved,      setSaved]      = useState(false)
   const [saveError,  setSaveError]  = useState('')
+  const [hourWarning, setHourWarning] = useState('')
   const [triggering, setTriggering] = useState(false)
   const [triggerMsg, setTriggerMsg] = useState('')
 
@@ -70,6 +71,7 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
   async function save() {
     setSaving(true)
     setSaveError('')
+    setHourWarning('')
     const r = await fetch('/api/fidelizacion/reactivation', {
       method: 'POST',
       headers: authHeaders,
@@ -79,6 +81,10 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
     if (!r.ok) {
       setSaveError(r.status === 401 ? 'No autorizado. Volvé a iniciar sesión.' : 'No se pudo guardar. Intentá de nuevo.')
       return
+    }
+    const d = await r.json().catch(() => ({}))
+    if (d.send_hour_saved === false) {
+      setHourWarning('El resto de la configuración se guardó, pero el horario todavía no se puede guardar: falta actualizar la base de datos (migración reactivation_send_hour.sql).')
     }
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
@@ -228,6 +234,7 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
             {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
           </button>
           {saveError && <p className="text-sm text-red-500 mt-2">{saveError}</p>}
+          {hourWarning && <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">{hourWarning}</p>}
         </>
       )}
     </div>

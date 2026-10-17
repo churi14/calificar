@@ -80,10 +80,15 @@ const DISC_PRICES: Record<string, string> = {
 interface ViewPlanProps {
   onNav: (id: string) => void
   businessCreatedAt?: string | null
+  plan?: string
+  planExpiresAt?: string | null
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewPlan({ onNav, businessCreatedAt = null }: ViewPlanProps) {
+export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'trial', planExpiresAt = null }: ViewPlanProps) {
+  const planExpired = !!(planExpiresAt && new Date(planExpiresAt) < new Date())
+  const planNames: Record<string, string> = { starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate (regalo)' }
+  const isPaidPlan = plan in planNames && !planExpired
   const discountDeadlineMs = businessCreatedAt
     ? new Date(businessCreatedAt).getTime() + 30 * 24 * 60 * 60 * 1000
     : 0
@@ -115,7 +120,11 @@ export default function ViewPlan({ onNav, businessCreatedAt = null }: ViewPlanPr
     <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-white mb-1">Tu plan</h1>
       <p className="text-zinc-400 dark:text-gray-500 text-sm mb-4">
-        Estás en el período de prueba gratuita. Elegí el plan que mejor se adapta a tu negocio.
+        {isPaidPlan
+          ? `Tu plan actual es ${planNames[plan]}${planExpiresAt ? ` y está vigente hasta el ${new Date(planExpiresAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}` : ''}. Podés cambiarlo cuando quieras.`
+          : planExpired
+            ? 'Tu plan venció. Elegí un plan para reactivar todas las funciones.'
+            : 'Estás en el período de prueba gratuita. Elegí el plan que mejor se adapta a tu negocio.'}
       </p>
 
       {isDiscountEligible && (

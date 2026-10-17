@@ -495,10 +495,10 @@ export default function NegocioDashboard() {
           <ViewInsights selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
         )}
         {activeNav === 'reseñas' && (
-          <ViewReseñas selectedProgram={selectedProgram} isPro={true} />
+          <ViewReseñas selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
         )}
         {activeNav === 'referencias' && (
-          <ViewReferencias selectedProgram={selectedProgram} isPro={true} />
+          <ViewReferencias selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
         )}
         {activeNav === 'ruleta' && (
           <ViewRuleta selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
@@ -519,7 +519,8 @@ export default function NegocioDashboard() {
             accessToken={accessToken} />
         )}
         {activeNav === 'plan' && (
-          <ViewPlan onNav={(id) => setActiveNav(id as ViewType)} businessCreatedAt={businessCreatedAt} />
+          <ViewPlan onNav={(id) => setActiveNav(id as ViewType)} businessCreatedAt={businessCreatedAt}
+            plan={businessPlan} planExpiresAt={planExpiresAt} />
         )}
         {activeNav === 'ayuda' && <ViewAyuda onNav={(id) => setActiveNav(id as ViewType)} />}
         {activeNav === 'primeros-pasos' && <ViewAyuda onNav={(id) => setActiveNav(id as ViewType)} mode="primeros-pasos" />}

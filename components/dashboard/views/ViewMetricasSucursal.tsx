@@ -74,7 +74,7 @@ export default function ViewMetricasSucursal({ accessToken }: ViewMetricasSucurs
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-white">Métricas por sucursal</h1>
-          <p className="text-zinc-400 dark:text-gray-500 text-sm mt-0.5">Comparativa de rendimiento entre todos tus programas</p>
+          <p className="text-zinc-400 dark:text-gray-500 text-sm mt-0.5">Comparativa de rendimiento entre tus sucursales</p>
         </div>
         <div className="flex gap-1 bg-zinc-100 dark:bg-gray-800 rounded-xl p-1">
           {PERIOD_OPTIONS.map(o => (
@@ -161,8 +161,8 @@ export default function ViewMetricasSucursal({ accessToken }: ViewMetricasSucurs
                 </div>
 
                 <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-gray-800 flex justify-between text-xs text-zinc-400 dark:text-gray-500">
-                  <span>{r.total_clients.toLocaleString()} clientes totales</span>
-                  <span>{r.rewards_redeemed} premios canjeados</span>
+                  <span>{r.total_clients.toLocaleString()} {r.total_clients === 1 ? 'cliente total' : 'clientes totales'}</span>
+                  <span>{r.rewards_redeemed} {r.rewards_redeemed === 1 ? 'premio canjeado' : 'premios canjeados'}</span>
                 </div>
               </div>
             ))}
