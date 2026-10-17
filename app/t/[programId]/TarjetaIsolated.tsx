@@ -354,6 +354,14 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
     return () => { supabase.removeChannel(channel) }
   }, [cardId])
 
+  // Si llega desde el botón del sello o desde el push (#ruleta), bajar hasta la ruleta
+  useEffect(() => {
+    if (loading || !wheelSettings || typeof window === 'undefined') return
+    if (window.location.hash !== '#ruleta') return
+    const t = setTimeout(() => document.getElementById('ruleta')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150)
+    return () => clearTimeout(t)
+  }, [loading, wheelSettings])
+
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-zinc-950">
@@ -652,7 +660,7 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
 
         {/* Ruleta de la suerte */}
         {wheelSettings && (
-          <div className={`rounded-3xl p-5 ${darkBg ? 'bg-white/10 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
+          <div id="ruleta" className={`rounded-3xl p-5 ${darkBg ? 'bg-white/10 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
             <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${darkBg ? 'text-white/40' : 'text-zinc-500'}`}>
               Ruleta de la suerte
             </p>

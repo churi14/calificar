@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
+import { spinPeriodStart, spinNextAt, type SpinFrequency } from '@/lib/spin-period'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -46,9 +47,28 @@ export async function GET(req: NextRequest) {
 
   // Versión pública: no exponer el coupon_prefix
   if (!isOwner) {
-    const { prizes, ...rest } = settings
+    const { prizes, announced_at: _an, ...rest } = settings as typeof settings & { announced_at?: string | null }
     const publicPrizes = (prizes as typeof DEFAULT_PRIZES).map(({ coupon_prefix: _cp, ...p }) => p)
-    return NextResponse.json({ settings: { ...rest, prizes: publicPrizes } })
+
+    // Con card_id: ¿esa tarjeta todavía puede girar en este período?
+    const card_id = req.nextUrl.searchParams.get('card_id')
+    let spinInfo: { can_spin: boolean; next_spin_at: string | null } | null = null
+    if (card_id && settings.enabled) {
+      const frequency: SpinFrequency = settings.frequency ?? 'daily'
+      const { data: recent } = await supabase
+        .from('spin_wheel_history')
+        .select('id')
+        .eq('card_id', card_id)
+        .eq('program_id', program_id)
+        .gte('spun_at', spinPeriodStart(frequency).toISOString())
+        .limit(1)
+        .maybeSingle()
+      spinInfo = recent
+        ? { can_spin: false, next_spin_at: spinNextAt(frequency).toISOString() }
+        : { can_spin: true, next_spin_at: null }
+    }
+
+    return NextResponse.json({ settings: { ...rest, prizes: publicPrizes }, ...(spinInfo ?? {}) })
   }
 
   return NextResponse.json({ settings })
@@ -67,6 +87,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Necesitás al menos 2 premios' }, { status: 400 })
   }
 
+  // Estado previo, para avisar a los clientes solo la primera vez que se activa.
+  // Si la columna announced_at todavía no existe (migración pendiente), no se avisa.
+  const { data: prev, error: prevErr } = await supabase
+    .from('spin_wheel_settings')
+    .select('enabled, announced_at')
+    .eq('program_id', program_id)
+    .maybeSingle()
+  const canAnnounce = !prevErr && !prev?.announced_at
+
   const { error } = await supabase
     .from('spin_wheel_settings')
     .upsert({
@@ -79,5 +108,43 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ ok: true })
+  // Primera activación → push a todos los clientes suscriptos (una sola vez)
+  let announced: number | null = null
+  if (enabled && canAnnounce) {
+    try {
+      const { data: prog } = await supabase
+        .from('loyalty_programs')
+        .select('name, businesses(name)')
+        .eq('id', program_id)
+        .single()
+      const bizRaw = prog?.businesses as { name?: string } | { name?: string }[] | null | undefined
+      const biz = Array.isArray(bizRaw) ? bizRaw[0] : bizRaw
+      const bizName = biz?.name ?? prog?.name ?? 'tu local'
+
+      const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
+      const res = await fetch(`${BASE}/api/fidelizacion/push/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-cron-secret': process.env.CRON_SECRET ?? '',
+        },
+        body: JSON.stringify({
+          program_id,
+          title: '🎰 ¡Ruleta de la suerte!',
+          body: `Ya podés girar y ganar premios en ${bizName}. ¡Probá tu suerte!`,
+          url: `/t/${program_id}#ruleta`,
+        }),
+      })
+      if (res.ok) {
+        const d = await res.json().catch(() => ({}))
+        announced = d.sent ?? 0
+        await supabase
+          .from('spin_wheel_settings')
+          .update({ announced_at: new Date().toISOString() })
+          .eq('program_id', program_id)
+      }
+    } catch { /* el aviso es opcional: si falla, no rompe el guardado */ }
+  }
+
+  return NextResponse.json({ ok: true, announced })
 }

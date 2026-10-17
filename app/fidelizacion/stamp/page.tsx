@@ -39,6 +39,25 @@ function StampContent() {
   const [phoneError, setPhoneError] = useState('')
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [walletObjectId, setWalletObjectId] = useState<string | null>(null)
+  const [canSpin, setCanSpin] = useState(false)
+
+  // ¿La ruleta está activa y esta tarjeta todavía puede girar en el período?
+  useEffect(() => {
+    if (!['success', 'milestone', 'reward'].includes(status) || !programId || !resolvedCardId) return
+    fetch(`/api/fidelizacion/spin-wheel?program_id=${programId}&card_id=${resolvedCardId}`)
+      .then(r => r.json())
+      .then(d => setCanSpin(!!d.settings?.enabled && d.can_spin === true))
+      .catch(() => {})
+  }, [status, programId, resolvedCardId])
+
+  const spinCta = canSpin ? (
+    <Link
+      href={`/t/${programId}?card=${resolvedCardId}#ruleta`}
+      className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-white font-bold py-3.5 rounded-2xl text-sm transition-colors shadow-lg shadow-amber-200"
+    >
+      🎰 ¡Tenés un giro disponible! Girar la ruleta
+    </Link>
+  ) : null
 
   useEffect(() => {
     async function checkAuthAndStamp() {
@@ -200,6 +219,7 @@ function StampContent() {
                 Te faltan <strong className={almostThere ? 'text-amber-600' : 'text-violet-700'}>{remaining}</strong> sellos para tu premio
               </p>
             </div>
+            {spinCta}
             <Link
               href={`/fidelizacion/tarjeta?card=${resolvedCardId}&program=${programId}`}
               className="text-violet-600 text-sm font-semibold underline underline-offset-2"
@@ -241,6 +261,7 @@ function StampContent() {
             </div>
           )}
           <p className="text-zinc-500 text-sm">¡Seguí sumando sellos para tu premio final!</p>
+          {spinCta}
           <Link
             href={`/fidelizacion/tarjeta?card=${resolvedCardId}&program=${programId}`}
             className="text-violet-600 text-sm font-semibold underline underline-offset-2"
@@ -281,6 +302,7 @@ function StampContent() {
             </div>
           )}
           <p className="text-zinc-500 text-sm">Tu tarjeta fue reiniciada. ¡A juntar más sellos!</p>
+          {spinCta}
           {walletObjectId && <WalletButton objectId={walletObjectId} />}
         </div>
       )}

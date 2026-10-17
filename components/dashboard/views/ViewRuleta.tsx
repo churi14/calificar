@@ -108,6 +108,7 @@ export default function ViewRuleta({ selectedProgram, isPro, accessToken }: View
   const [saved,      setSaved]      = useState(false)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
   const [saveError,  setSaveError]  = useState('')
+  const [announceMsg, setAnnounceMsg] = useState('')
   // Simulación (no crea sellos ni cupones reales)
   const [demoAngle,    setDemoAngle]    = useState(0)
   const [demoSpinning, setDemoSpinning] = useState(false)
@@ -164,6 +165,13 @@ export default function ViewRuleta({ selectedProgram, isPro, accessToken }: View
     if (!r.ok) {
       setSaveError(r.status === 401 ? 'No autorizado. Volvé a iniciar sesión.' : 'No se pudo guardar. Intentá de nuevo.')
       return
+    }
+    const d = await r.json().catch(() => ({}))
+    if (typeof d.announced === 'number') {
+      setAnnounceMsg(d.announced > 0
+        ? `🔔 Avisamos a ${d.announced} cliente${d.announced > 1 ? 's' : ''} que la ruleta ya está activa.`
+        : '🔔 Ruleta activada. Todavía no hay clientes con notificaciones para avisarles.')
+      setTimeout(() => setAnnounceMsg(''), 8000)
     }
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
@@ -415,6 +423,10 @@ export default function ViewRuleta({ selectedProgram, isPro, accessToken }: View
             {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar configuración'}
           </button>
           {saveError && <p className="text-sm text-red-500">{saveError}</p>}
+          {announceMsg && <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">{announceMsg}</p>}
+          <p className="text-xs text-zinc-400 dark:text-gray-500">
+            Al activar la ruleta por primera vez, se envía un push a tus clientes avisándoles. Se manda una sola vez.
+          </p>
         </div>
 
         {/* Panel derecho: preview interactiva */}

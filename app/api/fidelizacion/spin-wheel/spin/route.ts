@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { spinPeriodStart, spinNextAt, type SpinFrequency } from '@/lib/spin-period'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -73,20 +74,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No hay premios configurados' }, { status: 400 })
     }
 
-    // Verificar cooldown — el día/semana arranca a las 00:00 de Argentina (UTC-3, sin horario de verano)
-    const AR_OFFSET_MS = 3 * 60 * 60 * 1000
-    const frequency: 'daily' | 'weekly' = settings.frequency ?? 'daily'
+    // Verificar cooldown — el día/semana arranca a las 00:00 de Argentina
+    const frequency: SpinFrequency = settings.frequency ?? 'daily'
     const now = new Date()
-    // "Reloj de pared" argentino: leído con métodos UTC da la hora local de Argentina
-    const arNow = new Date(now.getTime() - AR_OFFSET_MS)
-    arNow.setUTCHours(0, 0, 0, 0)
-    if (frequency === 'weekly') {
-      const dayOfWeek = arNow.getUTCDay()
-      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-      arNow.setUTCDate(arNow.getUTCDate() - daysToMonday)
-    }
-    // Volver a UTC real
-    const sinceDate = new Date(arNow.getTime() + AR_OFFSET_MS)
+    const sinceDate = spinPeriodStart(frequency, now)
 
     const { data: recentSpin } = await supabase
       .from('spin_wheel_history')
@@ -98,19 +89,10 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (recentSpin) {
-      // Calcular cuándo puede volver a girar
-      let nextSpin: Date
-      if (frequency === 'daily') {
-        nextSpin = new Date(sinceDate)
-        nextSpin.setUTCDate(nextSpin.getUTCDate() + 1)
-      } else {
-        nextSpin = new Date(sinceDate)
-        nextSpin.setUTCDate(nextSpin.getUTCDate() + 7)
-      }
       return NextResponse.json({
         error: 'Ya giraste hoy',
         cooldown: true,
-        next_spin_at: nextSpin.toISOString(),
+        next_spin_at: spinNextAt(frequency, now).toISOString(),
       }, { status: 429 })
     }
 
