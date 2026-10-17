@@ -213,7 +213,13 @@ export default function ViewTarjeta({
   const [colorSaved,       setColorSaved]       = useState(false)
   const [previewDevice,    setPreviewDevice]    = useState<'ios' | 'android'>('ios')
   const [showPlans,        setShowPlans]        = useState(false)
-  const [milestones,       setMilestones]       = useState<Milestone[]>([])
+  // Simulación interactiva del celular (solo demo, no toca la base de datos)
+  const [pvStamps,         setPvStamps]         = useState(0)
+  const [pvEvent,          setPvEvent]          = useState<{ kind: 'milestone' | 'reward'; label: string; code: string } | null>(null)
+  const [pvCoupons,        setPvCoupons]        = useState<{ label: string; code: string; reward: boolean }[]>([])
+  const [pvPush,           setPvPush]           = useState<string | null>(null)
+  const [pvToast,          setPvToast]          = useState(false)
+  const [milestones,      setMilestones]       = useState<Milestone[]>([])
   const [milestoneSaving,  setMilestoneSaving]  = useState(false)
   const [milestoneSaved,   setMilestoneSaved]   = useState(false)
   const [milestoneError,   setMilestoneError]   = useState('')
@@ -322,6 +328,49 @@ export default function ViewTarjeta({
 
   const isPro = ['pro', 'ultimate', 'gifted'].includes(plan)
   const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
+
+  /** Simula que el encargado escanea el QR: suma un sello y dispara hito/premio como en el flujo real */
+  function simulateStamp() {
+    if (!program || pvEvent) return
+    const goal = program.stamps_goal
+    const next = pvStamps + 1
+    const businessName = program.businesses?.name ?? program.name
+    const genCode = (prefix: string) =>
+      `${prefix.substring(0, 6).toUpperCase().replace(/\s/g, '')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+    const pushNotif = (text: string) => {
+      setPvPush(text)
+      setTimeout(() => setPvPush(null), 4500)
+    }
+
+    if (next >= goal) {
+      const label = program.reward_description ?? 'Premio'
+      const code = genCode(label)
+      setPvStamps(0)
+      setPvCoupons(prev => [{ label, code, reward: true }, ...prev])
+      setPvEvent({ kind: 'reward', label, code })
+      pushNotif(`🏆 ¡Completaste la tarjeta! Tu premio: ${label}`)
+    } else {
+      setPvStamps(next)
+      const hit = milestones.find(m => m.at === next)
+      if (hit) {
+        const code = genCode(hit.coupon_prefix ?? hit.label)
+        setPvCoupons(prev => [{ label: hit.label, code, reward: false }, ...prev])
+        setPvEvent({ kind: 'milestone', label: hit.label, code })
+        pushNotif(`🎁 ¡Ganaste un descuento en ${businessName}: ${hit.label}!`)
+      } else {
+        setPvToast(true)
+        setTimeout(() => setPvToast(false), 1600)
+      }
+    }
+  }
+
+  function resetSimulation() {
+    setPvStamps(0)
+    setPvEvent(null)
+    setPvCoupons([])
+    setPvPush(null)
+    setPvToast(false)
+  }
 
   return (
     <div className="p-4 md:p-8 w-full">
@@ -765,7 +814,84 @@ export default function ViewTarjeta({
                 </div>
               </div>
 
-              <div className="flex flex-col items-center origin-top-left" style={{ width: 390, height: 823, transform: 'scale(0.9231)' }}>
+              <style>{`
+                @keyframes pv-confetti-fall {
+                  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+                  100% { transform: translateY(90px) rotate(360deg); opacity: 0; }
+                }
+                .pv-confetti { animation: pv-confetti-fall 1.4s ease-in infinite; }
+                @keyframes pv-push-in {
+                  0% { transform: translateY(-120%); opacity: 0; }
+                  100% { transform: translateY(0); opacity: 1; }
+                }
+                .pv-push { animation: pv-push-in .45s cubic-bezier(.2,.9,.3,1.2) both; }
+                @keyframes pv-pop {
+                  0% { transform: scale(.6); opacity: 0; }
+                  100% { transform: scale(1); opacity: 1; }
+                }
+                .pv-pop { animation: pv-pop .35s ease-out both; }
+              `}</style>
+
+              {/* Notificación push simulada */}
+              {pvPush && (
+                <div className="pv-push absolute top-9 inset-x-3 z-40 bg-white/95 backdrop-blur rounded-2xl shadow-2xl px-3.5 py-3 flex items-start gap-2.5">
+                  <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-violet-600 flex items-center justify-center text-white text-xs font-bold">
+                    {appIconUrl ? <img src={appIconUrl} alt="" className="w-full h-full object-cover" /> : (program.businesses?.name ?? program.name).charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold text-zinc-900 truncate">{program.businesses?.name ?? program.name}</p>
+                    <p className="text-[11px] text-zinc-600 leading-snug">{pvPush}</p>
+                  </div>
+                  <span className="text-[9px] text-zinc-400 ml-auto flex-shrink-0">ahora</span>
+                </div>
+              )}
+
+              {/* Aviso "Sello sumado" */}
+              {pvToast && (
+                <div className="pv-pop absolute bottom-16 inset-x-0 z-30 flex justify-center pointer-events-none">
+                  <div className="bg-zinc-900 text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-xl">✓ ¡Sello sumado!</div>
+                </div>
+              )}
+
+              {/* Pantalla de hito / premio (igual que ve el cliente al escanear) */}
+              {pvEvent && (
+                <div className="absolute inset-0 z-30 bg-white flex flex-col items-center justify-center text-center px-7 gap-4">
+                  <div className="relative">
+                    <div className="pv-pop text-7xl">{pvEvent.kind === 'reward' ? '🏆' : '🎁'}</div>
+                    <div className="absolute -top-2 -inset-x-6 flex justify-around pointer-events-none">
+                      {['🎊', '⭐', '✨', '🎉', '🎊'].map((e, i) => (
+                        <span key={i} className="pv-confetti text-lg" style={{ animationDelay: `${i * 0.15}s` }}>{e}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <h2 className="text-2xl font-extrabold text-zinc-900">
+                    {pvEvent.kind === 'reward' ? '¡Completaste la tarjeta!' : '¡Ganaste un descuento!'}
+                  </h2>
+                  <div className={`rounded-2xl px-6 py-3.5 w-full border-2 ${pvEvent.kind === 'reward' ? 'bg-amber-50 border-amber-300' : 'bg-violet-50 border-violet-300'}`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${pvEvent.kind === 'reward' ? 'text-amber-500' : 'text-violet-500'}`}>
+                      {pvEvent.kind === 'reward' ? 'Tu premio' : 'Tu descuento'}
+                    </p>
+                    <p className="text-base font-bold text-zinc-900">{pvEvent.label}</p>
+                  </div>
+                  <div className="bg-zinc-900 rounded-2xl px-6 py-3.5 w-full">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">
+                      {pvEvent.kind === 'reward' ? 'Código de canje' : 'Código de descuento'}
+                    </p>
+                    <p className="text-lg font-mono font-extrabold text-white tracking-widest">{pvEvent.code}</p>
+                    <p className="text-[11px] text-zinc-500 mt-1">Mostralo al encargado — un solo uso</p>
+                  </div>
+                  <p className="text-zinc-500 text-xs">
+                    {pvEvent.kind === 'reward' ? 'Tu tarjeta fue reiniciada. ¡A juntar más sellos!' : '¡Seguí sumando sellos para tu premio final!'}
+                  </p>
+                  <button type="button" onClick={() => setPvEvent(null)}
+                    className="text-violet-600 text-sm font-semibold underline underline-offset-2">
+                    Ver mi tarjeta →
+                  </button>
+                </div>
+              )}
+
+              <div className="absolute inset-0 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex flex-col items-center origin-top-left" style={{ width: 390, minHeight: 823, transform: 'scale(0.9231)', marginBottom: 80 }}>
 
                 {/* ── TARJETA ── */}
                 <div className="w-full max-w-sm px-4 pt-10 pb-2">
@@ -807,7 +933,7 @@ export default function ViewTarjeta({
                       <div className="grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(program.stamps_goal, 5)}, 1fr)` }}>
                         {Array.from({ length: Math.min(program.stamps_goal, 10) }).map((_, i) => {
                           const previewIcon = stampIconUrl ?? program.logo_url
-                          const filled = i < 3
+                          const filled = i < pvStamps
                           return previewIcon ? (
                             stampNoBg ? (
                               <div key={i} className="aspect-square flex items-center justify-center p-1">
@@ -835,10 +961,10 @@ export default function ViewTarjeta({
                         <div className="relative">
                           <div className="absolute top-3 left-0 right-0 h-0.5 rounded-full" style={{ background: `${cardTextColor}25` }} />
                           <div className="absolute top-3 left-0 h-0.5 rounded-full"
-                            style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: `${cardTextColor}70` }} />
+                            style={{ width: `${Math.min((pvStamps / program.stamps_goal) * 100, 100)}%`, background: `${cardTextColor}70` }} />
                           <div className="flex justify-between relative">
                             {milestones.map(m => {
-                              const reached = 3 >= m.at
+                              const reached = pvStamps >= m.at
                               return (
                                 <div key={m.at} className="flex flex-col items-center" style={{ position: 'absolute', left: `${(m.at / program.stamps_goal) * 100}%`, transform: 'translateX(-50%)' }}>
                                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 ${reached ? 'border-white' : 'border-white/30'}`}
@@ -869,11 +995,11 @@ export default function ViewTarjeta({
                     {/* Progreso */}
                     <div className="relative px-6 py-5">
                       <div className="flex justify-between text-xs mb-2" style={{ color: `${cardTextColor}b3` }}>
-                        <span className="font-bold text-sm" style={{ color: cardTextColor }}>3 de {program.stamps_goal} sellos</span>
+                        <span className="font-bold text-sm" style={{ color: cardTextColor }}>{pvStamps} de {program.stamps_goal} sellos</span>
                         {milestones.length === 0 && <span>{program.reward_description}</span>}
                       </div>
                       <div className="rounded-full h-2" style={{ background: `${cardTextColor}30` }}>
-                        <div className="h-2 rounded-full" style={{ width: `${Math.min((3 / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
+                        <div className="h-2 rounded-full" style={{ width: `${Math.min((pvStamps / program.stamps_goal) * 100, 100)}%`, background: cardTextColor }} />
                       </div>
                     </div>
                   </div>
@@ -881,6 +1007,19 @@ export default function ViewTarjeta({
 
                 {/* ── SECCIÓN INFERIOR ── */}
                 <div className="w-full max-w-sm px-4 mt-4 flex flex-col gap-3">
+                  {/* Cupones ganados */}
+                  {pvCoupons.map((c, i) => (
+                    <div key={i} className="pv-pop bg-white rounded-3xl px-5 py-4">
+                      <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: cardColor }}>Premio ganado 🎁</p>
+                      <p className="text-sm font-semibold text-zinc-800 mb-3">{c.label}</p>
+                      <div className="bg-zinc-900 rounded-xl px-4 py-3 text-center">
+                        <p className="text-xs text-zinc-400 mb-1 uppercase tracking-widest">Código de descuento</p>
+                        <p className="text-lg font-mono font-extrabold text-white tracking-widest">{c.code}</p>
+                      </div>
+                      <p className="text-xs text-zinc-400 mt-2 text-center">Mostralo al encargado — un solo uso</p>
+                    </div>
+                  ))}
+
                   {/* QR */}
                   <div className={`rounded-3xl p-6 text-center ${isDarkColor(pageBgColor) ? 'bg-white/5 border border-white/10' : 'bg-black/5 border border-black/10'}`}>
                     <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${isDarkColor(pageBgColor) ? 'text-white/70' : 'text-zinc-500'}`}>
@@ -917,6 +1056,7 @@ export default function ViewTarjeta({
                   <p className="text-center text-sm font-semibold" style={{ color: `${cardTextColor}cc` }}>✓ Notificaciones activadas</p>
                 </div>
               </div>
+              </div>
 
               {/* Barra de inicio */}
               {previewDevice === 'ios' && (
@@ -926,7 +1066,21 @@ export default function ViewTarjeta({
             </div>
           </div>
 
-          <p className="text-xs text-zinc-400 text-center mt-4">Preview con 3 sellos de ejemplo</p>
+          {/* Controles de la simulación */}
+          <div className="mt-5 w-full flex flex-col gap-2">
+            <button type="button" onClick={simulateStamp} disabled={!!pvEvent}
+              className="w-full py-3 rounded-xl text-sm font-bold text-white transition-colors disabled:opacity-50"
+              style={{ background: '#7C3AED' }}>
+              ＋ Simular sello ({pvStamps}/{program.stamps_goal})
+            </button>
+            <button type="button" onClick={resetSimulation}
+              className="text-xs font-semibold text-zinc-400 hover:text-zinc-600 transition-colors">
+              Reiniciar simulación
+            </button>
+            <p className="text-[11px] text-zinc-400 text-center leading-snug">
+              Demo: así ve el cliente cada sello, hito y premio. No crea cupones reales.
+            </p>
+          </div>
         </div>{/* end RIGHT */}
 
       </div>{/* end two-column flex */}

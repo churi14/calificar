@@ -240,7 +240,7 @@ function StampContent() {
               <p className="text-xs text-zinc-500 mt-1">Mostralo al encargado — un solo uso</p>
             </div>
           )}
-          <p className="text-zinc-500 text-sm">Tu tarjeta se reinició. ¡Seguí acumulando sellos!</p>
+          <p className="text-zinc-500 text-sm">¡Seguí sumando sellos para tu premio final!</p>
           <Link
             href={`/fidelizacion/tarjeta?card=${resolvedCardId}&program=${programId}`}
             className="text-violet-600 text-sm font-semibold underline underline-offset-2"
