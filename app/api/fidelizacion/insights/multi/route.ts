@@ -1,7 +1,7 @@
 /**
  * GET /api/fidelizacion/insights/multi?days=30
- * Devuelve métricas de TODOS los programas del negocio autenticado.
- * Útil para la vista comparativa de sucursales (plan Ultimate).
+ * Métricas por SUCURSAL del negocio autenticado (plan Ultimate): una fila por sucursal
+ * ("Principal" = sellos sin sucursal). La tarjeta del cliente es compartida entre sucursales.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -60,78 +60,115 @@ export async function GET(req: NextRequest) {
   if (!programs?.length) return NextResponse.json({ results: [] })
 
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+  const DOW_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+  const AR_OFFSET_MS = 3 * 60 * 60 * 1000 // Argentina = UTC-3, sin horario de verano
 
-  // Para cada programa, calcular métricas
-  const results = await Promise.all(programs.map(async (prog) => {
-    // Sellos en el período
-    const { data: stamps } = await supabase
-      .from('loyalty_transactions')
-      .select('created_at, card_id')
-      .eq('program_id', prog.id)
-      .eq('type', 'stamp')
-      .gte('created_at', since)
+  type StampRow = { card_id: string | null; branch_id: string | null; created_at: string }
 
-    const totalStamps = stamps?.length ?? 0
-    const activeCardIds = new Set(stamps?.map(s => s.card_id).filter(Boolean))
-    const activeClients = activeCardIds.size
-
-    // Nuevos clientes en el período
-    const { count: newClients } = await supabase
-      .from('loyalty_cards')
-      .select('id', { count: 'exact', head: true })
-      .eq('program_id', prog.id)
-      .eq('active', true)
-      .gte('created_at', since)
-
-    // Total clientes activos del programa
-    const { count: totalClients } = await supabase
-      .from('loyalty_cards')
-      .select('id', { count: 'exact', head: true })
-      .eq('program_id', prog.id)
-      .eq('active', true)
-
-    const conversionRate = totalClients ? Math.round((activeClients / totalClients) * 100) : 0
-
-    // Hora pico
-    const hourCounts = new Array(24).fill(0)
-    stamps?.forEach(s => {
-      const h = new Date(s.created_at).getHours()
-      hourCounts[h]++
-    })
-    const peakHour = hourCounts.indexOf(Math.max(...hourCounts))
-
-    // Día de la semana pico
-    const DOW_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-    const dowCounts = new Array(7).fill(0)
-    stamps?.forEach(s => {
-      const d = new Date(s.created_at).getDay()
-      dowCounts[d]++
-    })
-    const peakDow = dowCounts.indexOf(Math.max(...dowCounts))
-    const peakDay = DOW_LABELS[peakDow]
-
-    // Premios canjeados
-    const { count: rewardsRedeemed } = await supabase
-      .from('loyalty_transactions')
-      .select('id', { count: 'exact', head: true })
-      .eq('program_id', prog.id)
-      .eq('type', 'reward')
-      .gte('created_at', since)
-
-    return {
-      program_id: prog.id,
-      program_name: prog.name,
-      stamps_goal: prog.stamps_goal,
-      total_stamps: totalStamps,
-      active_clients: activeClients,
-      new_clients: newClients ?? 0,
-      total_clients: totalClients ?? 0,
-      conversion_rate: conversionRate,
-      peak_hour: peakHour,
-      peak_day: peakDay,
-      rewards_redeemed: rewardsRedeemed ?? 0,
+  // Trae todas las filas (Supabase corta en 1000 por consulta)
+  async function fetchAll<T>(build: (from: number, to: number) => PromiseLike<{ data: T[] | null }>): Promise<T[]> {
+    const out: T[] = []
+    for (let from = 0; ; from += 1000) {
+      const { data } = await build(from, from + 999)
+      if (!data?.length) break
+      out.push(...data)
+      if (data.length < 1000) break
     }
+    return out
+  }
+
+  // Por programa: una fila por sucursal ("Principal" = branch_id NULL). La tarjeta es compartida;
+  // las métricas salen de en qué sucursal se dio cada sello.
+  const perProgram = await Promise.all(programs.map(async (prog) => {
+    const { data: branchRows, error: branchErr } = await supabase
+      .from('branches')
+      .select('id, name')
+      .eq('program_id', prog.id)
+      .eq('active', true)
+      .order('created_at', { ascending: true })
+    const branches = branchErr ? [] : (branchRows ?? [])
+    const hasBranches = branches.length > 0
+
+    // Todos los sellos del programa (historial completo, para total y primer sello)
+    const stamps = await fetchAll<StampRow>((from, to) =>
+      supabase
+        .from('loyalty_transactions')
+        .select('card_id, branch_id, created_at')
+        .eq('program_id', prog.id)
+        .eq('type', 'stamp')
+        .order('created_at', { ascending: true })
+        .range(from, to)
+    )
+    // Premios del período
+    const rewards = await fetchAll<{ branch_id: string | null }>((from, to) =>
+      supabase
+        .from('loyalty_transactions')
+        .select('branch_id')
+        .eq('program_id', prog.id)
+        .eq('type', 'reward')
+        .gte('created_at', since)
+        .range(from, to)
+    )
+    // Tarjetas del programa
+    const cards = await fetchAll<{ id: string; created_at: string }>((from, to) =>
+      supabase
+        .from('loyalty_cards')
+        .select('id, created_at')
+        .eq('program_id', prog.id)
+        .eq('active', true)
+        .range(from, to)
+    )
+
+    const keyOf = (b: string | null) => (hasBranches ? (b ?? 'main') : 'main')
+    // Sucursal del primer sello de cada tarjeta (para "clientes nuevos")
+    const firstBucket = new Map<string, string>()
+    for (const s of stamps) {
+      if (s.card_id && !firstBucket.has(s.card_id)) firstBucket.set(s.card_id, keyOf(s.branch_id))
+    }
+    const newCards = cards.filter(c => c.created_at >= since)
+
+    const buckets: { key: string; branchId: string | null; label: string }[] = hasBranches
+      ? [{ key: 'main', branchId: null, label: 'Principal' }, ...branches.map(b => ({ key: b.id, branchId: b.id, label: b.name }))]
+      : [{ key: 'main', branchId: null, label: prog.name }]
+
+    return buckets.map(bk => {
+      const all = stamps.filter(s => keyOf(s.branch_id) === bk.key)
+      const period = all.filter(s => s.created_at >= since)
+      const activeIds = new Set(period.map(s => s.card_id).filter(Boolean))
+
+      // Sin sucursales: se mantiene el cálculo anterior (todas las tarjetas del programa)
+      const totalClients = hasBranches
+        ? new Set(all.map(s => s.card_id).filter(Boolean)).size
+        : cards.length
+      const newClients = hasBranches
+        ? newCards.filter(c => (firstBucket.get(c.id) ?? 'main') === bk.key).length
+        : newCards.length
+
+      // Hora y día pico en hora de Argentina
+      const hourCounts = new Array(24).fill(0)
+      const dowCounts = new Array(7).fill(0)
+      period.forEach(s => {
+        const ar = new Date(new Date(s.created_at).getTime() - AR_OFFSET_MS)
+        hourCounts[ar.getUTCHours()]++
+        dowCounts[ar.getUTCDay()]++
+      })
+
+      return {
+        program_id: hasBranches ? (bk.branchId ?? prog.id) : prog.id,
+        branch_id: bk.branchId,
+        program_name: hasBranches && programs.length > 1 ? `${prog.name} · ${bk.label}` : bk.label,
+        stamps_goal: prog.stamps_goal,
+        total_stamps: period.length,
+        active_clients: activeIds.size,
+        new_clients: newClients,
+        total_clients: totalClients,
+        conversion_rate: totalClients ? Math.round((activeIds.size / totalClients) * 100) : 0,
+        peak_hour: hourCounts.indexOf(Math.max(...hourCounts)),
+        peak_day: DOW_LABELS[dowCounts.indexOf(Math.max(...dowCounts))],
+        rewards_redeemed: rewards.filter(r => keyOf(r.branch_id) === bk.key).length,
+      }
+    })
   }))
 
-  return NextResponse.json({ results, days })
+  return NextResponse.json({ results: perProgram.flat(), days })
 }

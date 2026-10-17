@@ -26,6 +26,7 @@ function StampContent() {
   const router = useRouter()
   const programId = params.get('program')
   const cardId = params.get('card')
+  const branchId = params.get('b')   // sucursal del NFC/QR (opcional)
 
   const [status, setStatus] = useState<Status>('loading')
   const [stamps, setStamps] = useState(0)
@@ -99,7 +100,7 @@ function StampContent() {
           'Content-Type': 'application/json',
           ...(tok ? { 'Authorization': `Bearer ${tok}` } : {}),
         },
-        body: JSON.stringify({ card_id: cid, program_id: programId, registered_by: tok ? 'manual' : 'nfc' }),
+        body: JSON.stringify({ card_id: cid, program_id: programId, registered_by: tok ? 'manual' : 'nfc', branch_id: branchId ?? undefined }),
       })
       const data = await res.json()
       if (data.cooldown) { if (data.wallet_object_id) setWalletObjectId(data.wallet_object_id); setStatus('cooldown'); return }

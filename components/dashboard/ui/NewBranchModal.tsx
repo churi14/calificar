@@ -1,16 +1,16 @@
 'use client'
 
 import React, { useState } from 'react'
-import type { Program } from '@/types/dashboard'
+import type { Branch } from '@/types/dashboard'
 
 interface NewBranchModalProps {
   accessToken: string
-  businessName: string
+  programId: string
   onClose: () => void
-  onCreated: (program: Program, walletFailed: boolean) => void
+  onCreated: (branch: Branch) => void
 }
 
-export default function NewBranchModal({ accessToken, businessName, onClose, onCreated }: NewBranchModalProps) {
+export default function NewBranchModal({ accessToken, programId, onClose, onCreated }: NewBranchModalProps) {
   const [name,    setName]    = useState('')
   const [saving,  setSaving]  = useState(false)
   const [error,   setError]   = useState('')
@@ -24,15 +24,15 @@ export default function NewBranchModal({ accessToken, businessName, onClose, onC
       const res = await fetch('/api/fidelizacion/branches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({ program_id: programId, name: name.trim() }),
       })
       const d = await res.json().catch(() => ({}))
-      if (!res.ok || !d.program) {
+      if (!res.ok || !d.branch) {
         setError(d.error ?? 'No se pudo crear la sucursal. Intentá de nuevo.')
         setSaving(false)
         return
       }
-      onCreated(d.program as Program, d.wallet === 'failed')
+      onCreated(d.branch as Branch)
     } catch {
       setError('Error de red. Revisá tu conexión.')
       setSaving(false)
@@ -47,7 +47,7 @@ export default function NewBranchModal({ accessToken, businessName, onClose, onC
       <form onSubmit={create} className="w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-2xl">
         <h2 className="text-lg font-extrabold text-zinc-900 dark:text-white mb-1">Nueva sucursal</h2>
         <p className="text-sm text-zinc-500 dark:text-gray-400 mb-5">
-          Se crea con el mismo diseño, premio y configuración de tu programa principal. Después podés personalizarla desde la vista Tarjeta.
+          La tarjeta del cliente es la misma en todas tus sucursales. Cada sucursal tiene su propio QR y sus propias métricas.
         </p>
 
         <label className="text-xs font-semibold text-zinc-600 dark:text-gray-300 block mb-1.5">Nombre de la sucursal</label>
@@ -57,14 +57,9 @@ export default function NewBranchModal({ accessToken, businessName, onClose, onC
           value={name}
           maxLength={40}
           onChange={e => { setName(e.target.value); setError('') }}
-          placeholder="Ej: Centro, Palermo, Ushuaia 2"
+          placeholder="Ej: Centro, Palermo, Costanera"
           className="w-full border border-zinc-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-zinc-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-400 transition-colors"
         />
-        {name.trim().length >= 2 && (
-          <p className="text-xs text-zinc-400 dark:text-gray-500 mt-2">
-            Se va a llamar: Tarjeta de Sellos — {businessName} ({name.trim().replace(/[()]/g, '')})
-          </p>
-        )}
         {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
 
         <div className="flex gap-2 mt-6">

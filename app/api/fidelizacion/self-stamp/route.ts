@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
+import { resolveBranchId } from '@/lib/branches'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,7 +48,7 @@ async function consumeStampToken(program_id: string, token: string): Promise<boo
 
 export async function POST(req: NextRequest) {
   try {
-    const { program_id, phone, name, dni, token } = await req.json()
+    const { program_id, phone, name, dni, token, branch_id: rawBranchId } = await req.json()
 
     if (!program_id || !phone) {
       return NextResponse.json({ error: 'program_id y phone son requeridos' }, { status: 400 })
@@ -168,6 +169,10 @@ export async function POST(req: NextRequest) {
         ? genCoupon(hitMilestone.coupon_prefix ?? hitMilestone.label)
         : null
 
+    // Sucursal del QR/NFC que escaneó el cliente (null = Principal)
+    const branchId = await resolveBranchId(supabase, program_id, rawBranchId)
+    const branchField = branchId ? { branch_id: branchId } : {}
+
     // Actualizar tarjeta
     await supabase
       .from('loyalty_cards')
@@ -176,14 +181,14 @@ export async function POST(req: NextRequest) {
 
     // Registrar transacción
     await supabase.from('loyalty_transactions').insert({
-      card_id: card.id, program_id, type: 'stamp', amount: 1, registered_by: 'self',
+      card_id: card.id, program_id, type: 'stamp', amount: 1, registered_by: 'self', ...branchField,
     })
 
     if (goalReached) {
       await supabase.from('loyalty_transactions').insert({
         card_id: card.id, program_id, type: 'reward',
         amount: -program.stamps_goal, note: program.reward_description,
-        registered_by: 'system', coupon_code: couponCode,
+        registered_by: 'system', coupon_code: couponCode, ...branchField,
       })
     }
 
@@ -191,7 +196,7 @@ export async function POST(req: NextRequest) {
       await supabase.from('loyalty_transactions').insert({
         card_id: card.id, program_id, type: 'reward',
         amount: 0, note: hitMilestone.label,
-        registered_by: 'system', coupon_code: couponCode,
+        registered_by: 'system', coupon_code: couponCode, ...branchField,
       })
     }
 

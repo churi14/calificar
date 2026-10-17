@@ -24,6 +24,12 @@ export type Program = {
   businesses?: { name: string; id: string }
 }
 
+export type Branch = {
+  id: string
+  name: string
+  created_at?: string
+}
+
 export type Card = {
   id: string
   name: string

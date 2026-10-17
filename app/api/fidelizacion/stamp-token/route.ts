@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { randomBytes } from 'crypto'
 import { verifyProgramOwner } from '@/lib/business-auth'
+import { resolveBranchId } from '@/lib/branches'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -94,11 +95,14 @@ export async function GET(req: NextRequest) {
   const ageSeconds = (Date.now() - tokenCreatedAt) / 1000
   const secondsRemaining = Math.max(1, Math.round(TOKEN_WINDOW_SECONDS - ageSeconds))
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'
+  // Sucursal del local que muestra este QR (null = Principal)
+  const branchId = await resolveBranchId(supabase, program_id, req.nextUrl.searchParams.get('branch_id'))
+  const branchParam = branchId ? `&b=${branchId}` : ''
 
   return NextResponse.json({
     token,
     seconds_remaining: secondsRemaining,
     window_seconds: TOKEN_WINDOW_SECONDS,
-    link: `${appUrl}/s/${program_id}?t=${token}`,
+    link: `${appUrl}/s/${program_id}?t=${token}${branchParam}`,
   })
 }

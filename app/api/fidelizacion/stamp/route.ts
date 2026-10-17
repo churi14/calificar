@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
 import { verifyProgramOwner } from '@/lib/business-auth'
+import { resolveBranchId } from '@/lib/branches'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,7 +22,7 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { card_id, program_id, registered_by = 'nfc', purchase_amount } = await req.json()
+    const { card_id, program_id, registered_by = 'nfc', purchase_amount, branch_id: rawBranchId } = await req.json()
 
     if (!card_id || !program_id) {
       return NextResponse.json({ error: 'card_id y program_id son requeridos' }, { status: 400 })
@@ -33,6 +34,10 @@ export async function POST(req: NextRequest) {
     if (!owner) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
+
+    // Sucursal donde se da el sello (null = Principal). Inválida o inexistente se cuenta como Principal.
+    const branchId = await resolveBranchId(supabase, program_id, rawBranchId)
+    const branchField = branchId ? { branch_id: branchId } : {}
 
     // Traer tarjeta y programa juntos
     const { data: card, error: cardErr } = await supabase
@@ -117,6 +122,7 @@ export async function POST(req: NextRequest) {
       amount: 1,
       purchase_amount: purchase_amount ?? null,
       registered_by,
+      ...branchField,
     })
 
     // Si llegó a la meta, registrar canje final
@@ -129,6 +135,7 @@ export async function POST(req: NextRequest) {
         note: program.reward_description,
         registered_by: 'system',
         coupon_code: couponCode,
+        ...branchField,
       })
     }
 
@@ -142,6 +149,7 @@ export async function POST(req: NextRequest) {
         note: hitMilestone.label,
         registered_by: 'system',
         coupon_code: couponCode,
+        ...branchField,
       })
     }
 

@@ -10,6 +10,9 @@ interface ViewSelloRapidoProps {
   manualStamp: (id: string, name: string) => void
   plan?: string
   planExpiresAt?: string | null
+  /** Sucursal en la que se dan los sellos (null = Principal) */
+  branchId?: string | null
+  branchLabel?: string
 }
 
 export default function ViewSelloRapido({
@@ -19,6 +22,8 @@ export default function ViewSelloRapido({
   manualStamp,
   plan = 'trial',
   planExpiresAt = null,
+  branchId = null,
+  branchLabel,
 }: ViewSelloRapidoProps) {
   const [phone, setPhone] = useState('')
   const [found, setFound] = useState<Card | null | 'none'>(null)
@@ -28,8 +33,8 @@ export default function ViewSelloRapido({
   const [copiedSecure, setCopiedSecure] = useState(false)
   const selfLink =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/s/${selectedProgram}`
-      : `/s/${selectedProgram}`
+      ? `${window.location.origin}/s/${selectedProgram}${branchId ? `?b=${branchId}` : ''}`
+      : `/s/${selectedProgram}${branchId ? `?b=${branchId}` : ''}`
 
   // Link seguro rotativo (disponible en todos los planes)
   const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
@@ -44,7 +49,7 @@ export default function ViewSelloRapido({
       setLoadingToken(true)
       try {
         const res = await fetch(
-          `/api/fidelizacion/stamp-token?program_id=${selectedProgram}`,
+          `/api/fidelizacion/stamp-token?program_id=${selectedProgram}${branchId ? `&branch_id=${branchId}` : ''}`,
           { headers: { Authorization: `Bearer ${accessToken}` } }
         )
         const data = await res.json()
@@ -56,7 +61,7 @@ export default function ViewSelloRapido({
       setLoadingToken(false)
     }
     fetchToken()
-  }, [isProPlus, selectedProgram, accessToken])
+  }, [isProPlus, selectedProgram, accessToken, branchId])
 
   // Countdown y auto-refresh cuando expira
   useEffect(() => {
@@ -64,7 +69,7 @@ export default function ViewSelloRapido({
     const interval = setInterval(() => {
       setSecondsLeft(s => {
         if (s <= 1) {
-          fetch(`/api/fidelizacion/stamp-token?program_id=${selectedProgram}`, {
+          fetch(`/api/fidelizacion/stamp-token?program_id=${selectedProgram}${branchId ? `&branch_id=${branchId}` : ''}`, {
             headers: { Authorization: `Bearer ${accessToken}` },
           })
             .then(r => r.json())
@@ -81,7 +86,7 @@ export default function ViewSelloRapido({
       })
     }, 1000)
     return () => clearInterval(interval)
-  }, [isProPlus, secondsLeft, selectedProgram, accessToken])
+  }, [isProPlus, secondsLeft, selectedProgram, accessToken, branchId])
 
   function formatCountdown(s: number) {
     const m = Math.floor(s / 60)
@@ -130,6 +135,11 @@ export default function ViewSelloRapido({
     <div className="p-6 max-w-md mx-auto pt-10">
       <h2 className="text-2xl font-extrabold text-zinc-900 mb-1">Sello rápido</h2>
       <p className="text-sm text-zinc-500 mb-8">Ingresá el teléfono del cliente y sellá con un tap.</p>
+      {branchLabel && (
+        <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-700 bg-violet-50 rounded-full px-3 py-1 -mt-5 mb-6">
+          Los sellos cuentan en: {branchLabel}
+        </p>
+      )}
 
       {/* Input teléfono */}
       <div className="relative mb-4">

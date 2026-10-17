@@ -26,10 +26,13 @@ const PHYSICAL_TEMPLATES = [
 interface ViewImprimirProps {
   program: Program | undefined
   selectedProgram: string | null
+  /** Sucursal del QR (null = Principal) */
+  branchId?: string | null
+  branchLabel?: string
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewImprimir({ program, selectedProgram }: ViewImprimirProps) {
+export default function ViewImprimir({ program, selectedProgram, branchId = null, branchLabel }: ViewImprimirProps) {
   const [qrUrl, setQrUrl]           = useState<string | null>(null)
   const [activeTag, setActiveTag]   = useState<string>('Todos')
   const [downloading, setDownloading] = useState<string | null>(null)
@@ -37,7 +40,7 @@ export default function ViewImprimir({ program, selectedProgram }: ViewImprimirP
   const color   = program?.color_primary ?? '#7C3AED'
   const bizName = (program as any)?.businesses?.name ?? program?.name ?? 'Tu negocio'
   const scanUrl = selectedProgram
-    ? `https://calificar.com.ar/s/${selectedProgram}`
+    ? `https://calificar.com.ar/s/${selectedProgram}${branchId ? `?b=${branchId}` : ''}`
     : 'https://calificar.com.ar'
 
   useEffect(() => {
@@ -358,6 +361,11 @@ export default function ViewImprimir({ program, selectedProgram }: ViewImprimirP
     <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-white mb-1">Compartí tu tarjeta</h1>
       <p className="text-zinc-400 dark:text-gray-500 text-sm mb-6">Todos los formatos con tu QR y colores de marca, listos para usar.</p>
+      {branchLabel && (
+        <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-700 bg-violet-50 dark:bg-violet-950 dark:text-violet-300 rounded-full px-3 py-1 -mt-3 mb-5">
+          QR de la sucursal: {branchLabel}. Cambiá de sucursal desde el menú lateral.
+        </p>
+      )}
 
       {/* Digital */}
       <div className="mb-8">
