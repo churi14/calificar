@@ -101,6 +101,7 @@ export type ViewType =
   | 'metricas'
   | 'dominio'
   | 'imprimir'
+  | 'calculadora'
   | 'perfil'
   | 'plan'
   | 'ayuda'

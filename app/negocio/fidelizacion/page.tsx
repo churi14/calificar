@@ -28,6 +28,7 @@ import ViewReferencias      from '@/components/dashboard/views/ViewReferencias'
 import ViewRuleta           from '@/components/dashboard/views/ViewRuleta'
 import ViewMetricasSucursal     from '@/components/dashboard/views/ViewMetricasSucursal'
 import ViewDominioPersonalizado from '@/components/dashboard/views/ViewDominioPersonalizado'
+import ViewRoi from '@/components/dashboard/views/ViewRoi'
 import ViewImprimir         from '@/components/dashboard/views/ViewImprimir'
 import ViewPerfil           from '@/components/dashboard/views/ViewPerfil'
 import ViewPlan             from '@/components/dashboard/views/ViewPlan'
@@ -535,6 +536,9 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'dominio' && (
           <ViewDominioPersonalizado selectedProgram={selectedProgram} accessToken={accessToken} />
+        )}
+        {activeNav === 'calculadora' && (
+          <ViewRoi program={program} />
         )}
         {activeNav === 'imprimir' && (
           <ViewImprimir program={program} selectedProgram={selectedProgram}

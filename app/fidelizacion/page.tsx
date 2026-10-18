@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import PhoneCardPreview from '@/components/landing/PhoneCardPreview'
+import RoiCalculator from '@/components/roi/RoiCalculator'
 
 const features = [
   {
@@ -301,6 +302,18 @@ export default function FidelizacionLanding() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* CALCULADORA */}
+      <section id="calculadora" className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-violet-600 font-semibold text-sm uppercase tracking-widest mb-3">Calculadora</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">¿Cuánto te deja una tarjeta de sellos?</h2>
+            <p className="text-zinc-600 max-w-xl mx-auto">Poné lo que cobrás y cuántos clientes atendés. Te mostramos en pesos cuánto ganás después de pagar los premios y el plan.</p>
+          </div>
+          <RoiCalculator mode="preview" cta={{ href: '/fidelizacion/onboarding', label: 'Probalo con tus números · 14 días gratis' }} />
         </div>
       </section>
 

@@ -1,5 +1,7 @@
 'use client'
 
+import RoiCalculator from '@/components/roi/RoiCalculator'
+import { presetForBusinessType } from '@/lib/roi'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
@@ -35,7 +37,7 @@ function track(step: number, event: string, data?: Record<string, unknown>) {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const TOTAL_STEPS = 12
+const TOTAL_STEPS = 13
 
 const BUSINESS_TYPES = [
   { id: 'cafeteria',   label: 'Cafetería',          icon: '☕' },
@@ -69,6 +71,7 @@ const STEP_META: { chip: string; est: string; icon: string }[] = [
   { chip: '¡GENIAL!',           est: '~35 SEG', icon: '✦' },
   { chip: 'VALE LA PENA',       est: '~30 SEG', icon: '🎁' },
   { chip: 'ESCALERA DE PREMIOS',est: '~25 SEG', icon: '🏅' },
+  { chip: 'TUS NÚMEROS',        est: '~22 SEG', icon: '💰' },
   { chip: 'QUE VUELVAN SOLOS',  est: '~20 SEG', icon: '🎂' },
   { chip: 'DALE TU TOQUE',      est: '~15 SEG', icon: '✏️' },
   { chip: 'HAZLO TUYO',         est: '~10 SEG', icon: '🎨' },
@@ -262,7 +265,7 @@ export default function OnboardingPage() {
   async function handleGoogle() {
     setAuthLoading(true)
     setAuthError('')
-    track(11, 'auth_click', { method: 'google' })
+    track(12, 'auth_click', { method: 'google' })
     saveConfig()
     await supabase.auth.signOut()
     const { error } = await supabase.auth.signInWithOAuth({
@@ -277,7 +280,7 @@ export default function OnboardingPage() {
     if (!email.trim()) return
     setAuthLoading(true)
     setAuthError('')
-    track(11, 'auth_click', { method: 'email' })
+    track(12, 'auth_click', { method: 'email' })
     saveConfig()
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
@@ -733,8 +736,39 @@ export default function OnboardingPage() {
             </>
           )}
 
+          {/* ── STEP 8: ¿Cuánto te va a dejar? ─────────────────────────────── */}
+          {step === 8 && (() => {
+            const preset = presetForBusinessType(businessType)
+            const ladder = [
+              ...(hasMilestone && milestoneReward.trim()
+                ? [{ at: milestoneAt, name: milestoneReward.trim(), cost: Math.round(preset.ticket * 0.15 / 500) * 500 }]
+                : []),
+              { at: stampsGoal, name: reward.trim() || 'Premio final', cost: Math.round(preset.ticket * 0.3 / 500) * 500 },
+            ]
+            return (
+              <>
+                <Chip meta={meta} />
+                <h1 className="text-3xl font-extrabold text-zinc-900 leading-tight mb-2">¿Cuánto te va a dejar?</h1>
+                <p className="text-zinc-500 text-sm mb-5">
+                  Cambiá los números por los de tu negocio y mirá en pesos cuánto ganás con tu tarjeta de {stampsGoal} sellos.
+                </p>
+                <RoiCalculator
+                  key={`${preset.id}-${stampsGoal}-${ladder.length}`}
+                  mode="full"
+                  stacked
+                  initial={{ presetId: preset.id, goal: stampsGoal, rewards: ladder }}
+                />
+                <button
+                  onClick={() => { track(8, 'step_complete', { preset: preset.id }); next() }}
+                  className="mt-6 w-full text-white font-bold py-4 rounded-2xl text-sm transition-all active:scale-[0.98]"
+                  style={{ background: primaryColor }}
+                >Seguir →</button>
+              </>
+            )
+          })()}
+
           {/* ── STEP 8: Cumpleaños ─────────────────────────────────────────── */}
-          {step === 8 && (
+          {step === 9 && (
             <>
               <Chip meta={meta} />
               <h1 className="text-3xl font-extrabold text-zinc-900 leading-tight mb-2">¿Querés hacer algo especial en el cumpleaños de tus clientes?</h1>
@@ -746,7 +780,7 @@ export default function OnboardingPage() {
                   setBirthdayAction('celebrate')
                   // Si eligió "Lo esencial" (sin cumpleaños), activamos el campo automáticamente
                   if (clientData === 'basic') setClientData('full')
-                  track(8, 'select', { value: 'celebrate', auto_upgraded_birthday: clientData === 'basic' })
+                  track(9, 'select', { value: 'celebrate', auto_upgraded_birthday: clientData === 'basic' })
                   next()
                 }}
                 className="w-full bg-white rounded-2xl p-4 border-2 mb-3 text-left transition-all hover:shadow-sm active:scale-[0.99]"
@@ -775,7 +809,7 @@ export default function OnboardingPage() {
 
               {/* No */}
               <button
-                onClick={() => { setBirthdayAction('skip'); track(8, 'select', { value: 'skip' }); next() }}
+                onClick={() => { setBirthdayAction('skip'); track(9, 'select', { value: 'skip' }); next() }}
                 className="w-full bg-white/60 rounded-2xl p-4 border-2 border-zinc-200 flex items-center gap-3 text-left hover:bg-white transition-all"
               >
                 <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center text-lg flex-shrink-0">📅</div>
@@ -789,7 +823,7 @@ export default function OnboardingPage() {
           )}
 
           {/* ── STEP 9: Nombre del negocio ─────────────────────────────────── */}
-          {step === 9 && (
+          {step === 10 && (
             <>
               <Chip meta={meta} />
               <h1 className="text-3xl font-extrabold text-zinc-900 leading-tight mb-2">¿Cómo se llama tu negocio?</h1>
@@ -847,7 +881,7 @@ export default function OnboardingPage() {
           )}
 
           {/* ── STEP 10: Colores ───────────────────────────────────────────── */}
-          {step === 10 && (
+          {step === 11 && (
             <>
               <Chip meta={meta} />
               <h1 className="text-3xl font-extrabold text-zinc-900 leading-tight mb-2">
@@ -882,7 +916,7 @@ export default function OnboardingPage() {
                 {COLORS.map(c => (
                   <button
                     key={c.id}
-                    onClick={() => { setPrimaryColor(c.hex); track(10, 'select', { color: c.id, hex: c.hex }) }}
+                    onClick={() => { setPrimaryColor(c.hex); track(11, 'select', { color: c.id, hex: c.hex }) }}
                     className="rounded-xl overflow-hidden border-2 transition-all active:scale-95"
                     style={{ borderColor: primaryColor === c.hex ? c.hex : 'transparent' }}
                   >
@@ -915,7 +949,7 @@ export default function OnboardingPage() {
           )}
 
           {/* ── STEP 11: Auth ──────────────────────────────────────────────── */}
-          {step === 11 && (
+          {step === 12 && (
             <>
               <Chip meta={meta} />
               <h1 className="text-3xl font-extrabold text-zinc-900 leading-tight mb-2">

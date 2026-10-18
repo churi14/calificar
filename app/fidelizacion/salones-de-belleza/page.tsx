@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import PhoneCardPreview from '@/components/landing/PhoneCardPreview'
+import RoiCalculator from '@/components/roi/RoiCalculator'
 
 export const metadata: Metadata = {
   title: 'Tarjeta de fidelización para salones de belleza · Calificar',
@@ -257,6 +258,18 @@ export default function SalonesDeBellezaPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* CALCULADORA */}
+      <section id="calculadora" className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-violet-600 font-semibold text-sm uppercase tracking-widest mb-3">Calculadora</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">¿Cuánto le deja la tarjeta a tu salón?</h2>
+            <p className="text-zinc-600 max-w-xl mx-auto">Armá tu tarjeta con premios en el camino (por ejemplo, uno en el sello 3, otro en el 6 y el final en el 10) y mirá en pesos cuándo recuperás lo que invertís y cuánto ganás.</p>
+          </div>
+          <RoiCalculator mode="full" initial={{ presetId: 'peluqueria' }} cta={{ href: '/fidelizacion/onboarding', label: 'Armar mi tarjeta · 14 días gratis' }} />
         </div>
       </section>
 
