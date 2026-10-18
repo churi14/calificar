@@ -12,10 +12,26 @@ type ReactivationCfg = {
   message_15: string
   message_30: string
   send_hour:  number   // 0-23, hora de Argentina
+  smart_enabled: boolean
+  smart_factor:  number  // cuántas veces su frecuencia habitual
+  smart_message: string
 }
+
+const SMART_DEFAULT_MESSAGE = '¡Hola {nombre}! Hace un tiempito que no te vemos. Tu tarjeta te espera 🎁'
+
+const SMART_FACTORS = [
+  { value: 1.5, label: 'Enseguida', hint: 'un poco más de lo normal' },
+  { value: 2,   label: 'Normal',    hint: 'el doble de lo normal' },
+  { value: 3,   label: 'Con paciencia', hint: 'el triple de lo normal' },
+]
+
+type SmartPreview = { available: boolean; count: number; sample: { name: string | null; avg_gap: number; days_since: number }[] }
 
 const REACTIVATION_DEFAULTS: ReactivationCfg = {
   send_hour:          10,
+  smart_enabled:      false,
+  smart_factor:       2,
+  smart_message:      SMART_DEFAULT_MESSAGE,
   enabled:            false,
   trigger_5_enabled:  true,
   trigger_15_enabled: true,
@@ -52,6 +68,7 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
   const [saved,      setSaved]      = useState(false)
   const [saveError,  setSaveError]  = useState('')
   const [hourWarning, setHourWarning] = useState('')
+  const [preview,    setPreview]    = useState<SmartPreview | null>(null)
   const [triggering, setTriggering] = useState(false)
   const [triggerMsg, setTriggerMsg] = useState('')
 
@@ -65,8 +82,25 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
     if (!selectedProgram) return
     fetch(`/api/fidelizacion/reactivation?program_id=${selectedProgram}`, { headers: authHeaders })
       .then(r => r.json())
-      .then(d => { if (d.config) setCfg(c => ({ ...c, ...d.config, send_hour: d.config.send_hour ?? 10 })) })
+      .then(d => {
+        if (d.config) setCfg(c => ({
+          ...c, ...d.config,
+          send_hour: d.config.send_hour ?? 10,
+          smart_enabled: d.config.smart_enabled ?? false,
+          smart_factor: Number(d.config.smart_factor ?? 2),
+          smart_message: d.config.smart_message || SMART_DEFAULT_MESSAGE,
+        }))
+      })
   }, [selectedProgram, accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cuántos clientes ya pasaron su ritmo habitual (se recalcula al cambiar la sensibilidad)
+  useEffect(() => {
+    if (!selectedProgram) return
+    fetch(`/api/fidelizacion/reactivation?program_id=${selectedProgram}&smart_preview=1&factor=${cfg.smart_factor}`, { headers: authHeaders })
+      .then(r => r.json())
+      .then(d => setPreview(d))
+      .catch(() => setPreview(null))
+  }, [selectedProgram, accessToken, cfg.smart_factor]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
     setSaving(true)
@@ -83,7 +117,9 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
       return
     }
     const d = await r.json().catch(() => ({}))
-    if (d.send_hour_saved === false) {
+    if (d.smart_saved === false) {
+      setHourWarning('El resto se guardó, pero el aviso según la frecuencia todavía no está disponible: falta actualizar la base de datos (migración reactivation_smart.sql).')
+    } else if (d.send_hour_saved === false) {
       setHourWarning('El resto de la configuración se guardó, pero el horario todavía no se puede guardar: falta actualizar la base de datos (migración reactivation_send_hour.sql).')
     }
     setSaved(true)
@@ -127,7 +163,7 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-gray-500 mb-3">CÓMO FUNCIONA</p>
         <div className="space-y-3">
           {[
-            { n: '1', text: 'Cada mañana el sistema detecta clientes que llevan exactamente 5, 15 o 30 días sin cargar un sello.' },
+            { n: '1', text: 'Cada día el sistema detecta a los clientes que dejaron de venir: los que llevan 5, 15 o 30 días sin sello, o los que pasaron su ritmo habitual.' },
             { n: '2', text: 'Les manda automáticamente el push que configuraste para ese trigger.' },
             { n: '3', text: 'El cliente ve la notificación, toca y vuelve a tu tarjeta de fidelización.' },
           ].map(s => (
@@ -178,6 +214,82 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
             ))}
           </select>
         </div>
+      </div>
+
+      {/* Aviso según la frecuencia de cada cliente */}
+      <div className="bg-white dark:bg-gray-900 border border-violet-200 dark:border-violet-500/30 rounded-2xl p-5 mb-4">
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div>
+            <p className="text-sm font-bold text-zinc-900 dark:text-white">⏱️ Aviso según la frecuencia de cada cliente</p>
+            <p className="text-xs text-zinc-500 dark:text-gray-400 mt-1 leading-snug">
+              Mira cada cuánto suele venir cada cliente y le avisa cuando tarda más de lo normal. Quien viene cada 15 días y lleva un mes sin aparecer recibe el aviso; quien viene una vez al mes, no.
+            </p>
+          </div>
+          <button
+            onClick={() => isPro && setCfg(c => ({ ...c, smart_enabled: !c.smart_enabled }))}
+            disabled={!isPro}
+            className={`relative w-10 h-5 rounded-full shrink-0 transition-colors ${cfg.smart_enabled && isPro ? 'bg-violet-500' : 'bg-zinc-200 dark:bg-gray-700'} disabled:opacity-50`}
+          >
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${cfg.smart_enabled && isPro ? 'left-5' : 'left-0.5'}`} />
+          </button>
+        </div>
+
+        <p className="text-xs font-semibold text-zinc-700 dark:text-gray-300 mb-2">¿Cuándo avisar?</p>
+        <div className="flex flex-wrap gap-2 mb-1">
+          {SMART_FACTORS.map(f => (
+            <button
+              key={f.value}
+              type="button"
+              disabled={!isPro}
+              onClick={() => setCfg(c => ({ ...c, smart_factor: f.value }))}
+              className={`px-3 py-2 rounded-xl text-sm font-semibold border-2 transition-colors disabled:opacity-50 ${
+                cfg.smart_factor === f.value
+                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
+                  : 'border-zinc-200 dark:border-gray-700 text-zinc-600 dark:text-gray-300'
+              }`}
+            >
+              {f.label} <span className="text-xs font-medium opacity-70">· {f.hint}</span>
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-zinc-400 dark:text-gray-500 mb-4">
+          Ejemplo: si alguien viene cada 15 días, con esta opción le avisamos a los {Math.round(15 * cfg.smart_factor)} días sin venir.
+          Hace falta que tenga al menos 3 visitas para conocer su ritmo, y se avisa una sola vez por ausencia.
+        </p>
+
+        <textarea
+          rows={2}
+          disabled={!isPro}
+          value={cfg.smart_message}
+          onChange={e => setCfg(c => ({ ...c, smart_message: e.target.value }))}
+          className="w-full text-sm border border-zinc-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-zinc-900 dark:text-white rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-violet-400 disabled:opacity-50 transition-colors"
+          placeholder="Mensaje del push..."
+        />
+        <p className="text-[10px] text-zinc-400 dark:text-gray-500 mt-1">
+          Escribí <b>{'{nombre}'}</b> y se reemplaza por el nombre de cada cliente · {cfg.smart_message.length} / 120
+        </p>
+
+        {preview?.available && (
+          <div className="mt-4 rounded-xl bg-violet-50 dark:bg-violet-500/10 px-4 py-3 text-sm">
+            {preview.count === 0 ? (
+              <p className="text-zinc-600 dark:text-gray-300">Hoy ningún cliente pasó su ritmo habitual.</p>
+            ) : (
+              <>
+                <p className="font-semibold text-violet-800 dark:text-violet-200">
+                  Hoy {preview.count === 1 ? '1 cliente pasó' : `${preview.count} clientes pasaron`} su ritmo habitual
+                </p>
+                <ul className="mt-1.5 space-y-0.5 text-xs text-zinc-600 dark:text-gray-300">
+                  {preview.sample.map((p, i) => (
+                    <li key={i}>
+                      {p.name?.trim() || 'Cliente'}: viene cada {Math.round(p.avg_gap)} días y lleva {p.days_since} sin venir
+                    </li>
+                  ))}
+                  {preview.count > preview.sample.length && <li>y {preview.count - preview.sample.length} más…</li>}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Triggers individuales */}

@@ -4,9 +4,14 @@
  * PUT  /api/fidelizacion/reactivation                 → trigger manual / cron
  *
  * La lógica del PUT:
- *   Para cada trigger habilitado (5/15/30 días), busca clientes cuyo
- *   último sello fue exactamente hace N días y que NO hayan recibido
- *   este mismo trigger hoy. Les manda push y registra el log.
+ *   1) Para cada trigger habilitado (5/15/30 días), busca clientes cuyo
+ *      último sello fue exactamente hace N días y que NO hayan recibido
+ *      este mismo trigger hoy. Les manda push y registra el log.
+ *   2) Si está activo el aviso "según la frecuencia" (smart_enabled), busca
+ *      clientes que ya pasaron SU ritmo habitual (cards_overdue) y les avisa una
+ *      sola vez por ausencia (trigger_days = 0 en el log).
+ *
+ * GET con ?smart_preview=1&factor=2 devuelve cuántos clientes están pasados hoy.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -26,6 +31,26 @@ const DEFAULT_MESSAGES: Record<number, { title: string; body: string }> = {
   30: { title: 'Un mes sin verte', body: 'Hace un mes que no pasás. ¡Tu próximo sello puede acercarte al premio! 🏆' },
 }
 
+const SMART_DEFAULT_MESSAGE = '¡Hola {nombre}! Hace un tiempito que no te vemos. Tu tarjeta te espera 🎁'
+const SMART_TITLE = 'Te extrañamos'
+
+type Overdue = { card_id: string; name: string | null; avg_gap: number; days_since: number; last_stamp: string }
+
+const clampFactor = (f: unknown) => {
+  const n = Number(f)
+  return Number.isFinite(n) ? Math.min(5, Math.max(1.2, n)) : 2
+}
+
+/** Arma el texto del push: reemplaza {nombre} por el primer nombre y limpia los espacios si falta */
+function smartBody(template: string | null | undefined, name: string | null): string {
+  const first = (name ?? '').trim().split(/\s+/)[0] ?? ''
+  return (template?.trim() || SMART_DEFAULT_MESSAGE)
+    .replace(/\{nombre\}/gi, first)
+    .replace(/\s+([!,.?])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
 const TZ = 'America/Argentina/Buenos_Aires'
 
 /** Fecha 'YYYY-MM-DD' en hora de Argentina, restando `daysAgo` días */
@@ -41,6 +66,21 @@ export async function GET(req: NextRequest) {
 
   const owner = await verifyProgramOwner(req, program_id)
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  // Vista previa del aviso "según la frecuencia": quiénes ya pasaron su ritmo hoy
+  if (req.nextUrl.searchParams.get('smart_preview') === '1') {
+    const { data, error } = await admin.rpc('cards_overdue', {
+      p_program_id: program_id,
+      p_factor: clampFactor(req.nextUrl.searchParams.get('factor')),
+    })
+    if (error) return NextResponse.json({ available: false, count: 0, sample: [] })
+    const rows = (data ?? []) as Overdue[]
+    return NextResponse.json({
+      available: true,
+      count: rows.length,
+      sample: rows.slice(0, 5).map(r => ({ name: r.name, avg_gap: r.avg_gap, days_since: r.days_since })),
+    })
+  }
 
   const { data, error } = await admin
     .from('reactivation_campaigns')
@@ -64,6 +104,7 @@ export async function POST(req: NextRequest) {
     trigger_5_enabled, trigger_15_enabled, trigger_30_enabled,
     message_5, message_15, message_30,
     send_hour,
+    smart_enabled, smart_factor, smart_message,
   } = body
 
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
@@ -85,18 +126,30 @@ export async function POST(req: NextRequest) {
     updated_at: new Date().toISOString(),
   }
 
-  let { error } = await admin.from('reactivation_campaigns')
-    .upsert({ ...row, send_hour: hour }, { onConflict: 'program_id' })
+  const smart = {
+    smart_enabled: smart_enabled ?? false,
+    smart_factor: clampFactor(smart_factor),
+    smart_message: typeof smart_message === 'string' && smart_message.trim() ? smart_message.trim() : null,
+  }
 
-  // Si la columna send_hour todavía no existe (migración pendiente), guardar el resto igual
+  let { error } = await admin.from('reactivation_campaigns')
+    .upsert({ ...row, send_hour: hour, ...smart }, { onConflict: 'program_id' })
+
+  // Si faltan columnas nuevas (migración pendiente), guardar el resto igual
   let sendHourSaved = true
+  let smartSaved = true
+  if (error && /smart_/.test(error.message)) {
+    smartSaved = false
+    ;({ error } = await admin.from('reactivation_campaigns')
+      .upsert({ ...row, send_hour: hour }, { onConflict: 'program_id' }))
+  }
   if (error && /send_hour/.test(error.message)) {
     sendHourSaved = false
     ;({ error } = await admin.from('reactivation_campaigns').upsert(row, { onConflict: 'program_id' }))
   }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true, send_hour_saved: sendHourSaved })
+  return NextResponse.json({ ok: true, send_hour_saved: sendHourSaved, smart_saved: smartSaved })
 }
 
 // ── PUT: ejecutar trigger (llamado por cron o manual) ─────────────────────────
@@ -183,6 +236,56 @@ export async function PUT(req: NextRequest) {
         trigger_days: days,
         sent_date: today,
       }).then(() => { totalSent++ })
+    }
+  }
+
+  // ── Aviso según la frecuencia de cada cliente ──
+  if (cfg.smart_enabled) {
+    const { data: overdue, error: overdueErr } = await admin.rpc('cards_overdue', {
+      p_program_id: program_id,
+      p_factor: clampFactor(cfg.smart_factor),
+    })
+    const candidates = (overdueErr ? [] : (overdue ?? [])) as Overdue[]
+
+    if (candidates.length > 0) {
+      // Un solo aviso por ausencia: se saltea a quien ya recibió uno después de su último sello
+      const { data: prevLogs } = await admin
+        .from('reactivation_logs')
+        .select('card_id, sent_at')
+        .eq('program_id', program_id)
+        .eq('trigger_days', 0)
+        .in('card_id', candidates.map(c => c.card_id))
+      const lastSent = new Map<string, number>()
+      for (const l of (prevLogs ?? []) as { card_id: string; sent_at: string }[]) {
+        lastSent.set(l.card_id, Math.max(lastSent.get(l.card_id) ?? 0, new Date(l.sent_at).getTime()))
+      }
+      const today = arDate(0)
+
+      for (const c of candidates) {
+        if ((lastSent.get(c.card_id) ?? 0) > new Date(c.last_stamp).getTime()) continue
+
+        await fetch(`${BASE}/api/fidelizacion/push/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-cron-secret': process.env.CRON_SECRET ?? '',
+          },
+          body: JSON.stringify({
+            program_id,
+            card_id: c.card_id,
+            title: SMART_TITLE,
+            body: smartBody(cfg.smart_message, c.name),
+            url: '/fidelizacion/tarjeta',
+          }),
+        }).catch(() => {})
+
+        await admin.from('reactivation_logs').insert({
+          card_id: c.card_id,
+          program_id,
+          trigger_days: 0,
+          sent_date: today,
+        }).then(() => { totalSent++ })
+      }
     }
   }
 
