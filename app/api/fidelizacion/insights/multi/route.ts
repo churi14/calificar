@@ -1,6 +1,6 @@
 /**
  * GET /api/fidelizacion/insights/multi?days=30
- * Métricas por SUCURSAL del negocio autenticado (plan Ultimate): una fila por sucursal
+ * Métricas por SUCURSAL del negocio autenticado (planes Pro y Ultimate): una fila por sucursal
  * ("Principal" = sellos sin sucursal). La tarjeta del cliente es compartida entre sucursales.
  */
 
@@ -44,9 +44,9 @@ export async function GET(req: NextRequest) {
 
   if (!business) return NextResponse.json({ error: 'Negocio no encontrado' }, { status: 404 })
 
-  // Gate: solo Ultimate
-  if (!['ultimate', 'gifted'].includes((business.plan ?? '').toLowerCase())) {
-    return NextResponse.json({ error: 'Requiere plan Ultimate', upgrade_required: true }, { status: 403 })
+  // Gate: Pro (hasta 3 locales) y Ultimate
+  if (!['pro', 'ultimate', 'gifted'].includes((business.plan ?? '').toLowerCase())) {
+    return NextResponse.json({ error: 'Requiere plan Pro o Ultimate', upgrade_required: true }, { status: 403 })
   }
 
   // Obtener todos los programas activos

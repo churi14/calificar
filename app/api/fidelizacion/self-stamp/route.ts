@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
 import { resolveBranchId } from '@/lib/branches'
+import { couponPrefix } from '@/lib/coupons'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -160,7 +161,7 @@ export async function POST(req: NextRequest) {
     const finalStamps = goalReached ? 0 : newStamps
 
     function genCoupon(prefix: string) {
-      return `${prefix.substring(0, 6).toUpperCase().replace(/\s/g, '')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+      return `${couponPrefix(prefix)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
     }
 
     const couponCode = goalReached

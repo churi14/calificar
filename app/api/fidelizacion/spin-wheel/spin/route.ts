@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { spinPeriodStart, spinNextAt, type SpinFrequency } from '@/lib/spin-period'
+import { couponPrefix } from '@/lib/coupons'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,7 +35,7 @@ function weightedRandom(prizes: Prize[]): Prize {
 }
 
 function genCoupon(prefix: string): string {
-  const clean = prefix.substring(0, 6).toUpperCase().replace(/\s/g, '')
+  const clean = couponPrefix(prefix)
   const a = Math.random().toString(36).substring(2, 6).toUpperCase()
   const b = Math.random().toString(36).substring(2, 6).toUpperCase()
   return `${clean}-${a}-${b}`

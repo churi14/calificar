@@ -1,5 +1,6 @@
 'use client'
 
+import { PLAN_PRICES_ARS, DISCOUNT_WINDOW_DAYS, discountedPrice, fmtARS } from '@/lib/plans'
 import React, { useState, useEffect } from 'react'
 
 // ── hook de cuenta regresiva ───────────────────────────────────────────────────
@@ -71,9 +72,9 @@ const VIEW_PLANS = [
 ]
 
 const DISC_PRICES: Record<string, string> = {
-  starter: '$7.499',
-  pro:     '$14.999',
-  ultimate: '$34.999',
+  starter:  fmtARS(discountedPrice(PLAN_PRICES_ARS.starter)),
+  pro:      fmtARS(discountedPrice(PLAN_PRICES_ARS.pro)),
+  ultimate: fmtARS(discountedPrice(PLAN_PRICES_ARS.ultimate)),
 }
 
 // ── props ─────────────────────────────────────────────────────────────────────
@@ -90,7 +91,7 @@ export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'tria
   const planNames: Record<string, string> = { starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate (regalo)' }
   const isPaidPlan = plan in planNames && !planExpired
   const discountDeadlineMs = businessCreatedAt
-    ? new Date(businessCreatedAt).getTime() + 30 * 24 * 60 * 60 * 1000
+    ? new Date(businessCreatedAt).getTime() + DISCOUNT_WINDOW_DAYS * 24 * 60 * 60 * 1000
     : 0
   const isDiscountEligible = discountDeadlineMs > Date.now()
   const { h, m, s } = useCountdown(discountDeadlineMs)

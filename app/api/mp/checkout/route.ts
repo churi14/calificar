@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { PLAN_PRICES_ARS, DISCOUNT_WINDOW_DAYS, discountedPrice } from '@/lib/plans'
 
 const serviceClient = createServiceClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,12 +9,12 @@ const serviceClient = createServiceClient(
 )
 
 const PLANS = {
-  starter: { name: 'Plan Starter — Calificar Fidelización', price: 14999 },
-  pro:     { name: 'Plan Pro — Calificar Fidelización',     price: 29999 },
-  ultimate:{ name: 'Plan Ultimate — Calificar Fidelización',price: 69999 },
+  starter: { name: 'Plan Starter — Calificar Fidelización', price: PLAN_PRICES_ARS.starter },
+  pro:     { name: 'Plan Pro — Calificar Fidelización',     price: PLAN_PRICES_ARS.pro },
+  ultimate:{ name: 'Plan Ultimate — Calificar Fidelización',price: PLAN_PRICES_ARS.ultimate },
 } as const
 
-/** Returns true if the business was created within the last 7 days */
+/** Returns true if the business was created within the welcome-offer window (DISCOUNT_WINDOW_DAYS) */
 async function isWithinFirstWeek(userId: string): Promise<boolean> {
   const { data: biz } = await serviceClient
     .from('businesses')
@@ -26,7 +27,7 @@ async function isWithinFirstWeek(userId: string): Promise<boolean> {
   if (!biz?.created_at) return false
   const createdAt = new Date(biz.created_at)
   const diffDays = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
-  return diffDays <= 7
+  return diffDays <= DISCOUNT_WINDOW_DAYS
 }
 
 export async function POST(req: NextRequest) {
@@ -42,15 +43,15 @@ export async function POST(req: NextRequest) {
   const planData = PLANS[plan as keyof typeof PLANS]
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://calificar.com.ar'
 
-  // Server-side discount validation: only allow if business is within first 7 days
+  // Server-side discount validation: only allow inside the welcome-offer window
   let finalPrice: number = planData.price
   let planTitle = planData.name
   if (discount) {
     const eligible = await isWithinFirstWeek(user.id)
     if (!eligible) {
-      return NextResponse.json({ error: 'Descuento no disponible' }, { status: 403 })
+      return NextResponse.json({ error: `La oferta de bienvenida ya terminó: duraba ${DISCOUNT_WINDOW_DAYS} días desde que creaste tu negocio.` }, { status: 403 })
     }
-    finalPrice = Math.round(planData.price * 0.5)
+    finalPrice = discountedPrice(planData.price)
     planTitle = planData.name + ' — 50% OFF Primer Mes'
   }
 

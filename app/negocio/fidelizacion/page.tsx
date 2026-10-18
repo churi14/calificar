@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { Sun, Moon } from '@phosphor-icons/react'
+import { DISCOUNT_WINDOW_DAYS, discountDaysLeft, maxLocales } from '@/lib/plans'
 
 // ── Componentes de UI ─────────────────────────────────────────────────────────
 import Sidebar        from '@/components/dashboard/Sidebar'
@@ -105,7 +106,7 @@ export default function NegocioDashboard() {
           const isPaid = ['starter', 'pro', 'ultimate', 'gifted'].includes(newBiz.plan ?? '')
           if (!isPaid) {
             const diff = (Date.now() - new Date(newBiz.created_at).getTime()) / (1000 * 60 * 60 * 24)
-            if (diff <= 30) {
+            if (diff <= DISCOUNT_WINDOW_DAYS) {
               const dismissed = localStorage.getItem('cal_discount_dismissed')
               if (!dismissed) {
                 const nextShow = parseInt(localStorage.getItem('cal_discount_next') ?? '0')
@@ -145,7 +146,7 @@ export default function NegocioDashboard() {
             const isPaid = ['starter', 'pro', 'ultimate', 'gifted'].includes(biz.plan ?? '')
             if (!isPaid) {
               const diff = (Date.now() - new Date(biz.created_at).getTime()) / (1000 * 60 * 60 * 24)
-              if (diff <= 30) {
+              if (diff <= DISCOUNT_WINDOW_DAYS) {
                 const dismissed = localStorage.getItem('cal_discount_dismissed')
                 if (!dismissed) {
                   const nextShow = parseInt(localStorage.getItem('cal_discount_next') ?? '0')
@@ -334,10 +335,9 @@ export default function NegocioDashboard() {
   const currentBranchLabel = branchOptions.find(b => b.id === (selectedBranch ?? 'main'))?.label ?? 'Principal'
   const renameLabel = branchOptions.find(b => b.id === renameBranchId)?.label ?? ''
   const planExpired = !!(planExpiresAt && new Date(planExpiresAt) < new Date())
-  const canAddBranch = ['ultimate', 'gifted'].includes(businessPlan.toLowerCase()) && !planExpired
-  const daysLeftDiscount = businessCreatedAt
-    ? Math.max(0, 30 - Math.floor((Date.now() - new Date(businessCreatedAt).getTime()) / (1000 * 60 * 60 * 24)))
-    : 30
+  // Cuántos locales permite el plan (Starter 1, Pro 3, Ultimate sin límite): la principal cuenta como uno
+  const canAddBranch = !planExpired && branches.length + 1 < maxLocales(businessPlan)
+  const daysLeftDiscount = discountDaysLeft(businessCreatedAt)
 
   // ── Loading screen ────────────────────────────────────────────────────────
   if (loading && programs.length === 0) {

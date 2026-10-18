@@ -60,7 +60,7 @@ export default function PreciosPage() {
               Tu tarjeta con tu marca, notificaciones y tus clientes. Todo lo esencial.
             </p>
             <ul className="space-y-2 mb-6 text-sm text-zinc-600">
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Tu tarjeta con tu logo y colores</li>
+              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Tu tarjeta con tu logo</li>
               <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Tarjetas ilimitadas</li>
               <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Notificaciones ilimitadas</li>
               <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Cartelito NFC + QR para el mostrador</li>
@@ -92,6 +92,7 @@ export default function PreciosPage() {
             </p>
             <ul className="space-y-2 mb-6 text-sm text-zinc-300">
               <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Todo lo de Starter</li>
+              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Diseño completo: plantillas, colores, íconos y fondo</li>
               <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Hasta 3 programas de fidelidad</li>
               <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Campañas de cumpleaños automáticas</li>
               <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Formulario de registro personalizable</li>
@@ -244,7 +245,7 @@ export default function PreciosPage() {
             <div className="space-y-8">
               <DetailItem
                 icon="🎴"
-                title="Tu tarjeta con tu logo y tus colores"
+                title="Tu tarjeta con tu logo"
                 body="Elegís la recompensa, escribís el nombre de tu negocio y continuás con Google. La tarjeta queda lista en 30 segundos y se actualiza sola en el celular de todos tus clientes: si cambiás el premio o el color, se refleja al instante."
               />
               <DetailItem
@@ -299,6 +300,11 @@ export default function PreciosPage() {
             <p className="text-zinc-400 text-sm mb-8">Todo lo de Starter, y además:</p>
 
             <div className="space-y-8">
+              <DetailItem
+                icon="🎨"
+                title="Diseño completo de tu tarjeta"
+                body="Elegís entre plantillas de color o armás la tuya: colores propios, ícono de la app y de las notificaciones, ícono de los sellos y una imagen de fondo."
+              />
               <DetailItem
                 icon="🏆"
                 title="Hasta 3 programas de fidelidad"

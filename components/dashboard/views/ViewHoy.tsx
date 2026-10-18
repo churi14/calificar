@@ -6,6 +6,7 @@ import {
   Globe, Cake, ChartBar, TrendUp, MagnifyingGlass,
 } from '@phosphor-icons/react'
 import type { Program, Card, Transaction, Stats, PushLog } from '@/types/dashboard'
+import { PLAN_PRICES_ARS } from '@/lib/plans'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface ViewHoyProps {
@@ -188,8 +189,7 @@ export default function ViewHoy({
   const [showQrBig, setShowQrBig] = useState(false)
   const qrUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
   // Costo mensual real del plan en pesos (los mismos precios que se cobran). Prueba y regalo: sin costo.
-  const PLAN_COST_ARS: Record<string, number> = { starter: 14999, pro: 29999, ultimate: 69999 }
-  const calificarCost = PLAN_COST_ARS[(businessPlan ?? '').toLowerCase()] ?? 0
+  const calificarCost = (PLAN_PRICES_ARS as Record<string, number>)[(businessPlan ?? '').toLowerCase()] ?? 0
   const fmtARS = (n: number) => `$${Math.round(n).toLocaleString('es-AR')}`
 
   const trialDaysLeft = (() => {

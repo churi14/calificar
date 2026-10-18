@@ -5,18 +5,17 @@
  *
  * Una sucursal es un local dentro del MISMO programa: la tarjeta del cliente es compartida y
  * cada sello guarda en qué sucursal se dio. La sucursal "Principal" no es una fila: es branch_id NULL.
- * Crear sucursales requiere plan Ultimate/gifted vigente.
+ * Crear sucursales depende del plan: Starter 1 local, Pro hasta 3 locales, Ultimate/gifted ilimitados (tope 50).
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
+import { maxLocales } from '@/lib/plans'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-
-const MAX_BRANCHES = 50
 
 /** Nombre actual de la sucursal principal ("Principal" si el dueño no lo cambió o la columna no existe todavía) */
 async function getMainName(programId: string): Promise<string> {
@@ -68,10 +67,10 @@ export async function POST(req: NextRequest) {
     .single()
   const bizRaw = program?.businesses as { plan?: string | null; plan_expires_at?: string | null } | { plan?: string | null; plan_expires_at?: string | null }[] | null | undefined
   const biz = Array.isArray(bizRaw) ? bizRaw[0] : bizRaw
-  const planOk = ['ultimate', 'gifted'].includes((biz?.plan ?? '').toLowerCase())
+  const maxLoc = maxLocales(biz?.plan)
   const expired = biz?.plan_expires_at ? new Date(biz.plan_expires_at) < new Date() : false
-  if (!planOk || expired) {
-    return NextResponse.json({ error: 'Agregar sucursales requiere plan Ultimate vigente', upgrade_required: true }, { status: 403 })
+  if (maxLoc <= 1 || expired) {
+    return NextResponse.json({ error: 'Agregar sucursales requiere un plan Pro o Ultimate vigente', upgrade_required: true }, { status: 403 })
   }
 
   const { data: existing, error: listErr } = await supabase
@@ -83,8 +82,14 @@ export async function POST(req: NextRequest) {
   if (listErr) {
     return NextResponse.json({ error: 'Las sucursales todavía no están habilitadas en la base de datos (falta correr la migración).' }, { status: 503 })
   }
-  if ((existing?.length ?? 0) >= MAX_BRANCHES) {
-    return NextResponse.json({ error: `Llegaste al máximo de ${MAX_BRANCHES} sucursales` }, { status: 400 })
+  // La principal cuenta como un local
+  if ((existing?.length ?? 0) + 1 >= maxLoc) {
+    return NextResponse.json({
+      error: maxLoc <= 3
+        ? `Tu plan incluye hasta ${maxLoc} locales. Para sumar más, pasá al plan Ultimate.`
+        : 'Llegaste al máximo de sucursales.',
+      upgrade_required: maxLoc <= 3,
+    }, { status: 403 })
   }
   const mainName = await getMainName(program_id)
   if (branchName.toLowerCase() === mainName.toLowerCase() || (existing ?? []).some(b => b.name.toLowerCase() === branchName.toLowerCase())) {

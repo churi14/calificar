@@ -142,7 +142,7 @@ export default function ViewMetricasSucursal({ accessToken }: ViewMetricasSucurs
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-zinc-50 dark:bg-gray-800 rounded-xl p-3 text-center">
                     <p className="text-lg font-extrabold text-zinc-900 dark:text-white">{r.conversion_rate}%</p>
-                    <p className="text-[11px] text-zinc-500 dark:text-gray-400 mt-0.5">Tasa de retorno</p>
+                    <p className="text-[11px] text-zinc-500 dark:text-gray-400 mt-0.5">Tasa de actividad</p>
                   </div>
                   <div className="bg-zinc-50 dark:bg-gray-800 rounded-xl p-3 text-center">
                     <p className="text-lg font-extrabold text-zinc-900 dark:text-white">{r.new_clients}</p>
@@ -181,7 +181,7 @@ export default function ViewMetricasSucursal({ accessToken }: ViewMetricasSucurs
                     <th className="text-right px-4 py-3">Sellos</th>
                     <th className="text-right px-4 py-3">Activos</th>
                     <th className="text-right px-4 py-3">Nuevos</th>
-                    <th className="text-right px-4 py-3">Retorno</th>
+                    <th className="text-right px-4 py-3">Actividad</th>
                     <th className="text-right px-4 py-3">Premios</th>
                   </tr>
                 </thead>

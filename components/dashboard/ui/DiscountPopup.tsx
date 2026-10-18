@@ -1,12 +1,20 @@
 'use client'
 
 import React, { useState } from 'react'
+import { PLAN_PRICES_ARS, discountedPrice, fmtARS } from '@/lib/plans'
 
 // ── Planes con descuento ───────────────────────────────────────────────────────
+const planRow = (id: 'starter' | 'pro' | 'ultimate', name: string, pill: string, highlight: boolean) => ({
+  id, name, pill, highlight,
+  origPrice: fmtARS(PLAN_PRICES_ARS[id]),
+  discPrice: fmtARS(discountedPrice(PLAN_PRICES_ARS[id])),
+  savings:   fmtARS(PLAN_PRICES_ARS[id] - discountedPrice(PLAN_PRICES_ARS[id])),
+})
+
 export const DISCOUNT_PLANS = [
-  { id: 'starter',  name: 'Starter',  origPrice: '$14.999', discPrice: '$7.499',   savings: '$7.500',  pill: 'Para empezar', highlight: false },
-  { id: 'pro',      name: 'Pro',      origPrice: '$29.999', discPrice: '$14.999',  savings: '$15.000', pill: 'Más popular',  highlight: true  },
-  { id: 'ultimate', name: 'Ultimate', origPrice: '$69.999', discPrice: '$34.999',  savings: '$35.000', pill: 'Sin límites',  highlight: false },
+  planRow('starter',  'Starter',  'Para empezar', false),
+  planRow('pro',      'Pro',      'Más popular',  true),
+  planRow('ultimate', 'Ultimate', 'Sin límites',  false),
 ]
 
 // ── props ─────────────────────────────────────────────────────────────────────
@@ -48,7 +56,7 @@ export default function DiscountPopup({ onClose, daysLeft }: DiscountPopupProps)
           <div className="inline-block bg-violet-600 text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
             50% OFF — PRIMER MES
           </div>
-          <h2 className="text-white font-black text-2xl leading-tight">Quedan {daysLeft} días de prueba</h2>
+          <h2 className="text-white font-black text-2xl leading-tight">Tu oferta de bienvenida vence en {daysLeft} {daysLeft === 1 ? 'día' : 'días'}</h2>
           <p className="text-zinc-400 text-sm mt-2">Activá tu plan ahora con 50% de descuento en el primer mes.</p>
         </div>
 
