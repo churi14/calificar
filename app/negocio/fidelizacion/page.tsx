@@ -9,6 +9,7 @@ import Sidebar        from '@/components/dashboard/Sidebar'
 import DiscountPopup  from '@/components/dashboard/ui/DiscountPopup'
 import StampModal     from '@/components/dashboard/ui/StampModal'
 import NewBranchModal from '@/components/dashboard/ui/NewBranchModal'
+import RenameBranchModal from '@/components/dashboard/ui/RenameBranchModal'
 
 // ── Vistas ────────────────────────────────────────────────────────────────────
 import ViewHoy              from '@/components/dashboard/views/ViewHoy'
@@ -53,6 +54,7 @@ export default function NegocioDashboard() {
   const [activeNav, setActiveNav]                 = useState<ViewType>('hoy')
   const [showDiscount, setShowDiscount]           = useState(false)
   const [showNewBranch, setShowNewBranch]         = useState(false)
+  const [renameBranchId, setRenameBranchId]       = useState<string | null>(null)   // 'main' o id de sucursal
   const [branches, setBranches]                 = useState<Branch[]>([])
   const [selectedBranch, setSelectedBranch]       = useState<string | null>(null)   // null = Principal
   const [branchNotice, setBranchNotice]           = useState('')
@@ -299,6 +301,17 @@ export default function NegocioDashboard() {
     } catch {}
   }
 
+  function handleBranchRenamed(id: string, newName: string) {
+    if (id === 'main') {
+      setPrograms(ps => ps.map(p => p.id === selectedProgram ? { ...p, main_branch_name: newName } : p))
+    } else {
+      setBranches(bs => bs.map(b => b.id === id ? { ...b, name: newName } : b))
+    }
+    setRenameBranchId(null)
+    setBranchNotice(`Listo: la sucursal ahora se llama "${newName}".`)
+    setTimeout(() => setBranchNotice(''), 6000)
+  }
+
   function handleBranchCreated(branch: Branch) {
     setBranches(bs => [...bs, branch])
     selectBranch(branch.id)
@@ -315,10 +328,11 @@ export default function NegocioDashboard() {
   // ── Derived ───────────────────────────────────────────────────────────────
   const program = programs.find(p => p.id === selectedProgram)
   const branchOptions = [
-    { id: 'main', label: 'Principal' },
+    { id: 'main', label: program?.main_branch_name?.trim() || 'Principal' },
     ...branches.map(b => ({ id: b.id, label: b.name })),
   ]
   const currentBranchLabel = branchOptions.find(b => b.id === (selectedBranch ?? 'main'))?.label ?? 'Principal'
+  const renameLabel = branchOptions.find(b => b.id === renameBranchId)?.label ?? ''
   const planExpired = !!(planExpiresAt && new Date(planExpiresAt) < new Date())
   const canAddBranch = ['ultimate', 'gifted'].includes(businessPlan.toLowerCase()) && !planExpired
   const daysLeftDiscount = businessCreatedAt
@@ -377,7 +391,20 @@ export default function NegocioDashboard() {
         onSelectBranch={selectBranch}
         canAddBranch={canAddBranch}
         onAddBranch={() => setShowNewBranch(true)}
+        onRenameBranch={id => setRenameBranchId(id)}
       />
+
+      {/* Cambiar nombre de una sucursal */}
+      {renameBranchId && selectedProgram && (
+        <RenameBranchModal
+          accessToken={accessToken}
+          programId={selectedProgram}
+          branchId={renameBranchId}
+          currentName={renameLabel}
+          onClose={() => setRenameBranchId(null)}
+          onRenamed={handleBranchRenamed}
+        />
+      )}
 
       {/* Nueva sucursal */}
       {showNewBranch && selectedProgram && (

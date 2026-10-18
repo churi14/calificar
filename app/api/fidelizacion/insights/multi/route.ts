@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
   // Obtener todos los programas activos
   const { data: programs } = await supabase
     .from('loyalty_programs')
-    .select('id, name, stamps_goal')
+    .select('*')
     .eq('business_id', business.id)
     .eq('active', true)
     .order('created_at', { ascending: true })
@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
     const newCards = cards.filter(c => c.created_at >= since)
 
     const buckets: { key: string; branchId: string | null; label: string }[] = hasBranches
-      ? [{ key: 'main', branchId: null, label: 'Principal' }, ...branches.map(b => ({ key: b.id, branchId: b.id, label: b.name }))]
+      ? [{ key: 'main', branchId: null, label: ((prog as { main_branch_name?: string | null }).main_branch_name ?? '').trim() || 'Principal' }, ...branches.map(b => ({ key: b.id, branchId: b.id, label: b.name }))]
       : [{ key: 'main', branchId: null, label: prog.name }]
 
     return buckets.map(bk => {

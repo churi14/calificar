@@ -21,6 +21,8 @@ export type Program = {
   app_icon_url: string | null
   stamp_icon_url: string | null
   milestones?: Milestone[]
+  /** Nombre que el dueño le puso a la sucursal principal (vacío = "Principal") */
+  main_branch_name?: string | null
   businesses?: { name: string; id: string }
 }
 

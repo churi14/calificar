@@ -1,6 +1,7 @@
 /**
  * GET  /api/fidelizacion/branches?program_id=X  → sucursales activas del programa (dueño)
  * POST /api/fidelizacion/branches               → crea una sucursal { program_id, name }
+ * PATCH /api/fidelizacion/branches              → renombra una sucursal o la principal { program_id, branch_id | 'main', name }
  *
  * Una sucursal es un local dentro del MISMO programa: la tarjeta del cliente es compartida y
  * cada sello guarda en qué sucursal se dio. La sucursal "Principal" no es una fila: es branch_id NULL.
@@ -16,6 +17,17 @@ const supabase = createClient(
 )
 
 const MAX_BRANCHES = 50
+
+/** Nombre actual de la sucursal principal ("Principal" si el dueño no lo cambió o la columna no existe todavía) */
+async function getMainName(programId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from('loyalty_programs')
+    .select('main_branch_name')
+    .eq('id', programId)
+    .maybeSingle()
+  if (error) return 'Principal'
+  return ((data as { main_branch_name?: string | null } | null)?.main_branch_name ?? '').trim() || 'Principal'
+}
 
 export async function GET(req: NextRequest) {
   const program_id = req.nextUrl.searchParams.get('program_id')
@@ -74,7 +86,8 @@ export async function POST(req: NextRequest) {
   if ((existing?.length ?? 0) >= MAX_BRANCHES) {
     return NextResponse.json({ error: `Llegaste al máximo de ${MAX_BRANCHES} sucursales` }, { status: 400 })
   }
-  if (branchName.toLowerCase() === 'principal' || (existing ?? []).some(b => b.name.toLowerCase() === branchName.toLowerCase())) {
+  const mainName = await getMainName(program_id)
+  if (branchName.toLowerCase() === mainName.toLowerCase() || (existing ?? []).some(b => b.name.toLowerCase() === branchName.toLowerCase())) {
     return NextResponse.json({ error: 'Ya existe una sucursal con ese nombre' }, { status: 409 })
   }
 
@@ -88,4 +101,48 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Error creando la sucursal' }, { status: 500 })
   }
   return NextResponse.json({ ok: true, branch })
+}
+
+export async function PATCH(req: NextRequest) {
+  const { program_id, branch_id, name } = await req.json().catch(() => ({ program_id: null, branch_id: null, name: '' }))
+  if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
+
+  const owner = await verifyProgramOwner(req, program_id)
+  if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const newName = String(name ?? '').trim()
+  if (newName.length < 2 || newName.length > 40) {
+    return NextResponse.json({ error: 'El nombre debe tener entre 2 y 40 caracteres' }, { status: 400 })
+  }
+
+  const { data: others } = await supabase
+    .from('branches')
+    .select('id, name')
+    .eq('program_id', program_id)
+    .eq('active', true)
+  const branchRows = others ?? []
+  const isMain = !branch_id || branch_id === 'main'
+
+  if (isMain) {
+    // Renombrar la principal: no puede repetir el nombre de otra sucursal
+    if (branchRows.some(b => b.name.toLowerCase() === newName.toLowerCase())) {
+      return NextResponse.json({ error: 'Ya existe una sucursal con ese nombre' }, { status: 409 })
+    }
+    const { error } = await supabase.from('loyalty_programs').update({ main_branch_name: newName }).eq('id', program_id)
+    if (error) {
+      return NextResponse.json({ error: 'Todavía no se puede renombrar la principal: falta actualizar la base de datos (migración main_branch_name.sql).' }, { status: 503 })
+    }
+    return NextResponse.json({ ok: true, branch_id: 'main', name: newName })
+  }
+
+  // Renombrar una sucursal: tiene que ser de este programa y no repetir nombres
+  const target = branchRows.find(b => b.id === branch_id)
+  if (!target) return NextResponse.json({ error: 'Sucursal no encontrada' }, { status: 404 })
+  const mainName = await getMainName(program_id)
+  if (newName.toLowerCase() === mainName.toLowerCase() || branchRows.some(b => b.id !== branch_id && b.name.toLowerCase() === newName.toLowerCase())) {
+    return NextResponse.json({ error: 'Ya existe una sucursal con ese nombre' }, { status: 409 })
+  }
+  const { error } = await supabase.from('branches').update({ name: newName }).eq('id', branch_id).eq('program_id', program_id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true, branch_id, name: newName })
 }

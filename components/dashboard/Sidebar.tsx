@@ -5,7 +5,7 @@ import {
   House, Lightning, IdentificationCard, UsersThree, Tag, Bell, MapPin,
   Cake, ArrowCounterClockwise, ChartBar, Star, ShareNetwork,
   CirclesThree, GitBranch, Globe, Printer, Gear, Question,
-  Rocket, MagnifyingGlass, QrCode, Sun, Moon,
+  Rocket, MagnifyingGlass, QrCode, Sun, Moon, PencilSimple,
 } from '@phosphor-icons/react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import type { ViewType } from '@/types/dashboard'
@@ -31,6 +31,8 @@ interface SidebarProps {
   /** Solo Ultimate/gifted: muestra "+ Nueva sucursal" */
   canAddBranch?: boolean
   onAddBranch?: () => void
+  /** Abre el popup para cambiar el nombre de una sucursal ('main' = la principal) */
+  onRenameBranch?: (id: string) => void
 }
 
 const NAV_ITEMS: { id: ViewType; label: string; Icon: React.ElementType }[] = [
@@ -69,6 +71,7 @@ export default function Sidebar({
   onSelectBranch,
   canAddBranch = false,
   onAddBranch,
+  onRenameBranch,
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const [branchOpen, setBranchOpen] = useState(false)
@@ -119,15 +122,31 @@ export default function Sidebar({
             {branchOpen && (
               <div className="mt-1 rounded-lg border border-zinc-150 bg-white shadow-sm overflow-hidden">
                 {branches.map(b => (
-                  <button
+                  <div
                     key={b.id}
-                    onClick={() => { onSelectBranch?.(b.id); setBranchOpen(false); onClose() }}
-                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                      b.id === selectedBranch ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-zinc-600 hover:bg-zinc-50'
+                    className={`flex items-center transition-colors ${
+                      b.id === selectedBranch ? 'bg-violet-50' : 'hover:bg-zinc-50'
                     }`}
                   >
-                    {b.id === selectedBranch ? '✓ ' : ''}{b.label}
-                  </button>
+                    <button
+                      onClick={() => { onSelectBranch?.(b.id); setBranchOpen(false); onClose() }}
+                      className={`flex-1 min-w-0 text-left px-3 py-2 text-sm truncate ${
+                        b.id === selectedBranch ? 'text-violet-700 font-semibold' : 'text-zinc-600'
+                      }`}
+                    >
+                      {b.id === selectedBranch ? '✓ ' : ''}{b.label}
+                    </button>
+                    {onRenameBranch && (
+                      <button
+                        onClick={() => { setBranchOpen(false); onRenameBranch(b.id) }}
+                        title="Cambiar nombre"
+                        aria-label={`Cambiar nombre de ${b.label}`}
+                        className="px-2.5 py-2 text-zinc-300 hover:text-violet-600 transition-colors flex-shrink-0"
+                      >
+                        <PencilSimple size={13} weight="bold" />
+                      </button>
+                    )}
+                  </div>
                 ))}
                 {canAddBranch && (
                   <button
