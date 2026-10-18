@@ -27,8 +27,8 @@ const reasons = [
     desc: 'Quienes vienen seguido son los que más te dejan. Con la tarjeta ves quiénes son y los cuidás.',
   },
   {
-    title: 'Estate presente entre visita y visita',
-    desc: 'Una notificación en el celular con una promo o un recordatorio llega mucho más que una historia de Instagram.',
+    title: 'Llená las sillas vacías',
+    desc: '¿Martes a la mañana sin turnos? Mandá un aviso al celular de tus clientes con una promo para ese horario y que se llene.',
   },
 ]
 
@@ -36,7 +36,7 @@ const features = [
   {
     icon: '🔔',
     title: 'Avisos al celular',
-    desc: 'Mandá promos, novedades o un “tenemos turnos libres esta semana” directo a la pantalla de tus clientes.',
+    desc: 'Mandá promos, novedades o un “tenemos turnos libres el martes” a todos tus clientes, o solo a uno, directo a su pantalla.',
   },
   {
     icon: '💌',
@@ -62,6 +62,12 @@ const features = [
     icon: '📊',
     title: 'Panel simple',
     desc: 'Quién vino, cuántas veces, cuántos premios se canjearon y qué día es el más fuerte del salón.',
+  },
+  {
+    icon: '🗓️',
+    title: 'Reserva de turnos',
+    desc: 'Tus clientes reservan online y el sello se suma solo cuando asisten.',
+    soon: true,
   },
 ]
 
@@ -218,7 +224,12 @@ export default function SalonesDeBellezaPage() {
             {features.map(f => (
               <div key={f.title} className="bg-white border border-zinc-200 rounded-3xl p-6 shadow-sm shadow-violet-100">
                 <div className="text-3xl mb-4">{f.icon}</div>
-                <h3 className="font-bold text-base mb-2">{f.title}</h3>
+                <h3 className="font-bold text-base mb-2 flex items-center gap-2">
+                  {f.title}
+                  {'soon' in f && f.soon && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">Próximamente</span>
+                  )}
+                </h3>
                 <p className="text-zinc-600 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
