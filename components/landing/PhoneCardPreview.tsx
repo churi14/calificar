@@ -1,6 +1,6 @@
 'use client'
 
-import { Storefront } from '@phosphor-icons/react'
+import { Scissors, Storefront } from '@phosphor-icons/react'
 import { QRCanvas } from '@/app/fidelizacion/tarjeta/QRCanvas'
 
 /**
@@ -13,7 +13,15 @@ const TEXT = '#FFFFFF'
 const GOAL = 5
 const STAMPS = 3
 
-export default function PhoneCardPreview() {
+type Props = {
+  customer?: string
+  business?: string
+  reward?: string
+  icon?: 'storefront' | 'scissors'
+}
+
+export default function PhoneCardPreview({ customer = 'María García', business = 'Tu negocio', reward = 'Tu premio acá', icon = 'storefront' }: Props) {
+  const Icon = icon === 'scissors' ? Scissors : Storefront
   return (
     <div
       className="origin-top-left scale-[0.697] sm:scale-[0.779] select-none pointer-events-none"
@@ -30,11 +38,11 @@ export default function PhoneCardPreview() {
           >
             <div className="relative px-6 pt-7 pb-4 flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium mb-0.5" style={{ color: `${TEXT}99` }}>María García</p>
-                <p className="font-extrabold text-xl leading-tight" style={{ color: TEXT }}>Tu negocio</p>
+                <p className="text-xs font-medium mb-0.5" style={{ color: `${TEXT}99` }}>{customer}</p>
+                <p className="font-extrabold text-xl leading-tight" style={{ color: TEXT }}>{business}</p>
               </div>
               <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                <Storefront size={30} weight="fill" color={TEXT} />
+                <Icon size={30} weight="fill" color={TEXT} />
               </div>
             </div>
 
@@ -58,7 +66,7 @@ export default function PhoneCardPreview() {
             <div className="relative px-6 py-5">
               <div className="flex justify-between text-xs mb-2" style={{ color: `${TEXT}b3` }}>
                 <span className="font-bold text-sm" style={{ color: TEXT }}>{STAMPS} de {GOAL} sellos</span>
-                <span>Tu premio acá</span>
+                <span>{reward}</span>
               </div>
               <div className="rounded-full h-2" style={{ background: `${TEXT}30` }}>
                 <div className="h-2 rounded-full" style={{ width: `${(STAMPS / GOAL) * 100}%`, background: TEXT }} />

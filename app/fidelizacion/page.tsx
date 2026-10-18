@@ -125,6 +125,9 @@ export default function FidelizacionLanding() {
             calificar <span className="text-violet-600">fidelización</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
+            <Link href="/fidelizacion/salones-de-belleza" className="inline-flex items-center gap-1.5 text-violet-700 hover:text-violet-900 transition-colors">
+              ✂️ Salones de belleza
+            </Link>
             <a href="#como-funciona" className="hover:text-zinc-900 transition-colors">Cómo funciona</a>
             <a href="#funcionalidades" className="hover:text-zinc-900 transition-colors">Funcionalidades</a>
             <a href="#precios" className="hover:text-zinc-900 transition-colors">Precios</a>
@@ -147,6 +150,12 @@ export default function FidelizacionLanding() {
       <section className="min-h-[100dvh] flex items-center pt-16" style={{ background: 'linear-gradient(180deg, #F3EEFF 0%, #FFFFFF 100%)' }}>
         <div className="max-w-7xl mx-auto px-6 py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
+            <Link
+              href="/fidelizacion/salones-de-belleza"
+              className="inline-flex items-center gap-2 bg-white border border-violet-200 hover:border-violet-400 text-violet-700 font-semibold text-xs px-3 py-1.5 rounded-full mb-5 transition-colors"
+            >
+              ✂️ ¿Tenés un salón de belleza? Mirá la versión para vos →
+            </Link>
             <p className="text-violet-600 font-semibold text-sm uppercase tracking-widest mb-4">Programa de fidelidad digital</p>
             <h1 className="text-5xl md:text-6xl font-extrabold leading-[1.05] tracking-tight mb-6">
               Tus clientes vuelven.
