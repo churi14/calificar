@@ -37,31 +37,37 @@ const features = [
   {
     icon: '🔔',
     title: 'Avisos al celular',
+    plan: 'Pro',
     desc: 'Mandá promos, novedades o un “tenemos turnos libres el martes” a todos tus clientes, o solo a uno, directo a su pantalla.',
   },
   {
     icon: '💌',
     title: 'Recuperá a los que dejaron de venir',
+    plan: 'Pro',
     desc: 'Calificar detecta a quienes hace tiempo no vienen y les manda un mensaje automático para que vuelvan. Elegís vos el horario.',
   },
   {
     icon: '🎰',
     title: 'Ruleta de premios',
+    plan: 'Ultimate',
     desc: 'Sumá un toque de juego: tus clientes giran la ruleta y ganan descuentos o regalos. Más ganas de volver.',
   },
   {
     icon: '🎂',
     title: 'Regalo de cumpleaños',
+    plan: 'Pro',
     desc: 'Un saludo y un regalo automático el día del cumpleaños de cada cliente. Ese día suele ser un turno asegurado.',
   },
   {
     icon: '📍',
     title: 'Varias sucursales',
+    plan: 'Pro y Ultimate',
     desc: 'Si tenés más de un salón, la tarjeta es la misma y ves las métricas de cada local por separado.',
   },
   {
     icon: '📊',
     title: 'Panel simple',
+    plan: 'Todos los planes',
     desc: 'Quién vino, cuántas veces, cuántos premios se canjearon y qué día es el más fuerte del salón.',
   },
   {
@@ -227,6 +233,9 @@ export default function SalonesDeBellezaPage() {
                 <div className="text-3xl mb-4">{f.icon}</div>
                 <h3 className="font-bold text-base mb-2 flex items-center gap-2">
                   {f.title}
+                  {'plan' in f && f.plan && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full">{f.plan}</span>
+                  )}
                   {'soon' in f && f.soon && (
                     <span className="text-[10px] font-bold uppercase tracking-wider bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">Próximamente</span>
                   )}

@@ -1,13 +1,178 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { PLAN_PRICES_ARS, fmtARS } from '@/lib/plans'
 
 export const metadata: Metadata = {
-  title: 'Precios de Calificar explicados · qué incluye cada plan',
-  description: 'Los tres planes de Calificar explicados en lenguaje claro: qué incluye Starter ($14.999), Pro ($29.999) y Ultimate ($69.999) ARS por mes. 14 días gratis, sin tarjeta.',
+  title: 'Planes y precios de Calificar Fidelización · Starter, Pro y Ultimate',
+  description: `Qué incluye cada plan de la tarjeta de sellos digital: Starter (${fmtARS(PLAN_PRICES_ARS.starter)}), Pro (${fmtARS(PLAN_PRICES_ARS.pro)}) y Ultimate (${fmtARS(PLAN_PRICES_ARS.ultimate)}) por mes. 14 días de prueba, sin tarjeta de crédito.`,
   openGraph: {
-    title: 'Precios de Calificar · Starter, Pro y Ultimate',
-    description: 'Tarjetas de fidelización digitales para tu negocio. Planes desde $14.999 ARS/mes. 14 días gratis.',
+    title: 'Planes de Calificar Fidelización',
+    description: `Tarjetas de sellos digitales para tu negocio, desde ${fmtARS(PLAN_PRICES_ARS.starter)} por mes. 14 días de prueba.`,
   },
+}
+
+type Cell = boolean | string
+
+/** Todas las funciones, plan por plan. Una sola tabla para que se vea de un vistazo qué cambia. */
+const TABLE: { group: string; rows: { name: string; hint?: string; starter: Cell; pro: Cell; ultimate: Cell }[] }[] = [
+  {
+    group: 'Tu tarjeta',
+    rows: [
+      { name: 'Tarjeta digital con tu logo', hint: 'Se abre desde un link y se instala como una app, sin descargar nada.', starter: true, pro: true, ultimate: true },
+      { name: 'Cartelito NFC y QR para el mostrador', starter: true, pro: true, ultimate: true },
+      { name: 'Sello rápido, manual o escaneando al cliente', starter: true, pro: true, ultimate: true },
+      { name: 'Cupones únicos para canjear los premios', hint: 'Cada premio genera un código que no se puede repetir.', starter: true, pro: true, ultimate: true },
+      { name: 'Tarjeta en Google Wallet', hint: 'El cliente la guarda en la billetera de su celular.', starter: false, pro: true, ultimate: true },
+      { name: 'Diseño completo', hint: 'Plantillas, colores propios, íconos de los sellos y de la app, y fondo.', starter: false, pro: true, ultimate: true },
+      { name: 'Premios en el camino', hint: 'Por ejemplo uno en el sello 3, otro en el 6 y el grande al final.', starter: false, pro: true, ultimate: true },
+      { name: 'Tarjeta sin la marca Calificar', starter: false, pro: false, ultimate: true },
+    ],
+  },
+  {
+    group: 'Tus clientes',
+    rows: [
+      { name: 'Lista de clientes con búsqueda', starter: true, pro: true, ultimate: true },
+      { name: 'Agregar un cliente a mano', starter: true, pro: true, ultimate: true },
+      { name: 'Exportar tus clientes a Excel', hint: 'Nombre, teléfono, sellos y visitas.', starter: false, pro: true, ultimate: true },
+    ],
+  },
+  {
+    group: 'Avisos y campañas',
+    rows: [
+      { name: 'Avisos ilimitados al celular de tus clientes', hint: 'Les llegan como una notificación más, sin que instalen nada.', starter: false, pro: true, ultimate: true },
+      { name: 'Avisos a grupos ya armados', hint: 'Los que no vienen hace un tiempo, los nuevos, los que están cerca del premio, los que cumplen años.', starter: false, pro: true, ultimate: true },
+      { name: 'Avisos a grupos que armás con tus reglas', hint: 'Por cantidad de sellos, de visitas, días sin venir y más.', starter: false, pro: false, ultimate: true },
+      { name: 'Aviso cuando pasan cerca de tu local', starter: false, pro: true, ultimate: true },
+      { name: 'Cumpleaños automáticos', hint: 'Un saludo y un regalo el día del cumpleaños de cada cliente.', starter: false, pro: true, ultimate: true },
+      { name: 'Recuperar clientes que dejaron de venir', hint: 'Un aviso automático a los 5, 15 y 30 días sin visita.', starter: false, pro: true, ultimate: true },
+      { name: 'Recuperar según la frecuencia de cada cliente', hint: 'Avisa cuando alguien tarda más de lo normal en volver.', starter: false, pro: false, ultimate: true },
+      { name: 'Pedir reseñas en Google', starter: false, pro: true, ultimate: true },
+      { name: 'Referidos: traé un amigo', hint: 'Los dos suman un sello. Vos lo prendés o lo apagás cuando quieras.', starter: false, pro: true, ultimate: true },
+      { name: 'Ruleta de la suerte', starter: false, pro: false, ultimate: true },
+    ],
+  },
+  {
+    group: 'Tus números',
+    rows: [
+      { name: 'Panel con lo que pasa hoy', starter: true, pro: true, ultimate: true },
+      { name: 'Calculadora de ganancias en pesos', starter: true, pro: true, ultimate: true },
+      { name: 'Métricas de cada local por separado', starter: false, pro: true, ultimate: true },
+      { name: 'Estadísticas de actividad', hint: 'Qué días y a qué hora vienen más tus clientes.', starter: false, pro: false, ultimate: true },
+    ],
+  },
+  {
+    group: 'Locales y equipo',
+    rows: [
+      { name: 'Locales con una sola tarjeta compartida', hint: 'El cliente suma y canjea en cualquiera de tus locales.', starter: '1', pro: 'Hasta 3 (más con locales extra)', ultimate: 'Hasta 50' },
+      { name: 'Equipo con usuario propio', hint: 'Cada empleado entra con su email y da sellos sin usar tu contraseña.', starter: false, pro: false, ultimate: true },
+      { name: 'Dominio propio para tu tarjeta', starter: false, pro: false, ultimate: true },
+    ],
+  },
+  {
+    group: 'Ayuda',
+    rows: [
+      { name: 'Soporte en español por WhatsApp o correo', starter: true, pro: true, ultimate: true },
+    ],
+  },
+]
+
+const PLANS = [
+  {
+    slug: 'starter',
+    name: 'Starter',
+    tag: 'Para empezar con un local',
+    price: PLAN_PRICES_ARS.starter,
+    perDay: '$500 por día',
+    blurb: 'Reemplazá las tarjetitas de papel y empezá a saber quiénes vuelven.',
+    items: [
+      'Tarjeta digital con tu logo',
+      'Cartelito NFC y QR para el mostrador',
+      'Sello rápido, manual o escaneando',
+      'Cupones únicos para los premios',
+      'Lista de clientes y panel',
+      '1 local',
+    ],
+    highlight: false,
+  },
+  {
+    slug: 'pro',
+    name: 'Pro',
+    tag: 'Para hacer que vuelvan más',
+    price: PLAN_PRICES_ARS.pro,
+    perDay: '$1.000 por día',
+    blurb: 'Todo lo de Starter, más avisos, campañas automáticas y tu tarjeta con tu estilo.',
+    items: [
+      'Todo lo de Starter',
+      'Avisos ilimitados, también a grupos de clientes',
+      'Cumpleaños, reseñas y recuperación de clientes',
+      'Referidos y aviso al pasar cerca',
+      'Google Wallet y diseño completo',
+      'Premios en el camino y exportar clientes',
+      'Hasta 3 locales con métricas de cada uno',
+    ],
+    highlight: true,
+  },
+  {
+    slug: 'ultimate',
+    name: 'Ultimate',
+    tag: 'Para cadenas y muchos locales',
+    price: PLAN_PRICES_ARS.ultimate,
+    perDay: '$2.333 por día',
+    blurb: 'Todo lo de Pro, más herramientas para crecer y manejar un equipo.',
+    items: [
+      'Todo lo de Pro',
+      'Ruleta de la suerte',
+      'Recuperar según la frecuencia de cada cliente',
+      'Grupos de clientes con tus propias reglas',
+      'Estadísticas de actividad',
+      'Equipo con usuario propio',
+      'Tarjeta sin marca Calificar y dominio propio',
+      'Hasta 50 locales',
+    ],
+    highlight: false,
+  },
+]
+
+const FAQS = [
+  {
+    q: '¿Se cobra por cantidad de clientes?',
+    a: 'No. Las tarjetas son ilimitadas en los tres planes: tener 50 o 5.000 clientes cuesta lo mismo. Lo que cambia entre un plan y otro son las funciones y la cantidad de locales.',
+  },
+  {
+    q: '¿Cómo funciona la prueba de 14 días?',
+    a: 'Armás tu tarjeta y probás casi todo sin poner ninguna tarjeta de crédito. Al terminar, elegís el plan que te sirva. Si no elegís ninguno, tu tarjeta sigue funcionando, pero se ve con un diseño genérico y la marca Calificar.',
+  },
+  {
+    q: '¿Qué es una "tarjeta compartida" entre locales?',
+    a: 'Es una sola tarjeta para todos tus locales. Un cliente puede sumar un sello en uno y otro en otro, y canjear el premio en cualquiera. En el panel ves cuánto pasó en cada local por separado.',
+  },
+  {
+    q: '¿Mi cliente tiene que instalar algo?',
+    a: 'No. Escanea el QR del mostrador, pone su nombre y teléfono, y la tarjeta queda en su celular. Con Pro además puede guardarla en la billetera del teléfono (Google Wallet).',
+  },
+  {
+    q: '¿Cómo se paga?',
+    a: 'Con Mercado Pago, con cualquiera de sus medios de pago. Cada pago activa 30 días del plan.',
+  },
+  {
+    q: '¿Puedo cambiar de plan?',
+    a: 'Sí, cuando quieras desde el panel, hacia arriba cuando crezcas o hacia abajo si lo necesitás.',
+  },
+  {
+    q: '¿Y si tengo más de 3 locales y no necesito Ultimate?',
+    a: 'En Pro podés sumar locales extra de a uno. Pedilos por WhatsApp desde la pantalla de tu plan y te los activamos.',
+  },
+  {
+    q: '¿Mis datos son míos?',
+    a: 'Sí. En Pro y Ultimate exportás tu lista de clientes a Excel desde el panel. Si estás en Starter y querés tu lista, escribinos por WhatsApp y te la pasamos.',
+  },
+]
+
+function Mark({ value }: { value: Cell }) {
+  if (typeof value === 'string') return <span className="text-xs font-bold text-violet-700">{value}</span>
+  return value
+    ? <span className="text-violet-600 font-extrabold" aria-label="Incluido">✓</span>
+    : <span className="text-zinc-300" aria-label="No incluido">—</span>
 }
 
 export default function PreciosPage() {
@@ -23,366 +188,131 @@ export default function PreciosPage() {
             <Link href="/negocio/fidelizacion" className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors hidden sm:block">
               Iniciar sesión
             </Link>
-            <Link href="/fidelizacion/onboarding" className="text-sm font-bold bg-zinc-900 text-white px-4 py-2 rounded-xl hover:bg-zinc-700 transition-colors">
-              Probá 14 días gratis →
+            <Link href="/fidelizacion/onboarding" className="text-sm font-bold bg-violet-600 text-white px-4 py-2 rounded-xl hover:bg-violet-500 transition-colors">
+              Probá 14 días gratis
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="max-w-5xl mx-auto px-5 pt-16 pb-12 text-center">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-violet-600 mb-4">Precios explicados</p>
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-zinc-900 leading-tight mb-6">
-          Qué incluye cada plan,<br className="hidden sm:block" /> sin letra chica.
-        </h1>
-        <p className="text-zinc-500 text-lg leading-relaxed max-w-2xl mx-auto">
-          <strong className="text-zinc-700">Tarjetas y notificaciones ilimitadas en los tres planes</strong>, menos de $1.000 al día en el plan más popular.
-          Pagás por el tamaño de tu negocio: cuántos locales tenés y cuánto personalizás tu tarjeta.
-          14 días gratis, sin tarjeta; cancelás cuando querés.
-        </p>
+      <section className="pt-16 pb-12 text-center" style={{ background: 'linear-gradient(180deg, #F3EEFF 0%, #FFFFFF 100%)' }}>
+        <div className="max-w-5xl mx-auto px-5">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-violet-600 mb-4">Planes y precios</p>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-zinc-900 leading-tight mb-5">
+            Elegí el plan según<br className="hidden sm:block" /> cuánto querés que vuelvan.
+          </h1>
+          <p className="text-zinc-600 text-lg leading-relaxed max-w-2xl mx-auto">
+            Tarjetas ilimitadas en los tres planes: no pagás más por tener más clientes.
+            Probás 14 días sin tarjeta de crédito y elegís después.
+          </p>
+        </div>
       </section>
 
-      {/* Plan cards */}
+      {/* Planes */}
       <section className="max-w-5xl mx-auto px-5 pb-16">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-
-          {/* Starter */}
-          <div className="border border-zinc-200 rounded-2xl p-6 flex flex-col">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Para un local</p>
-            <h2 className="text-2xl font-extrabold text-zinc-900 mb-3">Starter</h2>
-            <div className="flex items-baseline gap-1 mb-1">
-              <span className="text-4xl font-extrabold text-zinc-900">$14.999</span>
-              <span className="text-sm text-zinc-400">ARS / mes</span>
+          {PLANS.map(p => (
+            <div
+              key={p.slug}
+              className={`relative rounded-2xl p-6 flex flex-col ${p.highlight ? 'bg-zinc-900 text-white shadow-2xl' : 'border border-zinc-200 bg-white'}`}
+            >
+              {p.highlight && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1 rounded-full whitespace-nowrap">
+                  El más elegido
+                </div>
+              )}
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-2 text-zinc-400">{p.tag}</p>
+              <h2 className="text-2xl font-extrabold mb-3">{p.name}</h2>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-4xl font-extrabold">{fmtARS(p.price)}</span>
+                <span className="text-sm text-zinc-400">ARS / mes</span>
+              </div>
+              <p className="text-xs mb-4 text-zinc-400">{p.perDay}</p>
+              <p className={`text-sm mb-5 ${p.highlight ? 'text-zinc-300' : 'text-zinc-600'}`}>{p.blurb}</p>
+              <ul className={`space-y-2 mb-6 text-sm flex-1 ${p.highlight ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                {p.items.map(i => (
+                  <li key={i} className="flex gap-2">
+                    <span className={`font-bold flex-shrink-0 ${p.highlight ? 'text-violet-400' : 'text-violet-500'}`}>✓</span>{i}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/fidelizacion/onboarding"
+                className={`block text-center py-3 rounded-xl font-bold text-sm transition-all ${
+                  p.highlight ? 'bg-violet-600 text-white hover:bg-violet-500' : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white'
+                }`}
+              >
+                Probá 14 días gratis
+              </Link>
             </div>
-            <p className="text-xs text-zinc-400 mb-4">$500/día · menos que un café</p>
-            <p className="text-sm text-zinc-600 mb-5 flex-1">
-              Tu tarjeta con tu marca, notificaciones y tus clientes. Todo lo esencial.
-            </p>
-            <ul className="space-y-2 mb-6 text-sm text-zinc-600">
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Tu tarjeta con tu logo</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Tarjetas ilimitadas</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Notificaciones ilimitadas</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Cartelito NFC + QR para el mostrador</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Panel con tus números</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Lista de tus clientes para exportar</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>1 local</li>
-            </ul>
-            <Link href="/fidelizacion/onboarding" className="block text-center py-3 rounded-xl font-bold text-sm border border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-all mb-3">
-              Probá 14 días gratis →
-            </Link>
-            <a href="#starter" className="text-center text-xs text-violet-600 font-semibold hover:text-violet-800 transition-colors">
-              Ver qué incluye Starter ↓
-            </a>
-          </div>
-
-          {/* Pro — Recomendado */}
-          <div className="bg-zinc-900 rounded-2xl p-6 flex flex-col relative shadow-2xl">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1 rounded-full whitespace-nowrap">
-              RECOMENDADO
-            </div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 mt-1">Para destacar</p>
-            <h2 className="text-2xl font-extrabold text-white mb-3">Pro</h2>
-            <div className="flex items-baseline gap-1 mb-1">
-              <span className="text-4xl font-extrabold text-white">$29.999</span>
-              <span className="text-sm text-zinc-400">ARS / mes</span>
-            </div>
-            <p className="text-xs text-zinc-400 mb-4">$1.000/día · menos que dos cafés</p>
-            <p className="text-sm text-zinc-300 mb-5 flex-1">
-              Tu tarjeta al detalle, campañas de cumpleaños y hasta 3 locales.
-            </p>
-            <ul className="space-y-2 mb-6 text-sm text-zinc-300">
-              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Todo lo de Starter</li>
-              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Diseño completo: plantillas, colores, íconos y fondo</li>
-              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Campañas de cumpleaños automáticas</li>
-              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Hasta 3 locales con una tarjeta compartida</li>
-              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Métricas de cada local por separado</li>
-            </ul>
-            <Link href="/fidelizacion/onboarding" className="block text-center py-3 rounded-xl font-bold text-sm bg-violet-600 text-white hover:bg-violet-500 transition-all mb-3">
-              Probá 14 días gratis →
-            </Link>
-            <a href="#pro" className="text-center text-xs text-violet-400 font-semibold hover:text-violet-300 transition-colors">
-              Ver qué incluye Pro ↓
-            </a>
-          </div>
-
-          {/* Ultimate */}
-          <div className="border border-zinc-200 rounded-2xl p-6 flex flex-col">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Sin límites</p>
-            <h2 className="text-2xl font-extrabold text-zinc-900 mb-3">Ultimate</h2>
-            <div className="flex items-baseline gap-1 mb-1">
-              <span className="text-4xl font-extrabold text-zinc-900">$69.999</span>
-              <span className="text-sm text-zinc-400">ARS / mes</span>
-            </div>
-            <p className="text-xs text-zinc-400 mb-4">$2.333/día · para todas tus sucursales</p>
-            <p className="text-sm text-zinc-600 mb-5 flex-1">
-              Hasta 50 locales con una sola tarjeta, y tu propio dominio.
-            </p>
-            <ul className="space-y-2 mb-6 text-sm text-zinc-600">
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Todo lo de Pro</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Hasta 50 locales con una tarjeta compartida</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Dominio propio para tu tarjeta</li>
-            </ul>
-            <Link href="/fidelizacion/onboarding" className="block text-center py-3 rounded-xl font-bold text-sm border border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-all mb-3">
-              Probá 14 días gratis →
-            </Link>
-            <a href="#ultimate" className="text-center text-xs text-violet-600 font-semibold hover:text-violet-800 transition-colors">
-              Ver qué incluye Ultimate ↓
-            </a>
-          </div>
+          ))}
         </div>
 
-        {/* Enterprise strip */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-5">
           <div>
-            <p className="font-bold text-zinc-900 text-sm">¿Tenés una cadena o necesitás algo a medida?</p>
-            <p className="text-xs text-zinc-500 mt-0.5">Escribinos y armamos algo a medida.</p>
+            <p className="font-bold text-zinc-900 text-sm">¿Tenés una cadena grande o necesitás algo especial?</p>
+            <p className="text-xs text-zinc-500 mt-0.5">Escribinos y lo armamos a medida.</p>
           </div>
-          <a href="https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20un%20plan%20Enterprise%20para%20Calificar."
+          <a
+            href="https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20un%20plan%20a%20medida%20para%20Calificar."
             target="_blank" rel="noopener noreferrer"
-            className="flex-shrink-0 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-colors"
-            style={{ background: '#25D366' }}>
+            className="flex-shrink-0 px-5 py-2.5 rounded-xl font-bold text-sm text-white"
+            style={{ background: '#25D366' }}
+          >
             Hablar por WhatsApp
           </a>
         </div>
       </section>
 
-      {/* Glosario */}
+      {/* Tabla completa */}
       <section className="bg-zinc-50 border-y border-zinc-200 py-16">
         <div className="max-w-5xl mx-auto px-5">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Lo que significa cada cosa</p>
-          <h2 className="text-3xl font-extrabold text-zinc-900 mb-2">Los términos, explicados en una línea.</h2>
-          <p className="text-zinc-500 mb-10">Sin jerga. Cada uno con lo que incluye cada plan.</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Todo, plan por plan</p>
+          <h2 className="text-3xl font-extrabold text-zinc-900 mb-2">Qué trae cada uno.</h2>
+          <p className="text-zinc-500 mb-8">Una sola tabla con todas las funciones, para comparar sin vueltas.</p>
 
-          <div className="space-y-0 divide-y divide-zinc-200 border border-zinc-200 rounded-2xl overflow-hidden bg-white">
-            {[
-              {
-                term: 'Tarjeta de lealtad digital (wallet)',
-                def: 'La tarjeta de sellos que tu cliente guarda en Apple Wallet o Google Wallet. No descarga ninguna app: la agrega con un QR o enlace y le queda junto a sus tarjetas de pago. "Ilimitadas" significa que no pagás más por tener más clientes.',
-                plans: [['Starter', 'Ilimitadas'], ['Pro', 'Ilimitadas'], ['Ultimate', 'Ilimitadas']],
-              },
-              {
-                term: 'Sello',
-                def: 'Cada vez que un cliente visita o compra, escaneás su tarjeta desde tu celular y el sello se marca solo. Al llegar a la meta (por ejemplo, 8 visitas) canjea el premio y la tarjeta vuelve a empezar.',
-                plans: [['Starter', 'Ilimitados'], ['Pro', 'Ilimitados'], ['Ultimate', 'Ilimitados']],
-              },
-              {
-                term: 'Local / Sucursal',
-                def: 'Cada local físico donde dás sellos. Tenés UNA sola tarjeta para todos tus locales: tu cliente suma sellos en cualquiera de ellos y canjea su premio en cualquiera. Vos ves en el panel los números de cada local por separado.',
-                plans: [['Starter', '1'], ['Pro', 'Hasta 3'], ['Ultimate', 'Hasta 50']],
-                note: 'Para 2 o más locales, subís de plan.',
-              },
-              {
-                term: 'Notificación push',
-                def: 'Un mensaje que aparece en la pantalla del celular de tu cliente, como los de cualquier app, sin que él haya instalado nada y sin que vos pagues publicidad. Lo escribís en el panel y lo mandás a todos o a un grupo.',
-                plans: [['Starter', 'Ilimitadas'], ['Pro', 'Ilimitadas'], ['Ultimate', 'Ilimitadas']],
-              },
-              {
-                term: 'Cupón único',
-                def: 'Un código irrepetible que se genera automáticamente cuando el cliente completa la tarjeta o alcanza un hito. Lo mostrás al local para canjearlo. Sirve para evitar fraude.',
-                plans: [['Starter', 'Incluidos'], ['Pro', 'Incluidos'], ['Ultimate', 'Incluidos']],
-              },
-              {
-                term: 'Exportación de datos',
-                def: 'Tus clientes son tuyos. En todos los planes descargás la lista con nombre, teléfono, sellos y visitas.',
-                plans: [['Starter', 'Incluida'], ['Pro', 'Incluida'], ['Ultimate', 'Incluida']],
-              },
-            ].map(({ term, def, plans, note }) => (
-              <div key={term} className="px-6 py-5">
-                <p className="font-bold text-zinc-900 text-sm mb-1">{term}</p>
-                <p className="text-sm text-zinc-500 mb-3 leading-relaxed">{def}</p>
-                {note && <p className="text-xs text-amber-600 font-medium mb-3">⚠ {note}</p>}
-                <div className="flex flex-wrap gap-3">
-                  {plans.map(([plan, val]) => (
-                    <div key={plan} className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">{plan}</span>
-                      <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full">{val}</span>
-                    </div>
+          <div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
+            <table className="w-full text-sm min-w-[640px]">
+              <thead>
+                <tr className="border-b border-zinc-200 text-left">
+                  <th className="px-5 py-4 font-bold text-zinc-900 w-[46%]">Función</th>
+                  <th className="px-3 py-4 font-bold text-zinc-900 text-center">Starter</th>
+                  <th className="px-3 py-4 font-bold text-violet-700 text-center">Pro</th>
+                  <th className="px-3 py-4 font-bold text-zinc-900 text-center">Ultimate</th>
+                </tr>
+              </thead>
+              {TABLE.map(g => (
+                <tbody key={g.group}>
+                  <tr className="bg-violet-50/60">
+                    <td colSpan={4} className="px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-violet-700">{g.group}</td>
+                  </tr>
+                  {g.rows.map(r => (
+                    <tr key={r.name} className="border-t border-zinc-100 align-top">
+                      <td className="px-5 py-3">
+                        <p className="font-semibold text-zinc-800">{r.name}</p>
+                        {r.hint && <p className="text-xs text-zinc-500 mt-0.5 leading-snug">{r.hint}</p>}
+                      </td>
+                      <td className="px-3 py-3 text-center"><Mark value={r.starter} /></td>
+                      <td className="px-3 py-3 text-center bg-violet-50/30"><Mark value={r.pro} /></td>
+                      <td className="px-3 py-3 text-center"><Mark value={r.ultimate} /></td>
+                    </tr>
                   ))}
-                </div>
-              </div>
-            ))}
+                </tbody>
+              ))}
+            </table>
           </div>
+          <p className="text-xs text-zinc-400 mt-3">Los precios son por mes, en pesos argentinos. Cada pago con Mercado Pago activa 30 días.</p>
         </div>
       </section>
 
-      {/* Plan por plan */}
+      {/* Preguntas */}
       <section className="py-16">
-        <div className="max-w-5xl mx-auto px-5">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Plan por plan</p>
-          <h2 className="text-3xl font-extrabold text-zinc-900 mb-12">Qué hacés con cada plan.</h2>
-
-          {/* Starter detail */}
-          <div id="starter" className="mb-20 scroll-mt-20">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-2">
-              <h3 className="text-2xl font-extrabold text-zinc-900">Starter</h3>
-              <Link href="/fidelizacion/onboarding" className="inline-block px-5 py-2.5 rounded-xl font-bold text-sm bg-zinc-900 text-white hover:bg-zinc-700 transition-colors">
-                Probá 14 días gratis →
-              </Link>
-            </div>
-            <p className="text-zinc-500 text-sm mb-1"><strong className="text-zinc-700">$14.999 ARS / mes</strong> · $500/día · menos que un café</p>
-            <p className="text-zinc-400 text-sm mb-8">Para un local que quiere que sus clientes vuelvan más seguido y saber quiénes son.</p>
-
-            <div className="space-y-8">
-              <DetailItem
-                icon="🎴"
-                title="Tu tarjeta con tu logo"
-                body="Elegís la recompensa, escribís el nombre de tu negocio y continuás con Google. La tarjeta queda lista en 30 segundos y se actualiza sola en el celular de todos tus clientes: si cambiás el premio o el color, se refleja al instante."
-              />
-              <DetailItem
-                icon="⭐"
-                title="Sellos ilimitados"
-                body="Cada vez que un cliente visita, escaneás su tarjeta desde tu celular (sin app para el cliente). El sello se marca solo. La meta y el premio los cambiás cuando querés."
-              />
-              <DetailItem
-                icon="🔔"
-                title="Notificaciones ilimitadas"
-                body="Escribís un mensaje en el panel y se lo mandás a todos tus clientes. Les llega en la pantalla del celular como cualquier app, sin que ellos hayan instalado nada. Cien clientes o diez mil, el precio es el mismo."
-              />
-              <DetailItem
-                icon="📊"
-                title="Panel con tus números y tu lista de clientes"
-                body="Quién volvió, cuándo y cuántos sellos tiene. La lista (nombre y teléfono) la exportás cuando querés: es tuya, no queda atrapada en Calificar."
-              />
-              <DetailItem
-                icon="🎁"
-                title="Cupones únicos al completar la tarjeta"
-                body="Cuando un cliente llega a la meta, el sistema genera un código irrepetible. Lo muestra al mostrador y vos lo marcás como canjeado. Evita que el mismo código se use dos veces."
-              />
-              <DetailItem
-                icon="💬"
-                title="Soporte en español"
-                body="Por WhatsApp o correo. Te respondemos personas, no bots, también durante la prueba."
-              />
-              <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-sm text-zinc-600">
-                <strong className="text-zinc-900">1 local.</strong> Si tenés más de un local, Pro trae hasta 3 con una sola tarjeta compartida.
-              </div>
-            </div>
-          </div>
-
-          {/* Pro detail */}
-          <div id="pro" className="mb-20 scroll-mt-20">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-2">
-              <div className="flex items-center gap-3">
-                <h3 className="text-2xl font-extrabold text-zinc-900">Pro</h3>
-                <span className="text-[10px] font-bold bg-violet-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">Recomendado</span>
-              </div>
-              <Link href="/fidelizacion/onboarding" className="inline-block px-5 py-2.5 rounded-xl font-bold text-sm bg-violet-600 text-white hover:bg-violet-500 transition-colors">
-                Probá 14 días gratis →
-              </Link>
-            </div>
-            <p className="text-zinc-500 text-sm mb-1"><strong className="text-zinc-700">$29.999 ARS / mes</strong> · $1.000/día · menos que dos cafés</p>
-            <p className="text-zinc-400 text-sm mb-2">Para el negocio que quiere su tarjeta al detalle, hablarle a cada tipo de cliente y hacer campañas que salen solas.</p>
-            <p className="text-zinc-400 text-sm mb-8">Todo lo de Starter, y además:</p>
-
-            <div className="space-y-8">
-              <DetailItem
-                icon="🎨"
-                title="Diseño completo de tu tarjeta"
-                body="Elegís entre plantillas de color o armás la tuya: colores propios, ícono de la app y de las notificaciones, ícono de los sellos y una imagen de fondo."
-              />
-              <DetailItem
-                icon="🏪"
-                title="Hasta 3 locales con una sola tarjeta"
-                body="Si tenés más de un local, tus clientes usan la misma tarjeta en todos: suman sellos en cualquiera y canjean su premio en cualquiera. Vos ves los números de cada local por separado."
-              />
-              <DetailItem
-                icon="🎂"
-                title="Campañas de cumpleaños automáticas"
-                body="Tres mensajes que salen solos: antes del cumpleaños, el día y después. Un regalo que no gasta sellos, con la ventana que vos elegís (el día, su semana o su mes). Lo configurás una vez y corre todos los días, todos los años. Requiere el campo de fecha de nacimiento en el formulario de registro."
-              />
-              <DetailItem
-                icon="📈"
-                title="Métricas por sucursal"
-                body="Ves los números de cada local por separado: sellos del día, clientes nuevos, premios canjeados. Comparás tus locales sin hacer cuentas."
-              />
-              <DetailItem
-                icon="⚡"
-                title="Soporte prioritario"
-                body="Los mismos canales que Starter, y tu consulta va primero."
-              />
-              <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-sm text-zinc-600">
-                <strong className="text-zinc-900">Hasta 3 locales con una tarjeta compartida.</strong> Si necesitás más locales o tu propio dominio, pasá a Ultimate.
-              </div>
-            </div>
-          </div>
-
-          {/* Ultimate detail */}
-          <div id="ultimate" className="mb-8 scroll-mt-20">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-2">
-              <h3 className="text-2xl font-extrabold text-zinc-900">Ultimate</h3>
-              <Link href="/fidelizacion/onboarding" className="inline-block px-5 py-2.5 rounded-xl font-bold text-sm bg-zinc-900 text-white hover:bg-zinc-700 transition-colors">
-                Probá 14 días gratis →
-              </Link>
-            </div>
-            <p className="text-zinc-500 text-sm mb-1"><strong className="text-zinc-700">$69.999 ARS / mes</strong> · $2.333/día · para todas tus sucursales</p>
-            <p className="text-zinc-400 text-sm mb-2">Para cadenas y franquicias con muchos locales que quieren su tarjeta en su propio dominio.</p>
-            <p className="text-zinc-400 text-sm mb-8">Todo lo de Pro, y además:</p>
-
-            <div className="space-y-8">
-              <DetailItem
-                icon="🏢"
-                title="Hasta 50 locales con una sola tarjeta"
-                body="Abrís un local nuevo y lo sumás al panel el mismo día, sin cambiar de plan ni pagar extras. La tarjeta es una sola: el cliente suma y canjea en cualquier local, y vos ves los números de cada uno por separado."
-              />
-              <DetailItem
-                icon="🌐"
-                title="Dominio propio para tu tarjeta"
-                body="Tu tarjeta y su página de registro se abren con tu propio dominio (por ejemplo tarjeta.minegocio.com), no con el de Calificar. Te acompañamos con la configuración."
-              />
-              <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-sm text-zinc-600">
-                <strong className="text-zinc-900">Todo lo de Pro, para muchos locales.</strong> Es el plan para cuando el negocio creció y querés tu propia marca también en el link.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="bg-zinc-50 border-y border-zinc-200 py-16">
-        <div className="max-w-5xl mx-auto px-5">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Preguntas de precio</p>
-          <h2 className="text-3xl font-extrabold text-zinc-900 mb-10">Lo que preguntan antes de elegir plan.</h2>
-
-          <div className="space-y-0 divide-y divide-zinc-200 border border-zinc-200 rounded-2xl overflow-hidden bg-white">
-            {[
-              {
-                q: '¿Cobran por cliente o por tarjeta?',
-                a: 'No. Las tarjetas y las notificaciones son ilimitadas en los tres planes. Pagás por la estructura de tu negocio: cuántos locales tenés y cuánto personalizás tu tarjeta.',
-              },
-              {
-                q: '¿Qué pasa cuando terminan los 14 días gratis?',
-                a: 'No se cobra nada automáticamente: no te pedimos tarjeta de crédito durante la prueba. Si te gusta, elegís un plan y seguís donde ibas. Si no, no pasa nada.',
-              },
-              {
-                q: '¿Puedo cambiar de plan después?',
-                a: 'Sí, en cualquier momento desde el panel: hacia arriba cuando crezcas o hacia abajo si lo necesitás.',
-              },
-              {
-                q: '¿Qué cuenta como local?',
-                a: 'Cada punto físico donde das sellos. Starter incluye 1, Pro hasta 3 y Ultimate hasta 50. En todos usás una sola tarjeta para todos tus locales. Si tenés 2 o más locales, subís de plan.',
-              },
-              {
-                q: '¿El cliente tiene que instalar algo?',
-                a: 'No. La tarjeta se agrega a Apple Wallet o Google Wallet con un QR o enlace. No descarga ninguna app extra y le queda guardada junto a sus tarjetas de pago.',
-              },
-              {
-                q: '¿Cómo funciona el pago?',
-                a: 'Aceptamos todos los medios disponibles en Mercado Pago. El cobro es mensual y cancelás desde el panel cuando querés, sin que se te cobre el período siguiente.',
-              },
-              {
-                q: '¿Puedo llevarme mis datos si me voy?',
-                a: 'Sí. En todos los planes exportás tu lista de clientes (nombre, teléfono, sellos y visitas) desde el panel.',
-              },
-              {
-                q: '¿Cómo es el soporte?',
-                a: 'En español, por WhatsApp o correo, en los tres planes y también durante la prueba. Te responden personas, no bots. Pro y Ultimate tienen prioridad.',
-              },
-              {
-                q: '¿Qué necesito para empezar?',
-                a: 'Solo una cuenta de Google. La tarjeta queda lista en 30 segundos: elegís el nombre, la recompensa y el logo, y ya podés compartirla con tus clientes.',
-              },
-            ].map(({ q, a }) => (
+        <div className="max-w-3xl mx-auto px-5">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Preguntas</p>
+          <h2 className="text-3xl font-extrabold text-zinc-900 mb-8">Lo que más nos preguntan.</h2>
+          <div className="divide-y divide-zinc-200 border border-zinc-200 rounded-2xl overflow-hidden bg-white">
+            {FAQS.map(({ q, a }) => (
               <details key={q} className="group px-6 py-5 cursor-pointer">
                 <summary className="flex items-center justify-between font-semibold text-sm text-zinc-900 list-none select-none">
                   {q}
@@ -395,27 +325,17 @@ export default function PreciosPage() {
         </div>
       </section>
 
-      {/* CTA final */}
-      <section className="py-20 text-center">
-        <div className="max-w-5xl mx-auto px-5">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-4">14 DÍAS GRATIS</p>
-          <h2 className="text-4xl font-extrabold text-zinc-900 mb-4">
-            Empezá gratis.<br className="hidden sm:block" /> Elegí plan después.
-          </h2>
-          <p className="text-zinc-500 text-lg mb-8">
-            Tu tarjeta queda lista en 30 segundos. Sin tarjeta de crédito, sin compromiso.
-          </p>
-          <Link href="/fidelizacion/onboarding"
-            className="inline-block px-8 py-4 rounded-2xl font-extrabold text-lg text-white transition-all hover:opacity-90"
-            style={{ background: '#7C3AED' }}>
-            Probá 14 días gratis →
+      {/* Cierre */}
+      <section className="py-20 text-center" style={{ background: 'linear-gradient(135deg,#7C3AED 0%,#6D28D9 100%)' }}>
+        <div className="max-w-2xl mx-auto px-5">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">Probalo 14 días, sin tarjeta.</h2>
+          <p className="text-violet-100 mb-8">Armás tu tarjeta en unos minutos y elegís el plan después.</p>
+          <Link
+            href="/fidelizacion/onboarding"
+            className="inline-block px-8 py-4 rounded-2xl font-extrabold text-base bg-white text-violet-700 hover:bg-violet-50 transition-colors"
+          >
+            Empezar gratis
           </Link>
-          <p className="text-xs text-zinc-400 mt-4">Continuás con Google · Sin tarjeta de crédito · Cancelás cuando querés</p>
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-xs text-zinc-500">
-            <span>✓ Sin tarjeta de crédito</span>
-            <span>✓ Cancelás cuando querés</span>
-            <span>✓ Soporte en español</span>
-          </div>
         </div>
       </section>
 
@@ -423,25 +343,13 @@ export default function PreciosPage() {
       <footer className="border-t border-zinc-100 py-8">
         <div className="max-w-5xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
           <span className="font-bold text-zinc-900">Calificar</span>
-          <span>Tarjetas de fidelización digitales para tu negocio · Hecho en Argentina</span>
+          <span>Tarjetas de fidelización digitales · Hecho en Argentina</span>
           <div className="flex gap-4">
             <Link href="/privacidad" className="hover:text-zinc-700">Privacidad</Link>
             <Link href="/terminos" className="hover:text-zinc-700">Términos</Link>
           </div>
         </div>
       </footer>
-    </div>
-  )
-}
-
-function DetailItem({ icon, title, body }: { icon: string; title: string; body: string }) {
-  return (
-    <div className="flex gap-4">
-      <span className="text-2xl flex-shrink-0 mt-0.5">{icon}</span>
-      <div>
-        <p className="font-bold text-zinc-900 text-sm mb-1">{title}</p>
-        <p className="text-sm text-zinc-500 leading-relaxed">{body}</p>
-      </div>
     </div>
   )
 }
