@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import type { Card, PushLog } from '@/types/dashboard'
+import { READY_AUDIENCES, type Audience, type AudienceRules, type ReadyAudienceId } from '@/lib/audience-types'
 
 // ── tipos locales ─────────────────────────────────────────────────────────────
 type NotifRecipient  = { name: string; phone: string; ok: boolean }
@@ -13,7 +14,7 @@ interface ViewPushProps {
   setNotifMsg: (v: string) => void
   notifSending: boolean
   notifSent: boolean
-  sendNotif: () => void
+  sendNotif: (audience?: Audience) => void
   notifError?: string
   notifSentCount?: number
   notifRecipients?: NotifRecipient[]
@@ -25,6 +26,10 @@ interface ViewPushProps {
   cards?: Card[]
   selectedProgram?: string | null
   accessToken?: string
+  /** Pro: listas de clientes ya armadas */
+  canReadyAudiences?: boolean
+  /** Ultimate: reglas propias */
+  canCustomAudiences?: boolean
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
@@ -45,6 +50,8 @@ export default function ViewPush({
   cards = [],
   selectedProgram,
   accessToken,
+  canReadyAudiences = true,
+  canCustomAudiences = true,
 }: ViewPushProps) {
   const [tab,          setTab]          = useState<'todos' | 'individual'>('todos')
   const [search,       setSearch]       = useState('')
@@ -53,6 +60,38 @@ export default function ViewPush({
   const [indivSending, setIndivSending] = useState(false)
   const [indivSent,    setIndivSent]    = useState(false)
   const [indivError,   setIndivError]   = useState('')
+
+  // ── Audiencia (a quién se manda) ──
+  const [audienceKey, setAudienceKey] = useState<'all' | 'rules' | ReadyAudienceId>('all')
+  const [rules, setRules] = useState<AudienceRules>({})
+  const [preview, setPreview] = useState<{ count: number; with_push: number } | null>(null)
+  const audience: Audience =
+    audienceKey === 'all' ? { kind: 'all' }
+    : audienceKey === 'rules' ? { kind: 'rules', rules }
+    : { kind: 'ready', id: audienceKey }
+
+  useEffect(() => {
+    if (!selectedProgram || !accessToken) return
+    const t = setTimeout(() => {
+      fetch(`/api/fidelizacion/audiences?program_id=${selectedProgram}&audience=${encodeURIComponent(JSON.stringify(audience))}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+        .then(r => r.json())
+        .then(d => setPreview(d.count !== undefined ? { count: d.count, with_push: d.with_push } : null))
+        .catch(() => setPreview(null))
+    }, 350)
+    return () => clearTimeout(t)
+  }, [selectedProgram, accessToken, audienceKey, rules]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const setNum = (k: keyof AudienceRules, v: string) =>
+    setRules(r => {
+      const next = { ...r }
+      if (v === '') delete next[k]
+      else (next as Record<string, number | boolean>)[k] = Math.max(0, Number(v) || 0)
+      return next
+    })
+  const setFlag = (k: 'birthdayThisMonth' | 'nearReward', v: boolean) =>
+    setRules(r => { const next = { ...r }; if (v) next[k] = true; else delete next[k]; return next })
 
   const filtered = search.trim()
     ? cards.filter(
@@ -118,7 +157,61 @@ export default function ViewPush({
       {tab === 'todos' && (
         <div className="bg-white dark:bg-gray-900 border border-zinc-100 dark:border-gray-800 rounded-2xl p-6">
           <label className="block text-sm font-semibold text-zinc-700 dark:text-gray-200 mb-2">
-            Mensaje para todos
+            ¿A quién se lo mandás?
+          </label>
+          <select
+            value={audienceKey}
+            onChange={e => { setAudienceKey(e.target.value as typeof audienceKey); if (notifSent) { setNotifSent?.(false); setNotifSentCount?.(0); setNotifRecipients?.([]) } }}
+            className="w-full border border-zinc-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-zinc-900 dark:text-white rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-violet-400 mb-3"
+          >
+            <option value="all">Todos mis clientes</option>
+            {READY_AUDIENCES.map(a => (
+              <option key={a.id} value={a.id} disabled={!canReadyAudiences}>
+                {a.label}{canReadyAudiences ? '' : ' 🔒 Pro'}
+              </option>
+            ))}
+            <option value="rules" disabled={!canCustomAudiences}>Armar mi propio grupo{canCustomAudiences ? '' : ' 🔒 Ultimate'}</option>
+          </select>
+
+          {audienceKey === 'rules' && (
+            <div className="rounded-2xl border border-violet-200 dark:border-violet-500/30 bg-violet-50/50 dark:bg-violet-500/5 p-4 mb-3 grid sm:grid-cols-2 gap-3 text-sm">
+              {([
+                ['minStamps', 'Tienen al menos', 'sellos'],
+                ['maxStamps', 'Tienen como mucho', 'sellos'],
+                ['minVisits', 'Vinieron al menos', 'veces'],
+                ['idleDaysMin', 'Hace al menos', 'días que no vienen'],
+                ['idleDaysMax', 'Vinieron hace menos de', 'días'],
+                ['joinedWithinDays', 'Se sumaron en los últimos', 'días'],
+              ] as [keyof AudienceRules, string, string][]).map(([k, pre, post]) => (
+                <label key={k} className="flex items-center gap-2 text-zinc-700 dark:text-gray-300">
+                  <span className="flex-1 leading-snug">{pre}</span>
+                  <input
+                    type="number" min={0} inputMode="numeric"
+                    value={rules[k] === undefined ? '' : String(rules[k])}
+                    onChange={e => setNum(k, e.target.value)}
+                    className="w-16 border border-zinc-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg px-2 py-1.5 text-center font-bold focus:outline-none focus:border-violet-400"
+                  />
+                  <span className="text-xs text-zinc-500 w-24 leading-tight">{post}</span>
+                </label>
+              ))}
+              <label className="flex items-center gap-2 text-zinc-700 dark:text-gray-300">
+                <input type="checkbox" checked={!!rules.birthdayThisMonth} onChange={e => setFlag('birthdayThisMonth', e.target.checked)} /> Cumplen años este mes
+              </label>
+              <label className="flex items-center gap-2 text-zinc-700 dark:text-gray-300">
+                <input type="checkbox" checked={!!rules.nearReward} onChange={e => setFlag('nearReward', e.target.checked)} /> Les falta poco para el premio
+              </label>
+            </div>
+          )}
+
+          {preview && (
+            <p className="text-xs text-zinc-500 dark:text-gray-400 mb-4">
+              {audienceKey === 'all' ? 'Tenés' : 'Este grupo tiene'} <b>{preview.count}</b> {preview.count === 1 ? 'cliente' : 'clientes'};{' '}
+              <b>{preview.with_push}</b> {preview.with_push === 1 ? 'tiene' : 'tienen'} las notificaciones activadas y {preview.with_push === 1 ? 'lo va' : 'los van'} a recibir.
+            </p>
+          )}
+
+          <label className="block text-sm font-semibold text-zinc-700 dark:text-gray-200 mb-2">
+            Mensaje
           </label>
           <textarea
             value={notifMsg}
@@ -138,7 +231,7 @@ export default function ViewPush({
             {notifMsg.length}/160 caracteres
           </p>
           <button
-            onClick={sendNotif}
+            onClick={() => sendNotif(audience)}
             disabled={notifSending || !notifMsg.trim() || notifSent}
             className="font-bold px-6 py-3 rounded-2xl text-sm text-white transition-colors disabled:opacity-50"
             style={{ background: notifSent ? '#10B981' : '#7C3AED' }}
@@ -147,7 +240,7 @@ export default function ViewPush({
               ? `✓ Enviado a ${notifSentCount} cliente${notifSentCount !== 1 ? 's' : ''}`
               : notifSending
               ? 'Enviando...'
-              : 'Enviar a todos mis clientes'}
+              : audienceKey === 'all' ? 'Enviar a todos mis clientes' : 'Enviar a este grupo'}
           </button>
 
           {notifError && (

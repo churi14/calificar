@@ -5,6 +5,7 @@ import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { Sun, Moon } from '@phosphor-icons/react'
 import { DISCOUNT_WINDOW_DAYS, discountDaysLeft, maxLocales } from '@/lib/plans'
 import { canUse } from '@/lib/plan-features'
+import type { Audience } from '@/lib/audience-types'
 import { planState, planDaysLeft } from '@/lib/plan-status'
 
 // ── Componentes de UI ─────────────────────────────────────────────────────────
@@ -257,19 +258,19 @@ export default function NegocioDashboard() {
   }, [selectedProgram, accessToken])
 
   // ── Actions ───────────────────────────────────────────────────────────────
-  async function sendNotif() {
+  async function sendNotif(audience?: Audience) {
     if (!notifMsg.trim() || !selectedProgram) return
     setNotifSending(true); setNotifError('')
     try {
       const res = await fetch('/api/fidelizacion/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
-        body: JSON.stringify({ program_id: selectedProgram, title: `📣 ${businessName}`, body: notifMsg }),
+        body: JSON.stringify({ program_id: selectedProgram, title: `📣 ${businessName}`, body: notifMsg, ...(audience && audience.kind !== 'all' ? { audience } : {}) }),
       })
       const d = await res.json()
       setNotifSending(false)
       if (!res.ok || d.error) { setNotifError(d.error ?? `Error ${res.status}`); return }
-      if (d.sent === 0) { setNotifError('Sin suscriptores — ningún cliente activó las notificaciones todavía.'); return }
+      if (d.sent === 0) { setNotifError(d.message && d.message !== 'Sin suscriptores' ? d.message : 'Sin suscriptores — ningún cliente de ese grupo activó las notificaciones todavía.'); return }
       setNotifSentCount(d.sent)
       setNotifRecipients(d.recipients ?? [])
       setNotifSent(true)
@@ -548,7 +549,8 @@ export default function NegocioDashboard() {
             notifError={notifError} notifSentCount={notifSentCount} notifRecipients={notifRecipients}
             setNotifSent={setNotifSent} setNotifSentCount={setNotifSentCount} setNotifRecipients={setNotifRecipients}
             pushLogs={pushLogs} pushSubscribers={pushSubscribers}
-            cards={cards} selectedProgram={selectedProgram} accessToken={accessToken} />
+            cards={cards} selectedProgram={selectedProgram} accessToken={accessToken}
+            canReadyAudiences={canUse(businessPlan, 'audiences')} canCustomAudiences={canUse(businessPlan, 'audiences_custom')} />
         )}
         {activeNav === 'proximidad' && (
           <ViewProximidad selectedProgram={selectedProgram} isPro={canUse(businessPlan, 'proximity')}

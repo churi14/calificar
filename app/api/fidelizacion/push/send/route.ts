@@ -3,6 +3,8 @@
  * Envía una notificación push a todos los clientes de un programa.
  * Body: { program_id, title, body, url? }
  */
+import { parseAudience, resolveAudience } from '@/lib/audiences'
+import { audienceFeature } from '@/lib/audience-types'
 import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -23,7 +25,7 @@ const supabase = createClient(
 )
 
 export async function POST(req: NextRequest) {
-  const { program_id, card_id, title, body, url } = await req.json()
+  const { program_id, card_id, title, body, url, audience: rawAudience } = await req.json()
 
   if (!program_id || !title || !body) {
     return NextResponse.json({ error: 'program_id, title y body son requeridos' }, { status: 400 })
@@ -68,7 +70,24 @@ export async function POST(req: NextRequest) {
     .select('*, loyalty_cards(name, phone)')
     .eq('program_id', program_id)
   if (card_id) query = query.eq('card_id', card_id)
-  const { data: subs, error } = await query
+
+  // Audiencia: grupo de clientes (Pro: listas armadas, Ultimate: reglas propias)
+  const audience = rawAudience ? parseAudience(rawAudience) : null
+  let audienceSet: Set<string> | null = null
+  if (audience && audience.kind !== 'all') {
+    const feature = audienceFeature(audience)!
+    if (!(await programCan(program_id, feature))) {
+      return NextResponse.json(planRequiredBody(feature === 'audiences' ? 'Pro' : 'Ultimate'), { status: 403 })
+    }
+    const { ids } = await resolveAudience(program_id, audience)
+    if (ids && ids.length === 0) {
+      return NextResponse.json({ ok: true, sent: 0, message: 'Ningún cliente cumple esa condición ahora' })
+    }
+    if (ids) audienceSet = new Set(ids)
+  }
+  const { data: allSubs, error } = await query
+  // El grupo se filtra acá (y no con .in) para no armar una URL gigante con miles de clientes
+  const subs = audienceSet ? (allSubs ?? []).filter(sub => audienceSet!.has(sub.card_id as string)) : allSubs
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!subs || subs.length === 0) {
