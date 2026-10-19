@@ -1066,10 +1066,6 @@ export default function OnboardingPage() {
                   >Usar otro email</button>
                 </div>
               )}
-
-              <p className="text-center text-xs text-zinc-400 mt-5">
-                ⭐⭐⭐⭐⭐ Únite a +1,000 negocios en +10 países
-              </p>
             </>
           )}
 
