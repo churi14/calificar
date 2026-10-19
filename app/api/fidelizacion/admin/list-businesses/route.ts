@@ -31,9 +31,15 @@ export async function GET(req: NextRequest) {
   const emailMap: Record<string, string> = {}
   for (const p of profiles ?? []) emailMap[p.id] = p.email
 
-  const businesses = (data ?? []).map((b: { owner_user_id: string }) => ({
+  // Locales extra (columna opcional)
+  const { data: extras } = await admin.from('businesses').select('id, extra_locales')
+  const extraMap: Record<string, number> = {}
+  for (const e of extras ?? []) extraMap[e.id as string] = (e.extra_locales as number | null) ?? 0
+
+  const businesses = (data ?? []).map((b: { id: string; owner_user_id: string }) => ({
     ...b,
     owner_email: emailMap[b.owner_user_id] ?? null,
+    extra_locales: extraMap[b.id] ?? 0,
   }))
 
   return NextResponse.json({ businesses })

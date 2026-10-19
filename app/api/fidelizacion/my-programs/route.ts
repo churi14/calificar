@@ -85,9 +85,17 @@ export async function GET(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // Locales extra de cada negocio (columna opcional: si la migración no se corrió, se ignora)
+  const extraById = new Map<string, number>()
+  {
+    const { data: extras } = await serviceClient.from('businesses').select('id, extra_locales').in('id', bizIds)
+    for (const e of extras ?? []) extraById.set(e.id as string, (e.extra_locales as number | null) ?? 0)
+  }
+
   // Cada programa indica el rol de quien consulta: dueño o equipo (y su sucursal fija, si tiene)
-  const withRole = (programs ?? []).map(p => {
-    const bid = p.business_id as string
+  const withRole = (programs ?? []).map(p0 => {
+    const bid = p0.business_id as string
+    const p = { ...p0, businesses: { ...(p0.businesses as object), extra_locales: extraById.get(bid) ?? 0 } }
     return ownedIds.has(bid)
       ? { ...p, role: 'owner' as const, member_branch_id: null }
       : { ...p, role: 'staff' as const, member_branch_id: memberBranch.get(bid) ?? null }

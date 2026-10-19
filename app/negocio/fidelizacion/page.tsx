@@ -69,6 +69,7 @@ export default function NegocioDashboard() {
   const [userEmail, setUserEmail]                 = useState('')
   const [accessToken, setAccessToken]             = useState('')
   const [businessPlan, setBusinessPlan]           = useState('trial')
+  const [extraLocales, setExtraLocales]           = useState(0)
   const [planExpiresAt, setPlanExpiresAt]         = useState<string | null>(null)
   const [businessCreatedAt, setBusinessCreatedAt] = useState<string | null>(null)
   const [todayBdayCount, setTodayBdayCount]       = useState(0)
@@ -146,6 +147,7 @@ export default function NegocioDashboard() {
           const biz = d.programs[0].businesses
           if (biz?.name) setBusinessName(biz.name)
           if (biz?.plan) setBusinessPlan(biz.plan)
+          setExtraLocales(Number(biz?.extra_locales ?? 0))
           if (biz?.plan_expires_at !== undefined) setPlanExpiresAt(biz.plan_expires_at)
           if (biz?.created_at) {
             setBusinessCreatedAt(biz.created_at)
@@ -345,7 +347,7 @@ export default function NegocioDashboard() {
   const renameLabel = branchOptions.find(b => b.id === renameBranchId)?.label ?? ''
   const planExpired = !!(planExpiresAt && new Date(planExpiresAt) < new Date())
   // Cuántos locales permite el plan (Starter 1, Pro 3, Ultimate sin límite): la principal cuenta como uno
-  const canAddBranch = !planExpired && branches.length + 1 < maxLocales(businessPlan)
+  const canAddBranch = !planExpired && branches.length + 1 < maxLocales(businessPlan, extraLocales)
   const daysLeftDiscount = discountDaysLeft(businessCreatedAt)
   // Estado de la prueba o del plan: activo, gracia de 1 día, o modo básico (tarjeta genérica)
   const planInfo = { plan: businessPlan, plan_expires_at: planExpiresAt, created_at: businessCreatedAt }

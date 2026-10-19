@@ -9,6 +9,7 @@ type BizRow = {
   plan: string
   plan_expires_at: string | null
   billing_notes: string | null
+  extra_locales?: number
   owner_user_id: string
   owner_email: string | null
   created_at: string
@@ -34,6 +35,7 @@ function PlanEditor({ biz, onSaved }: { biz: BizRow; onSaved: (b: BizRow) => voi
   const [plan, setPlan] = useState(biz.plan ?? 'trial')
   const [months, setMonths] = useState('')
   const [notes, setNotes] = useState(biz.billing_notes ?? '')
+  const [extra, setExtra] = useState(String(biz.extra_locales ?? 0))
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
 
@@ -47,12 +49,13 @@ function PlanEditor({ biz, onSaved }: { biz: BizRow; onSaved: (b: BizRow) => voi
         plan,
         months: months ? parseInt(months) : undefined,
         billing_notes: notes,
+        extra_locales: plan === 'pro' ? parseInt(extra) || 0 : 0,
       }),
     })
     const d = await res.json()
     if (res.ok) {
       setMsg('✓ Guardado')
-      onSaved({ ...biz, plan, billing_notes: notes, plan_expires_at: d.plan_expires_at })
+      onSaved({ ...biz, plan, billing_notes: notes, plan_expires_at: d.plan_expires_at, extra_locales: plan === 'pro' ? parseInt(extra) || 0 : 0 })
     } else {
       setMsg(`Error: ${d.error}`)
     }
@@ -81,6 +84,16 @@ function PlanEditor({ biz, onSaved }: { biz: BizRow; onSaved: (b: BizRow) => voi
           <input type="number" min="1" max="24" value={months} onChange={e => setMonths(e.target.value)}
             placeholder="1 = 30 días · vacío = no vence"
             className="flex-1 border border-zinc-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-violet-400" />
+        </div>
+      )}
+
+      {/* Locales extra (solo Pro): se suman a los 3 que incluye el plan */}
+      {plan === 'pro' && (
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-zinc-500 w-24 flex-shrink-0">Locales extra</label>
+          <input type="number" min="0" max="47" value={extra} onChange={e => setExtra(e.target.value)}
+            className="w-24 border border-zinc-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-violet-400" />
+          <span className="text-xs text-zinc-400">se suman a los 3 del plan</span>
         </div>
       )}
 

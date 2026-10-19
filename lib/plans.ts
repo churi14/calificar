@@ -30,10 +30,13 @@ export function discountDaysLeft(businessCreatedAt?: string | null, now: number 
   return Math.max(0, Math.ceil(DISCOUNT_WINDOW_DAYS - elapsedDays))
 }
 
-/** Cantidad máxima de locales (la principal más las sucursales) que permite cada plan */
-export function maxLocales(plan?: string | null): number {
+/**
+ * Cantidad máxima de locales (la principal más las sucursales) que permite cada plan.
+ * En Pro se pueden sumar locales extra de a uno (`extra`, lo carga el administrador de Calificar).
+ */
+export function maxLocales(plan?: string | null, extra: number = 0): number {
   switch ((plan ?? '').toLowerCase()) {
-    case 'pro': return 3
+    case 'pro': return 3 + Math.max(0, Math.min(47, Math.floor(extra) || 0))
     case 'ultimate':
     case 'gifted': return 51   // "ilimitados", con un tope técnico de 50 sucursales
     default: return 1          // Starter y prueba: un solo local

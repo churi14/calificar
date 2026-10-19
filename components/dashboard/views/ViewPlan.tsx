@@ -232,6 +232,25 @@ export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'tria
         </div>
       </div>
 
+      {/* Locales extra: solo en Pro */}
+      {plan === 'pro' && (
+        <div className="bg-white dark:bg-gray-900 border border-zinc-100 dark:border-gray-800 rounded-2xl p-5 mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-gray-500 mb-3">¿TENÉS MÁS DE 3 LOCALES?</p>
+          <p className="text-sm text-zinc-600 dark:text-gray-400 mb-3">
+            Con Pro podés sumar locales extra de a uno, sin pasar a Ultimate. Todos usan la misma tarjeta y vos ves los números de cada uno.
+          </p>
+          <a
+            href="https://wa.me/5491123867934?text=Hola!%20Tengo%20el%20plan%20Pro%20y%20quiero%20sumar%20locales%20extra."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white"
+            style={{ background: '#7C3AED' }}
+          >
+            Pedir locales extra
+          </a>
+        </div>
+      )}
+
       {/* Dudas */}
       <div className="bg-white dark:bg-gray-900 border border-zinc-100 dark:border-gray-800 rounded-2xl p-5">
         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-gray-500 mb-3">¿TENÉS DUDAS?</p>

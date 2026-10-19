@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Solo admins pueden cambiar planes' }, { status: 403 })
   }
 
-  const { business_id, plan, months, billing_notes } = await req.json()
+  const { business_id, plan, months, billing_notes, extra_locales } = await req.json()
 
   if (!business_id || !plan) {
     return NextResponse.json({ error: 'business_id y plan son requeridos' }, { status: 400 })
@@ -54,12 +54,24 @@ export async function PUT(req: NextRequest) {
   const updateData: Record<string, unknown> = { plan, plan_expires_at }
   if (billing_notes !== undefined) updateData.billing_notes = billing_notes
 
-  const { error } = await admin
+  // Locales extra del plan Pro (0 a 47)
+  const extra = extra_locales === undefined ? undefined : Math.max(0, Math.min(47, Math.floor(Number(extra_locales)) || 0))
+  if (extra !== undefined) updateData.extra_locales = extra
+
+  let { error } = await admin
     .from('businesses')
     .update(updateData)
     .eq('id', business_id)
 
+  // Si todavía no se corrió la migración extra_locales.sql, se guarda el resto igual
+  let extraSaved = extra !== undefined
+  if (error && /extra_locales/.test(error.message)) {
+    extraSaved = false
+    delete updateData.extra_locales
+    ;({ error } = await admin.from('businesses').update(updateData).eq('id', business_id))
+  }
+
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ ok: true, plan, plan_expires_at })
+  return NextResponse.json({ ok: true, plan, plan_expires_at, extra_locales: extra, extra_saved: extraSaved })
 }

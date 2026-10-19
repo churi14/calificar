@@ -67,7 +67,15 @@ export async function POST(req: NextRequest) {
     .single()
   const bizRaw = program?.businesses as { plan?: string | null; plan_expires_at?: string | null } | { plan?: string | null; plan_expires_at?: string | null }[] | null | undefined
   const biz = Array.isArray(bizRaw) ? bizRaw[0] : bizRaw
-  const maxLoc = maxLocales(biz?.plan)
+  // Locales extra del plan Pro (columna opcional: si la migración no se corrió, cuenta 0)
+  const { data: extraRow } = await supabase
+    .from('loyalty_programs')
+    .select('businesses(extra_locales)')
+    .eq('id', program_id)
+    .single()
+  const extraRaw = extraRow?.businesses as { extra_locales?: number | null } | { extra_locales?: number | null }[] | null | undefined
+  const extra = (Array.isArray(extraRaw) ? extraRaw[0] : extraRaw)?.extra_locales ?? 0
+  const maxLoc = maxLocales(biz?.plan, extra)
   const expired = biz?.plan_expires_at ? new Date(biz.plan_expires_at) < new Date() : false
   if (maxLoc <= 1 || expired) {
     return NextResponse.json({ error: 'Agregar sucursales requiere un plan Pro o Ultimate vigente', upgrade_required: true }, { status: 403 })
@@ -86,7 +94,7 @@ export async function POST(req: NextRequest) {
   if ((existing?.length ?? 0) + 1 >= maxLoc) {
     return NextResponse.json({
       error: maxLoc <= 3
-        ? `Tu plan incluye hasta ${maxLoc} locales. Para sumar más, pasá al plan Ultimate.`
+        ? `Tu plan incluye hasta ${maxLoc} locales. Para sumar más, pedí un local extra por WhatsApp o pasá al plan Ultimate.`
         : 'Llegaste al máximo de sucursales.',
       upgrade_required: maxLoc <= 3,
     }, { status: 403 })
