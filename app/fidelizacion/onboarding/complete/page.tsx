@@ -113,7 +113,7 @@ function CompleteContent() {
         fetch('/api/fidelizacion/onboarding/track', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: sid, step: 12, step_name: 'registro', event: 'registered', data: { business_name: config.businessName } }),
+          body: JSON.stringify({ session_id: sid, step: 11, step_name: 'registro', event: 'registered', data: { business_name: config.businessName } }),
         }).catch(() => {})
 
         // Guardar datos del negocio para que el dashboard los muestre inmediatamente
@@ -143,7 +143,7 @@ function CompleteContent() {
   return (
     <main
       className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
-      style={{ background: '#F5F0E8' }}
+      style={{ background: 'linear-gradient(180deg, #F3EEFF 0%, #FFFFFF 100%)' }}
     >
       {status === 'loading' && (
         <>
@@ -193,7 +193,7 @@ function CompleteContent() {
 export default function CompletePage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center" style={{ background: '#F5F0E8' }}>
+      <main className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #F3EEFF 0%, #FFFFFF 100%)' }}>
         <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
       </main>
     }>
