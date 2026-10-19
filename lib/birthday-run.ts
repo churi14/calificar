@@ -4,7 +4,7 @@
  * Todo en hora de Argentina.
  */
 import { createClient } from '@supabase/supabase-js'
-import { canUse } from '@/lib/plan-features'
+import { programCan } from '@/lib/program-plan'
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,18 +19,10 @@ function generateCode(name: string): string {
   return `CUMPLE-${prefix}-${rand}`
 }
 
-/** Plan del negocio dueño del programa ('trial' si no se encuentra) */
-export async function programPlan(programId: string): Promise<string> {
-  const { data } = await admin.from('loyalty_programs').select('businesses(plan)').eq('id', programId).single()
-  const raw = data?.businesses as { plan?: string | null } | { plan?: string | null }[] | null | undefined
-  const biz = Array.isArray(raw) ? raw[0] : raw
-  return biz?.plan ?? 'trial'
-}
-
 export async function runBirthdayCampaign(programId: string): Promise<{ generated: number; message?: string }> {
   const { data: cfg } = await admin.from('birthday_campaigns').select('*').eq('program_id', programId).single()
   if (!cfg?.enabled) return { generated: 0, message: 'Campaña desactivada' }
-  if (!canUse(await programPlan(programId), 'birthday')) {
+  if (!(await programCan(programId, 'birthday'))) {
     return { generated: 0, message: 'El plan actual no incluye campañas de cumpleaños' }
   }
 

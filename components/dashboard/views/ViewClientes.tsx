@@ -11,6 +11,8 @@ interface ViewClientesProps {
   loading: boolean
   manualStamp: (id: string, name: string) => void
   accessToken: string
+  /** Exportar la lista de clientes es del plan Pro en adelante */
+  canExport?: boolean
   onClientDeleted: (cardId: string) => void
 }
 
@@ -21,6 +23,7 @@ export default function ViewClientes({
   loading,
   manualStamp,
   accessToken,
+  canExport = true,
   onClientDeleted,
 }: ViewClientesProps) {
   const [search,        setSearch]        = useState('')
@@ -98,10 +101,12 @@ export default function ViewClientes({
         <div className="flex items-center gap-2">
           {cards.length > 0 && (
             <button
-              onClick={exportClients}
-              className="flex items-center gap-2 text-sm font-semibold border border-zinc-200 dark:border-gray-700 text-zinc-700 dark:text-gray-200 px-4 py-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-gray-800 transition-colors"
+              onClick={canExport ? exportClients : undefined}
+              disabled={!canExport}
+              title={canExport ? undefined : 'Exportar clientes es del plan Pro en adelante'}
+              className="flex items-center gap-2 text-sm font-semibold border border-zinc-200 dark:border-gray-700 text-zinc-700 dark:text-gray-200 px-4 py-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              ⬇ Exportar clientes
+              {canExport ? '⬇ Exportar clientes' : '🔒 Exportar (Pro)'}
             </button>
           )}
           <button className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2.5 rounded-xl" style={{ background: '#7C3AED' }}>

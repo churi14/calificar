@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createApplePass } from '@/lib/wallet/apple-wallet'
+import { programCan } from '@/lib/program-plan'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -56,6 +57,10 @@ export async function GET(req: NextRequest) {
 
   if (!program) {
     return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
+  }
+
+  if (!(await programCan(program.id, 'wallet'))) {
+    return NextResponse.json({ error: 'Apple Wallet no está disponible en el plan de este negocio' }, { status: 403 })
   }
 
   try {

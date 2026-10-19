@@ -4,6 +4,7 @@
  * POST /api/fidelizacion/spin-wheel                         — guardar settings (dueño)
  */
 
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
@@ -45,15 +46,19 @@ export async function GET(req: NextRequest) {
     prizes: DEFAULT_PRIZES,
   }
 
+  // La ruleta es del plan Ultimate: sin el plan, el cliente no la ve
+  const wheelAllowed = await programCan(program_id, 'wheel')
+
   // Versión pública: no exponer el coupon_prefix
   if (!isOwner) {
-    const { prizes, announced_at: _an, ...rest } = settings as typeof settings & { announced_at?: string | null }
+    const { prizes, announced_at: _an, ...restRaw } = settings as typeof settings & { announced_at?: string | null }
+    const rest = { ...restRaw, enabled: !!restRaw.enabled && wheelAllowed }
     const publicPrizes = (prizes as typeof DEFAULT_PRIZES).map(({ coupon_prefix: _cp, ...p }) => p)
 
     // Con card_id: ¿esa tarjeta todavía puede girar en este período?
     const card_id = req.nextUrl.searchParams.get('card_id')
     let spinInfo: { can_spin: boolean; next_spin_at: string | null } | null = null
-    if (card_id && settings.enabled) {
+    if (card_id && rest.enabled) {
       const frequency: SpinFrequency = settings.frequency ?? 'daily'
       const { data: recent } = await supabase
         .from('spin_wheel_history')
@@ -82,6 +87,10 @@ export async function POST(req: NextRequest) {
 
   const owner = await verifyProgramOwner(req, program_id)
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  if (enabled && !(await programCan(program_id, 'wheel'))) {
+    return NextResponse.json(planRequiredBody('Ultimate'), { status: 403 })
+  }
 
   if (!Array.isArray(prizes) || prizes.length < 2) {
     return NextResponse.json({ error: 'Necesitás al menos 2 premios' }, { status: 400 })

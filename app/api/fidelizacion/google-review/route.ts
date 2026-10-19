@@ -2,6 +2,7 @@
  * GET  /api/fidelizacion/google-review?program_id=xxx  → leer config
  * POST /api/fidelizacion/google-review                 → guardar config
  */
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
@@ -39,6 +40,10 @@ export async function POST(req: NextRequest) {
 
   const owner = await verifyProgramOwner(req, program_id)
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  if (enabled && !(await programCan(program_id, 'reviews'))) {
+    return NextResponse.json(planRequiredBody('Pro'), { status: 403 })
+  }
 
   const { error } = await admin.from('google_review_settings').upsert({
     program_id,

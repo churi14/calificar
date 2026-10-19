@@ -9,6 +9,7 @@
  * Body: { card_id, program_id, registered_by? }
  */
 
+import { programCan } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
 
     // Chequear hitos intermedios (milestones)
     // Formato: [{ at: 3, label: "20% OFF", coupon_prefix: "DESC20" }, ...]
-    const milestones: { at: number; label: string; coupon_prefix?: string }[] = program.milestones ?? []
+    const milestones: { at: number; label: string; coupon_prefix?: string }[] = (await programCan(program_id, 'milestones')) ? (program.milestones ?? []) : []
     const hitMilestone = !goalReached ? milestones.find(m => m.at === newStamps) ?? null : null
 
     // Reset de stamps: SOLO al llegar a la meta final. Los milestones no resetean.
@@ -163,7 +164,7 @@ export async function POST(req: NextRequest) {
             .select('enabled, google_maps_url, push_title, push_body')
             .eq('program_id', program_id)
             .single()
-          if (gr?.enabled && gr?.google_maps_url) {
+          if (gr?.enabled && gr?.google_maps_url && (await programCan(program_id, 'reviews'))) {
             await fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://calificar.com.ar'}/api/fidelizacion/push/send`, {
               method: 'POST',
               headers: {

@@ -1,5 +1,6 @@
 'use client'
 
+import { canUse } from '@/lib/plan-features'
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -32,6 +33,7 @@ type CardData = {
     stamp_icon_no_bg: boolean | null
     milestones: Milestone[] | null
     calificar_branding?: boolean
+    referral_enabled?: boolean
     businesses: { name: string; whatsapp_number?: string | null; plan?: string | null }
   }
 }
@@ -268,6 +270,8 @@ function TarjetaContent() {
   // Ícono de sello: stamp_icon_url (Pro+) > logo_url (Pro+) > null (básico)
   const bizPlan = (program.businesses as { plan?: string | null } | null)?.plan ?? 'trial'
   const isProPlus = ['pro', 'ultimate', 'gifted'].includes(bizPlan.toLowerCase())
+  // Los avisos al celular son del plan Pro en adelante
+  const pushAllowed = canUse(bizPlan, 'push')
   const stampIcon = program.stamp_icon_url ?? (isProPlus ? program.logo_url : null)
   const cardBgImage = program.card_background_url
   const pageBgColor = program.page_bg_color ?? '#09090b'
@@ -564,7 +568,7 @@ function TarjetaContent() {
           )
         ) : (
           <>
-            {'Notification' in (typeof window !== 'undefined' ? window : {}) && notifState !== 'granted' && (
+            {pushAllowed && 'Notification' in (typeof window !== 'undefined' ? window : {}) && notifState !== 'granted' && (
               <button onClick={activarNotificaciones} disabled={notifState === 'loading' || notifState === 'denied'}
                 className={`flex items-center justify-center gap-2 font-semibold px-6 py-4 rounded-full text-sm transition-colors ${
                   notifState === 'denied' ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-white/15 text-white hover:bg-white/20 border border-white/20'
@@ -574,7 +578,7 @@ function TarjetaContent() {
                   : <>🔔 Activar notificaciones de promos</>}
               </button>
             )}
-            {notifState === 'granted' && (
+            {pushAllowed && notifState === 'granted' && (
               <p className="text-center text-sm font-semibold" style={{ color: `${textColor}cc` }}>✓ Notificaciones activadas</p>
             )}
           </>
@@ -602,7 +606,7 @@ function TarjetaContent() {
         </div>
 
         {/* Referir amigos */}
-        {card.ref_code && (() => {
+        {card.ref_code && program.referral_enabled && (() => {
           const refUrl = `https://calificar.com.ar/ref/${card.ref_code}`
           return (
             <div className={`rounded-3xl p-5 ${darkBg ? 'bg-white/10 border border-white/10' : 'bg-black/5 border border-black/10'}`}>

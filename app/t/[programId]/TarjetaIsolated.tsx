@@ -5,6 +5,7 @@
  * Se usa desde /t/[programId] para aislar el scope de la PWA por negocio.
  */
 
+import { canUse } from '@/lib/plan-features'
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { QRCanvas } from '../../fidelizacion/tarjeta/QRCanvas'
@@ -35,6 +36,7 @@ type CardData = {
     page_bg_color: string | null
     stamp_icon_no_bg: boolean | null
     calificar_branding?: boolean
+    referral_enabled?: boolean
     businesses: { name: string; whatsapp_number?: string | null; plan?: string | null }
   }
 }
@@ -451,6 +453,8 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
   const selloItems = Array.from({ length: goal }, (_, i) => i < stamps)
   const bizPlan = (program.businesses as { plan?: string | null } | null)?.plan ?? 'trial'
   const isProPlus = ['pro', 'ultimate', 'gifted'].includes(bizPlan.toLowerCase())
+  // Los avisos al celular son del plan Pro en adelante
+  const pushAllowed = canUse(bizPlan, 'push')
   const stampIcon = program.stamp_icon_url ?? (isProPlus ? program.logo_url : null)
   const cardBgImage = program.card_background_url
   const pageBgColor = program.page_bg_color ?? '#09090b'
@@ -645,7 +649,7 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
         {/* Notificaciones — Android y otros (iOS lo maneja IOSPWAPrompt) */}
         {!isIOS && (
           <>
-            {'Notification' in (typeof window !== 'undefined' ? window : {}) && notifState !== 'granted' && (
+            {pushAllowed && 'Notification' in (typeof window !== 'undefined' ? window : {}) && notifState !== 'granted' && (
               <button onClick={activarNotificaciones} disabled={notifState === 'loading' || notifState === 'denied'}
                 className={`flex items-center justify-center gap-2 font-semibold px-6 py-4 rounded-full text-sm transition-colors ${notifState === 'denied' ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-white/15 text-white hover:bg-white/20 border border-white/20'}`}>
                 {notifState === 'loading' ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/>Activando...</>
@@ -653,7 +657,7 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
                   : <>🔔 Activar notificaciones de promos</>}
               </button>
             )}
-            {notifState === 'granted' && (
+            {pushAllowed && notifState === 'granted' && (
               <p className="text-center text-sm font-semibold" style={{ color: `${textColor}cc` }}>✓ Notificaciones activadas</p>
             )}
           </>
@@ -786,7 +790,7 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
         )}
 
         {/* Referir amigos */}
-        {card.ref_code && (() => {
+        {card.ref_code && program.referral_enabled && (() => {
           const refUrl = `https://calificar.com.ar/ref/${card.ref_code}`
           return (
             <div className="bg-white/10 border border-white/10 rounded-3xl p-5">

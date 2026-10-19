@@ -21,6 +21,7 @@ import ViewTarjeta          from '@/components/dashboard/views/ViewTarjeta'
 import ViewClientes         from '@/components/dashboard/views/ViewClientes'
 import ViewCupones          from '@/components/dashboard/views/ViewCupones'
 import ViewPush             from '@/components/dashboard/views/ViewPush'
+import PlanLock             from '@/components/dashboard/ui/PlanLock'
 import ViewProximidad       from '@/components/dashboard/views/ViewProximidad'
 import ViewCumple           from '@/components/dashboard/views/ViewCumpleanos'
 import ViewReactivacion     from '@/components/dashboard/views/ViewReactivacion'
@@ -528,12 +529,18 @@ export default function NegocioDashboard() {
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
             loading={loading} manualStamp={(id: string, name: string) => setStampModal({ cardId: id, name })}
             accessToken={accessToken}
+            canExport={canUse(businessPlan, 'export')}
             onClientDeleted={(cardId: string) => setCards(prev => prev.filter(c => c.id !== cardId))} />
         )}
         {activeNav === 'cupones' && (
           <ViewCupones selectedProgram={selectedProgram} accessToken={accessToken} />
         )}
-        {activeNav === 'push' && (
+        {activeNav === 'push' && !canUse(businessPlan, 'push') && (
+          <PlanLock title="Avisos push" minPlan="Pro" onSeePlans={() => setActiveNav('plan')}>
+            Mandá promos y novedades al celular de tus clientes, a todos o a una sola persona. Está incluido desde el plan Pro.
+          </PlanLock>
+        )}
+        {activeNav === 'push' && canUse(businessPlan, 'push') && (
           <ViewPush notifMsg={notifMsg} setNotifMsg={setNotifMsg}
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
             notifError={notifError} notifSentCount={notifSentCount} notifRecipients={notifRecipients}
@@ -542,7 +549,7 @@ export default function NegocioDashboard() {
             cards={cards} selectedProgram={selectedProgram} accessToken={accessToken} />
         )}
         {activeNav === 'proximidad' && (
-          <ViewProximidad selectedProgram={selectedProgram} isPro={true}
+          <ViewProximidad selectedProgram={selectedProgram} isPro={canUse(businessPlan, 'proximity')}
             notifMsg={notifMsg} setNotifMsg={setNotifMsg}
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
             accessToken={accessToken} />
@@ -551,19 +558,19 @@ export default function NegocioDashboard() {
           <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={canUse(businessPlan, 'birthday')} accessToken={accessToken} />
         )}
         {activeNav === 'reactivacion' && (
-          <ViewReactivacion selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
+          <ViewReactivacion selectedProgram={selectedProgram} isPro={canUse(businessPlan, 'reactivation')} smartAllowed={canUse(businessPlan, 'reactivation_smart')} accessToken={accessToken} />
         )}
         {activeNav === 'insights' && (
-          <ViewInsights selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
+          <ViewInsights selectedProgram={selectedProgram} isPro={canUse(businessPlan, 'insights')} accessToken={accessToken} />
         )}
         {activeNav === 'reseñas' && (
-          <ViewReseñas selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
+          <ViewReseñas selectedProgram={selectedProgram} isPro={canUse(businessPlan, 'reviews')} accessToken={accessToken} />
         )}
         {activeNav === 'referencias' && (
-          <ViewReferencias selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
+          <ViewReferencias selectedProgram={selectedProgram} isPro={canUse(businessPlan, 'referrals')} accessToken={accessToken} />
         )}
         {activeNav === 'ruleta' && (
-          <ViewRuleta selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />
+          <ViewRuleta selectedProgram={selectedProgram} isPro={canUse(businessPlan, 'wheel')} accessToken={accessToken} />
         )}
         {activeNav === 'metricas' && (
           <ViewMetricasSucursal accessToken={accessToken} />

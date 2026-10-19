@@ -3,6 +3,7 @@
  * Métricas avanzadas: tendencia, funnel, distribución de sellos, top clientes.
  */
 
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
@@ -20,6 +21,9 @@ export async function GET(req: NextRequest) {
 
   const owner = await verifyProgramOwner(req, program_id)
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  if (!(await programCan(program_id, 'insights'))) {
+    return NextResponse.json(planRequiredBody('Ultimate'), { status: 403 })
+  }
 
   const { data: program } = await supabase
     .from('loyalty_programs')

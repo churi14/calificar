@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getWalletLink } from '@/lib/wallet/google-wallet'
 import { planState, GENERIC_CARD_DESIGN } from '@/lib/plan-status'
+import { canUse } from '@/lib/plan-features'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,9 +21,13 @@ export async function GET(req: NextRequest) {
 
   if (error || !card) return NextResponse.json({ error: 'Tarjeta no encontrada' }, { status: 404 })
 
-  // Generar wallet link si el dispositivo es Android y tiene wallet_object_id
+  const bizRaw0 = card.loyalty_programs?.businesses
+  const biz0 = (Array.isArray(bizRaw0) ? bizRaw0[0] : bizRaw0) as { plan?: string | null } | null
+  const plan0 = biz0?.plan
+
+  // Generar wallet link si el dispositivo es Android y tiene wallet_object_id (Wallet: Pro en adelante)
   let wallet_link: string | null = null
-  if (card.wallet_object_id && card.loyalty_programs?.id) {
+  if (card.wallet_object_id && card.loyalty_programs?.id && canUse(plan0, 'wallet')) {
     try {
       wallet_link = getWalletLink(card.wallet_object_id, card.loyalty_programs.id, {
         customerName: card.name ?? card.phone,
@@ -33,6 +38,21 @@ export async function GET(req: NextRequest) {
     } catch {
       // Si falla la firma, no bloqueamos la respuesta
     }
+  }
+
+  // Referidos: se muestra el link para compartir solo si el negocio lo tiene activado y su plan lo incluye
+  if (card.loyalty_programs?.id) {
+    const { data: ref } = await supabase.from('referral_settings').select('enabled').eq('program_id', card.loyalty_programs.id).maybeSingle()
+    card.loyalty_programs = { ...card.loyalty_programs, referral_enabled: !!ref?.enabled && canUse(plan0, 'referrals') }
+  }
+
+  // Los premios en el camino son del plan Pro en adelante
+  if (card.loyalty_programs && !canUse(plan0, 'milestones')) {
+    card.loyalty_programs = { ...card.loyalty_programs, milestones: [] }
+  }
+  // La marca Calificar aparece en todas las tarjetas menos en Ultimate
+  if (card.loyalty_programs && !canUse(plan0, 'no_branding')) {
+    card.loyalty_programs = { ...card.loyalty_programs, calificar_branding: true }
   }
 
   // Sin plan vigente (pasada la gracia): tarjeta genérica de Calificar, conservando el nombre del negocio.

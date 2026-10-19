@@ -3,6 +3,7 @@
  * POST /api/fidelizacion/referral                 — guarda config de referidos
  */
 
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
     .eq('program_id', program_id)
     .maybeSingle()
 
-  return NextResponse.json({ settings: data ?? { enabled: false, referrer_stamps: 2, referred_stamps: 1 } })
+  return NextResponse.json({ settings: data ?? { enabled: false, referrer_stamps: 1, referred_stamps: 1 } })
 }
 
 export async function POST(req: NextRequest) {
@@ -37,12 +38,16 @@ export async function POST(req: NextRequest) {
   const owner = await verifyProgramOwner(req, program_id)
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
+  if (enabled && !(await programCan(program_id, 'referrals'))) {
+    return NextResponse.json(planRequiredBody('Pro'), { status: 403 })
+  }
+
   const { error } = await supabase
     .from('referral_settings')
     .upsert({
       program_id,
       enabled: !!enabled,
-      referrer_stamps: referrer_stamps ?? 2,
+      referrer_stamps: referrer_stamps ?? 1,
       referred_stamps: referred_stamps ?? 1,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'program_id' })

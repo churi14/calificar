@@ -4,6 +4,7 @@
  * Busca o crea la tarjeta por teléfono y aplica el sello.
  * Anti-abuso: máximo 1 sello por tarjeta cada 4 horas.
  */
+import { programCan } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
@@ -156,7 +157,7 @@ export async function POST(req: NextRequest) {
 
     const newStamps = card.stamps + 1
     const goalReached = newStamps >= program.stamps_goal
-    const milestones: { at: number; label: string; coupon_prefix?: string }[] = program.milestones ?? []
+    const milestones: { at: number; label: string; coupon_prefix?: string }[] = (await programCan(program.id as string, 'milestones')) ? (program.milestones ?? []) : []
     const hitMilestone = !goalReached ? milestones.find(m => m.at === newStamps) ?? null : null
     const finalStamps = goalReached ? 0 : newStamps
 

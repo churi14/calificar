@@ -3,6 +3,7 @@
  * Envía una notificación push a todos los clientes de un programa.
  * Body: { program_id, title, body, url? }
  */
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import webpush from 'web-push'
@@ -34,6 +35,11 @@ export async function POST(req: NextRequest) {
   if (!isCron) {
     const owner = await verifyProgramOwner(req, program_id)
     if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
+  // Los avisos al celular son del plan Pro en adelante (la prueba gratuita los incluye)
+  if (!(await programCan(program_id, 'push'))) {
+    return NextResponse.json(planRequiredBody('Pro'), { status: 403 })
   }
 
   // Obtener logo del negocio (para el ícono de la notificación)

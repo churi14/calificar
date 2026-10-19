@@ -14,6 +14,7 @@
  * GET con ?smart_preview=1&factor=2 devuelve cuántos clientes están pasados hoy.
  */
 
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
@@ -112,6 +113,11 @@ export async function POST(req: NextRequest) {
   const owner = await verifyProgramOwner(req, program_id)
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
+  if (enabled && !(await programCan(program_id, 'reactivation'))) {
+    return NextResponse.json(planRequiredBody('Pro'), { status: 403 })
+  }
+  const smartAllowed = await programCan(program_id, 'reactivation_smart')
+
   const hour = Number.isInteger(send_hour) && send_hour >= 0 && send_hour <= 23 ? send_hour : 10
 
   const row = {
@@ -127,7 +133,7 @@ export async function POST(req: NextRequest) {
   }
 
   const smart = {
-    smart_enabled: smart_enabled ?? false,
+    smart_enabled: smartAllowed ? (smart_enabled ?? false) : false,
     smart_factor: clampFactor(smart_factor),
     smart_message: typeof smart_message === 'string' && smart_message.trim() ? smart_message.trim() : null,
   }
@@ -172,6 +178,9 @@ export async function PUT(req: NextRequest) {
     .single()
 
   if (!cfg?.enabled) return NextResponse.json({ ok: true, sent: 0, message: 'Campaña desactivada' })
+  if (!(await programCan(program_id, 'reactivation'))) {
+    return NextResponse.json({ ok: true, sent: 0, message: 'El plan actual no incluye la reactivación' })
+  }
 
   const triggers: number[] = []
   if (cfg.trigger_5_enabled)  triggers.push(5)
@@ -240,7 +249,7 @@ export async function PUT(req: NextRequest) {
   }
 
   // ── Aviso según la frecuencia de cada cliente ──
-  if (cfg.smart_enabled) {
+  if (cfg.smart_enabled && (await programCan(program_id, 'reactivation_smart'))) {
     const { data: overdue, error: overdueErr } = await admin.rpc('cards_overdue', {
       p_program_id: program_id,
       p_factor: clampFactor(cfg.smart_factor),

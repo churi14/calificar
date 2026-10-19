@@ -12,7 +12,7 @@ interface ViewReferenciasProps {
 
 // ── componente ────────────────────────────────────────────────────────────────
 export default function ViewReferencias({ selectedProgram, isPro, accessToken }: ViewReferenciasProps) {
-  const [cfg, setCfg] = useState({ enabled: false, referrer_stamps: 2, referred_stamps: 1 })
+  const [cfg, setCfg] = useState({ enabled: false, referrer_stamps: 1, referred_stamps: 1 })
   const [saving, setSaving] = useState(false)
   const [saved,  setSaved]  = useState(false)
   const [saveError, setSaveError] = useState('')

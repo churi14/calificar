@@ -3,6 +3,7 @@
  * Activity Insights: horarios pico, días de semana, clientes nuevos,
  * tasa de retorno, tasa de conversión al premio.
  */
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
@@ -21,6 +22,9 @@ export async function GET(req: NextRequest) {
 
   const owner = await verifyProgramOwner(req, program_id)
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  if (!(await programCan(program_id, 'insights'))) {
+    return NextResponse.json(planRequiredBody('Ultimate'), { status: 403 })
+  }
 
   const since = new Date(Date.now() - days * 86400000).toISOString()
   const since90 = new Date(Date.now() - 90 * 86400000).toISOString()

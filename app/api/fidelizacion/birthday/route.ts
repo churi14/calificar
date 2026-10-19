@@ -7,8 +7,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
-import { canUse } from '@/lib/plan-features'
-import { programPlan, runBirthdayCampaign } from '@/lib/birthday-run'
+import { programCan } from '@/lib/program-plan'
+import { runBirthdayCampaign } from '@/lib/birthday-run'
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
   if (!(await verifyProgramOwner(req, program_id))) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  if (enabled && !canUse(await programPlan(program_id), 'birthday')) {
+  if (enabled && !(await programCan(program_id, 'birthday'))) {
     return NextResponse.json({ error: 'Las campañas de cumpleaños son del plan Pro en adelante', upgrade_required: true }, { status: 403 })
   }
 

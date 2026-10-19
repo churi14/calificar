@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getWalletLink } from '@/lib/wallet/google-wallet'
+import { programCan } from '@/lib/program-plan'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,6 +27,10 @@ export async function GET(req: NextRequest) {
 
   if (!card || !card.wallet_object_id) {
     return NextResponse.json({ error: 'Tarjeta no encontrada o sin objeto Wallet' }, { status: 404 })
+  }
+
+  if (!(await programCan(card.loyalty_programs.id, 'wallet'))) {
+    return NextResponse.json({ error: 'Google Wallet no está disponible en el plan de este negocio' }, { status: 403 })
   }
 
   const walletLink = getWalletLink(card.wallet_object_id, card.loyalty_programs.id)

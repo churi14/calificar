@@ -56,13 +56,15 @@ const TRIGGERS: {
 interface ViewReactivacionProps {
   selectedProgram: string | null
   isPro: boolean
+  /** El aviso según la frecuencia de cada cliente es del plan Ultimate */
+  smartAllowed?: boolean
   accessToken?: string
 }
 
 const hourLabel = (h: number) => `${String(h).padStart(2, '0')}:00`
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewReactivacion({ selectedProgram, isPro, accessToken }: ViewReactivacionProps) {
+export default function ViewReactivacion({ selectedProgram, isPro, smartAllowed = true, accessToken }: ViewReactivacionProps) {
   const [cfg,        setCfg]        = useState<ReactivationCfg>(REACTIVATION_DEFAULTS)
   const [saving,     setSaving]     = useState(false)
   const [saved,      setSaved]      = useState(false)
@@ -220,17 +222,17 @@ export default function ViewReactivacion({ selectedProgram, isPro, accessToken }
       <div className="bg-white dark:bg-gray-900 border border-violet-200 dark:border-violet-500/30 rounded-2xl p-5 mb-4">
         <div className="flex items-start justify-between gap-4 mb-3">
           <div>
-            <p className="text-sm font-bold text-zinc-900 dark:text-white">⏱️ Aviso según la frecuencia de cada cliente</p>
+            <p className="text-sm font-bold text-zinc-900 dark:text-white">⏱️ Aviso según la frecuencia de cada cliente{!smartAllowed && <span className="ml-2 text-[10px] bg-violet-100 text-violet-700 font-bold px-2 py-0.5 rounded-full align-middle">Ultimate</span>}</p>
             <p className="text-xs text-zinc-500 dark:text-gray-400 mt-1 leading-snug">
               Mira cada cuánto suele venir cada cliente y le avisa cuando tarda más de lo normal. Quien viene cada 15 días y lleva un mes sin aparecer recibe el aviso; quien viene una vez al mes, no.
             </p>
           </div>
           <button
-            onClick={() => isPro && setCfg(c => ({ ...c, smart_enabled: !c.smart_enabled }))}
-            disabled={!isPro}
-            className={`relative w-10 h-5 rounded-full shrink-0 transition-colors ${cfg.smart_enabled && isPro ? 'bg-violet-500' : 'bg-zinc-200 dark:bg-gray-700'} disabled:opacity-50`}
+            onClick={() => isPro && smartAllowed && setCfg(c => ({ ...c, smart_enabled: !c.smart_enabled }))}
+            disabled={!isPro || !smartAllowed}
+            className={`relative w-10 h-5 rounded-full shrink-0 transition-colors ${cfg.smart_enabled && isPro && smartAllowed ? 'bg-violet-500' : 'bg-zinc-200 dark:bg-gray-700'} disabled:opacity-50`}
           >
-            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${cfg.smart_enabled && isPro ? 'left-5' : 'left-0.5'}`} />
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${cfg.smart_enabled && isPro && smartAllowed ? 'left-5' : 'left-0.5'}`} />
           </button>
         </div>
 

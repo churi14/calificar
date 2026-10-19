@@ -1,5 +1,6 @@
 'use client'
 
+import { canUse } from '@/lib/plan-features'
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { QRCanvas } from '@/app/fidelizacion/tarjeta/QRCanvas'
@@ -687,10 +688,10 @@ export default function ViewTarjeta({
 
           {/* Google Wallet */}
           <div className="p-5 border-b border-zinc-50 dark:border-gray-800">
-            {plan === 'trial' ? (
+            {!canUse(plan, 'wallet') ? (
               <div className="rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-800 px-4 py-3">
-                <p className="text-xs font-semibold text-amber-700 dark:text-amber-200 mb-0.5">🔒 Google Wallet no disponible en prueba gratuita</p>
-                <p className="text-xs text-amber-600 dark:text-amber-400">Activá un plan pago para que tus clientes puedan guardar la tarjeta en Google Wallet.</p>
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-200 mb-0.5">🔒 Google Wallet es del plan Pro en adelante</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">Con Pro tus clientes pueden guardar la tarjeta en la billetera de su celular. Mientras tanto la usan desde el link o la app instalada.</p>
               </div>
             ) : (
               <>

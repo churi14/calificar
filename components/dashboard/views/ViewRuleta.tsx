@@ -223,8 +223,8 @@ export default function ViewRuleta({ selectedProgram, isPro, accessToken }: View
         <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 mb-5 flex items-start gap-3">
           <span className="text-xl">🔒</span>
           <div>
-            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Función Pro</p>
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">La ruleta está disponible a partir del plan Pro.</p>
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Función Ultimate</p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">La ruleta de la suerte está incluida en el plan Ultimate.</p>
           </div>
         </div>
       )}

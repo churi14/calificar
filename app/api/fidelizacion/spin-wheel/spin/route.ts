@@ -4,6 +4,7 @@
  * Body: { card_id, program_id }
  */
 
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { spinPeriodStart, spinNextAt, type SpinFrequency } from '@/lib/spin-period'
@@ -46,6 +47,10 @@ export async function POST(req: NextRequest) {
     const { card_id, program_id } = await req.json()
     if (!card_id || !program_id) {
       return NextResponse.json({ error: 'card_id y program_id requeridos' }, { status: 400 })
+    }
+    // La ruleta es del plan Ultimate (la prueba gratuita la incluye)
+    if (!(await programCan(program_id, 'wheel'))) {
+      return NextResponse.json(planRequiredBody('Ultimate'), { status: 403 })
     }
 
     // Verificar que la tarjeta existe y pertenece al programa
@@ -113,7 +118,7 @@ export async function POST(req: NextRequest) {
         .single()
 
       const goal: number = program?.stamps_goal ?? Infinity
-      const milestones: { at: number; label: string; coupon_prefix?: string }[] = program?.milestones ?? []
+      const milestones: { at: number; label: string; coupon_prefix?: string }[] = (await programCan(program_id, 'milestones')) ? (program?.milestones ?? []) : []
 
       // Sumar de a un sello, igual que el escaneo normal: dispara hitos y reinicia al llegar a la meta
       let stamps = card.stamps

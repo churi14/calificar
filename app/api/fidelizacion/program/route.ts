@@ -1,3 +1,4 @@
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
@@ -34,6 +35,9 @@ export async function PATCH(req: NextRequest) {
   if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   // Actualizar milestones si se enviaron
+  if (milestones !== undefined && Array.isArray(milestones) && milestones.length > 0 && !(await programCan(program_id, 'milestones'))) {
+    return NextResponse.json(planRequiredBody('Pro'), { status: 403 })
+  }
   if (milestones !== undefined) {
     const { error } = await supabase
       .from('loyalty_programs')

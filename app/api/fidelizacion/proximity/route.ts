@@ -5,6 +5,7 @@
  * Body: { program_id, lat, lng, location_label, message, enabled }
  */
 
+import { programCan, planRequiredBody } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createOrUpdateLoyaltyClass } from '@/lib/wallet/google-wallet'
@@ -26,6 +27,9 @@ export async function POST(req: NextRequest) {
     const owner = await verifyProgramOwner(req, program_id)
     if (!owner) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+    if (enabled && !(await programCan(program_id, 'proximity'))) {
+      return NextResponse.json(planRequiredBody('Pro'), { status: 403 })
     }
 
     // 1. Leer el programa completo para tener todos los datos que necesita el Wallet

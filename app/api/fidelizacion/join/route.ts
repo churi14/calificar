@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createLoyaltyObject, getWalletLink } from '@/lib/wallet/google-wallet'
+import { canUse } from '@/lib/plan-features'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
     // Verificar que el programa existe
     const { data: program, error: progErr } = await supabase
       .from('loyalty_programs')
-      .select('*, businesses(name, whatsapp_number)')
+      .select('*, businesses(name, whatsapp_number, plan)')
       .eq('id', program_id)
       .eq('active', true)
       .single()
@@ -43,6 +44,10 @@ export async function POST(req: NextRequest) {
     if (progErr || !program) {
       return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
     }
+
+    // Google Wallet es del plan Pro en adelante
+    const walletPlan = (Array.isArray(program.businesses) ? program.businesses[0] : program.businesses) as { plan?: string | null } | null
+    const walletAllowed = canUse(walletPlan?.plan, 'wallet')
 
     const cleanPhone = phone.replace(/\D/g, '')
     const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
@@ -131,7 +136,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         card: { ...(activeCard as Record<string, unknown>), wallet_object_id: objectId },
-        wallet_link: walletLink,
+        wallet_link: walletAllowed ? walletLink : null,
         already_member: existing.active ? true : false,
       })
     }
@@ -218,7 +223,7 @@ export async function POST(req: NextRequest) {
             .eq('program_id', program_id)
             .single()
 
-          if (!refSettings?.enabled) return
+          if (!refSettings?.enabled || !canUse(walletPlan?.plan, 'referrals')) return
 
           // Buscar la tarjeta del referente
           const { data: referrerCard } = await supabase
@@ -279,7 +284,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       card: { ...card, wallet_object_id: objectId },
-      wallet_link: walletLink,
+      wallet_link: walletAllowed ? walletLink : null,
       already_member: false,
     })
   } catch (err) {
