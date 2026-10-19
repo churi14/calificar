@@ -138,7 +138,7 @@ export default function FidelizacionLanding() {
               Ingresar
             </Link>
             <Link
-              href="#precios"
+              href="/fidelizacion/onboarding"
               className="bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
             >
               Empezar gratis
@@ -168,7 +168,7 @@ export default function FidelizacionLanding() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
-                href="#precios"
+                href="/fidelizacion/onboarding"
                 className="bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-2xl text-base transition-colors text-center shadow-lg shadow-violet-300/60"
               >
                 Empezar 14 días gratis

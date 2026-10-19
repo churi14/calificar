@@ -981,6 +981,9 @@ export default function OnboardingPage() {
                 {[
                   { icon: '🏪', label: 'NEGOCIO',          value: businessName },
                   { icon: '🎯', label: 'TIPO DE PROGRAMA',  value: `Sellos · se llena con ${stampsGoal}` },
+                  ...(hasMilestone && milestoneReward.trim()
+                    ? [{ icon: '🏅', label: 'PREMIO EN EL CAMINO', value: `${milestoneReward.trim()} a los ${milestoneAt} sellos` }]
+                    : []),
                   { icon: '🎁', label: 'QUÉ RECIBEN',       value: reward },
                   { icon: '🚀', label: 'PLAN',              value: 'Gratis por 14 días, sin tarjeta' },
                 ].map(row => (
