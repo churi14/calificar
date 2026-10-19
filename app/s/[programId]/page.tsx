@@ -31,6 +31,8 @@ function SelfStampContent() {
   const { programId } = useParams<{ programId: string }>()
   const searchParams = useSearchParams()
   const stampToken = searchParams.get('t') ?? undefined
+  // Clave del QR del local (?k=)
+  const localKey = searchParams.get('k') ?? undefined
   // Sucursal del QR escaneado (?b=); si no viene, cuenta como Principal
   const branchId = searchParams.get('b') ?? undefined
   const [tab, setTab] = useState<'sello' | 'ver'>('sello')
@@ -66,6 +68,7 @@ function SelfStampContent() {
               name: savedName,
               dni: savedDni || undefined,
               token: stampToken,
+              local_key: localKey,
               branch_id: branchId,
             }),
           })
@@ -101,7 +104,7 @@ function SelfStampContent() {
     const res = await fetch('/api/fidelizacion/self-stamp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ program_id: programId, phone: phone.trim(), name: name.trim(), dni: dni.trim() || undefined, token: stampToken, branch_id: branchId }),
+      body: JSON.stringify({ program_id: programId, phone: phone.trim(), name: name.trim(), dni: dni.trim() || undefined, token: stampToken, local_key: localKey, branch_id: branchId }),
     })
     const data: Result = await res.json()
     // Cliente no encontrado → redirigir al registro

@@ -43,8 +43,12 @@ export default function ViewSelloRapido({
   const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
   const isProPlus = true
   const [secureLink, setSecureLink] = useState<string | null>(null)
+  const [localKey, setLocalKey] = useState<string | null>(null)
   const [secondsLeft, setSecondsLeft] = useState<number>(0)
   const [loadingToken, setLoadingToken] = useState(false)
+
+  // QR del local: lleva una clave para seguir dando sellos aunque se exija el link de un solo uso en los pedidos
+  const qrLink = localKey ? `${selfLink}${selfLink.includes('?') ? '&' : '?'}k=${localKey}` : selfLink
 
   // ── Pedidos por WhatsApp / delivery ──
   const [waPhone, setWaPhone] = useState('')
@@ -135,6 +139,7 @@ export default function ViewSelloRapido({
           setSecureLink(data.link)
           setSecondsLeft(data.seconds_remaining)
         }
+        if (data.local_key) setLocalKey(data.local_key)
       } catch { /* silent */ }
       setLoadingToken(false)
     }
@@ -307,7 +312,7 @@ export default function ViewSelloRapido({
               <div>
                 <p className="text-sm font-bold text-zinc-900">Dar sellos solo con este link</p>
                 <p className="text-xs text-zinc-500 mt-0.5 leading-snug">
-                  Recomendado si no tenés local abierto al público. El QR y el link fijo dejan de dar sellos: solo vale el link que vos mandás en cada pedido, así nadie se sella sin haber comprado.
+                  Para pedidos por WhatsApp o delivery: el link fijo (el que se podría compartir o adivinar) deja de dar sellos, y solo vale el link que vos mandás en cada pedido. El QR del local sigue funcionando siempre, para quien retira.
                 </p>
               </div>
               <button
@@ -330,7 +335,7 @@ export default function ViewSelloRapido({
         <h3 className="font-bold text-zinc-900 mb-1">Link fijo de auto-sello</h3>
         <p className="text-sm text-zinc-500 mb-4">
           Un link que sirve siempre, pensado para el local. El cliente lo abre, pone su teléfono y se sella solo.
-          {linkOnly ? ' Ahora está desactivado: solo se dan sellos con el link de un solo uso.' : ' Para pedidos por WhatsApp o delivery usá mejor el link de un solo uso de arriba.'}
+          {linkOnly ? ' Ahora está desactivado: para pedidos solo vale el link de un solo uso (el QR del local sigue funcionando).' : ' Para pedidos por WhatsApp o delivery usá mejor el link de un solo uso de arriba.'}
         </p>
         <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3">
           <span className="text-sm text-zinc-600 font-mono truncate flex-1">{selfLink}</span>
@@ -352,26 +357,26 @@ export default function ViewSelloRapido({
         <h3 className="font-bold text-zinc-900 mb-1">QR para sumar sellos en el local</h3>
         <p className="text-sm text-zinc-500 mb-4">
           Imprimilo y ponélo en el mostrador. El cliente lo escanea, pone su teléfono y se sella
-          solo. No tiene vencimiento — es solo para uso en el local.{linkOnly ? ' (Desactivado mientras el modo delivery esté prendido.)' : ''}
+          solo. No tiene vencimiento y funciona siempre, también para quien retira su pedido en el local. Si ya imprimiste un QR anterior, reimprimí este: el viejo deja de dar sellos cuando prendés el interruptor de arriba.
         </p>
         <div className="flex flex-col items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-2xl p-5">
           <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(selfLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
             alt="QR sellos"
             width={160}
             height={160}
             className="rounded-xl"
           />
-          <p className="text-xs text-zinc-400 text-center">Solo para uso en el local · Sin vencimiento</p>
+          <p className="text-xs text-zinc-400 text-center">Para el local y los retiros · Sin vencimiento</p>
           <div className="flex gap-2 w-full">
             <button
-              onClick={() => window.open(selfLink, '_blank')}
+              onClick={() => window.open(qrLink, '_blank')}
               className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
             >
               Ampliar QR
             </button>
             <button
-              onClick={() => navigator.clipboard.writeText(selfLink)}
+              onClick={() => navigator.clipboard.writeText(qrLink)}
               className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
             >
               Copiar link

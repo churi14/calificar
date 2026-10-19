@@ -10,6 +10,7 @@ import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
 import { resolveBranchId } from '@/lib/branches'
 import { couponPrefix } from '@/lib/coupons'
+import { timingSafeEqual } from 'crypto'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -50,7 +51,7 @@ async function consumeStampToken(program_id: string, token: string): Promise<boo
 
 export async function POST(req: NextRequest) {
   try {
-    const { program_id, phone, name, dni, token, branch_id: rawBranchId } = await req.json()
+    const { program_id, phone, name, dni, token, branch_id: rawBranchId, local_key } = await req.json()
 
     if (!program_id || !phone) {
       return NextResponse.json({ error: 'program_id y phone son requeridos' }, { status: 400 })
@@ -132,8 +133,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Link de un solo uso: si viene, tiene que ser válido; si el negocio lo exige, es obligatorio para todos
-    if (token || tokenRequired) {
+    // El QR del local lleva una clave (?k=): para quien retira o está en el local siempre vale,
+    // incluso cuando el negocio exige el link de un solo uso para el resto de los sellos.
+    const localKeyOk = !!local_key && !!program.stamp_secret
+      && String(local_key).length === String(program.stamp_secret).length
+      && timingSafeEqual(Buffer.from(String(local_key)), Buffer.from(String(program.stamp_secret)))
+
+    // Link de un solo uso: si viene, tiene que ser válido; si el negocio lo exige, es obligatorio (salvo el QR del local)
+    if (token || (tokenRequired && !localKeyOk)) {
       const valid = token ? await consumeStampToken(program_id, token) : false
       if (!valid) {
         return NextResponse.json({

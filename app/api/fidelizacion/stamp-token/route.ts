@@ -45,12 +45,14 @@ export async function GET(req: NextRequest) {
 
   if (!program) return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
 
-  // Activar stamp_secret si el programa no lo tiene (marca que usa tokens)
-  if (!program.stamp_secret) {
-    const secret = randomBytes(16).toString('hex')
+  // Clave del QR del local: se crea la primera vez. El QR fijo la lleva en el link (?k=) y sigue
+  // dando sellos aunque el negocio exija el link de un solo uso para los pedidos por WhatsApp.
+  let localKey: string = program.stamp_secret as string
+  if (!localKey) {
+    localKey = randomBytes(16).toString('hex')
     await supabase
       .from('loyalty_programs')
-      .update({ stamp_secret: secret })
+      .update({ stamp_secret: localKey })
       .eq('id', program_id)
   }
 
@@ -105,6 +107,7 @@ export async function GET(req: NextRequest) {
     token,
     seconds_remaining: secondsRemaining,
     window_seconds: TOKEN_WINDOW_SECONDS,
+    local_key: localKey,
     link: `${appUrl}/s/${program_id}?t=${token}${branchParam}`,
   })
 }
