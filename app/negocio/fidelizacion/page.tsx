@@ -535,6 +535,11 @@ export default function NegocioDashboard() {
             loading={loading} manualStamp={(id: string, name: string) => setStampModal({ cardId: id, name })}
             accessToken={accessToken}
             canExport={canUse(businessPlan, 'export')}
+            onClientAdded={async () => {
+              const r = await fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`, { headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {} })
+              const d = await r.json()
+              setCards(d.cards ?? [])
+            }}
             onClientDeleted={(cardId: string) => setCards(prev => prev.filter(c => c.id !== cardId))} />
         )}
         {activeNav === 'cupones' && (

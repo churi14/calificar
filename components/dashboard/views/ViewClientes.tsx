@@ -13,6 +13,8 @@ interface ViewClientesProps {
   accessToken: string
   /** Exportar la lista de clientes es del plan Pro en adelante */
   canExport?: boolean
+  /** Se llama después de sumar a un cliente a mano, para recargar la lista */
+  onClientAdded?: () => void
   onClientDeleted: (cardId: string) => void
 }
 
@@ -24,12 +26,38 @@ export default function ViewClientes({
   manualStamp,
   accessToken,
   canExport = true,
+  onClientAdded,
   onClientDeleted,
 }: ViewClientesProps) {
   const [search,        setSearch]        = useState('')
   const [filter,        setFilter]        = useState<'todos' | 'activo' | 'inactivo'>('todos')
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
   const [deleting,      setDeleting]      = useState(false)
+
+  // ── Agregar un cliente a mano ──
+  const [addOpen,   setAddOpen]   = useState(false)
+  const [addName,   setAddName]   = useState('')
+  const [addPhone,  setAddPhone]  = useState('')
+  const [addSaving, setAddSaving] = useState(false)
+  const [addError,  setAddError]  = useState('')
+
+  async function addClient() {
+    setAddSaving(true); setAddError('')
+    try {
+      const r = await fetch('/api/fidelizacion/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ program_id: selectedProgram, name: addName.trim(), phone: addPhone.trim() }),
+      })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) { setAddError(d.error ?? 'No se pudo agregar al cliente'); setAddSaving(false); return }
+      setAddOpen(false); setAddName(''); setAddPhone('')
+      onClientAdded?.()
+    } catch {
+      setAddError('Error de red. Revisá tu conexión.')
+    }
+    setAddSaving(false)
+  }
 
   const color   = program?.color_primary ?? '#7C3AED'
   const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
@@ -109,11 +137,35 @@ export default function ViewClientes({
               {canExport ? '⬇ Exportar clientes' : '🔒 Exportar (Pro)'}
             </button>
           )}
-          <button className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2.5 rounded-xl" style={{ background: '#7C3AED' }}>
+          <button onClick={() => { setAddError(''); setAddOpen(true) }} className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2.5 rounded-xl" style={{ background: '#7C3AED' }}>
             + Agregar un cliente
           </button>
         </div>
       </div>
+
+      {addOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(24,24,27,0.55)' }} onClick={() => !addSaving && setAddOpen(false)}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <p className="text-lg font-extrabold text-zinc-900 dark:text-white mb-1">Agregar un cliente</p>
+            <p className="text-xs text-zinc-500 dark:text-gray-400 mb-4">Se anota con su nombre y teléfono, igual que si escaneara el QR del local.</p>
+            <input
+              value={addName} onChange={e => setAddName(e.target.value)} placeholder="Nombre" aria-label="Nombre"
+              className="w-full border-2 border-zinc-200 dark:border-gray-700 focus:border-violet-500 rounded-xl px-4 py-2.5 text-sm bg-white dark:bg-gray-800 text-zinc-900 dark:text-white focus:outline-none mb-2"
+            />
+            <input
+              value={addPhone} onChange={e => setAddPhone(e.target.value)} placeholder="Teléfono (ej: 1155667788)" aria-label="Teléfono" inputMode="tel"
+              className="w-full border-2 border-zinc-200 dark:border-gray-700 focus:border-violet-500 rounded-xl px-4 py-2.5 text-sm bg-white dark:bg-gray-800 text-zinc-900 dark:text-white focus:outline-none"
+            />
+            {addError && <p className="text-sm text-red-500 mt-2">{addError}</p>}
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => setAddOpen(false)} disabled={addSaving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-zinc-200 dark:border-gray-700 text-zinc-600 dark:text-gray-300">Cancelar</button>
+              <button onClick={addClient} disabled={addSaving || !addName.trim() || addPhone.replace(/\D/g, '').length < 6} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ background: '#7C3AED' }}>
+                {addSaving ? 'Agregando...' : 'Agregar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {cards.length === 0 ? (
         /* Empty state */
