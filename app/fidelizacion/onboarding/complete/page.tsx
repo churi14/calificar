@@ -113,7 +113,7 @@ function CompleteContent() {
         fetch('/api/fidelizacion/onboarding/track', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: sid, step: 11, step_name: 'registro', event: 'registered', data: { business_name: config.businessName } }),
+          body: JSON.stringify({ session_id: sid, step: 12, step_name: 'registro', event: 'registered', data: { business_name: config.businessName } }),
         }).catch(() => {})
 
         // Guardar datos del negocio para que el dashboard los muestre inmediatamente

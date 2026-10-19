@@ -175,7 +175,7 @@ export default function OnboardingPage() {
 
             {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
 
-            <button onClick={() => { if (name.trim().length >= 2) { setError(''); setStep(2) } else setError('Ingresá al menos 2 caracteres') }}
+            <button onClick={() => { if (name.trim().length >= 2 && slug.length >= 2) { setError(''); setStep(2) } else setError('Ingresá un nombre con al menos 2 letras o números') }}
               className="w-full mt-8 bg-[#0F172A] text-white font-bold py-4 rounded-full text-base hover:bg-[#1E293B] transition-colors">
               Continuar →
             </button>

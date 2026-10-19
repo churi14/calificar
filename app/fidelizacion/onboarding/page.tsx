@@ -51,7 +51,15 @@ const BUSINESS_TYPES = [
   { id: 'mascotas',    label: 'Mascotas',            icon: '🐾' },
 ]
 
-const QUICK_REWARDS = ['Bebida gratis', 'Postre gratis', 'Descuento 20%', '2×1', 'Regalo sorpresa']
+const FOOD_REWARDS = ['Bebida gratis', 'Postre gratis', 'Descuento 20%', '2×1', 'Regalo sorpresa']
+const BEAUTY_REWARDS = ['Servicio gratis', 'Brushing de regalo', 'Descuento 20%', 'Producto de regalo', 'Regalo sorpresa']
+const GENERIC_REWARDS = ['Producto gratis', 'Descuento 20%', '2×1', 'Regalo sorpresa']
+
+function quickRewardsFor(type: string): string[] {
+  if (type === 'salon' || type === 'belleza') return BEAUTY_REWARDS
+  if (type === 'cafeteria' || type === 'restaurante' || type === 'panaderia' || type === 'bar') return FOOD_REWARDS
+  return GENERIC_REWARDS
+}
 
 const COLORS = [
   { id: 'violet', label: 'Violeta', hex: '#7C3AED' },
@@ -341,7 +349,7 @@ export default function OnboardingPage() {
               <h1 className="text-3xl font-extrabold text-zinc-900 leading-tight mb-1">¿Qué tipo de negocio tenés?</h1>
               <p className="text-zinc-500 text-sm mb-4">Armamos tu tarjeta a medida — sellos, recompensas y todo.</p>
               <div className="flex gap-3 text-xs text-zinc-500 mb-5">
-                <span className="flex items-center gap-1"><span style={{ color: '#7C3AED' }}>✓</span> 7 días gratis</span>
+                <span className="flex items-center gap-1"><span style={{ color: '#7C3AED' }}>✓</span> 14 días gratis</span>
                 <span className="flex items-center gap-1"><span style={{ color: '#7C3AED' }}>✓</span> sin tarjeta</span>
               </div>
               <div className="grid grid-cols-3 gap-2 mb-3">
@@ -640,7 +648,7 @@ export default function OnboardingPage() {
 
               <p className="text-xs text-zinc-400 mb-3 font-medium">O elegí uno rápido:</p>
               <div className="flex flex-wrap gap-2 mb-6">
-                {QUICK_REWARDS.map(r => (
+                {quickRewardsFor(businessType).map(r => (
                   <button
                     key={r}
                     onClick={() => setReward(r)}
@@ -656,7 +664,7 @@ export default function OnboardingPage() {
 
               <button
                 disabled={!reward.trim()}
-                onClick={() => { track(6, 'step_complete', { reward, is_quick_pick: QUICK_REWARDS.includes(reward) }); next() }}
+                onClick={() => { track(6, 'step_complete', { reward, is_quick_pick: quickRewardsFor(businessType).includes(reward) }); next() }}
                 className="w-full text-white font-bold py-4 rounded-2xl text-sm transition-all disabled:opacity-40 active:scale-[0.98]"
                 style={{ background: primaryColor }}
               >Se ve bien →</button>
@@ -749,6 +757,10 @@ export default function OnboardingPage() {
               <>
                 <Chip meta={meta} />
                 <h1 className="text-3xl font-extrabold text-zinc-900 leading-tight mb-2">¿Cuánto te va a dejar?</h1>
+                <button
+                  onClick={() => { track(8, 'skip', { preset: preset.id }); next() }}
+                  className="text-xs font-semibold text-zinc-400 hover:text-zinc-600 underline underline-offset-2 mb-3"
+                >Saltar este paso</button>
                 <p className="text-zinc-500 text-sm mb-5">
                   Cambiá los números por los de tu negocio y mirá en pesos cuánto ganás con tu tarjeta de {stampsGoal} sellos.
                 </p>
@@ -970,7 +982,7 @@ export default function OnboardingPage() {
                   { icon: '🏪', label: 'NEGOCIO',          value: businessName },
                   { icon: '🎯', label: 'TIPO DE PROGRAMA',  value: `Sellos · se llena con ${stampsGoal}` },
                   { icon: '🎁', label: 'QUÉ RECIBEN',       value: reward },
-                  { icon: '🚀', label: 'PLAN',              value: 'Gratis por 7 días, sin tarjeta' },
+                  { icon: '🚀', label: 'PLAN',              value: 'Gratis por 14 días, sin tarjeta' },
                 ].map(row => (
                   <div key={row.label} className="flex items-start gap-3 py-2.5 border-b border-zinc-100 last:border-0">
                     <span className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-sm flex-shrink-0">{row.icon}</span>
@@ -980,7 +992,7 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                 ))}
-                <p className="text-xs text-zinc-400 mt-2 text-center">✏️ No te preocupés, todo se puede cambiar después.</p>
+                <p className="text-xs text-zinc-400 mt-2 text-center">✏️ No te preocupes, todo se puede cambiar después.</p>
               </div>
 
               {!emailSent ? (
