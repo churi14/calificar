@@ -13,7 +13,7 @@ import { programCan } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
-import { verifyProgramOwner } from '@/lib/business-auth'
+import { verifyProgramMember } from '@/lib/business-auth'
 import { resolveBranchId } from '@/lib/branches'
 import { couponPrefix } from '@/lib/coupons'
 
@@ -32,13 +32,14 @@ export async function POST(req: NextRequest) {
 
     // Auth obligatoria para TODOS los paths — NFC y manual por igual.
     // Un cliente nunca puede llamar a este endpoint directamente.
-    const owner = await verifyProgramOwner(req, program_id)
-    if (!owner) {
+    const access = await verifyProgramMember(req, program_id)
+    if (!access) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
     // Sucursal donde se da el sello (null = Principal). Inválida o inexistente se cuenta como Principal.
-    const branchId = await resolveBranchId(supabase, program_id, rawBranchId)
+    // Un miembro del equipo limitado a una sucursal siempre da sellos en esa sucursal
+    const branchId = await resolveBranchId(supabase, program_id, access.branchId ?? rawBranchId)
     const branchField = branchId ? { branch_id: branchId } : {}
 
     // Traer tarjeta y programa juntos

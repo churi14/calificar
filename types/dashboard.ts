@@ -21,6 +21,10 @@ export type Program = {
   app_icon_url: string | null
   stamp_icon_url: string | null
   milestones?: Milestone[]
+  /** Rol de quien mira el panel: dueño o miembro del equipo (solo sellos, clientes y cupones) */
+  role?: 'owner' | 'staff'
+  /** Si el miembro del equipo está limitado a una sucursal */
+  member_branch_id?: string | null
   /** Nombre que el dueño le puso a la sucursal principal (vacío = "Principal") */
   main_branch_name?: string | null
   businesses?: { name: string; id: string }
@@ -102,6 +106,7 @@ export type ViewType =
   | 'dominio'
   | 'imprimir'
   | 'calculadora'
+  | 'equipo'
   | 'perfil'
   | 'plan'
   | 'ayuda'

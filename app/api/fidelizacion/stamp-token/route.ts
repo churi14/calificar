@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { randomBytes } from 'crypto'
-import { verifyProgramOwner } from '@/lib/business-auth'
+import { verifyProgramMember } from '@/lib/business-auth'
 import { resolveBranchId } from '@/lib/branches'
 
 const supabase = createClient(
@@ -31,9 +31,9 @@ export async function GET(req: NextRequest) {
   const program_id = req.nextUrl.searchParams.get('program_id')
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
 
-  // Verificar que el usuario es dueño del programa
-  const owner = await verifyProgramOwner(req, program_id)
-  if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  // Dueño del programa o miembro de su equipo
+  const access = await verifyProgramMember(req, program_id)
+  if (!access) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   // Verificar plan del negocio
   const { data: program } = await supabase

@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyProgramOwner } from '@/lib/business-auth'
+import { verifyProgramMember } from '@/lib/business-auth'
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
   const program_id = req.nextUrl.searchParams.get('program_id')
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
 
-  const owner = await verifyProgramOwner(req, program_id)
-  if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  const access = await verifyProgramMember(req, program_id)
+  if (!access) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const since30 = new Date(Date.now() - 30 * 86400000).toISOString()
 
@@ -64,7 +64,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     push_logs: pushRes.data ?? [],
     push_subscribers,
-    sales_by_day: salesByDay,
-    total_sales: Object.values(salesByDay).reduce((a, b) => a + b, 0),
+    // El equipo no ve los montos de venta
+    sales_by_day: access.role === 'owner' ? salesByDay : {},
+    total_sales: access.role === 'owner' ? Object.values(salesByDay).reduce((a, b) => a + b, 0) : 0,
   })
 }

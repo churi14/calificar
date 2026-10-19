@@ -22,6 +22,7 @@ import ViewClientes         from '@/components/dashboard/views/ViewClientes'
 import ViewCupones          from '@/components/dashboard/views/ViewCupones'
 import ViewPush             from '@/components/dashboard/views/ViewPush'
 import PlanLock             from '@/components/dashboard/ui/PlanLock'
+import ViewEquipo           from '@/components/dashboard/views/ViewEquipo'
 import ViewProximidad       from '@/components/dashboard/views/ViewProximidad'
 import ViewCumple           from '@/components/dashboard/views/ViewCumpleanos'
 import ViewReactivacion     from '@/components/dashboard/views/ViewReactivacion'
@@ -404,6 +405,7 @@ export default function NegocioDashboard() {
         canAddBranch={canAddBranch}
         onAddBranch={() => setShowNewBranch(true)}
         onRenameBranch={id => setRenameBranchId(id)}
+        role={program?.role ?? 'owner'}
       />
 
       {/* Cambiar nombre de una sucursal */}
@@ -577,6 +579,15 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'dominio' && (
           <ViewDominioPersonalizado selectedProgram={selectedProgram} accessToken={accessToken} />
+        )}
+        {activeNav === 'equipo' && !canUse(businessPlan, 'team') && (
+          <PlanLock title="Equipo" minPlan="Ultimate" onSeePlans={() => setActiveNav('plan')}>
+            Sumá a tus empleados para que cada uno entre con su propio email y dé sellos sin usar tu contraseña. Está incluido en el plan Ultimate.
+          </PlanLock>
+        )}
+        {activeNav === 'equipo' && canUse(businessPlan, 'team') && (
+          <ViewEquipo selectedProgram={selectedProgram} accessToken={accessToken}
+            branches={branches.map(b => ({ id: b.id, label: b.name }))} />
         )}
         {activeNav === 'calculadora' && (
           <ViewRoi program={program} />

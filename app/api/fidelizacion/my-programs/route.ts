@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { canUse } from '@/lib/plan-features'
 
 const serviceClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,11 +41,34 @@ export async function GET(req: NextRequest) {
     .eq('active', true)
 
   if (bizError) return NextResponse.json({ error: bizError.message }, { status: 500 })
-  if (!businesses || businesses.length === 0) {
-    return NextResponse.json({ programs: [], email: user.email })
+
+  // Negocios donde la persona es parte del equipo (plan con equipo); se identifica por su email confirmado
+  const ownedIds = new Set((businesses ?? []).map(b => b.id as string))
+  const memberBranch = new Map<string, string | null>()
+  const email = (user.email ?? '').toLowerCase()
+  if (email && user.email_confirmed_at) {
+    const { data: rows } = await serviceClient
+      .from('business_members')
+      .select('business_id, branch_id')
+      .eq('email', email)
+    const memberIds = (rows ?? []).map(r => r.business_id as string).filter(id => !ownedIds.has(id))
+    if (memberIds.length > 0) {
+      const { data: plans } = await serviceClient
+        .from('businesses')
+        .select('id, plan')
+        .in('id', memberIds)
+        .eq('active', true)
+      const allowed = new Set((plans ?? []).filter(b => canUse(b.plan as string | null, 'team')).map(b => b.id as string))
+      for (const r of rows ?? []) {
+        if (allowed.has(r.business_id as string)) memberBranch.set(r.business_id as string, (r.branch_id as string | null) ?? null)
+      }
+    }
   }
 
-  const bizIds = businesses.map(b => b.id)
+  const bizIds = [...ownedIds, ...memberBranch.keys()]
+  if (bizIds.length === 0) {
+    return NextResponse.json({ programs: [], email: user.email })
+  }
 
   // 3. Traer los programas de esos negocios
   const { data: programs, error } = await serviceClient
@@ -61,5 +85,13 @@ export async function GET(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ programs: programs ?? [], email: user.email })
+  // Cada programa indica el rol de quien consulta: dueño o equipo (y su sucursal fija, si tiene)
+  const withRole = (programs ?? []).map(p => {
+    const bid = p.business_id as string
+    return ownedIds.has(bid)
+      ? { ...p, role: 'owner' as const, member_branch_id: null }
+      : { ...p, role: 'staff' as const, member_branch_id: memberBranch.get(bid) ?? null }
+  })
+
+  return NextResponse.json({ programs: withRole, email: user.email })
 }

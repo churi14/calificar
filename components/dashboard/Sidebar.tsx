@@ -5,7 +5,7 @@ import {
   House, Lightning, IdentificationCard, UsersThree, Tag, Bell, MapPin,
   Cake, ArrowCounterClockwise, ChartBar, Star, ShareNetwork,
   CirclesThree, GitBranch, Globe, Printer, Gear, Question,
-  Rocket, MagnifyingGlass, Calculator, QrCode, Sun, Moon, PencilSimple,
+  Rocket, MagnifyingGlass, Calculator, IdentificationBadge, QrCode, Sun, Moon, PencilSimple,
 } from '@phosphor-icons/react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import type { ViewType } from '@/types/dashboard'
@@ -33,7 +33,12 @@ interface SidebarProps {
   onAddBranch?: () => void
   /** Abre el popup para cambiar el nombre de una sucursal ('main' = la principal) */
   onRenameBranch?: (id: string) => void
+  /** Rol de quien mira el panel: el equipo solo ve sellos, clientes y cupones */
+  role?: 'owner' | 'staff'
 }
+
+/** Lo que ve un miembro del equipo */
+const STAFF_NAV: ViewType[] = ['hoy', 'sello-rapido', 'clientes', 'cupones']
 
 const NAV_ITEMS: { id: ViewType; label: string; Icon: React.ElementType }[] = [
   { id: 'hoy',          label: 'Hoy',                    Icon: House },
@@ -52,6 +57,7 @@ const NAV_ITEMS: { id: ViewType; label: string; Icon: React.ElementType }[] = [
   { id: 'metricas',     label: 'Métricas por sucursal',  Icon: GitBranch },
   { id: 'dominio',      label: 'Dominio personalizado',  Icon: Globe },
   { id: 'calculadora',  label: 'Calculadora de ganancias', Icon: Calculator },
+  { id: 'equipo',       label: 'Equipo',                 Icon: IdentificationBadge },
   { id: 'imprimir',     label: 'Imprimir y compartir',   Icon: Printer },
 ]
 
@@ -73,6 +79,7 @@ export default function Sidebar({
   canAddBranch = false,
   onAddBranch,
   onRenameBranch,
+  role = 'owner',
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const [branchOpen, setBranchOpen] = useState(false)
@@ -185,7 +192,7 @@ export default function Sidebar({
 
         {/* Nav principal */}
         <nav className="flex-1 px-3 space-y-0.5 pb-2">
-          {NAV_ITEMS.map(item => {
+          {NAV_ITEMS.filter(item => role === 'owner' || STAFF_NAV.includes(item.id)).map(item => {
             const isActive = active === item.id
             return (
               <button
@@ -212,8 +219,8 @@ export default function Sidebar({
             )
           })}
 
-          {/* Ajustes (colapsable) */}
-          <div>
+          {/* Ajustes (colapsable): solo para el dueño */}
+          {role === 'owner' && <div>
             <button
               onClick={() => setSettingsOpen(o => !o)}
               className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-zinc-500 hover:bg-zinc-50 hover:text-zinc-800 transition-all"
@@ -241,7 +248,7 @@ export default function Sidebar({
                 ))}
               </div>
             )}
-          </div>
+          </div>}
 
           <button
             onClick={() => navigate('ayuda')}

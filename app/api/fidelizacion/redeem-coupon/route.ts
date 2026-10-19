@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { verifyProgramMember } from '@/lib/business-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -82,21 +83,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // Admins de Calificar pueden canjear cualquier cupón
+    // Admins de Calificar pueden canjear cualquier cupón; también el dueño y su equipo
     if (!authUser.isAdmin) {
-      // Verificar que el usuario sea dueño del programa
-      const { data: program } = await supabase
-        .from('loyalty_programs')
-        .select('businesses!inner(owner_user_id)')
-        .eq('id', tx.program_id)
-        .single()
-
-      if (!program) {
-        return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
-      }
-
-      const biz = program.businesses as unknown as { owner_user_id: string }
-      if (biz.owner_user_id !== authUser.userId) {
+      const access = await verifyProgramMember(req, tx.program_id)
+      if (!access) {
         return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
       }
     }
