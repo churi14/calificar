@@ -5,6 +5,7 @@
  * desde cualquier Server Component al <head>. Inyectamos el manifest directo
  * en el JSX — sin depender de generateMetadata que ignora query params.
  */
+import { planState } from '@/lib/plan-status'
 import { createClient } from '@supabase/supabase-js'
 import type { Metadata, Viewport } from 'next'
 
@@ -23,7 +24,7 @@ export async function generateMetadata({
 
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('name, app_icon_url, logo_url, businesses!inner(name, plan)')
+    .select('name, app_icon_url, logo_url, businesses!inner(name, plan, plan_expires_at, created_at)')
     .eq('id', programId)
     .single()
 
@@ -33,7 +34,7 @@ export async function generateMetadata({
   const plan = (biz?.plan ?? 'trial').toLowerCase()
   const isPro = ['pro', 'ultimate', 'gifted'].includes(plan)
   const businessName = biz?.name ?? program.name
-  const iconUrl = program.app_icon_url || (isPro ? program.logo_url : null)
+  const iconUrl = planState(biz ?? {}) === 'basic' ? null : (program.app_icon_url || (isPro ? program.logo_url : null))
 
   return {
     title: businessName,

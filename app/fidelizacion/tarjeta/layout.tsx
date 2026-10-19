@@ -3,6 +3,7 @@
  * Lee el logo del programa desde la URL y lo inyecta como apple-touch-icon
  * en el <head> antes de que cargue el JS — necesario para que iOS lo lea bien.
  */
+import { planState } from '@/lib/plan-status'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -22,7 +23,7 @@ export async function generateMetadata({
 
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('name, logo_url, app_icon_url, businesses!inner(name, plan)')
+    .select('name, logo_url, app_icon_url, businesses!inner(name, plan, plan_expires_at, created_at)')
     .eq('id', programId)
     .single()
 
@@ -32,7 +33,7 @@ export async function generateMetadata({
   const plan = (biz?.plan ?? 'trial').toLowerCase()
   const isPro = ['pro', 'ultimate', 'gifted'].includes(plan)
 
-  const iconUrl = program.app_icon_url || (isPro ? program.logo_url : null)
+  const iconUrl = planState(biz ?? {}) === 'basic' ? null : (program.app_icon_url || (isPro ? program.logo_url : null))
   const name = biz?.name ?? program.name
 
   return {

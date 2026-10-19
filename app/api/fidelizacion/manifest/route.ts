@@ -6,6 +6,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { planState, GENERIC_CARD_DESIGN } from '@/lib/plan-status'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
 
   const { data: program } = await supabase
     .from('loyalty_programs')
-    .select('id, name, color_primary, logo_url, app_icon_url, businesses!inner(name, plan)')
+    .select('id, name, color_primary, logo_url, app_icon_url, businesses!inner(name, plan, plan_expires_at, created_at)')
     .eq('id', program_id)
     .single()
 
@@ -35,15 +36,16 @@ export async function GET(req: NextRequest) {
 
   // Supabase puede devolver array u objeto según el tipo de relación
   const bizRaw = program.businesses
-  const biz = (Array.isArray(bizRaw) ? bizRaw[0] : bizRaw) as { name: string; plan: string | null } | null
+  const biz = (Array.isArray(bizRaw) ? bizRaw[0] : bizRaw) as { name: string; plan: string | null; plan_expires_at: string | null; created_at: string | null } | null
+  const basic = planState(biz ?? {}) === 'basic'
   const plan = (biz?.plan ?? 'trial').toLowerCase()
   const businessName = biz?.name ?? program.name
-  const color = program.color_primary ?? '#7C3AED'
+  const color = basic ? GENERIC_CARD_DESIGN.color_primary : (program.color_primary ?? '#7C3AED')
 
   // Pro/Ultimate/Gifted → usar app_icon_url si está, sino logo_url como fallback
-  const iconUrl = program.app_icon_url || (
+  const iconUrl = basic ? null : (program.app_icon_url || (
     ['pro', 'ultimate', 'gifted'].includes(plan) ? program.logo_url : null
-  )
+  ))
   const useBusinessLogo = !!iconUrl
 
   // scope: aislado por negocio cuando scope_path='t', genérico sino

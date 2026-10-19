@@ -34,6 +34,7 @@ type CardData = {
     card_background_url: string | null
     page_bg_color: string | null
     stamp_icon_no_bg: boolean | null
+    calificar_branding?: boolean
     businesses: { name: string; whatsapp_number?: string | null; plan?: string | null }
   }
 }
@@ -656,6 +657,12 @@ export default function TarjetaIsolated({ programId, cardId, walletLink }: Props
               <p className="text-center text-sm font-semibold" style={{ color: `${textColor}cc` }}>✓ Notificaciones activadas</p>
             )}
           </>
+        )}
+
+        {program.calificar_branding && (
+          <p className="text-center text-xs font-semibold" style={{ color: `${textColor}99` }}>
+            Tarjeta digital por <a href="https://calificar.com.ar/fidelizacion" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Calificar</a>
+          </p>
         )}
 
         {/* Resumen */}

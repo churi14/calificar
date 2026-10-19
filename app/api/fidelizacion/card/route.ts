@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getWalletLink } from '@/lib/wallet/google-wallet'
+import { planState, GENERIC_CARD_DESIGN } from '@/lib/plan-status'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   const { data: card, error } = await supabase
     .from('loyalty_cards')
-    .select('*, loyalty_programs(id, name, stamps_goal, reward_description, color_primary, card_text_color, logo_url, app_icon_url, stamp_icon_url, card_background_url, page_bg_color, stamp_icon_no_bg, milestones, businesses(name, whatsapp_number, plan))')
+    .select('*, loyalty_programs(id, name, stamps_goal, reward_description, color_primary, card_text_color, logo_url, app_icon_url, stamp_icon_url, card_background_url, page_bg_color, stamp_icon_no_bg, milestones, businesses(name, whatsapp_number, plan, plan_expires_at, created_at))')
     .eq('id', cardId)
     .single()
 
@@ -32,6 +33,14 @@ export async function GET(req: NextRequest) {
     } catch {
       // Si falla la firma, no bloqueamos la respuesta
     }
+  }
+
+  // Sin plan vigente (pasada la gracia): tarjeta genérica de Calificar, conservando el nombre del negocio.
+  // Sigue funcionando igual: sellos, registro y canje de premios.
+  const bizRaw = card.loyalty_programs?.businesses
+  const biz = Array.isArray(bizRaw) ? bizRaw[0] : bizRaw
+  if (card.loyalty_programs && planState(biz ?? {}) === 'basic') {
+    card.loyalty_programs = { ...card.loyalty_programs, ...GENERIC_CARD_DESIGN, calificar_branding: true }
   }
 
   return NextResponse.json({ card, wallet_link })

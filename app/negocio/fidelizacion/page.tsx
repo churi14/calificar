@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { Sun, Moon } from '@phosphor-icons/react'
 import { DISCOUNT_WINDOW_DAYS, discountDaysLeft, maxLocales } from '@/lib/plans'
+import { planState, planDaysLeft } from '@/lib/plan-status'
 
 // ── Componentes de UI ─────────────────────────────────────────────────────────
 import Sidebar        from '@/components/dashboard/Sidebar'
@@ -339,6 +340,11 @@ export default function NegocioDashboard() {
   // Cuántos locales permite el plan (Starter 1, Pro 3, Ultimate sin límite): la principal cuenta como uno
   const canAddBranch = !planExpired && branches.length + 1 < maxLocales(businessPlan)
   const daysLeftDiscount = discountDaysLeft(businessCreatedAt)
+  // Estado de la prueba o del plan: activo, gracia de 1 día, o modo básico (tarjeta genérica)
+  const planInfo = { plan: businessPlan, plan_expires_at: planExpiresAt, created_at: businessCreatedAt }
+  const planStatus = planState(planInfo)
+  const planLeft = planDaysLeft(planInfo)
+  const isTrialPlan = businessPlan === 'trial'
 
   // ── Loading screen ────────────────────────────────────────────────────────
   if (loading && programs.length === 0) {
@@ -429,12 +435,36 @@ export default function NegocioDashboard() {
       {/* Main content */}
       <main className="flex-1 overflow-y-auto pt-14 md:pt-0">
 
-        {/* Banner plan vencido */}
-        {planExpired && (
+        {/* Banner de prueba / plan: por vencer, en gracia o en modo básico */}
+        {planStatus === 'basic' && (
           <div className="flex items-center justify-between gap-4 px-5 py-3 text-sm bg-red-600 text-white">
-            <p className="font-medium">⚠️ Tu plan venció. Algunas funciones están pausadas.</p>
+            <p className="font-medium">
+              ⚠️ {isTrialPlan ? 'Tu prueba terminó' : 'Tu plan venció'}. Tu tarjeta se muestra genérica, con el nombre de tu negocio y la marca Calificar. Elegí un plan para recuperar tu diseño.
+            </p>
             <button onClick={() => setActiveNav('plan')}
               className="flex-shrink-0 text-xs font-bold bg-white text-red-600 px-3 py-1.5 rounded-xl hover:opacity-90">
+              Ver planes →
+            </button>
+          </div>
+        )}
+        {planStatus === 'grace' && (
+          <div className="flex items-center justify-between gap-4 px-5 py-3 text-sm bg-amber-500 text-white">
+            <p className="font-medium">
+              ⏳ {isTrialPlan ? 'Tu prueba terminó' : 'Tu plan venció'}. Si no lo activás hoy, mañana tu tarjeta pasa a modo básico (genérica, con la marca Calificar).
+            </p>
+            <button onClick={() => setActiveNav('plan')}
+              className="flex-shrink-0 text-xs font-bold bg-white text-amber-700 px-3 py-1.5 rounded-xl hover:opacity-90">
+              Ver planes →
+            </button>
+          </div>
+        )}
+        {planStatus === 'active' && planLeft !== null && planLeft <= 3 && (
+          <div className="flex items-center justify-between gap-4 px-5 py-3 text-sm bg-violet-600 text-white">
+            <p className="font-medium">
+              {isTrialPlan ? 'Tu prueba gratuita' : 'Tu plan'} {planLeft <= 1 ? 'vence hoy o mañana' : `vence en ${planLeft} días`}. Activá un plan para no perder el diseño de tu tarjeta.
+            </p>
+            <button onClick={() => setActiveNav('plan')}
+              className="flex-shrink-0 text-xs font-bold bg-white text-violet-700 px-3 py-1.5 rounded-xl hover:opacity-90">
               Ver planes →
             </button>
           </div>
