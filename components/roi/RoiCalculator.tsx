@@ -34,7 +34,7 @@ const ADOPTION_OPTIONS = [
   { value: 70, label: 'La mayoría' },
   { value: 100, label: 'Todos' },
 ]
-const PLAN_LABEL: Record<PaidPlan, string> = { starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate' }
+const PLAN_LABEL: Record<PaidPlan, string> = { beauty: 'Beauty', starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate' }
 
 const fmtNum = (n: number) => (n ? Math.round(n).toLocaleString('es-AR') : '')
 const parseNum = (s: string) => Number(s.replace(/\D/g, '')) || 0
@@ -104,7 +104,9 @@ export default function RoiCalculator({ mode = 'full', initial, cta, stacked = f
   const [rewards, setRewards] = useState<RoiReward[]>(initial?.rewards?.length ? initial.rewards : startPreset.rewards)
   const [lift, setLift] = useState(15)
   const [adoption, setAdoption] = useState(70)
-  const [plan, setPlan] = useState<PaidPlan>('starter')
+  // En el ejemplo de salones se ofrece el plan Beauty (solo existe para ese rubro)
+  const beautyMode = ['peluqueria', 'unas', 'estetica'].includes(initial?.presetId ?? '')
+  const [plan, setPlan] = useState<PaidPlan>(beautyMode ? 'beauty' : 'starter')
 
   const full = mode === 'full'
 
@@ -246,7 +248,7 @@ export default function RoiCalculator({ mode = 'full', initial, cta, stacked = f
             <div>
               <Q>¿Qué plan de Calificar?</Q>
               <Chips
-                options={(Object.keys(PLAN_PRICES_ARS) as PaidPlan[]).map(p => ({ value: p, label: PLAN_LABEL[p], hint: fmtARS(PLAN_PRICES_ARS[p]) }))}
+                options={(Object.keys(PLAN_PRICES_ARS) as PaidPlan[]).filter(p => beautyMode ? p !== 'starter' : p !== 'beauty').map(p => ({ value: p, label: PLAN_LABEL[p], hint: fmtARS(PLAN_PRICES_ARS[p]) }))}
                 value={plan}
                 onChange={setPlan}
               />

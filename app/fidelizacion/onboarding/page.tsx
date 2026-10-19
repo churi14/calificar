@@ -191,6 +191,12 @@ export default function OnboardingPage() {
       if (plan && ['starter', 'pro', 'ultimate'].includes(plan)) {
         localStorage.setItem('cal_chosen_plan', plan)
       }
+      // Desde la página de salones: el rubro ya está elegido, se salta ese paso
+      const tipo = params.get('tipo')
+      if (tipo === 'salon' || tipo === 'belleza') {
+        setBusinessType(tipo)
+        navigate(1)
+      }
     } catch {}
   }, [])
 

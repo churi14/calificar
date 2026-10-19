@@ -1,6 +1,6 @@
 'use client'
 
-import { PLAN_PRICES_ARS, DISCOUNT_WINDOW_DAYS, discountedPrice, fmtARS } from '@/lib/plans'
+import { PLAN_PRICES_ARS, DISCOUNT_WINDOW_DAYS, discountedPrice, fmtARS, isBeautyType } from '@/lib/plans'
 import React, { useState, useEffect } from 'react'
 
 // ── hook de cuenta regresiva ───────────────────────────────────────────────────
@@ -17,6 +17,25 @@ function useCountdown(targetMs: number) {
 }
 
 // ── planes ────────────────────────────────────────────────────────────────────
+const BEAUTY_PLAN = {
+  id: 'beauty',
+  name: 'Beauty',
+  price: fmtARS(PLAN_PRICES_ARS.beauty),
+  period: 'ARS/mes',
+  desc: 'Para salones, peluquerías, uñas y estética.',
+  color: '#7C3AED',
+  badge: null as string | null,
+  features: [
+    'Tarjeta digital con el logo de tu salón',
+    'Cartelito NFC y QR para el mostrador',
+    'Sello rápido, manual o escaneando',
+    'Cupones únicos para los premios',
+    'Cumpleaños automáticos',
+    'Lista de clientas y panel',
+    '1 local',
+  ],
+}
+
 const VIEW_PLANS = [
   {
     id: 'starter',
@@ -76,6 +95,7 @@ const VIEW_PLANS = [
 ]
 
 const DISC_PRICES: Record<string, string> = {
+  beauty:   fmtARS(discountedPrice(PLAN_PRICES_ARS.beauty)),
   starter:  fmtARS(discountedPrice(PLAN_PRICES_ARS.starter)),
   pro:      fmtARS(discountedPrice(PLAN_PRICES_ARS.pro)),
   ultimate: fmtARS(discountedPrice(PLAN_PRICES_ARS.ultimate)),
@@ -87,12 +107,15 @@ interface ViewPlanProps {
   businessCreatedAt?: string | null
   plan?: string
   planExpiresAt?: string | null
+  /** Tipo de negocio: los salones ven el plan Beauty en lugar de Starter */
+  businessType?: string
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'trial', planExpiresAt = null }: ViewPlanProps) {
+export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'trial', planExpiresAt = null, businessType }: ViewPlanProps) {
+  const plansToShow = isBeautyType(businessType) ? [BEAUTY_PLAN, ...VIEW_PLANS.filter(p => p.id !== 'starter')] : VIEW_PLANS
   const planExpired = !!(planExpiresAt && new Date(planExpiresAt) < new Date())
-  const planNames: Record<string, string> = { starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate (regalo)' }
+  const planNames: Record<string, string> = { beauty: 'Beauty', starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate (regalo)' }
   const isPaidPlan = plan in planNames && !planExpired
   const discountDeadlineMs = businessCreatedAt
     ? new Date(businessCreatedAt).getTime() + DISCOUNT_WINDOW_DAYS * 24 * 60 * 60 * 1000
@@ -158,7 +181,7 @@ export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'tria
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {VIEW_PLANS.map(plan => (
+        {plansToShow.map(plan => (
           <div
             key={plan.id}
             className={`bg-white dark:bg-gray-900 border rounded-2xl p-5 flex flex-col relative ${

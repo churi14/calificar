@@ -1,5 +1,6 @@
 'use client'
 
+import { PLAN_PRICES_ARS, discountedPrice, fmtARS } from '@/lib/plans'
 import { canUse } from '@/lib/plan-features'
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -71,7 +72,11 @@ const CARD_TEMPLATES = [
 function PlansModal({ onClose, isDiscountEligible = false }: { onClose: () => void; isDiscountEligible?: boolean }) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [err, setErr] = useState('')
-  const DISC_PRICES: Record<string, string> = { starter: '$7.499', pro: '$14.999', ultimate: '$34.999' }
+  const DISC_PRICES: Record<string, string> = {
+    starter: fmtARS(discountedPrice(PLAN_PRICES_ARS.starter)),
+    pro: fmtARS(discountedPrice(PLAN_PRICES_ARS.pro)),
+    ultimate: fmtARS(discountedPrice(PLAN_PRICES_ARS.ultimate)),
+  }
 
   async function checkout(planId: string) {
     setLoadingPlan(planId)

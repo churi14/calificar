@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
     .from('loyalty_programs')
     .select(`
       *,
-      businesses(name, id, plan, plan_expires_at, created_at),
+      businesses(name, id, type, plan, plan_expires_at, created_at),
       loyalty_cards(count)
     `)
     .in('business_id', bizIds)

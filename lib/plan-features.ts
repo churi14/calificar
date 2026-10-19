@@ -63,15 +63,20 @@ const MIN_TIER: Record<Feature, Tier> = {
 /** Lo que NO tiene la prueba gratuita (el resto sí) */
 const NOT_IN_TRIAL: Feature[] = ['wallet', 'design', 'branch_metrics', 'custom_domain', 'no_branding']
 
-export function planTier(plan?: string | null): Tier | 'trial' {
+export function planTier(plan?: string | null): Tier | 'trial' | 'beauty' {
   const p = (plan ?? 'trial').toLowerCase()
   if (p === 'gifted') return 'ultimate'
+  if (p === 'beauty') return 'beauty'
   if (p === 'starter' || p === 'pro' || p === 'ultimate') return p
   return 'trial'
 }
 
+/** Plan Beauty (salones): lo básico de la tarjeta + cumpleaños automáticos. El resto se pide a medida. */
+const BEAUTY_FEATURES: Feature[] = ['birthday']
+
 export function canUse(plan: string | null | undefined, feature: Feature): boolean {
   const tier = planTier(plan)
+  if (tier === 'beauty') return BEAUTY_FEATURES.includes(feature)
   if (tier === 'trial') return !NOT_IN_TRIAL.includes(feature)
   return RANK[tier] >= RANK[MIN_TIER[feature]]
 }

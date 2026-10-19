@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import PhoneCardPreview from '@/components/landing/PhoneCardPreview'
 import RoiCalculator from '@/components/roi/RoiCalculator'
+import { PLAN_PRICES_ARS, discountedPrice, fmtARS } from '@/lib/plans'
 
 export const metadata: Metadata = {
   title: 'Tarjeta de fidelización para salones de belleza · Calificar',
@@ -55,7 +56,7 @@ const features = [
   {
     icon: '🎂',
     title: 'Regalo de cumpleaños',
-    plan: 'Pro',
+    plan: 'Beauty y Pro',
     desc: 'Un saludo y un regalo automático el día del cumpleaños de cada cliente. Ese día suele ser un turno asegurado.',
   },
   {
@@ -108,7 +109,7 @@ export default function SalonesDeBellezaPage() {
             <a href="#como-funciona" className="hover:text-zinc-900 transition-colors">Cómo funciona</a>
             <a href="#funcionalidades" className="hover:text-zinc-900 transition-colors">Funcionalidades</a>
             <a href="#premios" className="hover:text-zinc-900 transition-colors">Ideas de premios</a>
-            <Link href="/fidelizacion#precios" className="hover:text-zinc-900 transition-colors">Precios</Link>
+            <a href="#precios" className="hover:text-zinc-900 transition-colors">Precios</a>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/negocio/fidelizacion" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors">
@@ -279,6 +280,75 @@ export default function SalonesDeBellezaPage() {
             <p className="text-zinc-600 max-w-xl mx-auto">Armá tu tarjeta con premios en el camino (por ejemplo, uno en el sello 3, otro en el 6 y el final en el 10) y mirá en pesos cuándo recuperás lo que invertís y cuánto ganás.</p>
           </div>
           <RoiCalculator mode="full" initial={{ presetId: 'peluqueria' }} cta={{ href: '/fidelizacion/onboarding', label: 'Armar mi tarjeta · 14 días gratis' }} />
+        </div>
+      </section>
+
+      {/* PRECIOS */}
+      <section id="precios" className="py-24 px-6" style={{ background: '#FAF7FF' }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-violet-600 font-semibold text-sm uppercase tracking-widest mb-3">Precio para salones</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">Un precio pensado para tu salón</h2>
+            <p className="text-zinc-600 max-w-xl mx-auto">Empezás con lo esencial por menos de lo que cuesta un corte, y sumás lo que necesites cuando crezcas.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="relative bg-white rounded-3xl border-2 border-violet-500 p-8 shadow-xl shadow-violet-200/60 flex flex-col">
+              <span className="absolute -top-3 left-8 bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1 rounded-full">Para salones</span>
+              <h3 className="text-2xl font-extrabold mb-1">Beauty</h3>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-4xl font-extrabold">{fmtARS(PLAN_PRICES_ARS.beauty)}</span>
+                <span className="text-sm text-zinc-500">ARS por mes</span>
+              </div>
+              <p className="mt-2 text-sm font-semibold text-violet-700 bg-violet-50 rounded-xl px-3 py-2 inline-block self-start">
+                Primer mes {fmtARS(discountedPrice(PLAN_PRICES_ARS.beauty))}: 50% de descuento si arrancás en tu primera semana
+              </p>
+              <ul className="space-y-2.5 text-sm text-zinc-700 my-6 flex-1">
+                {[
+                  'Tarjeta digital con el logo de tu salón',
+                  'Cartelito NFC y QR para el mostrador',
+                  'Sellos por QR, a mano o escaneando',
+                  'Cupones únicos para los premios',
+                  'Cumpleaños automáticos para tus clientas',
+                  'Lista de clientas y panel de hoy',
+                  '1 local',
+                ].map(i => (
+                  <li key={i} className="flex gap-2"><span className="text-violet-600 font-bold">✓</span>{i}</li>
+                ))}
+              </ul>
+              <Link href="/fidelizacion/onboarding?tipo=salon" className="block text-center bg-violet-600 hover:bg-violet-500 text-white font-bold py-3.5 rounded-2xl transition-colors">
+                Probá 14 días gratis
+              </Link>
+              <p className="text-xs text-zinc-400 text-center mt-3">Sin tarjeta de crédito.</p>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-zinc-200 p-8 flex flex-col">
+              <h3 className="text-2xl font-extrabold mb-1">Más opciones</h3>
+              <div className="mt-2 mb-1">
+                <span className="text-3xl font-extrabold">A medida</span>
+              </div>
+              <p className="text-sm text-zinc-500">Armamos el plan según lo que necesite tu salón.</p>
+              <ul className="space-y-2.5 text-sm text-zinc-700 my-6 flex-1">
+                {[
+                  'Gestión de turnos online (próximamente)',
+                  'Avisos al celular de tus clientas',
+                  'Recuperar a las que dejaron de venir',
+                  'Reseñas de Google y referidos',
+                  'Tarjeta en Google Wallet y diseño completo',
+                  'Varios locales',
+                ].map(i => (
+                  <li key={i} className="flex gap-2"><span className="text-zinc-400 font-bold">+</span>{i}</li>
+                ))}
+              </ul>
+              <a
+                href="https://wa.me/5491123867934?text=Hola!%20Tengo%20un%20sal%C3%B3n%20y%20quiero%20ver%20m%C3%A1s%20opciones%20de%20Calificar%20(turnos%2C%20avisos%2C%20etc.)."
+                target="_blank" rel="noopener noreferrer"
+                className="block text-center border-2 border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white font-bold py-3.5 rounded-2xl transition-colors"
+              >
+                Contactanos
+              </a>
+              <p className="text-xs text-zinc-400 text-center mt-3">Te respondemos por WhatsApp.</p>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -1,15 +1,21 @@
 'use client'
 
 import React, { useState } from 'react'
-import { PLAN_PRICES_ARS, discountedPrice, fmtARS } from '@/lib/plans'
+import { PLAN_PRICES_ARS, discountedPrice, fmtARS, isBeautyType } from '@/lib/plans'
 
 // ── Planes con descuento ───────────────────────────────────────────────────────
-const planRow = (id: 'starter' | 'pro' | 'ultimate', name: string, pill: string, highlight: boolean) => ({
+const planRow = (id: 'beauty' | 'starter' | 'pro' | 'ultimate', name: string, pill: string, highlight: boolean) => ({
   id, name, pill, highlight,
   origPrice: fmtARS(PLAN_PRICES_ARS[id]),
   discPrice: fmtARS(discountedPrice(PLAN_PRICES_ARS[id])),
   savings:   fmtARS(PLAN_PRICES_ARS[id] - discountedPrice(PLAN_PRICES_ARS[id])),
 })
+
+export const BEAUTY_DISCOUNT_PLANS = [
+  planRow('beauty',   'Beauty',   'Para tu salón', false),
+  planRow('pro',      'Pro',      'Más completo', true),
+  planRow('ultimate', 'Ultimate', 'Sin límites',  false),
+]
 
 export const DISCOUNT_PLANS = [
   planRow('starter',  'Starter',  'Para empezar', false),
@@ -21,10 +27,13 @@ export const DISCOUNT_PLANS = [
 interface DiscountPopupProps {
   onClose: () => void
   daysLeft: number
+  /** Los salones ven el plan Beauty en lugar de Starter */
+  businessType?: string
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function DiscountPopup({ onClose, daysLeft }: DiscountPopupProps) {
+export default function DiscountPopup({ onClose, daysLeft, businessType }: DiscountPopupProps) {
+  const plansToShow = isBeautyType(businessType) ? BEAUTY_DISCOUNT_PLANS : DISCOUNT_PLANS
   const [loading, setLoading] = useState<string | null>(null)
   const [err, setErr]         = useState('')
 
@@ -61,7 +70,7 @@ export default function DiscountPopup({ onClose, daysLeft }: DiscountPopupProps)
         </div>
 
         <div className="p-4 space-y-3">
-          {DISCOUNT_PLANS.map(p => (
+          {plansToShow.map(p => (
             <button
               key={p.id}
               onClick={() => checkout(p.id)}

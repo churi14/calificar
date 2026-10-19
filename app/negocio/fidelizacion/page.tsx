@@ -70,6 +70,7 @@ export default function NegocioDashboard() {
   const [accessToken, setAccessToken]             = useState('')
   const [businessPlan, setBusinessPlan]           = useState('trial')
   const [extraLocales, setExtraLocales]           = useState(0)
+  const [businessType, setBusinessType]           = useState('')
   const [planExpiresAt, setPlanExpiresAt]         = useState<string | null>(null)
   const [businessCreatedAt, setBusinessCreatedAt] = useState<string | null>(null)
   const [todayBdayCount, setTodayBdayCount]       = useState(0)
@@ -148,10 +149,11 @@ export default function NegocioDashboard() {
           if (biz?.name) setBusinessName(biz.name)
           if (biz?.plan) setBusinessPlan(biz.plan)
           setExtraLocales(Number(biz?.extra_locales ?? 0))
+          setBusinessType(String(biz?.type ?? ''))
           if (biz?.plan_expires_at !== undefined) setPlanExpiresAt(biz.plan_expires_at)
           if (biz?.created_at) {
             setBusinessCreatedAt(biz.created_at)
-            const isPaid = ['starter', 'pro', 'ultimate', 'gifted'].includes(biz.plan ?? '')
+            const isPaid = ['beauty', 'starter', 'pro', 'ultimate', 'gifted'].includes(biz.plan ?? '')
             if (!isPaid) {
               const diff = (Date.now() - new Date(biz.created_at).getTime()) / (1000 * 60 * 60 * 24)
               if (diff <= DISCOUNT_WINDOW_DAYS) {
@@ -370,7 +372,7 @@ export default function NegocioDashboard() {
 
       {/* Popup descuento */}
       {showDiscount && (
-        <DiscountPopup onClose={() => setShowDiscount(false)} daysLeft={daysLeftDiscount} />
+        <DiscountPopup onClose={() => setShowDiscount(false)} daysLeft={daysLeftDiscount} businessType={businessType} />
       )}
 
       {/* Mobile header */}
@@ -613,7 +615,7 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'plan' && (
           <ViewPlan onNav={(id) => setActiveNav(id as ViewType)} businessCreatedAt={businessCreatedAt}
-            plan={businessPlan} planExpiresAt={planExpiresAt} />
+            plan={businessPlan} planExpiresAt={planExpiresAt} businessType={businessType} />
         )}
         {activeNav === 'ayuda' && <ViewAyuda onNav={(id) => setActiveNav(id as ViewType)} />}
         {activeNav === 'primeros-pasos' && <ViewAyuda onNav={(id) => setActiveNav(id as ViewType)} mode="primeros-pasos" />}

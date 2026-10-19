@@ -3,7 +3,7 @@
  * Actualiza el plan de un negocio. Solo admin.
  * Body: { business_id, plan, months?, billing_notes? }
  *
- * plan: 'trial' | 'starter' | 'pro' | 'ultimate' | 'gifted'
+ * plan: 'trial' | 'beauty' | 'starter' | 'pro' | 'ultimate' | 'gifted'
  * months: si se pasa, plan_expires_at = ahora + N meses. Si no, null (no vence).
  */
 import { NextRequest, NextResponse } from 'next/server'
@@ -15,7 +15,7 @@ const admin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const VALID_PLANS = ['trial', 'starter', 'pro', 'ultimate', 'gifted']
+const VALID_PLANS = ['trial', 'beauty', 'starter', 'pro', 'ultimate', 'gifted']
 
 export async function PUT(req: NextRequest) {
   // Verificar que sea admin usando cliente con cookies

@@ -2,10 +2,11 @@
  * Precios, plazos y límites de los planes. Una sola fuente para el servidor (checkout, webhook,
  * sucursales) y para la interfaz (panel, popup de descuento), así nunca se contradicen.
  */
-export type PaidPlan = 'starter' | 'pro' | 'ultimate'
+export type PaidPlan = 'beauty' | 'starter' | 'pro' | 'ultimate'
 
 /** Precio mensual en pesos argentinos */
 export const PLAN_PRICES_ARS: Record<PaidPlan, number> = {
+  beauty: 7999,
   starter: 14999,
   pro: 29999,
   ultimate: 69999,
@@ -42,3 +43,7 @@ export function maxLocales(plan?: string | null, extra: number = 0): number {
     default: return 1          // Starter y prueba: un solo local
   }
 }
+
+/** Tipos de negocio que pueden contratar el plan Beauty (salones, peluquerías, uñas, estética) */
+export const BEAUTY_BUSINESS_TYPES = ['salon', 'belleza']
+export const isBeautyType = (type?: string | null) => BEAUTY_BUSINESS_TYPES.includes((type ?? '').toLowerCase())

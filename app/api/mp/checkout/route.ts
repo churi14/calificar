@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
-import { PLAN_PRICES_ARS, DISCOUNT_WINDOW_DAYS, discountedPrice } from '@/lib/plans'
+import { PLAN_PRICES_ARS, DISCOUNT_WINDOW_DAYS, discountedPrice, isBeautyType } from '@/lib/plans'
 
 const serviceClient = createServiceClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,6 +9,7 @@ const serviceClient = createServiceClient(
 )
 
 const PLANS = {
+  beauty:  { name: 'Plan Beauty — Calificar Fidelización',  price: PLAN_PRICES_ARS.beauty },
   starter: { name: 'Plan Starter — Calificar Fidelización', price: PLAN_PRICES_ARS.starter },
   pro:     { name: 'Plan Pro — Calificar Fidelización',     price: PLAN_PRICES_ARS.pro },
   ultimate:{ name: 'Plan Ultimate — Calificar Fidelización',price: PLAN_PRICES_ARS.ultimate },
@@ -38,6 +39,20 @@ export async function POST(req: NextRequest) {
   const { plan, discount } = await req.json()
   if (!plan || !(plan in PLANS)) {
     return NextResponse.json({ error: 'Plan inválido' }, { status: 400 })
+  }
+
+  // El plan Beauty es solo para salones, peluquerías, uñas y estética
+  if (plan === 'beauty') {
+    const { data: biz } = await serviceClient
+      .from('businesses')
+      .select('type')
+      .eq('owner_user_id', user.id)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    if (!isBeautyType(biz?.type as string | null | undefined)) {
+      return NextResponse.json({ error: 'El plan Beauty es solo para salones de belleza, peluquerías, uñas y estética.' }, { status: 403 })
+    }
   }
 
   const planData = PLANS[plan as keyof typeof PLANS]

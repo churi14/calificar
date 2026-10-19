@@ -18,6 +18,7 @@ type BizRow = {
 
 const PLAN_OPTIONS = [
   { value: 'trial',    label: 'Trial',    color: 'bg-zinc-100 text-zinc-600' },
+  { value: 'beauty',   label: 'Beauty',   color: 'bg-pink-100 text-pink-700' },
   { value: 'starter',  label: 'Starter',  color: 'bg-blue-100 text-blue-700' },
   { value: 'pro',      label: 'Pro',      color: 'bg-violet-100 text-violet-700' },
   { value: 'ultimate', label: 'Ultimate', color: 'bg-amber-100 text-amber-700' },
@@ -78,7 +79,7 @@ function PlanEditor({ biz, onSaved }: { biz: BizRow; onSaved: (b: BizRow) => voi
       </div>
 
       {/* Meses (para billing mensual) */}
-      {(plan === 'starter' || plan === 'pro' || plan === 'ultimate') && (
+      {(plan === 'beauty' || plan === 'starter' || plan === 'pro' || plan === 'ultimate') && (
         <div className="flex items-center gap-2">
           <label className="text-xs text-zinc-500 w-24 flex-shrink-0">Meses activos</label>
           <input type="number" min="1" max="24" value={months} onChange={e => setMonths(e.target.value)}

@@ -280,12 +280,13 @@ export default function Sidebar({
           {/* Plan badge */}
           {(() => {
             const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
-            const isPaid = ['pro', 'ultimate', 'gifted', 'starter'].includes(plan) && !isExpired
+            const isPaid = ['pro', 'ultimate', 'gifted', 'starter', 'beauty'].includes(plan) && !isExpired
             if (isPaid) {
               const planLabels: Record<string, string> = {
-                starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate 🎁',
+                beauty: 'Beauty', starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate 🎁',
               }
               const planColors: Record<string, string> = {
+                beauty: 'bg-pink-50 text-pink-600',
                 starter: 'bg-blue-50 text-blue-600',
                 pro: 'bg-violet-50 text-violet-700',
                 ultimate: 'bg-amber-50 text-amber-700',
