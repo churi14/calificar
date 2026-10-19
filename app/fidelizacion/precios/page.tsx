@@ -38,7 +38,7 @@ export default function PreciosPage() {
         </h1>
         <p className="text-zinc-500 text-lg leading-relaxed max-w-2xl mx-auto">
           <strong className="text-zinc-700">Tarjetas y notificaciones ilimitadas en los tres planes</strong>, menos de $1.000 al día en el plan más popular.
-          Pagás por el tamaño de tu negocio: locales, programas y cantidad de usuarios.
+          Pagás por el tamaño de tu negocio: cuántos locales tenés y cuánto personalizás tu tarjeta.
           14 días gratis, sin tarjeta; cancelás cuando querés.
         </p>
       </section>
@@ -65,7 +65,8 @@ export default function PreciosPage() {
               <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Notificaciones ilimitadas</li>
               <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Cartelito NFC + QR para el mostrador</li>
               <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Panel con tus números</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>1 local · 1 programa · 1 usuario</li>
+              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Lista de tus clientes para exportar</li>
+              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>1 local</li>
             </ul>
             <Link href="/fidelizacion/onboarding" className="block text-center py-3 rounded-xl font-bold text-sm border border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-all mb-3">
               Probá 14 días gratis →
@@ -88,16 +89,14 @@ export default function PreciosPage() {
             </div>
             <p className="text-xs text-zinc-400 mb-4">$1.000/día · menos que dos cafés</p>
             <p className="text-sm text-zinc-300 mb-5 flex-1">
-              Tu tarjeta al detalle, campañas que salen solas y cupones únicos por objetivo.
+              Tu tarjeta al detalle, campañas de cumpleaños y hasta 3 locales.
             </p>
             <ul className="space-y-2 mb-6 text-sm text-zinc-300">
               <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Todo lo de Starter</li>
               <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Diseño completo: plantillas, colores, íconos y fondo</li>
-              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Hasta 3 programas de fidelidad</li>
               <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Campañas de cumpleaños automáticas</li>
-              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Formulario de registro personalizable</li>
-              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Cupones únicos por objetivo</li>
-              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Hasta 3 locales · 3 programas · 3 usuarios</li>
+              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Hasta 3 locales con una tarjeta compartida</li>
+              <li className="flex gap-2"><span className="text-violet-400 font-bold flex-shrink-0">✓</span>Métricas de cada local por separado</li>
             </ul>
             <Link href="/fidelizacion/onboarding" className="block text-center py-3 rounded-xl font-bold text-sm bg-violet-600 text-white hover:bg-violet-500 transition-all mb-3">
               Probá 14 días gratis →
@@ -117,15 +116,12 @@ export default function PreciosPage() {
             </div>
             <p className="text-xs text-zinc-400 mb-4">$2.333/día · para todas tus sucursales</p>
             <p className="text-sm text-zinc-600 mb-5 flex-1">
-              Sucursales, programas y usuarios ilimitados. API y exportación completa.
+              Hasta 50 locales con una sola tarjeta, y tu propio dominio.
             </p>
             <ul className="space-y-2 mb-6 text-sm text-zinc-600">
               <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Todo lo de Pro</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Programas ilimitados</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Sucursales ilimitadas</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Múltiples usuarios por local</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Exportación completa con historial</li>
-              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>API + integración con tu sistema</li>
+              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Hasta 50 locales con una tarjeta compartida</li>
+              <li className="flex gap-2"><span className="text-violet-500 font-bold flex-shrink-0">✓</span>Dominio propio para tu tarjeta</li>
             </ul>
             <Link href="/fidelizacion/onboarding" className="block text-center py-3 rounded-xl font-bold text-sm border border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white transition-all mb-3">
               Probá 14 días gratis →
@@ -140,7 +136,7 @@ export default function PreciosPage() {
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-50 border border-zinc-200 rounded-2xl px-6 py-5">
           <div>
             <p className="font-bold text-zinc-900 text-sm">¿Tenés una cadena o necesitás algo a medida?</p>
-            <p className="text-xs text-zinc-500 mt-0.5">Cotizamos integraciones con tu POS o sistema existente.</p>
+            <p className="text-xs text-zinc-500 mt-0.5">Escribinos y armamos algo a medida.</p>
           </div>
           <a href="https://wa.me/5491123867934?text=Hola!%20Quiero%20info%20sobre%20un%20plan%20Enterprise%20para%20Calificar."
             target="_blank" rel="noopener noreferrer"
@@ -171,30 +167,15 @@ export default function PreciosPage() {
                 plans: [['Starter', 'Ilimitados'], ['Pro', 'Ilimitados'], ['Ultimate', 'Ilimitados']],
               },
               {
-                term: 'Programa de fidelidad',
-                def: 'Una tarjeta de sellos activa, con su propia meta y su propio premio. Un café con tarjeta de 8 sellos es 1 programa; si además querés una tarjeta de postres, es otro programa.',
-                plans: [['Starter', '1'], ['Pro', 'Hasta 3'], ['Ultimate', 'Ilimitados']],
-              },
-              {
                 term: 'Local / Sucursal',
-                def: 'Cada local físico donde dás sellos. Cada sucursal tiene su propio panel con sus propios números.',
-                plans: [['Starter', '1'], ['Pro', 'Hasta 3'], ['Ultimate', 'Ilimitadas']],
+                def: 'Cada local físico donde dás sellos. Tenés UNA sola tarjeta para todos tus locales: tu cliente suma sellos en cualquiera de ellos y canjea su premio en cualquiera. Vos ves en el panel los números de cada local por separado.',
+                plans: [['Starter', '1'], ['Pro', 'Hasta 3'], ['Ultimate', 'Hasta 50']],
                 note: 'Para 2 o más locales, subís de plan.',
-              },
-              {
-                term: 'Usuario del equipo',
-                def: 'Cada persona con acceso al panel: vos, un socio, la persona de caja. Todas pueden escanear y dar sellos desde su celular.',
-                plans: [['Starter', '1'], ['Pro', 'Hasta 3'], ['Ultimate', 'Ilimitados']],
               },
               {
                 term: 'Notificación push',
                 def: 'Un mensaje que aparece en la pantalla del celular de tu cliente, como los de cualquier app, sin que él haya instalado nada y sin que vos pagues publicidad. Lo escribís en el panel y lo mandás a todos o a un grupo.',
                 plans: [['Starter', 'Ilimitadas'], ['Pro', 'Ilimitadas'], ['Ultimate', 'Ilimitadas']],
-              },
-              {
-                term: 'Zona de notificación (geolocalización)',
-                def: 'Un radio alrededor de tu local. Cuando un cliente con tu tarjeta pasa por ahí, su celular le muestra tu mensaje solo, sin que nadie lo mande. Es lo que trae de vuelta al que iba de paso.',
-                plans: [['Starter', '1 zona'], ['Pro', '1 por local'], ['Ultimate', 'Ilimitadas']],
               },
               {
                 term: 'Cupón único',
@@ -203,8 +184,8 @@ export default function PreciosPage() {
               },
               {
                 term: 'Exportación de datos',
-                def: 'Tus clientes son tuyos. En todos los planes descargás la lista con nombre y teléfono. En Ultimate, además, el detalle: sellos, historial y premios.',
-                plans: [['Starter', 'Lista de clientes'], ['Pro', 'Lista de clientes'], ['Ultimate', 'Clientes + historial']],
+                def: 'Tus clientes son tuyos. En todos los planes descargás la lista con nombre, teléfono, sellos y visitas.',
+                plans: [['Starter', 'Incluida'], ['Pro', 'Incluida'], ['Ultimate', 'Incluida']],
               },
             ].map(({ term, def, plans, note }) => (
               <div key={term} className="px-6 py-5">
@@ -259,11 +240,6 @@ export default function PreciosPage() {
                 body="Escribís un mensaje en el panel y se lo mandás a todos tus clientes. Les llega en la pantalla del celular como cualquier app, sin que ellos hayan instalado nada. Cien clientes o diez mil, el precio es el mismo."
               />
               <DetailItem
-                icon="📍"
-                title="Zona de notificación por geolocalización"
-                body="Un radio de acción alrededor de tu local. Cuando un cliente pasa cerca con tu tarjeta guardada, su celular le muestra tu mensaje automáticamente, sin que nadie lo mande. Es lo que trae de vuelta al que iba de paso."
-              />
-              <DetailItem
                 icon="📊"
                 title="Panel con tus números y tu lista de clientes"
                 body="Quién volvió, cuándo y cuántos sellos tiene. La lista (nombre y teléfono) la exportás cuando querés: es tuya, no queda atrapada en Calificar."
@@ -279,7 +255,7 @@ export default function PreciosPage() {
                 body="Por WhatsApp o correo. Te respondemos personas, no bots, también durante la prueba."
               />
               <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-sm text-zinc-600">
-                <strong className="text-zinc-900">1 local · 1 programa de fidelidad · 1 usuario del equipo.</strong> Si necesitás más locales, programas o personas con acceso al panel, Pro trae 3 de cada uno.
+                <strong className="text-zinc-900">1 local.</strong> Si tenés más de un local, Pro trae hasta 3 con una sola tarjeta compartida.
               </div>
             </div>
           </div>
@@ -306,9 +282,9 @@ export default function PreciosPage() {
                 body="Elegís entre plantillas de color o armás la tuya: colores propios, ícono de la app y de las notificaciones, ícono de los sellos y una imagen de fondo."
               />
               <DetailItem
-                icon="🏆"
-                title="Hasta 3 programas de fidelidad"
-                body="¿Querés una tarjeta de visitas y otra de compras con monto? Son dos programas. Cada uno con su propia meta, su propio premio y su propia tarjeta. Tus clientes los ven por separado en el wallet."
+                icon="🏪"
+                title="Hasta 3 locales con una sola tarjeta"
+                body="Si tenés más de un local, tus clientes usan la misma tarjeta en todos: suman sellos en cualquiera y canjean su premio en cualquiera. Vos ves los números de cada local por separado."
               />
               <DetailItem
                 icon="🎂"
@@ -316,32 +292,17 @@ export default function PreciosPage() {
                 body="Tres mensajes que salen solos: antes del cumpleaños, el día y después. Un regalo que no gasta sellos, con la ventana que vos elegís (el día, su semana o su mes). Lo configurás una vez y corre todos los días, todos los años. Requiere el campo de fecha de nacimiento en el formulario de registro."
               />
               <DetailItem
-                icon="📋"
-                title="Formulario de registro personalizable"
-                body="Elegís qué datos le pedís al cliente cuando se registra: teléfono, cumpleaños, barrio, lo que te sirva. Cada dato extra es un filtro para segmentar tus notificaciones después."
-              />
-              <DetailItem
-                icon="🎟"
-                title="Cupones únicos en hitos intermedios"
-                body="Además del cupón al completar la tarjeta, podés configurar premios intermedios: en el sello 3 un 10% de descuento, en el sello 6 un producto gratis. Cada uno genera un código único irrepetible."
-              />
-              <DetailItem
-                icon="📍"
-                title="Zona de notificación por local"
-                body="En Starter tenés una zona global. En Pro, cada local tiene su propia zona de notificación. Mandá una promo solo a los clientes que pasaron cerca de ese local."
-              />
-              <DetailItem
                 icon="📈"
                 title="Métricas por sucursal"
-                body="Ves los números de cada local por separado: sellos del día, clientes nuevos, premios canjeados. Comparás sucursales sin hacer cuentas."
+                body="Ves los números de cada local por separado: sellos del día, clientes nuevos, premios canjeados. Comparás tus locales sin hacer cuentas."
               />
               <DetailItem
                 icon="⚡"
                 title="Soporte prioritario"
-                body="Los mismos canales que Starter, tu turno primero. Respuesta en menos de 2 horas en horario laboral."
+                body="Los mismos canales que Starter, y tu consulta va primero."
               />
               <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-sm text-zinc-600">
-                <strong className="text-zinc-900">Hasta 3 locales · 3 programas · 3 usuarios del equipo.</strong> Podés tener una tarjeta de café, otra de postres y una membresía VIP al mismo tiempo. Si necesitás más, Ultimate no tiene límite.
+                <strong className="text-zinc-900">Hasta 3 locales con una tarjeta compartida.</strong> Si necesitás más locales o tu propio dominio, pasá a Ultimate.
               </div>
             </div>
           </div>
@@ -355,37 +316,22 @@ export default function PreciosPage() {
               </Link>
             </div>
             <p className="text-zinc-500 text-sm mb-1"><strong className="text-zinc-700">$69.999 ARS / mes</strong> · $2.333/día · para todas tus sucursales</p>
-            <p className="text-zinc-400 text-sm mb-2">Para cadenas y negocios que necesitan locales, programas y equipo ilimitados, más integración con sus sistemas.</p>
+            <p className="text-zinc-400 text-sm mb-2">Para cadenas y franquicias con muchos locales que quieren su tarjeta en su propio dominio.</p>
             <p className="text-zinc-400 text-sm mb-8">Todo lo de Pro, y además:</p>
 
             <div className="space-y-8">
               <DetailItem
                 icon="🏢"
-                title="Locales, programas y usuarios ilimitados"
-                body="Abrís un local nuevo y lo agregás al panel el mismo día, sin cambiar de plan ni pagar extras. Sumás personas al equipo sin límite: cajeros, supervisores, encargados de zona."
+                title="Hasta 50 locales con una sola tarjeta"
+                body="Abrís un local nuevo y lo sumás al panel el mismo día, sin cambiar de plan ni pagar extras. La tarjeta es una sola: el cliente suma y canjea en cualquier local, y vos ves los números de cada uno por separado."
               />
               <DetailItem
-                icon="🎯"
-                title="Zonas de notificación ilimitadas"
-                body="En Starter tenés 1 zona, en Pro una por local. En Ultimate no hay tope: ponés las zonas que necesites en todos tus locales. El celular mantiene activas hasta 10 a la vez (límite de iOS), pero vos configurás todas las que querés."
-              />
-              <DetailItem
-                icon="📤"
-                title="Exportación completa con historial"
-                body="No solo la lista de clientes: también sellos, historial de visitas y premios canjeados de cada cliente, en un archivo tuyo para cruzarlo con lo que ya usás."
-              />
-              <DetailItem
-                icon="🔌"
-                title="API + integración con tu sistema"
-                body="El acceso a la API viene habilitado en el plan: dás sellos, consultás clientes y disparás notificaciones desde tu propio sistema o POS. La integración se cotiza aparte según lo que haya que conectar. Escribinos y te decimos precio y tiempos."
-              />
-              <DetailItem
-                icon="👥"
-                title="Múltiples usuarios con roles por local"
-                body="Asignás personas al panel de un local específico: el encargado del local de Palermo ve solo los números de Palermo, no los de Caballito. Control total por sucursal."
+                icon="🌐"
+                title="Dominio propio para tu tarjeta"
+                body="Tu tarjeta y su página de registro se abren con tu propio dominio (por ejemplo tarjeta.minegocio.com), no con el de Calificar. Te acompañamos con la configuración."
               />
               <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-sm text-zinc-600">
-                <strong className="text-zinc-900">Sin límites de ningún tipo.</strong> Locales, programas, usuarios, zonas y exportación completa. Más API. Es el plan para cuando el negocio creció.
+                <strong className="text-zinc-900">Todo lo de Pro, para muchos locales.</strong> Es el plan para cuando el negocio creció y querés tu propia marca también en el link.
               </div>
             </div>
           </div>
@@ -402,7 +348,7 @@ export default function PreciosPage() {
             {[
               {
                 q: '¿Cobran por cliente o por tarjeta?',
-                a: 'No. Las tarjetas y las notificaciones son ilimitadas en los tres planes. Pagás por la estructura de tu negocio: locales, usuarios del equipo y programas activos.',
+                a: 'No. Las tarjetas y las notificaciones son ilimitadas en los tres planes. Pagás por la estructura de tu negocio: cuántos locales tenés y cuánto personalizás tu tarjeta.',
               },
               {
                 q: '¿Qué pasa cuando terminan los 14 días gratis?',
@@ -414,7 +360,7 @@ export default function PreciosPage() {
               },
               {
                 q: '¿Qué cuenta como local?',
-                a: 'Cada punto físico donde das sellos. Starter incluye 1, Pro hasta 3 y Ultimate los que necesites. Si tenés 2 o más locales, subís de plan.',
+                a: 'Cada punto físico donde das sellos. Starter incluye 1, Pro hasta 3 y Ultimate hasta 50. En todos usás una sola tarjeta para todos tus locales. Si tenés 2 o más locales, subís de plan.',
               },
               {
                 q: '¿El cliente tiene que instalar algo?',
@@ -426,7 +372,7 @@ export default function PreciosPage() {
               },
               {
                 q: '¿Puedo llevarme mis datos si me voy?',
-                a: 'Sí. En todos los planes exportás tu lista de clientes (nombre y teléfono). En Ultimate, además, la exportación detallada de sellos, historial y premios.',
+                a: 'Sí. En todos los planes exportás tu lista de clientes (nombre, teléfono, sellos y visitas) desde el panel.',
               },
               {
                 q: '¿Cómo es el soporte?',

@@ -44,6 +44,32 @@ export default function ViewClientes({
     setDeleteConfirm(null)
   }
 
+  /** Descarga la lista de clientes (la que se ve filtrada) como CSV, listo para abrir en Excel */
+  function exportClients() {
+    const clean = (v: string | number | null | undefined) => {
+      let t = String(v ?? '')
+      if (/^[=+\-@]/.test(t)) t = `'${t}`          // evita que Excel lo tome como fórmula
+      return `"${t.replace(/"/g, '""')}"`
+    }
+    const rows = [
+      ['Nombre', 'Teléfono', 'Sellos actuales', 'Visitas totales', 'Cumpleaños', 'Cliente desde'],
+      ...filtered.map(c => [
+        c.name, c.phone, c.stamps, c.total_visits,
+        c.birth_date ?? '',
+        c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR') : '',
+      ]),
+    ]
+    const csv = String.fromCharCode(0xFEFF) + rows.map(r => r.map(clean).join(';')).join(String.fromCharCode(13, 10))
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `clientes-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
   const filtered = cards.filter(c => {
     const q = search.toLowerCase()
     const matchSearch =
@@ -69,9 +95,19 @@ export default function ViewClientes({
               : `${cards.length} clientes registrados.`}
           </p>
         </div>
-        <button className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2.5 rounded-xl" style={{ background: '#7C3AED' }}>
-          + Agregar un cliente
-        </button>
+        <div className="flex items-center gap-2">
+          {cards.length > 0 && (
+            <button
+              onClick={exportClients}
+              className="flex items-center gap-2 text-sm font-semibold border border-zinc-200 dark:border-gray-700 text-zinc-700 dark:text-gray-200 px-4 py-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              ⬇ Exportar clientes
+            </button>
+          )}
+          <button className="flex items-center gap-2 text-sm font-bold text-white px-4 py-2.5 rounded-xl" style={{ background: '#7C3AED' }}>
+            + Agregar un cliente
+          </button>
+        </div>
       </div>
 
       {cards.length === 0 ? (

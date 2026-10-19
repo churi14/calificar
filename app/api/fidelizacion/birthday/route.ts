@@ -6,11 +6,20 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { hasBirthdayCampaigns } from '@/lib/plans'
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+/** Plan del negocio dueño del programa ('trial' si no se encuentra) */
+async function programPlan(programId: string): Promise<string> {
+  const { data } = await admin.from('loyalty_programs').select('businesses(plan)').eq('id', programId).single()
+  const raw = data?.businesses as { plan?: string | null } | { plan?: string | null }[] | null | undefined
+  const biz = Array.isArray(raw) ? raw[0] : raw
+  return biz?.plan ?? 'trial'
+}
 
 function generateCode(name: string): string {
   const prefix = name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X')
@@ -64,6 +73,10 @@ export async function POST(req: NextRequest) {
 
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
 
+  if (enabled && !hasBirthdayCampaigns(await programPlan(program_id))) {
+    return NextResponse.json({ error: 'Las campañas de cumpleaños son del plan Pro en adelante', upgrade_required: true }, { status: 403 })
+  }
+
   const { error } = await admin.from('birthday_campaigns').upsert({
     program_id,
     enabled: enabled ?? false,
@@ -87,6 +100,9 @@ export async function PUT(req: NextRequest) {
   // Leer config
   const { data: cfg } = await admin.from('birthday_campaigns').select('*').eq('program_id', program_id).single()
   if (!cfg?.enabled) return NextResponse.json({ ok: true, generated: 0, message: 'Campaña desactivada' })
+  if (!hasBirthdayCampaigns(await programPlan(program_id))) {
+    return NextResponse.json({ ok: true, generated: 0, message: 'El plan actual no incluye campañas de cumpleaños' })
+  }
 
   const today = new Date()
   const mm = today.getMonth() + 1

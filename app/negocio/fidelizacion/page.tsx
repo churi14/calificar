@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { Sun, Moon } from '@phosphor-icons/react'
-import { DISCOUNT_WINDOW_DAYS, discountDaysLeft, maxLocales } from '@/lib/plans'
+import { DISCOUNT_WINDOW_DAYS, discountDaysLeft, maxLocales, hasBirthdayCampaigns } from '@/lib/plans'
 import { planState, planDaysLeft } from '@/lib/plan-status'
 
 // ── Componentes de UI ─────────────────────────────────────────────────────────
@@ -544,7 +544,7 @@ export default function NegocioDashboard() {
             accessToken={accessToken} />
         )}
         {activeNav === 'cumple' && (
-          <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={true} />
+          <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={hasBirthdayCampaigns(businessPlan)} />
         )}
         {activeNav === 'reactivacion' && (
           <ViewReactivacion selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />

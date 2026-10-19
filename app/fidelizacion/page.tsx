@@ -39,7 +39,7 @@ const features = [
 ]
 
 const steps = [
-  { num: '01', title: 'Configurás tu programa', desc: 'Subís el logo, elegís cuántos sellos necesita el cliente y qué premio se lleva.' },
+  { num: '01', title: 'Configurás tu tarjeta', desc: 'Subís el logo, elegís cuántos sellos necesita el cliente y qué premio se lleva.' },
   { num: '02', title: 'El cliente se registra', desc: 'Escanea el QR del local, completa nombre y teléfono, listo. La tarjeta aparece en su Wallet.' },
   { num: '03', title: 'Suma sellos con NFC o QR', desc: 'Cada visita, el cliente acerca el celular al cartel del mostrador o escanea el QR.' },
   { num: '04', title: 'Canjea el premio', desc: 'Al llegar a la meta recibe un cupón único. Lo muestra, lo canjeás, se reinicia la tarjeta.' },
@@ -54,12 +54,12 @@ const plans = [
     perDay: '$500 al día',
     perDaySub: 'menos que un café',
     features: [
-      '1 programa de fidelidad con tu logo',
-      'Notificaciones ilimitadas al celular de tus clientes',
+      '1 tarjeta de fidelidad con tu logo',
+      'Avisos ilimitados al celular de tus clientes',
       'Cartelito NFC + QR para el mostrador',
       'Panel: quién volvió, cuándo y cuántos sellos',
-      'Exportá tus clientes: nombre y teléfono',
-      'Soporte premium en español 🇦🇷',
+      'Exportá tus clientes: nombre, teléfono y sellos',
+      'Soporte en español 🇦🇷',
     ],
     cta: 'Empezar con Starter',
     highlight: false,
@@ -74,12 +74,10 @@ const plans = [
     features: [
       'Todo lo de Starter',
       'Diseño completo: plantillas, colores, íconos y fondo',
-      'Hasta 3 programas de fidelidad',
+      'Hasta 3 locales con una sola tarjeta compartida',
+      'Métricas de cada local por separado',
       'Campañas de cumpleaños automáticas',
-      'Formulario de registro personalizable',
-      'Cupones únicos al completar la tarjeta',
-      'Zonas de notificación por geolocalización',
-      'Soporte premium en español 🇦🇷',
+      'Soporte prioritario 🇦🇷',
     ],
     cta: 'Empezar con Pro',
     highlight: true,
@@ -93,12 +91,8 @@ const plans = [
     perDaySub: 'para todas tus sucursales',
     features: [
       'Todo lo de Pro',
-      'Programas ilimitados',
-      'Sucursales ilimitadas',
-      'Múltiples usuarios por local',
-      'Zonas de notificación ilimitadas',
-      'Exportación detallada con historial',
-      'API + integración con tu sistema',
+      'Hasta 50 locales con una sola tarjeta compartida',
+      'Dominio propio para tu tarjeta (ej: tarjeta.minegocio.com)',
     ],
     cta: 'Empezar con Ultimate',
     highlight: false,
@@ -108,7 +102,7 @@ const plans = [
 const faqs = [
   { q: '¿El cliente necesita descargar una app?', a: 'No. La tarjeta se guarda directo en Google Wallet, que ya viene instalado en todos los Android.' },
   { q: '¿Cómo suma el cliente su sello?', a: 'Hay dos formas: acerca el celular al cartelito NFC del mostrador, o escanea el QR que está en el local.' },
-  { q: '¿Puedo personalizar el diseño de la tarjeta?', a: 'Sí. Subís el logo, elegís el color y configurás el nombre del programa. La tarjeta adopta tu identidad visual.' },
+  { q: '¿Puedo personalizar el diseño de la tarjeta?', a: 'Sí. En todos los planes subís tu logo. Con Pro además elegís plantillas, colores, íconos y fondo para que la tarjeta tenga tu identidad visual.' },
   { q: '¿Qué pasa si el cliente cambia de celular?', a: 'La tarjeta vive en la nube. Al loguearse de nuevo a su cuenta Google, recupera todo.' },
   { q: '¿Puedo probar antes de pagar?', a: 'Sí. Tenés 14 días gratis sin tarjeta de crédito.' },
 ]
@@ -479,7 +473,7 @@ export default function FidelizacionLanding() {
             href="/fidelizacion/onboarding"
             className="inline-block bg-white hover:bg-violet-50 text-violet-700 font-bold px-10 py-4 rounded-2xl text-base transition-colors shadow-lg shadow-violet-900/30"
           >
-            Crear mi programa gratis
+            Crear mi tarjeta gratis
           </Link>
         </div>
       </section>
