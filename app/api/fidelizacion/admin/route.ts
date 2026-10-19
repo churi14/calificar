@@ -3,12 +3,13 @@
  * POST /api/fidelizacion/admin          — crea un programa nuevo
  * PUT  /api/fidelizacion/admin          — actualiza un programa existente
  *
- * Solo accesible para el admin (service role).
+ * Solo accesible para administradores de Calificar.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createOrUpdateLoyaltyClass } from '@/lib/wallet/google-wallet'
+import { requireAdmin } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,7 +17,10 @@ const supabase = createClient(
 )
 
 // ─── GET: listar programas con cantidad de clientes ──────────────────────────
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
+
   const { data: programs, error } = await supabase
     .from('loyalty_programs')
     .select(`
@@ -33,6 +37,9 @@ export async function GET() {
 
 // ─── POST: crear programa + clase en Google Wallet ───────────────────────────
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
+
   const body = await req.json()
   const {
     business_id,
@@ -114,6 +121,9 @@ export async function POST(req: NextRequest) {
 
 // ─── PUT: actualizar programa ─────────────────────────────────────────────────
 export async function PUT(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
+
   const body = await req.json()
   const { id, ...fields } = body
 
@@ -157,6 +167,9 @@ export async function PUT(req: NextRequest) {
 
 // ─── DELETE: borrar programa (y en cascada sus tarjetas/transacciones) ────────
 export async function DELETE(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
+
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id requerido' }, { status: 400 })

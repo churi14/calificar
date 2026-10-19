@@ -33,10 +33,15 @@ interface ViewCumpleanosProps {
   selectedProgram: string | null
   cards: Card[]
   isPro: boolean
+  accessToken?: string
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewCumpleanos({ selectedProgram, cards, isPro }: ViewCumpleanosProps) {
+export default function ViewCumpleanos({ selectedProgram, cards, isPro, accessToken }: ViewCumpleanosProps) {
+  const authHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  }
   const [cfg, setCfg] = useState<BirthdayCfg>({
     enabled:        false,
     discount_type:  'percent',
@@ -55,7 +60,7 @@ export default function ViewCumpleanos({ selectedProgram, cards, isPro }: ViewCu
 
   useEffect(() => {
     if (!selectedProgram) return
-    fetch(`/api/fidelizacion/birthday?program_id=${selectedProgram}`)
+    fetch(`/api/fidelizacion/birthday?program_id=${selectedProgram}`, { headers: authHeaders })
       .then(r => r.json())
       .then(d => {
         if (d.config) setCfg(c => ({ ...c, ...d.config }))
@@ -63,13 +68,13 @@ export default function ViewCumpleanos({ selectedProgram, cards, isPro }: ViewCu
         setUpcoming(d.upcoming_birthdays ?? [])
         setTotalWithBday(d.total_with_birthday ?? 0)
       })
-  }, [selectedProgram])
+  }, [selectedProgram, accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
     setSaving(true)
     await fetch('/api/fidelizacion/birthday', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({ program_id: selectedProgram, ...cfg }),
     })
     setSaving(false)
@@ -81,7 +86,7 @@ export default function ViewCumpleanos({ selectedProgram, cards, isPro }: ViewCu
     setTriggering(true)
     const r = await fetch('/api/fidelizacion/birthday', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({ program_id: selectedProgram }),
     })
     const d = await r.json()

@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { Sun, Moon } from '@phosphor-icons/react'
-import { DISCOUNT_WINDOW_DAYS, discountDaysLeft, maxLocales, hasBirthdayCampaigns } from '@/lib/plans'
+import { DISCOUNT_WINDOW_DAYS, discountDaysLeft, maxLocales } from '@/lib/plans'
+import { canUse } from '@/lib/plan-features'
 import { planState, planDaysLeft } from '@/lib/plan-status'
 
 // ── Componentes de UI ─────────────────────────────────────────────────────────
@@ -185,11 +186,12 @@ export default function NegocioDashboard() {
 
   // ── Clients + transactions fetch ──────────────────────────────────────────
   useEffect(() => {
-    if (!selectedProgram) return
+    if (!selectedProgram || !accessToken) return
     setLoading(true)
+    const authH = { Authorization: `Bearer ${accessToken}` }
     Promise.all([
-      fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`).then(r => r.json()),
-      fetch(`/api/fidelizacion/admin/transactions?program_id=${selectedProgram}&limit=20`).then(r => r.json()),
+      fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`, { headers: authH }).then(r => r.json()),
+      fetch(`/api/fidelizacion/admin/transactions?program_id=${selectedProgram}&limit=20`, { headers: authH }).then(r => r.json()),
     ]).then(([clientsData, txData]) => {
       const c: Card[] = clientsData.cards ?? []
       const t: Transaction[] = txData.transactions ?? []
@@ -232,7 +234,7 @@ export default function NegocioDashboard() {
         setSalesByDay(d.sales_by_day ?? {})
         setTotalSales(d.total_sales ?? 0)
       }).catch(() => {})
-  }, [selectedProgram])
+  }, [selectedProgram, accessToken])
 
   // ── Sucursales del programa ───────────────────────────────────────────────
   useEffect(() => {
@@ -283,7 +285,9 @@ export default function NegocioDashboard() {
       headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
       body: JSON.stringify({ card_id: cardId, program_id: selectedProgram, registered_by: 'manual', purchase_amount: purchaseAmount ?? null, branch_id: selectedBranch ?? undefined }),
     })
-    const r = await fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`)
+    const r = await fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    })
     const d = await r.json()
     setCards(d.cards ?? [])
     if (purchaseAmount) {
@@ -544,7 +548,7 @@ export default function NegocioDashboard() {
             accessToken={accessToken} />
         )}
         {activeNav === 'cumple' && (
-          <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={hasBirthdayCampaigns(businessPlan)} />
+          <ViewCumple selectedProgram={selectedProgram} cards={cards} isPro={canUse(businessPlan, 'birthday')} accessToken={accessToken} />
         )}
         {activeNav === 'reactivacion' && (
           <ViewReactivacion selectedProgram={selectedProgram} isPro={true} accessToken={accessToken} />

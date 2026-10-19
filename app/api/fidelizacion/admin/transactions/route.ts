@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireProgramAccess } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,8 +9,11 @@ const supabase = createClient(
 
 export async function GET(req: NextRequest) {
   const program_id = req.nextUrl.searchParams.get('program_id')
-  const limit = parseInt(req.nextUrl.searchParams.get('limit') ?? '20')
+  const limit = Math.min(5000, Math.max(1, parseInt(req.nextUrl.searchParams.get('limit') ?? '20') || 20))
   if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
+
+  const denied = await requireProgramAccess(req, program_id)
+  if (denied) return denied
 
   const { data: transactions, error } = await supabase
     .from('loyalty_transactions')

@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { verifyProgramOwner } from '@/lib/business-auth'
+import { canAccessProgram } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,8 +48,7 @@ export async function GET(req: NextRequest) {
   if (!programId) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
 
   // Solo el dueño del programa o un admin de Calificar
-  const owner = await verifyProgramOwner(req, programId)
-  if (!owner && !(await isCalificarAdmin(req))) {
+  if (!(await canAccessProgram(req, programId))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 

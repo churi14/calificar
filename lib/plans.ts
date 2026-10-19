@@ -39,8 +39,3 @@ export function maxLocales(plan?: string | null): number {
     default: return 1          // Starter y prueba: un solo local
   }
 }
-
-/** Campañas de cumpleaños: Pro en adelante (y durante la prueba gratuita, para que las conozcan) */
-export function hasBirthdayCampaigns(plan?: string | null): boolean {
-  return ['trial', 'pro', 'ultimate', 'gifted'].includes((plan ?? 'trial').toLowerCase())
-}
