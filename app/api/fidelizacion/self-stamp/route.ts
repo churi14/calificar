@@ -83,37 +83,79 @@ export async function POST(req: NextRequest) {
     const cleanName = (name ?? '').trim()
     const cleanDni = dni ? String(dni).replace(/\D/g, '').trim() : null
 
+    // ¿El negocio exige el link de un solo uso para dar sellos? (modo delivery / dark kitchen)
+    // Si la columna todavía no existe (migración pendiente), cuenta como desactivado.
+    const { data: modeRow } = await supabase
+      .from('loyalty_programs')
+      .select('require_stamp_token')
+      .eq('id', program_id)
+      .maybeSingle()
+    const tokenRequired = !!(modeRow as { require_stamp_token?: boolean } | null)?.require_stamp_token
+
+    // Buscar la tarjeta: match por teléfono (con y sin código de área) y, si no, por los últimos 8 dígitos
     let card = (allCards ?? []).find(c => {
       const stored = c.phone.replace(/\D/g, '')
       return stored.endsWith(cleanPhone) || cleanPhone.endsWith(stored)
     }) ?? null
-
+    if (!card) {
+      const last8 = cleanPhone.slice(-8)
+      card = (allCards ?? []).find(c => c.phone.replace(/\D/g, '').slice(-8) === last8) ?? null
+    }
     const isNew = !card
 
-    if (!card) {
-      // Si no se encontró con match bidireccional, verificar por últimos 8 dígitos
-      // para evitar duplicados por variaciones de código de área
-      const last8 = cleanPhone.slice(-8)
-      const duplicate = (allCards ?? []).find(c => c.phone.replace(/\D/g, '').slice(-8) === last8)
-      if (duplicate) {
-        // Usar la tarjeta existente en vez de crear una nueva
-        card = duplicate
-      } else {
-        // Nombre obligatorio para nuevos registros
-        if (!cleanName) {
-          return NextResponse.json({ success: false, is_new: true, needs_name: true })
-        }
-        const { data: newCard, error: createErr } = await supabase
-          .from('loyalty_cards')
-          .insert({ program_id, phone: cleanPhone, name: cleanName, stamps: 0, total_visits: 0, active: true, ...(cleanDni ? { dni: cleanDni } : {}) })
-          .select()
-          .single()
+    // Cliente nuevo sin nombre: se le pide el nombre antes de hacer nada (no se gasta el link)
+    if (!card && !cleanName) {
+      return NextResponse.json({ success: false, is_new: true, needs_name: true })
+    }
 
-        if (createErr || !newCard) {
-          return NextResponse.json({ error: 'No se pudo crear la tarjeta' }, { status: 500 })
-        }
-        card = newCard
+    // Anti-abuso: máximo 1 sello por tarjeta cada 4 horas (se mira antes de gastar el link de un solo uso)
+    if (card) {
+      const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+      const { data: recentStamp } = await supabase
+        .from('loyalty_transactions')
+        .select('id, created_at')
+        .eq('card_id', card.id)
+        .eq('type', 'stamp')
+        .gte('created_at', fourHoursAgo)
+        .limit(1)
+        .maybeSingle()
+
+      if (recentStamp) {
+        const nextAvailable = new Date(new Date(recentStamp.created_at).getTime() + 4 * 60 * 60 * 1000)
+        return NextResponse.json({
+          error: 'Ya recibiste un sello en las últimas 4 horas.',
+          cooldown: true,
+          next_available: nextAvailable.toISOString(),
+          stamps: card.stamps,
+          stamps_goal: program.stamps_goal,
+        }, { status: 429 })
       }
+    }
+
+    // Link de un solo uso: si viene, tiene que ser válido; si el negocio lo exige, es obligatorio para todos
+    if (token || tokenRequired) {
+      const valid = token ? await consumeStampToken(program_id, token) : false
+      if (!valid) {
+        return NextResponse.json({
+          error: tokenRequired && !token
+            ? 'Este negocio da los sellos con un link que te manda por cada pedido. Pedile el link al local.'
+            : 'Este link ya fue usado o expiró. Pedí el link actualizado al negocio.',
+          token_required: true,
+        }, { status: 403 })
+      }
+    }
+
+    if (!card) {
+      const { data: newCard, error: createErr } = await supabase
+        .from('loyalty_cards')
+        .insert({ program_id, phone: cleanPhone, name: cleanName, stamps: 0, total_visits: 0, active: true, ...(cleanDni ? { dni: cleanDni } : {}) })
+        .select()
+        .single()
+
+      if (createErr || !newCard) {
+        return NextResponse.json({ error: 'No se pudo crear la tarjeta' }, { status: 500 })
+      }
+      card = newCard
     }
 
     // Si la tarjeta existe pero el nombre es el teléfono (registro incompleto), actualizarlo
@@ -122,37 +164,6 @@ export async function POST(req: NextRequest) {
       if (cleanDni && !card.dni) updates.dni = cleanDni
       await supabase.from('loyalty_cards').update(updates).eq('id', card.id)
       card = { ...card, name: cleanName }
-    }
-
-    // Validar token rotativo solo para clientes existentes (no para nuevos registros)
-    // El registro no requiere token — llenar el formulario lleva más de 10 segundos
-    if (!isNew && token) {
-      const valid = await consumeStampToken(program_id, token)
-      if (!valid) {
-        return NextResponse.json({ error: 'Este link ya fue usado o expiró. Pedí el link actualizado al negocio.', token_required: true }, { status: 403 })
-      }
-    }
-
-    // Anti-abuso: máximo 1 sello cada 4 horas
-    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
-    const { data: recentStamp } = await supabase
-      .from('loyalty_transactions')
-      .select('id, created_at')
-      .eq('card_id', card.id)
-      .eq('type', 'stamp')
-      .gte('created_at', fourHoursAgo)
-      .limit(1)
-      .maybeSingle()
-
-    if (recentStamp) {
-      const nextAvailable = new Date(new Date(recentStamp.created_at).getTime() + 4 * 60 * 60 * 1000)
-      return NextResponse.json({
-        error: 'Ya recibiste un sello en las últimas 4 horas.',
-        cooldown: true,
-        next_available: nextAvailable.toISOString(),
-        stamps: card.stamps,
-        stamps_goal: program.stamps_goal,
-      }, { status: 429 })
     }
 
     const newStamps = card.stamps + 1

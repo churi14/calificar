@@ -318,6 +318,35 @@ export default function FidelizacionLanding() {
         </div>
       </section>
 
+      {/* DELIVERY / DARK KITCHEN */}
+      <section id="delivery" className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-violet-600 font-semibold text-sm uppercase tracking-widest mb-3">Delivery y dark kitchens</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">¿Vendés por WhatsApp, sin local abierto al público?</h2>
+            <p className="text-zinc-600 max-w-2xl mx-auto">
+              Casi todas las tarjetas de fidelidad piden un mostrador y un QR pegado en la pared. Acá no: el sello viaja con cada pedido.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              { n: '1', title: 'Confirmás el pedido', desc: 'Entrás al panel, escribís el teléfono del cliente (o no) y tocás “Enviar por WhatsApp”.' },
+              { n: '2', title: 'El cliente recibe su link', desc: 'Un link único para ese pedido, dentro de un mensaje que ya sale escrito. Se abre en el celular, sin descargar nada.' },
+              { n: '3', title: 'Suma su sello, una sola vez', desc: 'Si lo reenvía o se lo pasa a otro, no funciona. Nadie se sella sin haber comprado.' },
+            ].map(st => (
+              <div key={st.n} className="bg-white border border-zinc-200 rounded-3xl p-7 shadow-sm shadow-violet-100">
+                <div className="w-11 h-11 rounded-full bg-violet-100 text-violet-700 font-extrabold flex items-center justify-center mb-5">{st.n}</div>
+                <h3 className="font-bold text-lg mb-2">{st.title}</h3>
+                <p className="text-zinc-600 text-sm leading-relaxed">{st.desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-sm text-zinc-500 mt-8">
+            Incluido en todos los planes. Y si no tenés local a la calle, podés dejar que <b>solo</b> se den sellos con este link.
+          </p>
+        </div>
+      </section>
+
       {/* DIFERENCIADOR NFC */}
       <section className="py-24">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">

@@ -5,7 +5,8 @@
  * Tokens de un solo uso almacenados en DB:
  * - Se genera un nuevo token cada 10 segundos (si el anterior ya fue usado o expiró)
  * - Cada token es válido hasta que se usa para un sello (luego queda "consumed")
- * - Los tokens sin usar expiran a las 2 horas
+ * - Los tokens sin usar expiran a las 2 horas (así el link mandado por WhatsApp sigue sirviendo un rato)
+ * - Con ?fresh=1 siempre se crea un link nuevo: para mandar uno distinto a cada cliente
  * - Se limpian tokens vencidos en cada request
  */
 
@@ -62,7 +63,8 @@ export async function GET(req: NextRequest) {
 
   // Buscar token activo creado en los últimos TOKEN_WINDOW_SECONDS y no usado
   const windowStart = new Date(Date.now() - TOKEN_WINDOW_SECONDS * 1000).toISOString()
-  const { data: existing } = await supabase
+  const wantsFresh = req.nextUrl.searchParams.get('fresh') === '1'
+  const { data: existing } = wantsFresh ? { data: null } : await supabase
     .from('stamp_tokens')
     .select('id, token, created_at, expires_at')
     .eq('program_id', program_id)

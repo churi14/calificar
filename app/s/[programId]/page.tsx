@@ -70,7 +70,11 @@ function SelfStampContent() {
             }),
           })
           const data: Result = await res.json()
-          if (data.needs_name) { window.location.href = `/fidelizacion/unirse?program=${programId}`; return }
+          if (data.needs_name) {
+            // Con link de sello: se le pide el nombre acá mismo y se sella en el mismo paso
+            if (stampToken) { setNeedsName(true); setStep('form'); return }
+            window.location.href = `/fidelizacion/unirse?program=${programId}`; return
+          }
           setResult(data)
           setStep('result')
         } catch {
@@ -102,6 +106,8 @@ function SelfStampContent() {
     const data: Result = await res.json()
     // Cliente no encontrado → redirigir al registro
     if (data.needs_name) {
+      // Con link de sello: se le pide el nombre acá mismo y se sella en el mismo paso
+      if (stampToken) { setNeedsName(true); setStep('form'); return }
       window.location.href = `/fidelizacion/unirse?program=${programId}`
       return
     }
@@ -352,9 +358,25 @@ function SelfStampContent() {
               />
             </div>
 
+            {needsName && (
+              <div>
+                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Tu nombre</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && submit()}
+                  placeholder="Ej: Lucía"
+                  autoFocus
+                  className="w-full px-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
+                />
+                <p className="text-xs text-zinc-400 mt-1">Es tu primera vez: así creamos tu tarjeta y te sumamos el primer sello.</p>
+              </div>
+            )}
+
             <button
               onClick={submit}
-              disabled={!phone.trim()}
+              disabled={!phone.trim() || (needsName && !name.trim())}
               className="w-full py-4 rounded-2xl font-extrabold text-lg text-white transition-all disabled:opacity-40 mt-2"
               style={{ background: '#7C3AED' }}
             >

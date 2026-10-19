@@ -21,6 +21,7 @@ const TABLE: { group: string; rows: { name: string; hint?: string; starter: Cell
       { name: 'Tarjeta digital con tu logo', hint: 'Se abre desde un link y se instala como una app, sin descargar nada.', starter: true, pro: true, ultimate: true },
       { name: 'Cartelito NFC y QR para el mostrador', starter: true, pro: true, ultimate: true },
       { name: 'Sello rápido, manual o escaneando al cliente', starter: true, pro: true, ultimate: true },
+      { name: 'Link de sello de un solo uso para pedidos por WhatsApp', hint: 'Pensado para delivery y dark kitchens: se manda con cada pedido y no se puede compartir.', starter: true, pro: true, ultimate: true },
       { name: 'Cupones únicos para canjear los premios', hint: 'Cada premio genera un código que no se puede repetir.', starter: true, pro: true, ultimate: true },
       { name: 'Tarjeta en Google Wallet', hint: 'El cliente la guarda en la billetera de su celular.', starter: false, pro: true, ultimate: true },
       { name: 'Diseño completo', hint: 'Plantillas, colores propios, íconos de los sellos y de la app, y fondo.', starter: false, pro: true, ultimate: true },

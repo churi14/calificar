@@ -13,6 +13,8 @@ interface ViewSelloRapidoProps {
   /** Sucursal en la que se dan los sellos (null = Principal) */
   branchId?: string | null
   branchLabel?: string
+  /** Solo el dueño puede cambiar el modo delivery */
+  canConfigure?: boolean
 }
 
 export default function ViewSelloRapido({
@@ -24,6 +26,7 @@ export default function ViewSelloRapido({
   planExpiresAt = null,
   branchId = null,
   branchLabel,
+  canConfigure = true,
 }: ViewSelloRapidoProps) {
   const [phone, setPhone] = useState('')
   const [found, setFound] = useState<Card | null | 'none'>(null)
@@ -42,6 +45,81 @@ export default function ViewSelloRapido({
   const [secureLink, setSecureLink] = useState<string | null>(null)
   const [secondsLeft, setSecondsLeft] = useState<number>(0)
   const [loadingToken, setLoadingToken] = useState(false)
+
+  // ── Pedidos por WhatsApp / delivery ──
+  const [waPhone, setWaPhone] = useState('')
+  const [waBusy, setWaBusy] = useState(false)
+  const [waCopied, setWaCopied] = useState(false)
+  const [linkOnly, setLinkOnly] = useState(false)
+  const [linkOnlyAvailable, setLinkOnlyAvailable] = useState(true)
+  const [linkOnlySaving, setLinkOnlySaving] = useState(false)
+  const [linkOnlyError, setLinkOnlyError] = useState('')
+
+  const authHeaders: HeadersInit = { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
+
+  useEffect(() => {
+    if (!selectedProgram || !accessToken) return
+    fetch(`/api/fidelizacion/stamp-settings?program_id=${selectedProgram}`, { headers: authHeaders })
+      .then(r => r.json())
+      .then(d => { setLinkOnly(!!d.require_stamp_token); setLinkOnlyAvailable(d.available !== false) })
+      .catch(() => {})
+  }, [selectedProgram, accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function toggleLinkOnly() {
+    setLinkOnlySaving(true); setLinkOnlyError('')
+    const next = !linkOnly
+    const r = await fetch('/api/fidelizacion/stamp-settings', {
+      method: 'POST', headers: authHeaders,
+      body: JSON.stringify({ program_id: selectedProgram, require_stamp_token: next }),
+    })
+    const d = await r.json().catch(() => ({}))
+    setLinkOnlySaving(false)
+    if (!r.ok) { setLinkOnlyError(d.error ?? 'No se pudo cambiar'); return }
+    setLinkOnly(next)
+  }
+
+  /** Pide un link de un solo uso NUEVO (uno distinto para cada cliente) */
+  async function freshLink(): Promise<string | null> {
+    try {
+      const r = await fetch(
+        `/api/fidelizacion/stamp-token?program_id=${selectedProgram}&fresh=1${branchId ? `&branch_id=${branchId}` : ''}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      )
+      const d = await r.json()
+      return d.link ?? null
+    } catch { return null }
+  }
+
+  /** Número de WhatsApp argentino: acepta 1155667788, 011 15 5566-7788, +54 9 11 5566 7788 */
+  function waNumber(raw: string): string {
+    let d = raw.replace(/\D/g, '').replace(/^0+/, '')
+    if (!d) return ''
+    if (d.startsWith('54')) return d
+    d = d.replace(/^(\d{2,4})15(\d{6,8})$/, '$1$2')   // saca el 15 del medio
+    return `54${d.startsWith('9') ? '' : '9'}${d}`
+  }
+
+  const waMessage = (link: string) => `¡Gracias por tu pedido! 🎁 Sumá tu sello de fidelidad acá (el link sirve una sola vez): ${link}`
+
+  async function sendByWhatsApp() {
+    setWaBusy(true)
+    const link = await freshLink()
+    setWaBusy(false)
+    if (!link) return
+    const num = waNumber(waPhone)
+    window.open(`https://wa.me/${num}?text=${encodeURIComponent(waMessage(link))}`, '_blank')
+    setWaPhone('')
+  }
+
+  async function copyWaMessage() {
+    setWaBusy(true)
+    const link = await freshLink()
+    setWaBusy(false)
+    if (!link) return
+    await navigator.clipboard.writeText(waMessage(link))
+    setWaCopied(true)
+    setTimeout(() => setWaCopied(false), 2000)
+  }
 
   useEffect(() => {
     if (!isProPlus) return
@@ -94,12 +172,13 @@ export default function ViewSelloRapido({
     return `${m}:${sec.toString().padStart(2, '0')}`
   }
 
-  function copySecureLink() {
-    if (!secureLink) return
-    navigator.clipboard.writeText(secureLink).then(() => {
-      setCopiedSecure(true)
-      setTimeout(() => setCopiedSecure(false), 2000)
-    })
+  async function copySecureLink() {
+    // Siempre se copia un link NUEVO: si dos clientes recibieran el mismo, el segundo no podría usarlo
+    const link = (await freshLink()) ?? secureLink
+    if (!link) return
+    await navigator.clipboard.writeText(link)
+    setCopiedSecure(true)
+    setTimeout(() => setCopiedSecure(false), 2000)
   }
 
   function search(value: string) {
@@ -191,12 +270,67 @@ export default function ViewSelloRapido({
       {/* Divisor */}
       <div className="my-10 border-t border-zinc-100" />
 
+      {/* Pedidos por WhatsApp / delivery / dark kitchen */}
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 mb-10">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Delivery, dark kitchen y pedidos por WhatsApp</p>
+        <h3 className="font-bold text-zinc-900 mb-1">Mandá el sello con cada pedido</h3>
+        <p className="text-sm text-zinc-600 mb-4 leading-relaxed">
+          Si tus clientes no pasan por un local, tocá el botón y se abre WhatsApp con un mensaje y un link
+          <b> de un solo uso</b> para ese cliente. Lo abre, pone su teléfono y suma su sello. Si lo reenvía o se lo pasa a otro, no sirve.
+        </p>
+        <div className="flex gap-2 mb-3">
+          <input
+            type="tel"
+            value={waPhone}
+            onChange={e => setWaPhone(e.target.value)}
+            placeholder="Teléfono del cliente (ej: 1155667788)"
+            aria-label="Teléfono del cliente"
+            className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-zinc-200 bg-white text-sm focus:outline-none focus:border-emerald-400"
+          />
+          <button
+            onClick={sendByWhatsApp}
+            disabled={waBusy}
+            className="flex-shrink-0 px-4 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-60"
+            style={{ background: '#25D366' }}
+          >
+            {waBusy ? '…' : 'Enviar por WhatsApp'}
+          </button>
+        </div>
+        <button onClick={copyWaMessage} disabled={waBusy} className="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
+          {waCopied ? '✓ Mensaje copiado' : 'O copiar el mensaje y pegarlo en el chat'}
+        </button>
+        <p className="text-xs text-zinc-400 mt-3">El teléfono es opcional: sin teléfono, WhatsApp te deja elegir el chat. El link vale 2 horas o hasta que se use.</p>
+
+        {canConfigure && (
+          <div className="mt-5 pt-4 border-t border-emerald-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-zinc-900">Dar sellos solo con este link</p>
+                <p className="text-xs text-zinc-500 mt-0.5 leading-snug">
+                  Recomendado si no tenés local abierto al público. El QR y el link fijo dejan de dar sellos: solo vale el link que vos mandás en cada pedido, así nadie se sella sin haber comprado.
+                </p>
+              </div>
+              <button
+                onClick={toggleLinkOnly}
+                disabled={linkOnlySaving || !linkOnlyAvailable}
+                aria-pressed={linkOnly}
+                className={`relative w-12 h-6 rounded-full shrink-0 transition-colors ${linkOnly ? 'bg-emerald-500' : 'bg-zinc-300'} disabled:opacity-50`}
+              >
+                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${linkOnly ? 'left-7' : 'left-1'}`} />
+              </button>
+            </div>
+            {linkOnlyError && <p className="text-xs text-red-500 mt-2">{linkOnlyError}</p>}
+            {!linkOnlyAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_link_only.sql para poder activarlo.</p>}
+          </div>
+        )}
+      </div>
+
       {/* Link de auto-sello */}
       <div>
-        <h3 className="font-bold text-zinc-900 mb-1">Link de auto-sello</h3>
+        <h3 className="font-bold text-zinc-900 mb-1">Link fijo de auto-sello</h3>
         <p className="text-sm text-zinc-500 mb-4">
-          Mandá este link por WhatsApp al confirmar un pedido. El cliente lo abre, pone su teléfono
-          y se sella solo — vos no necesitás hacer nada.
+          Un link que sirve siempre, pensado para el local. El cliente lo abre, pone su teléfono y se sella solo.
+          {linkOnly ? ' Ahora está desactivado: solo se dan sellos con el link de un solo uso.' : ' Para pedidos por WhatsApp o delivery usá mejor el link de un solo uso de arriba.'}
         </p>
         <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3">
           <span className="text-sm text-zinc-600 font-mono truncate flex-1">{selfLink}</span>
@@ -218,7 +352,7 @@ export default function ViewSelloRapido({
         <h3 className="font-bold text-zinc-900 mb-1">QR para sumar sellos en el local</h3>
         <p className="text-sm text-zinc-500 mb-4">
           Imprimilo y ponélo en el mostrador. El cliente lo escanea, pone su teléfono y se sella
-          solo. No tiene vencimiento — es solo para uso en el local.
+          solo. No tiene vencimiento — es solo para uso en el local.{linkOnly ? ' (Desactivado mientras el modo delivery esté prendido.)' : ''}
         </p>
         <div className="flex flex-col items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-2xl p-5">
           <img
@@ -254,9 +388,9 @@ export default function ViewSelloRapido({
         {isProPlus ? (
           <>
             <p className="text-sm text-zinc-500 mb-4">
-              Este link es de un solo uso y se renueva cada 10 segundos. Una vez que alguien lo
-              usa para cargar un sello, el link deja de funcionar. Mandalo al cliente justo cuando
-              lo necesita.
+              Cada link sirve <b>una sola vez</b> y vale 2 horas. En cuanto alguien lo usa para cargar un sello,
+              deja de funcionar. Esta pantalla muestra uno nuevo cada 10 segundos, y al tocar Copiar siempre
+              te da uno distinto para cada cliente.
             </p>
             {loadingToken ? (
               <div className="h-12 bg-zinc-100 rounded-xl animate-pulse" />
@@ -284,7 +418,7 @@ export default function ViewSelloRapido({
                   </span>
                 </div>
                 <p className="text-xs text-zinc-400 mt-1">
-                  El link se renueva cada 10 segundos o al ser usado.
+                  Cada link vale 2 horas o hasta que se use.
                 </p>
               </>
             ) : (

@@ -503,6 +503,7 @@ export default function NegocioDashboard() {
         {activeNav === 'sello-rapido' && (
           selectedProgram ? (
             <ViewSelloRapido
+            canConfigure={(program?.role ?? 'owner') === 'owner'}
               cards={cards}
               selectedProgram={selectedProgram}
               accessToken={accessToken}

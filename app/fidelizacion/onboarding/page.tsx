@@ -47,6 +47,7 @@ const BUSINESS_TYPES = [
   { id: 'tienda',      label: 'Tienda y boutique',   icon: '🛍️' },
   { id: 'fitness',     label: 'Fitness y bienestar', icon: '🏋️' },
   { id: 'mascotas',    label: 'Mascotas',            icon: '🐾' },
+  { id: 'delivery',    label: 'Delivery y dark kitchen', icon: '🛵' },
 ]
 
 const FOOD_REWARDS = ['Bebida gratis', 'Postre gratis', 'Descuento 20%', '2×1', 'Regalo sorpresa']
@@ -55,7 +56,7 @@ const GENERIC_REWARDS = ['Producto gratis', 'Descuento 20%', '2×1', 'Regalo sor
 
 function quickRewardsFor(type: string): string[] {
   if (type === 'salon' || type === 'belleza') return BEAUTY_REWARDS
-  if (type === 'cafeteria' || type === 'restaurante' || type === 'panaderia' || type === 'bar') return FOOD_REWARDS
+  if (type === 'cafeteria' || type === 'restaurante' || type === 'panaderia' || type === 'bar' || type === 'delivery') return FOOD_REWARDS
   return GENERIC_REWARDS
 }
 
