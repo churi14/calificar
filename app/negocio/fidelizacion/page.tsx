@@ -193,9 +193,10 @@ export default function NegocioDashboard() {
 
   // ── Clients + transactions fetch ──────────────────────────────────────────
   useEffect(() => {
-    if (!selectedProgram || !accessToken) return
+    if (!selectedProgram) return
     setLoading(true)
-    const authH = { Authorization: `Bearer ${accessToken}` }
+    // Con token se manda Bearer; si la sesión vive solo en cookies, el servidor la lee igual
+    const authH: HeadersInit = accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
     Promise.all([
       fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`, { headers: authH }).then(r => r.json()),
       fetch(`/api/fidelizacion/admin/transactions?program_id=${selectedProgram}&limit=20`, { headers: authH }).then(r => r.json()),

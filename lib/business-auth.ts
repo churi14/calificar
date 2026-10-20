@@ -3,7 +3,9 @@
  * Verifica que el token JWT pertenezca al dueño del programa solicitado.
  * Usar en todos los APIs de negocio que requieran ownership.
  */
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type User } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextRequest } from 'next/server'
 import { canUse } from '@/lib/plan-features'
 
@@ -29,11 +31,8 @@ export async function verifyProgramOwner(
   req: NextRequest,
   programId: string
 ): Promise<{ userId: string } | null> {
-  const token = extractToken(req)
-  if (!token) return null
-
-  const { data: { user }, error } = await admin.auth.getUser(token)
-  if (error || !user) return null
+  const user = await getRequestUser(req)
+  if (!user) return null
 
   // Verificar que el programa pertenezca a un negocio del usuario
   const { data } = await admin
@@ -66,6 +65,30 @@ export async function verifyToken(
   return { userId: user.id, token }
 }
 
+/**
+ * Usuario que hace el pedido: token Bearer o, si el navegador no lo mandó, su sesión por cookie.
+ * Hay sesiones que viven solo en cookies; sin este respaldo el panel no podía leer sus propios clientes.
+ */
+async function getRequestUser(req: NextRequest): Promise<User | null> {
+  const token = extractToken(req)
+  if (token) {
+    const { data: { user } } = await admin.auth.getUser(token)
+    if (user) return user
+  }
+  try {
+    const cookieStore = await cookies()
+    const serverClient = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll() { return cookieStore.getAll() }, setAll() { /* solo lectura */ } } }
+    )
+    const { data: { user } } = await serverClient.auth.getUser()
+    return user ?? null
+  } catch {
+    return null
+  }
+}
+
 export type ProgramAccess = {
   userId: string
   /** owner: el dueño del negocio. staff: miembro del equipo (solo sellos, clientes y cupones) */
@@ -83,11 +106,8 @@ export async function verifyProgramMember(
   req: NextRequest,
   programId: string
 ): Promise<ProgramAccess | null> {
-  const token = extractToken(req)
-  if (!token) return null
-
-  const { data: { user }, error } = await admin.auth.getUser(token)
-  if (error || !user) return null
+  const user = await getRequestUser(req)
+  if (!user) return null
 
   const { data } = await admin
     .from('loyalty_programs')
