@@ -27,7 +27,7 @@ const BEAUTY_PLAN = {
   badge: null as string | null,
   features: [
     'Tarjeta digital con el logo de tu salón',
-    'Cartelito NFC y QR para el mostrador',
+    'QR listo para imprimir',
     'Sello rápido, manual o escaneando',
     'Cupones únicos para los premios',
     'Cumpleaños automáticos',
@@ -47,7 +47,7 @@ const VIEW_PLANS = [
     badge: null as string | null,
     features: [
       'Tarjeta digital con tu logo',
-      'Cartelito NFC + QR para el mostrador',
+      'QR listo para imprimir',
       'Sello rápido, manual o escaneando al cliente',
       'Cupones únicos para canjear los premios',
       'Lista de clientes y panel',

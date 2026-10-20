@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const steps = [
   { num: '01', title: 'Escanea el QR del salón', desc: 'En el mostrador o en el espejo. Pone su nombre y su teléfono, y la tarjeta queda guardada en su celular.' },
-  { num: '02', title: 'Suma un sello en cada turno', desc: 'Al terminar el servicio escanea el QR o acerca el celular al cartelito. Se suma solo, sin que nadie anote nada.' },
+  { num: '02', title: 'Suma un sello en cada turno', desc: 'Al terminar el servicio escanea el QR del salón. Se suma solo, sin que nadie anote nada.' },
   { num: '03', title: 'Se lleva su premio', desc: 'Al completar la tarjeta recibe un cupón único. Se lo mostrás a la peluquera, lo canjeás y arranca de nuevo.' },
 ]
 
@@ -91,7 +91,7 @@ const faqs = [
   { q: '¿Cuánto tarda en estar lista?', a: 'Entre cinco y diez minutos: subís tu logo, elegís cuántos sellos pide la tarjeta y qué premio se lleva la clienta. Después imprimís el QR y lo ponés en el mostrador.' },
   { q: '¿Cómo recupero a clientes que hace tiempo no vienen?', a: 'Activás la reactivación y Calificar avisa automáticamente a quienes pasaron un tiempo sin sumar sellos. Vos elegís cuánto tiempo y a qué hora sale el mensaje.' },
   { q: '¿Qué premios funcionan mejor en un salón?', a: 'Los que se sienten cercanos: un servicio de regalo (un brushing, un diseño de uñas) suele convencer más que un descuento chico. Arriba te dejamos algunas ideas.' },
-  { q: '¿Es difícil para mi equipo?', a: 'No. Sumar un sello lleva unos segundos con el QR o el cartelito NFC, y el panel funciona desde el celular.' },
+  { q: '¿Es difícil para mi equipo?', a: 'No. Sumar un sello lleva unos segundos con el QR del salón, y el panel funciona desde el celular.' },
   { q: '¿Puedo probarlo antes de pagar?', a: 'Sí. Tenés 14 días gratis, sin tarjeta de crédito.' },
 ]
 
@@ -305,7 +305,7 @@ export default function SalonesDeBellezaPage() {
               <ul className="space-y-2.5 text-sm text-zinc-700 my-6 flex-1">
                 {[
                   'Tarjeta digital con el logo de tu salón',
-                  'Cartelito NFC y QR para el mostrador',
+                  'QR listo para imprimir y poner en el mostrador',
                   'Sellos por QR, a mano o escaneando',
                   'Cupones únicos para los premios',
                   'Cumpleaños automáticos para tus clientas',

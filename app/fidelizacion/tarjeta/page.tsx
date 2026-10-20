@@ -645,7 +645,7 @@ function TarjetaContent() {
         })()}
 
         <p className="text-xs text-white/30 text-center pb-2">
-          Guardá este link o escaneá el cartel NFC del local para sumar sellos.
+          Guardá este link o escaneá el QR del local para sumar sellos.
         </p>
       </div>
 

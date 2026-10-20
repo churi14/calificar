@@ -20,7 +20,7 @@ const PLANS = [
     period: 'ARS / mes',
     sub: '$500/día · menos que un café',
     desc: 'PARA TU NEGOCIO',
-    features: ['Tarjeta digital con tu logo', 'Cartelito NFC + QR para el mostrador', 'Sello rápido, manual o escaneando al cliente', 'Cupones únicos para canjear los premios', 'Lista de clientes y panel', '1 local'],
+    features: ['Tarjeta digital con tu logo', 'QR listo para imprimir', 'Sello rápido, manual o escaneando al cliente', 'Cupones únicos para canjear los premios', 'Lista de clientes y panel', '1 local'],
     pills: ['Tarjetas ilimitadas', 'Notificaciones ilimitadas'],
     cta: 'Activar Starter',
     highlight: false,

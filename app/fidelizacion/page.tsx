@@ -12,9 +12,9 @@ const features = [
     desc: 'Tus clientes guardan la tarjeta en el celular. Sin apps, sin papel, sin fricción.',
   },
   {
-    icon: '📡',
-    title: 'NFC + QR en el mostrador',
-    desc: 'El cliente acerca el celular o escanea el QR y suma su sello automáticamente.',
+    icon: '📲',
+    title: 'QR y link para sumar sellos',
+    desc: 'El cliente escanea el QR del mostrador o abre el link que le mandás por WhatsApp, y suma su sello.',
   },
   {
     icon: '🎂',
@@ -41,7 +41,7 @@ const features = [
 const steps = [
   { num: '01', title: 'Configurás tu tarjeta', desc: 'Subís el logo, elegís cuántos sellos necesita el cliente y qué premio se lleva.' },
   { num: '02', title: 'El cliente se registra', desc: 'Escanea el QR del local, completa nombre y teléfono, listo. La tarjeta aparece en su Wallet.' },
-  { num: '03', title: 'Suma sellos con NFC o QR', desc: 'Cada visita, el cliente acerca el celular al cartel del mostrador o escanea el QR.' },
+  { num: '03', title: 'Suma sellos con QR o link', desc: 'Cada visita, el cliente escanea el QR del mostrador o abre el link que le mandás por WhatsApp.' },
   { num: '04', title: 'Canjea el premio', desc: 'Al llegar a la meta recibe un cupón único. Lo muestra, lo canjeás, se reinicia la tarjeta.' },
 ]
 
@@ -55,7 +55,7 @@ const plans = [
     perDaySub: 'menos que un café',
     features: [
       'Tarjeta digital con tu logo',
-      'Cartelito NFC + QR para el mostrador',
+      'QR listo para imprimir y poner en el mostrador',
       'Sello rápido, manual o escaneando al cliente',
       'Cupones únicos para canjear los premios',
       'Lista de clientes y panel',
@@ -108,7 +108,7 @@ const plans = [
 
 const faqs = [
   { q: '¿El cliente necesita descargar una app?', a: 'No. La tarjeta se guarda directo en Google Wallet, que ya viene instalado en todos los Android.' },
-  { q: '¿Cómo suma el cliente su sello?', a: 'Hay dos formas: acerca el celular al cartelito NFC del mostrador, o escanea el QR que está en el local.' },
+  { q: '¿Cómo suma el cliente su sello?', a: 'Hay dos formas: escanea el QR del mostrador, o abre el link de un solo uso que el negocio le manda por WhatsApp con cada pedido.' },
   { q: '¿Puedo personalizar el diseño de la tarjeta?', a: 'Sí. En todos los planes subís tu logo. Con Pro además elegís plantillas, colores, íconos y fondo para que la tarjeta tenga tu identidad visual.' },
   { q: '¿Qué pasa si el cliente cambia de celular?', a: 'La tarjeta vive en la nube. Al loguearse de nuevo a su cuenta Google, recupera todo.' },
   { q: '¿Puedo probar antes de pagar?', a: 'Sí. Tenés 14 días gratis sin tarjeta de crédito.' },
@@ -179,7 +179,7 @@ export default function FidelizacionLanding() {
               <span className="text-violet-600">Siempre.</span>
             </h1>
             <p className="text-zinc-600 text-lg leading-relaxed mb-8 max-w-md">
-              Reemplazá las tarjetitas de papel con una tarjeta digital en Google Wallet. NFC, QR, notificaciones y premios automáticos.
+              Reemplazá las tarjetitas de papel con una tarjeta digital en Google Wallet. QR, notificaciones y premios automáticos.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
@@ -361,45 +361,6 @@ export default function FidelizacionLanding() {
         </div>
       </section>
 
-      {/* DIFERENCIADOR NFC */}
-      <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-          <div className="rounded-3xl p-10 text-white text-center" style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #6366F1 100%)', boxShadow: '0 20px 50px rgba(124,58,237,0.30)' }}>
-            <div className="text-6xl mb-4">📡</div>
-            <h3 className="text-2xl font-extrabold mb-3">Tap. Sello sumado.</h3>
-            <p className="opacity-80 text-sm leading-relaxed">
-              El cliente acerca el celular al cartelito NFC del mostrador y el sello se suma solo. Sin apps, sin escanear, sin fricción.
-            </p>
-            <div className="mt-6 bg-white/20 rounded-2xl px-6 py-4">
-              <p className="text-xs opacity-70 font-semibold uppercase tracking-widest mb-1">Tiempo para sumar un sello</p>
-              <p className="text-4xl font-extrabold">2 seg</p>
-            </div>
-          </div>
-          <div>
-            <h2 className="text-4xl font-extrabold tracking-tight mb-6 text-zinc-900">
-              La tecnología que solo tiene Calificar
-            </h2>
-            <div className="space-y-5">
-              {[
-                { t: 'NFC físico integrado', d: 'Cartelito de mostrador con chip NFC. El cliente tap y listo, no necesita abrir ninguna app.' },
-                { t: 'Sin fricciones para el cliente', d: 'El flujo más corto del mercado. Registro en 30 segundos, sello en 2 segundos.' },
-                { t: 'QR de respaldo', d: 'Si el cliente no tiene NFC, escanea el QR que también está en el cartelito.' },
-              ].map(({ t, d }) => (
-                <div key={t} className="flex gap-4">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: '#EDE9FE' }}>
-                    <div className="w-2 h-2 rounded-full bg-violet-600" />
-                  </div>
-                  <div>
-                    <p className="font-bold mb-1 text-zinc-900">{t}</p>
-                    <p className="text-zinc-600 text-sm leading-relaxed">{d}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* PRECIOS */}
       <section id="precios" className="py-24" style={{ background: '#FAF7FF' }}>
         <div className="max-w-6xl mx-auto px-6">
@@ -517,7 +478,7 @@ export default function FidelizacionLanding() {
             Empezá hoy, gratis.
           </h2>
           <p className="text-violet-200 text-lg mb-8">
-            14 días de prueba. Sin tarjeta de crédito. El cartelito NFC incluido en todos los planes pagos.
+            14 días de prueba. Sin tarjeta de crédito.
           </p>
           <Link
             href="/fidelizacion/onboarding"
