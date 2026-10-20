@@ -1000,12 +1000,28 @@ export default function AdminFidelizacionPage() {
                       <p className="text-[11px] text-gray-400 font-mono">{b.id}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => { setForm(f => ({ ...f, business_id: b.id })); setEditId(null); setShowForm(true) }}
-                    className="text-xs font-bold px-3 py-1.5 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors flex-shrink-0"
-                  >
-                    + Crear programa
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={async () => {
+                        if (!confirm(`¿Eliminar "${b.name}" por completo?
+
+Se borra el negocio, todos sus datos y el usuario con el que se registró (el email queda libre). No se puede deshacer.`)) return
+                        const res = await fetch(`/api/fidelizacion/admin/businesses?id=${b.id}&delete_user=1`, { method: 'DELETE' })
+                        const d = await res.json().catch(() => ({}))
+                        if (!res.ok) { alert(d.error ?? 'No se pudo eliminar'); return }
+                        load()
+                      }}
+                      className="text-xs font-bold px-3 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      Eliminar
+                    </button>
+                    <button
+                      onClick={() => { setForm(f => ({ ...f, business_id: b.id })); setEditId(null); setShowForm(true) }}
+                      className="text-xs font-bold px-3 py-1.5 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors"
+                    >
+                      + Crear programa
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
