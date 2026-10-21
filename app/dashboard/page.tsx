@@ -35,6 +35,11 @@ export default async function DashboardPage() {
     redirect('/negocio/fidelizacion')
   }
 
+  // Cuenta nueva sin ningún negocio ni plan: no hay nada que ver acá, va a armar su programa
+  if (!fidBiz?.length && !businesses?.length && !profile?.qr_unlimited && profile?.plan !== 'basic' && profile?.plan !== 'pro') {
+    redirect('/fidelizacion/onboarding')
+  }
+
   // Si es usuario QR (qr_unlimited) sin negocio → mandarlo al dashboard QR
   if (profile?.qr_unlimited && (!businesses || businesses.length === 0)) {
     redirect('/qr/dashboard')
