@@ -1004,9 +1004,9 @@ export default function OnboardingPage() {
                         setShowEmailForm(true)
                         setTimeout(() => emailFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80)
                       }}
-                      className="w-full text-center text-sm text-zinc-500 hover:text-zinc-700 transition-colors py-2"
+                      className="w-full flex items-center justify-center gap-2 bg-zinc-900 text-white font-bold text-sm py-4 rounded-2xl hover:bg-zinc-800 active:scale-[0.98] transition-all"
                     >
-                      o usá tu correo (Gmail, Outlook, Hotmail…)
+                      ✉️ Continuar con mi correo
                     </button>
                   ) : (
                     <div ref={emailFormRef}>
