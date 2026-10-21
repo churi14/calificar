@@ -13,6 +13,29 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [codeMode, setCodeMode] = useState<'off' | 'email' | 'verify'>('off')
+  const [code, setCode] = useState('')
+  const [info, setInfo] = useState('')
+
+  async function sendCode(e?: React.FormEvent) {
+    e?.preventDefault()
+    if (!email.trim()) { setError('Escribí tu email primero.'); return }
+    setLoading(true); setError(''); setInfo('')
+    const supabase = await createClient()
+    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: false } })
+    setLoading(false)
+    if (error) { setError('No encontramos una cuenta con ese email. Si todavía no tenés, registrate.'); return }
+    setCodeMode('verify'); setInfo('Te mandamos un código al mail.')
+  }
+
+  async function verifyCode(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true); setError('')
+    const supabase = await createClient()
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'email' })
+    if (error) { setError('El código no es válido o venció. Pedí uno nuevo.'); setLoading(false); return }
+    router.push(next)
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -104,6 +127,30 @@ function LoginForm() {
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
           </form>
+
+          {codeMode === 'off' && (
+            <button type="button" onClick={() => sendCode()} disabled={loading}
+              className="w-full text-sm font-semibold text-violet-300 hover:text-white rounded-xl py-2.5 transition-colors disabled:opacity-50"
+              style={{ border: '1px solid rgba(124,58,237,0.4)' }}>
+              ✉️ Entrar con un código del mail (sin contraseña)
+            </button>
+          )}
+          {codeMode === 'verify' && (
+            <form onSubmit={verifyCode} className="space-y-3">
+              {info && <p className="text-emerald-400 text-xs">{info}</p>}
+              <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code}
+                onChange={e => setCode(e.target.value.replace(/\D/g, ''))} placeholder="Código del mail"
+                className="w-full rounded-xl px-3 py-2.5 text-center text-lg font-bold tracking-widest text-white focus:outline-none placeholder-slate-600"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }} />
+              <button type="submit" disabled={loading || code.length < 6}
+                className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl text-sm disabled:opacity-50">
+                Entrar con el código
+              </button>
+              <button type="button" onClick={() => sendCode()} disabled={loading} className="w-full text-xs text-slate-400 hover:text-white">
+                Reenviar código
+              </button>
+            </form>
+          )}
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-4">
