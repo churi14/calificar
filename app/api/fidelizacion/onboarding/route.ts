@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
     const {
       businessName,
       businessType,
+      phone,
       stampsGoal = 8,
       rewardDescription,
       milestones = [],
@@ -96,6 +97,7 @@ export async function POST(req: NextRequest) {
           type: businessType ?? 'otro',
           owner_user_id: user.id,
           active: true,
+          whatsapp_number: typeof phone === 'string' ? phone.replace(/\D/g, '').slice(0, 15) || null : null,
         })
         .select('id')
         .single()

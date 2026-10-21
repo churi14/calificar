@@ -235,6 +235,9 @@ export default function OnboardingPage() {
   const [milestoneReward, setMilestoneReward] = useState('')
   const [birthdayAction, setBirthdayAction] = useState<'celebrate' | 'skip'>('skip')
   const [businessName, setBusinessName] = useState('')
+  const [phone, setPhone] = useState('')
+  const phoneDigits = phone.replace(/\D/g, '')
+  const phoneOk = phoneDigits.length >= 8 && phoneDigits.length <= 15
   const [primaryColor, setPrimaryColor] = useState('#7C3AED')
 
   // Auth
@@ -268,6 +271,7 @@ export default function OnboardingPage() {
         collectBirthday: clientData === 'full',
         birthdayAction,
         businessName, primaryColor,
+        phone: phoneDigits,
       }))
     } catch {}
   }
@@ -825,6 +829,17 @@ export default function OnboardingPage() {
                 )}
               </div>
 
+              <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 px-1">Tu número de WhatsApp</label>
+              <input
+                type="tel"
+                inputMode="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="Ej: 11 2345 6789"
+                className="w-full mt-1 mb-1 border-2 border-zinc-200 focus:border-violet-400 rounded-2xl px-4 py-3.5 text-sm font-semibold focus:outline-none bg-white"
+              />
+              <p className="text-[11px] text-zinc-400 px-1 mb-5">Con código de área, sin el 0 ni el 15.</p>
+
               {/* Live card preview */}
               <div className="rounded-2xl p-4 mb-5 shadow-lg" style={{ background: primaryColor }}>
                 <div className="flex items-center gap-3 mb-4">
@@ -853,7 +868,7 @@ export default function OnboardingPage() {
               </div>
 
               <button
-                disabled={!businessName.trim()}
+                disabled={!businessName.trim() || !phoneOk}
                 onClick={next}
                 className="w-full text-white font-bold py-4 rounded-2xl text-sm transition-all disabled:opacity-40 active:scale-[0.98]"
                 style={{ background: primaryColor }}

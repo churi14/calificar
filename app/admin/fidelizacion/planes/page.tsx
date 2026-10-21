@@ -12,6 +12,7 @@ type BizRow = {
   extra_locales?: number
   owner_user_id: string
   owner_email: string | null
+  whatsapp_number?: string | null
   created_at: string
   loyalty_programs: { id: string }[]
 }
@@ -172,6 +173,11 @@ export default function PlanesPage() {
                   <div className="min-w-0">
                     <p className="font-bold text-zinc-900 text-sm truncate">{biz.name}</p>
                     <p className="text-[10px] text-zinc-400 truncate">{biz.owner_email ?? biz.owner_user_id}</p>
+                    {biz.whatsapp_number && (
+                      <a href={`https://wa.me/${biz.whatsapp_number}`} target="_blank" rel="noreferrer" className="text-[10px] text-emerald-600 font-semibold hover:underline">
+                        WhatsApp {biz.whatsapp_number}
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 ml-3">

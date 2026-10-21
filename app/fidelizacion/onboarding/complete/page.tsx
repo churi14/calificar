@@ -42,6 +42,7 @@ function CompleteContent() {
         primaryColor?: string
         birthdayAction?: 'celebrate' | 'skip'
         collectBirthday?: boolean
+        phone?: string
       } = {}
       try {
         const raw = localStorage.getItem('cal_onboarding')
@@ -80,6 +81,7 @@ function CompleteContent() {
           body: JSON.stringify({
             businessName: config.businessName,
             businessType: config.businessType,
+            phone: config.phone,
             stampsGoal: config.stampsGoal ?? 8,
             rewardDescription: config.reward ?? 'Premio',
             milestones: config.milestones ?? [],
