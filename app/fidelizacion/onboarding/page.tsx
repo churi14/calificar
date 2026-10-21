@@ -177,11 +177,68 @@ function Hint({ text = '👆 Tocá uno y seguimos' }: { text?: string }) {
   )
 }
 
+// ─── Vista previa realista de la tarjeta ──────────────────────────────────────
+function CardPreview({ name, color, goal, reward, icon }: { name: string; color: string; goal: number; reward: string; icon: string }) {
+  const total = Math.min(Math.max(goal, 4), 12)
+  const filled = Math.min(3, total - 1)
+  const cols = total <= 8 ? 4 : 6
+  return (
+    <div
+      className="rounded-3xl p-5 mb-5 shadow-xl transition-all duration-300 relative overflow-hidden"
+      style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)` }}
+    >
+      <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/10" />
+      <div className="absolute -left-8 -bottom-12 w-32 h-32 rounded-full bg-black/10" />
+      <div className="relative flex items-center gap-3 mb-5">
+        <div className="w-11 h-11 rounded-2xl bg-white/95 flex items-center justify-center text-xl font-extrabold shadow-sm" style={{ color }}>
+          {name ? name[0].toUpperCase() : icon}
+        </div>
+        <div className="min-w-0">
+          <p className="text-white font-extrabold text-base leading-tight truncate">{name || 'Tu negocio'}</p>
+          <p className="text-white/70 text-[10px] font-bold tracking-widest mt-0.5">TARJETA DE SELLOS</p>
+        </div>
+      </div>
+      <div className="relative grid gap-2 mb-4" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+        {Array.from({ length: total }).map((_, i) => {
+          const last = i === total - 1
+          const done = i < filled
+          return (
+            <div
+              key={i}
+              className="aspect-square rounded-full flex items-center justify-center text-sm font-extrabold"
+              style={{
+                background: done ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.18)',
+                color: done ? color : 'rgba(255,255,255,0.7)',
+                border: done ? 'none' : '2px dashed rgba(255,255,255,0.45)',
+              }}
+            >
+              {last ? '🎁' : done ? '✓' : i + 1}
+            </div>
+          )
+        })}
+      </div>
+      <div className="relative flex items-center justify-between gap-3 bg-black/15 rounded-2xl px-3.5 py-2.5">
+        <div className="min-w-0">
+          <p className="text-white/70 text-[10px] font-bold tracking-wider">{filled} DE {total} SELLOS</p>
+          <p className="text-white text-xs font-bold truncate">Premio: {reward || 'Tu premio'}</p>
+        </div>
+        <div className="w-9 h-9 rounded-lg bg-white grid grid-cols-3 gap-[2px] p-1.5 flex-shrink-0">
+          {[1,1,0,0,1,1,1,0,1].map((b, i) => <div key={i} className="rounded-[1px]" style={{ background: b ? '#18181b' : 'transparent' }} />)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function OnboardingPage() {
   const [step, setStep] = useState(0)
   const [animKey, setAnimKey] = useState(0)
   const [animDir, setAnimDir] = useState<'fwd' | 'back'>('fwd')
+
+  // Borrador: si recarga la página (F5) vuelve al mismo paso con lo que ya cargó
+  const [hydrated, setHydrated] = useState(false)
+  const draftRestored = useRef(false)
 
   // Guardar plan elegido desde la landing (viene en el query param ?plan=starter)
   useEffect(() => {
@@ -191,9 +248,34 @@ export default function OnboardingPage() {
       if (plan && ['starter', 'pro', 'ultimate'].includes(plan)) {
         localStorage.setItem('cal_chosen_plan', plan)
       }
+      // Recuperar el borrador de una recarga
+      try {
+        const raw = localStorage.getItem('cal_onboarding_draft')
+        if (raw) {
+          const d = JSON.parse(raw)
+          if (typeof d.step === 'number' && d.step > 0 && d.step < TOTAL_STEPS) {
+            draftRestored.current = true
+            if (d.businessType) setBusinessType(d.businessType)
+            if (d.cardDesign) setCardDesign(d.cardDesign)
+            if (d.locations) setLocations(d.locations)
+            if (d.clientData) setClientData(d.clientData)
+            if (d.stampsGoal) setStampsGoal(d.stampsGoal)
+            if (typeof d.reward === 'string') setReward(d.reward)
+            if (typeof d.hasMilestone === 'boolean') setHasMilestone(d.hasMilestone)
+            if (d.milestoneAt) setMilestoneAt(d.milestoneAt)
+            if (typeof d.milestoneReward === 'string') setMilestoneReward(d.milestoneReward)
+            if (d.birthdayAction) setBirthdayAction(d.birthdayAction)
+            if (typeof d.businessName === 'string') setBusinessName(d.businessName)
+            if (typeof d.phone === 'string') setPhone(d.phone)
+            if (d.primaryColor) setPrimaryColor(d.primaryColor)
+            setStep(d.step)
+          }
+        }
+      } catch {}
+      setHydrated(true)
       // Desde la página de salones: el rubro ya está elegido, se salta ese paso
       const tipo = params.get('tipo')
-      if (tipo === 'salon' || tipo === 'belleza') {
+      if (!draftRestored.current && (tipo === 'salon' || tipo === 'belleza')) {
         setBusinessType(tipo)
         navigate(1)
       }
@@ -256,6 +338,16 @@ export default function OnboardingPage() {
   }, [resendIn])
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
+
+  useEffect(() => {
+    if (!hydrated) return
+    try {
+      localStorage.setItem('cal_onboarding_draft', JSON.stringify({
+        step, businessType, cardDesign, locations, clientData, stampsGoal, reward,
+        hasMilestone, milestoneAt, milestoneReward, birthdayAction, businessName, phone, primaryColor,
+      }))
+    } catch {}
+  }, [hydrated, step, businessType, cardDesign, locations, clientData, stampsGoal, reward, hasMilestone, milestoneAt, milestoneReward, birthdayAction, businessName, phone, primaryColor])
 
   function navigate(next: number, dir: 'fwd' | 'back' = 'fwd') {
     setAnimDir(dir)
@@ -877,32 +969,7 @@ export default function OnboardingPage() {
               />
               <p className="text-[11px] text-zinc-400 px-1 mb-5">Con código de área, sin el 0 ni el 15.</p>
 
-              {/* Live card preview */}
-              <div className="rounded-2xl p-4 mb-5 shadow-lg" style={{ background: primaryColor }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white font-extrabold text-lg">
-                    {businessName ? businessName[0].toUpperCase() : '?'}
-                  </div>
-                  <div>
-                    <p className="text-white font-extrabold text-sm leading-none">{businessName || 'Tu negocio'}</p>
-                    <p className="text-white/60 text-xs mt-0.5">LEALTAD</p>
-                  </div>
-                </div>
-                <div className="flex gap-1.5 flex-wrap">
-                  {Array.from({ length: stampsGoal }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                      style={{
-                        background: i < 3 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.25)',
-                        color: primaryColor,
-                      }}
-                    >
-                      {i < 3 ? '✓' : ''}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CardPreview name={businessName} color={primaryColor} goal={stampsGoal} reward={reward} icon={BUSINESS_TYPES.find(t => t.id === businessType)?.icon ?? '⭐'} />
 
               <button
                 disabled={!businessName.trim() || !phoneOk}
@@ -922,27 +989,7 @@ export default function OnboardingPage() {
               </h1>
               <p className="text-zinc-500 text-sm mb-5">Tocá uno — cada color se puede ajustar después.</p>
 
-              {/* Large preview */}
-              <div className="rounded-2xl p-4 mb-5 shadow-lg transition-all duration-300" style={{ background: primaryColor }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white font-extrabold text-lg">
-                    {businessName ? businessName[0].toUpperCase() : 'C'}
-                  </div>
-                  <div>
-                    <p className="text-white font-extrabold text-sm leading-none">{businessName || 'Tu negocio'}</p>
-                    <p className="text-white/60 text-xs mt-0.5">LEALTAD</p>
-                  </div>
-                </div>
-                <div className="flex gap-1.5 flex-wrap">
-                  {Array.from({ length: Math.min(stampsGoal, 8) }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-7 h-7 rounded-full"
-                      style={{ background: i < 3 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.25)' }}
-                    />
-                  ))}
-                </div>
-              </div>
+              <CardPreview name={businessName} color={primaryColor} goal={stampsGoal} reward={reward} icon={BUSINESS_TYPES.find(t => t.id === businessType)?.icon ?? '⭐'} />
 
               {/* Color grid */}
               <div className="grid grid-cols-3 gap-2 mb-5">
