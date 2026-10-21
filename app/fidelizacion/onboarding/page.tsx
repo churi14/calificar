@@ -1062,7 +1062,7 @@ export default function OnboardingPage() {
                     ¿No lo ves? Revisá la carpeta de spam o correo no deseado.
                   </p>
                   <form onSubmit={handleVerifyCode} className="mt-5 flex flex-col gap-2">
-                    <p className="text-xs text-zinc-500">¿Abriste el mail en otro navegador? Escribí acá el código de 6 dígitos que viene en el correo:</p>
+                    <p className="text-xs text-zinc-500">¿Abriste el mail en otro navegador? Escribí acá el código que viene en el correo:</p>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -1070,7 +1070,7 @@ export default function OnboardingPage() {
                       maxLength={8}
                       value={otpCode}
                       onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                      placeholder="123456"
+                      placeholder="12345678"
                       className="w-full border-2 border-zinc-200 focus:border-violet-400 rounded-2xl px-4 py-3 text-center text-lg font-bold tracking-widest focus:outline-none bg-white"
                     />
                     <button
