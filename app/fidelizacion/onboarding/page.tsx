@@ -246,6 +246,14 @@ export default function OnboardingPage() {
   const emailFormRef = useRef<HTMLDivElement>(null)
   const [emailSent, setEmailSent] = useState(false)
   const [otpCode, setOtpCode] = useState('')
+  const [resendIn, setResendIn] = useState(0)
+  const [resendMsg, setResendMsg] = useState('')
+
+  useEffect(() => {
+    if (resendIn <= 0) return
+    const t = setTimeout(() => setResendIn(v => v - 1), 1000)
+    return () => clearTimeout(t)
+  }, [resendIn])
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
 
@@ -292,6 +300,21 @@ export default function OnboardingPage() {
     if (error) { setAuthError(error.message); setAuthLoading(false) }
   }
 
+  async function handleResend() {
+    if (resendIn > 0) return
+    setAuthError('')
+    setResendMsg('')
+    saveConfig()
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/fidelizacion/onboarding/complete` },
+    })
+    if (error) { setAuthError(error.message); return }
+    setOtpCode('')
+    setResendIn(30)
+    setResendMsg('Te mandamos un código nuevo. Usá el último que te llegó.')
+  }
+
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault()
     setAuthError('')
@@ -318,7 +341,7 @@ export default function OnboardingPage() {
     })
     setAuthLoading(false)
     if (error) setAuthError(error.message)
-    else setEmailSent(true)
+    else { setEmailSent(true); setResendIn(30) }
   }
 
   const meta = STEP_META[step]
@@ -1079,7 +1102,14 @@ export default function OnboardingPage() {
                       className="w-full bg-zinc-900 text-white font-bold text-sm py-3 rounded-2xl disabled:opacity-40"
                     >{authLoading ? 'Verificando...' : 'Entrar con el código'}</button>
                     {authError && <p className="text-red-500 text-xs">{authError}</p>}
+                    {resendMsg && <p className="text-emerald-600 text-xs">{resendMsg}</p>}
                   </form>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resendIn > 0}
+                    className="mt-3 text-sm font-semibold text-violet-600 disabled:text-zinc-400"
+                  >{resendIn > 0 ? `Reenviar código en ${resendIn}s` : 'Reenviar código'}</button>
                   <button
                     onClick={() => { setEmailSent(false); setEmail(''); setOtpCode('') }}
                     className="mt-4 text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
