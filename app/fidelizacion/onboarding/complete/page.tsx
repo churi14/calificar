@@ -27,7 +27,7 @@ function CompleteContent() {
       }
 
       if (!user || !accessToken) {
-        setErrorMsg('No pudimos verificar tu sesión. Intentá de nuevo.')
+        setErrorMsg('No pudimos verificar tu sesión. Si abriste el link del mail en otra app o navegador, volvé a registrarte y escribí el código de 6 dígitos del correo en la misma pantalla.')
         setStatus('error')
         return
       }

@@ -245,6 +245,7 @@ export default function OnboardingPage() {
   const [showEmailForm, setShowEmailForm] = useState(false)
   const emailFormRef = useRef<HTMLDivElement>(null)
   const [emailSent, setEmailSent] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
 
@@ -289,6 +290,19 @@ export default function OnboardingPage() {
       options: { redirectTo: `${window.location.origin}/fidelizacion/onboarding/complete` },
     })
     if (error) { setAuthError(error.message); setAuthLoading(false) }
+  }
+
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault()
+    setAuthError('')
+    setAuthLoading(true)
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: otpCode.trim(), type: 'email' })
+    if (error) {
+      setAuthLoading(false)
+      setAuthError('El código no es válido o venció. Pedí uno nuevo.')
+      return
+    }
+    window.location.href = '/fidelizacion/onboarding/complete'
   }
 
   async function handleMagicLink(e: React.FormEvent) {
@@ -1047,8 +1061,27 @@ export default function OnboardingPage() {
                   <p className="text-xs text-zinc-400 mt-2">
                     ¿No lo ves? Revisá la carpeta de spam o correo no deseado.
                   </p>
+                  <form onSubmit={handleVerifyCode} className="mt-5 flex flex-col gap-2">
+                    <p className="text-xs text-zinc-500">¿Abriste el mail en otro navegador? Escribí acá el código de 6 dígitos que viene en el correo:</p>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={8}
+                      value={otpCode}
+                      onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="123456"
+                      className="w-full border-2 border-zinc-200 focus:border-violet-400 rounded-2xl px-4 py-3 text-center text-lg font-bold tracking-widest focus:outline-none bg-white"
+                    />
+                    <button
+                      type="submit"
+                      disabled={authLoading || otpCode.length < 6}
+                      className="w-full bg-zinc-900 text-white font-bold text-sm py-3 rounded-2xl disabled:opacity-40"
+                    >{authLoading ? 'Verificando...' : 'Entrar con el código'}</button>
+                    {authError && <p className="text-red-500 text-xs">{authError}</p>}
+                  </form>
                   <button
-                    onClick={() => { setEmailSent(false); setEmail('') }}
+                    onClick={() => { setEmailSent(false); setEmail(''); setOtpCode('') }}
                     className="mt-4 text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
                   >Usar otro email</button>
                 </div>
