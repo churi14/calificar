@@ -129,11 +129,19 @@ function LoginForm() {
           </form>
 
           {codeMode === 'off' && (
-            <button type="button" onClick={() => sendCode()} disabled={loading}
-              className="w-full text-sm font-semibold text-violet-300 hover:text-white rounded-xl py-2.5 transition-colors disabled:opacity-50"
-              style={{ border: '1px solid rgba(124,58,237,0.4)' }}>
-              ✉️ Entrar con un código del mail (sin contraseña)
-            </button>
+            <>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                <span className="text-xs text-slate-500">¿Sin contraseña?</span>
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              </div>
+              <button type="button" onClick={() => sendCode()} disabled={loading}
+                className="w-full flex flex-col items-center gap-0.5 rounded-xl py-3 text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)' }}>
+                <span className="font-bold text-sm">✉️ Recibir un código por mail</span>
+                <span className="text-[11px] text-violet-200">Escribí tu email arriba y entrás en segundos</span>
+              </button>
+            </>
           )}
           {codeMode === 'verify' && (
             <form onSubmit={verifyCode} className="space-y-3">
