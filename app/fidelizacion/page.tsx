@@ -116,6 +116,7 @@ const faqs = [
 
 export default function FidelizacionLanding() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [svcOpen, setSvcOpen] = useState(false)
 
   return (
     <div className="font-sans text-zinc-900 bg-white">
@@ -130,25 +131,44 @@ export default function FidelizacionLanding() {
             <a href="#como-funciona" className="hover:text-zinc-900 transition-colors">Cómo funciona</a>
             <a href="#funcionalidades" className="hover:text-zinc-900 transition-colors">Funcionalidades</a>
             <a href="#precios" className="hover:text-zinc-900 transition-colors">Precios</a>
-            {/* Más servicios: lleva a las versiones por rubro (hoy, Beauty) */}
-            <div className="relative group">
-              <button type="button" className="inline-flex items-center gap-1 hover:text-zinc-900 transition-colors" aria-haspopup="true">
-                Más servicios <span className="text-[10px] text-zinc-400">▾</span>
-              </button>
-              <div className="hidden group-hover:block group-focus-within:block absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50">
-                <div className="w-64 bg-white border border-zinc-200 rounded-2xl shadow-xl shadow-violet-200/40 p-2">
-                  <Link href="/fidelizacion/salones-de-belleza" className="flex items-start gap-3 rounded-xl px-3 py-2.5 hover:bg-violet-50 transition-colors">
-                    <span className="text-lg leading-none mt-0.5">✂️</span>
-                    <span>
-                      <span className="block text-sm font-bold text-zinc-900">Beauty</span>
-                      <span className="block text-xs text-zinc-500 leading-snug">Salones, peluquerías, uñas y estética</span>
-                    </span>
-                  </Link>
-                </div>
-              </div>
-            </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Servicios: todo lo que ofrece Calificar */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setSvcOpen(v => !v)}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-zinc-700 hover:text-zinc-900 transition-colors"
+                aria-haspopup="true"
+                aria-expanded={svcOpen}
+              >
+                Servicios <span className="text-[10px] text-zinc-400">▾</span>
+              </button>
+              {svcOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setSvcOpen(false)} />
+                  <div className="absolute right-0 top-full pt-3 z-50">
+                    <div className="w-72 bg-white border border-zinc-200 rounded-2xl shadow-xl shadow-violet-200/40 p-2">
+                      {[
+                        { href: '/fidelizacion/salones-de-belleza', icon: '✂️', name: 'Beauty', desc: 'Salones, peluquerías, uñas y estética' },
+                        { href: '/servicios', icon: '⭐', name: 'Reseñas de Google', desc: 'Más reseñas positivas, filtrá las negativas' },
+                        { href: '/tienda', icon: '🔲', name: 'Carteles y QR', desc: 'Carteles NFC y QR para tu local' },
+                        { href: '/r/demo', icon: '👀', name: 'Demo de reseñas', desc: 'Mirá cómo lo ve tu cliente' },
+                        { href: '/blog', icon: '📰', name: 'Blog', desc: 'Guías para hacer crecer tu negocio' },
+                      ].map(item => (
+                        <Link key={item.href} href={item.href} onClick={() => setSvcOpen(false)} className="flex items-start gap-3 rounded-xl px-3 py-2.5 hover:bg-violet-50 transition-colors">
+                          <span className="text-lg leading-none mt-0.5">{item.icon}</span>
+                          <span>
+                            <span className="block text-sm font-bold text-zinc-900">{item.name}</span>
+                            <span className="block text-xs text-zinc-500 leading-snug">{item.desc}</span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
             <Link href="/negocio/fidelizacion" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors">
               Ingresar
             </Link>
