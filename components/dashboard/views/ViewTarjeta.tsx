@@ -555,7 +555,7 @@ export default function ViewTarjeta({
           {/* Logo */}
           <div className="p-5 border-b border-zinc-50 dark:border-gray-800">
             <p className="text-sm font-semibold text-zinc-800 dark:text-gray-100 mb-1">Logo del negocio</p>
-            <p className="text-xs text-zinc-400 mb-4">PNG transparente recomendado, mínimo 400×400px, máx. 2MB.</p>
+            <p className="text-xs text-zinc-400 mb-4">Cuadrado de <strong>800 × 800 px</strong> (mínimo 400 × 400), PNG con fondo transparente, máx. 2 MB. Dejá un poco de margen alrededor del dibujo para que no quede cortado.</p>
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-gray-700 flex items-center justify-center overflow-hidden bg-zinc-50 dark:bg-gray-800 flex-shrink-0">
                 {program.logo_url ? <img src={program.logo_url} alt="" className="w-full h-full object-contain p-2" /> : <span className="text-3xl">🖼️</span>}
@@ -579,7 +579,7 @@ export default function ViewTarjeta({
             <p className="text-xs text-zinc-400 mb-2">Aparece cuando tus clientes instalan la app y en las notificaciones push.</p>
             <div className="rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-4 py-3 mb-3 space-y-1">
               <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">Cómo tiene que ser el ícono para que se vea bien en Android e iPhone:</p>
-              <p className="text-xs text-amber-700 dark:text-amber-300">• Tamaño: <strong>512 × 512 px</strong>, formato PNG</p>
+              <p className="text-xs text-amber-700 dark:text-amber-300">• Tamaño: <strong>512 × 512 px</strong>, formato PNG, máx. 2 MB</p>
               <p className="text-xs text-amber-700 dark:text-amber-300">• El logo tiene que ocupar <strong>máximo el 60%</strong> y estar centrado</p>
               <p className="text-xs text-amber-700 dark:text-amber-300">• El <strong>fondo tiene que ser de color sólido</strong> (no transparente)</p>
             </div>
@@ -617,7 +617,7 @@ export default function ViewTarjeta({
           {/* Ícono sellos */}
           <div className="p-5 border-b border-zinc-50 dark:border-gray-800">
             <p className="text-sm font-semibold text-zinc-800 dark:text-gray-100 mb-1">Ícono de los sellos</p>
-            <p className="text-xs text-zinc-400 mb-2">Cada sello en la tarjeta del cliente muestra este ícono.</p>
+            <p className="text-xs text-zinc-400 mb-2">Cada sello en la tarjeta del cliente muestra este ícono. Cuadrado de <strong>256 × 256 px</strong> (mínimo 128 × 128), PNG con fondo transparente, máx. 2 MB. Usá un dibujo simple y centrado: se ve chiquito.</p>
             {isPro ? (
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-gray-700 flex items-center justify-center overflow-hidden bg-zinc-50 dark:bg-gray-800 flex-shrink-0">
@@ -659,7 +659,7 @@ export default function ViewTarjeta({
           {/* Fondo de sellos */}
           <div className="p-5 border-b border-zinc-50 dark:border-gray-800">
             <p className="text-sm font-semibold text-zinc-800 dark:text-gray-100 mb-1">Fondo de sellos</p>
-            <p className="text-xs text-zinc-400 mb-2">Imagen de fondo detrás de los sellos. Recomendado: foto del local o producto.</p>
+            <p className="text-xs text-zinc-400 mb-2">Imagen de fondo detrás de los sellos. Horizontal de <strong>1200 × 800 px</strong> (mínimo 800 × 530), JPG o PNG, máx. 2 MB. Recomendado: foto del local o producto, con lo importante en el centro.</p>
             {isPro ? (
               <div className="flex items-center gap-4">
                 <div className="w-24 h-16 rounded-xl border-2 border-dashed border-zinc-200 dark:border-gray-700 flex items-center justify-center overflow-hidden bg-zinc-50 dark:bg-gray-800 flex-shrink-0">
