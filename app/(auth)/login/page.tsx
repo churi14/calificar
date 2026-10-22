@@ -25,7 +25,17 @@ function LoginForm() {
     const supabase = await createClient()
     const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: false } })
     setLoading(false)
-    if (error) { setError('No encontramos una cuenta con ese email. Si todavía no tenés, registrate.'); return }
+    if (error) {
+      const msg = (error.message ?? '').toLowerCase()
+      if (error.status === 429 || msg.includes('rate limit') || msg.includes('too many') || msg.includes('seconds')) {
+        setError('Pediste muchos códigos seguidos. Esperá unos minutos y volvé a intentar, o entrá con Google.')
+      } else if (msg.includes('signups not allowed') || msg.includes('not found') || msg.includes('user')) {
+        setError('No encontramos una cuenta con ese email. Revisá que esté bien escrito o registrate.')
+      } else {
+        setError(`No pudimos enviar el código (${error.message}). Probá con Google.`)
+      }
+      return
+    }
     setCodeMode('verify'); setInfo('Te mandamos un código al mail.')
   }
 
