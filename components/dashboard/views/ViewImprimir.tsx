@@ -29,10 +29,13 @@ interface ViewImprimirProps {
   /** Sucursal del QR (null = Principal) */
   branchId?: string | null
   branchLabel?: string
+  accessToken?: string
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewImprimir({ program, selectedProgram, branchId = null, branchLabel }: ViewImprimirProps) {
+export default function ViewImprimir({ program, selectedProgram, branchId = null, branchLabel, accessToken }: ViewImprimirProps) {
+  const [localKey, setLocalKey] = useState<string | null>(null)
+  const [keyLoaded, setKeyLoaded] = useState(false)
   const [qrUrl, setQrUrl]           = useState<string | null>(null)
   const [activeTag, setActiveTag]   = useState<string>('Todos')
   const [downloading, setDownloading] = useState<string | null>(null)
@@ -41,16 +44,32 @@ export default function ViewImprimir({ program, selectedProgram, branchId = null
   const bizName = (program as any)?.businesses?.name ?? program?.name ?? 'Tu negocio'
   // Los carteles y afiches son de REGISTRO (guardar la tarjeta): nunca suman sellos.
   // El QR que suma sellos es el del local, en Sello rápido.
+  // Un solo QR para todo: el cliente nuevo se registra y el registrado suma su sello.
+  // Es el mismo QR del local (con su clave), así lo impreso en cualquier lado funciona igual.
+  const scanParams = [branchId ? `b=${branchId}` : '', localKey ? `k=${localKey}` : ''].filter(Boolean).join('&')
   const scanUrl = selectedProgram
-    ? `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
+    ? `https://calificar.com.ar/s/${selectedProgram}${scanParams ? `?${scanParams}` : ''}`
     : 'https://calificar.com.ar'
 
   useEffect(() => {
+    if (!selectedProgram || !accessToken) { setKeyLoaded(true); return }
+    setKeyLoaded(false)
+    fetch(`/api/fidelizacion/stamp-token?program_id=${selectedProgram}${branchId ? `&branch_id=${branchId}` : ''}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then(r => r.json())
+      .then(d => { setLocalKey(d.local_key ?? null) })
+      .catch(() => setLocalKey(null))
+      .finally(() => setKeyLoaded(true))
+  }, [selectedProgram, branchId, accessToken])
+
+  useEffect(() => {
+    if (!keyLoaded) return
     import('qrcode').then(QRCode => {
       QRCode.toDataURL(scanUrl, { width: 400, margin: 2, color: { dark: '#000000', light: '#ffffff' } })
         .then(url => setQrUrl(url))
     })
-  }, [scanUrl])
+  }, [scanUrl, keyLoaded])
 
   // ── canvas helpers ──────────────────────────────────────────────────────────
   function hexToRgb(hex: string) {

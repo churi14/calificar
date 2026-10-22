@@ -606,7 +606,7 @@ export default function NegocioDashboard() {
           <ViewRoi program={program} />
         )}
         {activeNav === 'imprimir' && (
-          <ViewImprimir program={program} selectedProgram={selectedProgram}
+          <ViewImprimir program={program} selectedProgram={selectedProgram} accessToken={accessToken}
             branchId={selectedBranch} branchLabel={branches.length > 0 ? currentBranchLabel : undefined} />
         )}
         {activeNav === 'perfil' && (
