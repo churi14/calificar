@@ -22,6 +22,24 @@ function UnirseContent() {
   const refCode = params.get('ref')
   // Viene de escanear el QR del local: si ya es cliente, vuelve al QR para sumar su sello
   const fromQr = params.get('qr') === '1'
+  // Quien se registra escaneando el QR del local ya consumió: su primer sello se suma en el mismo paso
+  async function stampFromQr(phoneNumber: string, customerName: string, customerDni?: string) {
+    if (!fromQr || !programId) return
+    try {
+      await fetch('/api/fidelizacion/self-stamp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          program_id: programId,
+          phone: phoneNumber,
+          name: customerName,
+          dni: customerDni || undefined,
+          local_key: params.get('k') ?? undefined,
+          branch_id: params.get('b') ?? undefined,
+        }),
+      })
+    } catch { /* si no se pudo sumar, igual queda registrado */ }
+  }
   const qrBack = (() => {
     const q = new URLSearchParams()
     if (params.get('k')) q.set('k', params.get('k') as string)
@@ -93,10 +111,13 @@ function UnirseContent() {
         }),
       })
         .then(r => r.json())
-        .then(d => {
+        .then(async d => {
           if (d.card) {
             localStorage.setItem(`loyalty_card_${programId}`, d.card.id)
             document.cookie = `cal_card_${programId}=${d.card.id};max-age=31536000;path=/;SameSite=Lax`
+            localStorage.setItem(`cal_phone_${programId}`, globalPhone)
+            localStorage.setItem(`cal_name_${programId}`, globalName as string)
+            await stampFromQr(globalPhone, globalName as string, globalDni ?? undefined)
             const walletParam = d.wallet_link ? `&wallet=${encodeURIComponent(d.wallet_link)}` : ''
             router.replace(`/t/${programId}?card=${d.card.id}${walletParam}`)
           } else {
@@ -172,6 +193,8 @@ function UnirseContent() {
       localStorage.setItem(`cal_dni_${programId}`, dni.trim())
       localStorage.setItem('cal_dni', dni.trim())
     }
+
+    await stampFromQr(phone, name.trim(), dni.trim() || undefined)
 
     // Si hay wallet link, mostrar botón; si no, ir a la tarjeta
     if (data.wallet_link) {
