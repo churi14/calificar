@@ -16,10 +16,10 @@ const DIGITAL_TEMPLATES = [
 ]
 
 const PHYSICAL_TEMPLATES = [
-  { id: 'sticker',    label: 'Sticker circular',        size: 'Ø 90 mm · vinilo',         price: '$3.500',  desc: 'Ideal para el mostrador o la vidriera.' },
-  { id: 'tabletent',  label: 'Table tent',              size: '180 × 270 mm · plegable',  price: '$4.900',  desc: 'Se para solo sobre la mesa o barra.' },
-  { id: 'a4-anuncio', label: 'A4 Portrait · Anuncio',   size: '210 × 297 mm · papel',     price: '$2.500',  desc: 'Para enmarcar o pegar en el local.' },
-  { id: 'mini',       label: 'Mini insert para tickets', size: '80 × 120 mm · papel mate', price: '$1.800',  desc: 'Se incluye en cada ticket o bolsa.' },
+  { id: 'sticker',    label: 'Sticker circular',        size: 'Ø 90 mm · vinilo',         desc: 'Ideal para el mostrador o la vidriera.' },
+  { id: 'tabletent',  label: 'Table tent',              size: '180 × 270 mm · plegable',  desc: 'Se para solo sobre la mesa o barra.' },
+  { id: 'a4-anuncio', label: 'A4 Portrait · Anuncio',   size: '210 × 297 mm · papel',     desc: 'Para enmarcar o pegar en el local.' },
+  { id: 'mini',       label: 'Mini insert para tickets', size: '80 × 120 mm · papel mate', desc: 'Se incluye en cada ticket o bolsa.' },
 ]
 
 // ── props ─────────────────────────────────────────────────────────────────────
@@ -252,7 +252,7 @@ export default function ViewImprimir({ program, selectedProgram, branchId = null
 
   function waLink(item: typeof PHYSICAL_TEMPLATES[0]) {
     const msg = encodeURIComponent(
-      `Hola! Quiero pedir un *${item.label}* (${item.size}) para mi negocio *${bizName}* en Calificar. Precio: ${item.price}`
+      `Hola! Quiero pedir un *${item.label}* (${item.size}) para mi negocio *${bizName}* en Calificar. ¿Me pasás el precio?`
     )
     return `https://wa.me/${CALIFICAR_WA}?text=${msg}`
   }
@@ -458,7 +458,6 @@ export default function ViewImprimir({ program, selectedProgram, branchId = null
                   <p className="text-sm font-bold text-zinc-900 dark:text-white">{item.label}</p>
                   <p className="text-[10px] text-zinc-400 dark:text-gray-500 mt-0.5">{item.size}</p>
                 </div>
-                <span className="text-sm font-extrabold text-zinc-900 dark:text-white flex-shrink-0">{item.price}</span>
               </div>
               <p className="text-xs text-zinc-500 dark:text-gray-400">{item.desc}</p>
               <a
