@@ -136,6 +136,14 @@ export default function ViewPush({
         Mandá mensajes directos a los clientes que activaron notificaciones.
       </p>
 
+      <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800 px-4 py-3 mb-6 max-w-3xl">
+        <span className="text-lg leading-none mt-0.5">🤖</span>
+        <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+          <strong>Por ahora los avisos push llegan solo a celulares Android.</strong>{' '}
+          Los clientes con iPhone no los reciben. Para ellos usá las otras formas de contacto, como las campañas de cumpleaños y la reactivación.
+        </p>
+      </div>
+
       {/* Tabs */}
       <div className="flex gap-1 bg-zinc-100 dark:bg-gray-800 rounded-xl p-1 w-fit mb-6">
         {([['todos', 'Todos los clientes'], ['individual', 'Cliente específico']] as const).map(([id, label]) => (
