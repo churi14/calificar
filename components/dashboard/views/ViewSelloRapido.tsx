@@ -376,7 +376,7 @@ export default function ViewSelloRapido({
               Ampliar QR
             </button>
             <button
-              onClick={() => navigator.clipboard.writeText(qrLink)}
+              onClick={() => navigator.clipboard.writeText(selfLink)}
               className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
             >
               Copiar link

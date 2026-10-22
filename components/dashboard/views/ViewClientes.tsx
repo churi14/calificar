@@ -76,7 +76,7 @@ export default function ViewClientes({
   }
 
   const color   = program?.color_primary ?? '#7C3AED'
-  const joinUrl = useUnifiedQr(selectedProgram, accessToken)
+  const { qr: joinUrl, link: joinLink } = useUnifiedQr(selectedProgram, accessToken)
 
   async function deleteClient(cardId: string) {
     setDeleting(true)
@@ -199,11 +199,11 @@ export default function ViewClientes({
               {program?.name?.replace('Tarjeta de Sellos — ', '') ?? 'Tarjeta de sellos'}
             </p>
             <div className="flex gap-2 flex-wrap justify-center">
-              <button onClick={() => window.open(joinUrl, '_blank')}
+              <button onClick={() => window.open(joinLink, '_blank')}
                 className="text-xs font-bold bg-zinc-900 dark:bg-zinc-700 text-white px-4 py-2 rounded-xl">
                 Ampliar
               </button>
-              <button onClick={() => navigator.clipboard.writeText(joinUrl)}
+              <button onClick={() => navigator.clipboard.writeText(joinLink)}
                 className="text-xs font-medium border border-zinc-200 dark:border-gray-700 text-zinc-600 dark:text-gray-300 px-4 py-2 rounded-xl hover:bg-zinc-50 dark:hover:bg-gray-800">
                 Copiar
               </button>

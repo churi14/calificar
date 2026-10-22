@@ -239,7 +239,7 @@ export default function ViewTarjeta({
   const [walletSyncMsg,    setWalletSyncMsg]    = useState('')
 
   const color   = program?.color_primary ?? '#7C3AED'
-  const joinUrl = useUnifiedQr(selectedProgram, accessToken)
+  const { qr: joinUrl, link: joinLink } = useUnifiedQr(selectedProgram, accessToken)
 
   useEffect(() => {
     if (program?.milestones)         setMilestones(program.milestones)
@@ -467,7 +467,7 @@ export default function ViewTarjeta({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <a href={joinUrl} target="_blank" rel="noopener noreferrer"
+                <a href={joinLink} target="_blank" rel="noopener noreferrer"
                   className="text-xs border border-zinc-200 dark:border-gray-700 text-zinc-600 dark:text-gray-300 px-3 py-1.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-gray-800 font-medium flex items-center gap-1.5">
                   🔗 Enlace
                 </a>

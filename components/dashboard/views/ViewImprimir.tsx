@@ -44,7 +44,7 @@ export default function ViewImprimir({ program, selectedProgram, branchId = null
   // Los carteles y afiches son de REGISTRO (guardar la tarjeta): nunca suman sellos.
   // El QR que suma sellos es el del local, en Sello rápido.
   // Un solo QR para todo el negocio (registra al nuevo y sella al registrado)
-  const scanUrl = useUnifiedQr(selectedProgram, accessToken, branchId)
+  const { qr: scanUrl } = useUnifiedQr(selectedProgram, accessToken, branchId)
 
   useEffect(() => {
     import('qrcode').then(QRCode => {

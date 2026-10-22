@@ -192,7 +192,7 @@ export default function ViewHoy({
   const returningClients = cards.filter(c => c.total_visits > 1).length
   const hasLogo = !!program?.logo_url
   const [showQrBig, setShowQrBig] = useState(false)
-  const qrUrl = useUnifiedQr(selectedProgram, accessToken, branchId)
+  const { qr: qrUrl, link: shareUrl } = useUnifiedQr(selectedProgram, accessToken, branchId)
   // Costo mensual real del plan en pesos (los mismos precios que se cobran). Prueba y regalo: sin costo.
   const calificarCost = (PLAN_PRICES_ARS as Record<string, number>)[(businessPlan ?? '').toLowerCase()] ?? 0
   const fmtARS = (n: number) => `$${Math.round(n).toLocaleString('es-AR')}`
@@ -421,14 +421,14 @@ export default function ViewHoy({
                 Ampliar
               </button>
               <button
-                onClick={() => navigator.clipboard.writeText(qrUrl)}
+                onClick={() => navigator.clipboard.writeText(shareUrl)}
                 className="text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors hidden sm:block"
               >
                 Copiar
               </button>
               <a
                 href={`https://wa.me/?text=${encodeURIComponent(
-                  `Acumulá sellos y ganá premios en ${businessName}! Guardá tu tarjeta digital: ${qrUrl}`
+                  `Acumulá sellos y ganá premios en ${businessName}! Guardá tu tarjeta digital: ${shareUrl}`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
