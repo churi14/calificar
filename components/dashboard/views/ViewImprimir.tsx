@@ -39,8 +39,10 @@ export default function ViewImprimir({ program, selectedProgram, branchId = null
   const [previewTpl, setPreviewTpl] = useState<typeof DIGITAL_TEMPLATES[0] | null>(null)
   const color   = program?.color_primary ?? '#7C3AED'
   const bizName = (program as any)?.businesses?.name ?? program?.name ?? 'Tu negocio'
+  // Los carteles y afiches son de REGISTRO (guardar la tarjeta): nunca suman sellos.
+  // El QR que suma sellos es el del local, en Sello rápido.
   const scanUrl = selectedProgram
-    ? `https://calificar.com.ar/s/${selectedProgram}${branchId ? `?b=${branchId}` : ''}`
+    ? `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
     : 'https://calificar.com.ar'
 
   useEffect(() => {
