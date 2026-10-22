@@ -802,7 +802,7 @@ export default function AdminFidelizacionPage() {
                 {/* Links útiles */}
                 <div className="mt-4 flex flex-wrap gap-2 text-xs">
                   <a
-                    href={`/fidelizacion/unirse?program=${p.id}`}
+                    href={`/s/${p.id}`}
                     target="_blank"
                     className="bg-violet-50 text-violet-600 font-semibold px-3 py-1.5 rounded-lg hover:bg-violet-100 transition-colors"
                   >
@@ -843,7 +843,7 @@ export default function AdminFidelizacionPage() {
                   <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">QR de registro</p>
                   <div className="flex items-center gap-4">
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${p.id}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(`https://calificar.com.ar/s/${p.id}`)}&color=0F172A&bgcolor=FFFFFF&qzone=1`}
                       alt="QR registro"
                       width={100}
                       height={100}
@@ -851,9 +851,9 @@ export default function AdminFidelizacionPage() {
                     />
                     <div className="text-xs text-gray-500">
                       <p className="font-semibold text-gray-700 mb-1">Escaneá para unirte</p>
-                      <p className="text-[11px] break-all text-gray-400">{`calificar.com.ar/fidelizacion/unirse?program=${p.id}`}</p>
+                      <p className="text-[11px] break-all text-gray-400">{`calificar.com.ar/s/${p.id}`}</p>
                       <a
-                        href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(`https://calificar.com.ar/fidelizacion/unirse?program=${p.id}`)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+                        href={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(`https://calificar.com.ar/s/${p.id}`)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
                         download={`qr-registro-${p.id}.png`}
                         className="inline-block mt-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold px-3 py-1 rounded-lg text-[11px] transition-colors"
                       >

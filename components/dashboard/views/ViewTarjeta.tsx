@@ -1,5 +1,6 @@
 'use client'
 
+import { useUnifiedQr } from '@/lib/use-unified-qr'
 import { PLAN_PRICES_ARS, discountedPrice, fmtARS } from '@/lib/plans'
 import { canUse } from '@/lib/plan-features'
 import React, { useState, useEffect, useRef } from 'react'
@@ -238,7 +239,7 @@ export default function ViewTarjeta({
   const [walletSyncMsg,    setWalletSyncMsg]    = useState('')
 
   const color   = program?.color_primary ?? '#7C3AED'
-  const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
+  const joinUrl = useUnifiedQr(selectedProgram, accessToken)
 
   useEffect(() => {
     if (program?.milestones)         setMilestones(program.milestones)

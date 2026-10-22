@@ -493,7 +493,7 @@ export default function NegocioDashboard() {
         {/* ── Vistas ── */}
         <div key={selectedProgram ?? 'none'}>
         {activeNav === 'hoy' && (
-          <ViewHoy program={program} selectedProgram={selectedProgram} stats={stats}
+          <ViewHoy program={program} selectedProgram={selectedProgram} stats={stats} accessToken={accessToken} branchId={selectedBranch}
             transactions={transactions} notifMsg={notifMsg} setNotifMsg={setNotifMsg}
             notifSending={notifSending} notifSent={notifSent} sendNotif={sendNotif}
             businessName={businessName} cards={cards}

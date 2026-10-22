@@ -1,5 +1,6 @@
 'use client'
 
+import { useUnifiedQr } from '@/lib/use-unified-qr'
 import React, { useState } from 'react'
 import {
   UsersThree, Star, ArrowCounterClockwise, Trophy,
@@ -10,6 +11,8 @@ import { PLAN_PRICES_ARS } from '@/lib/plans'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface ViewHoyProps {
+  accessToken?: string
+  branchId?: string | null
   program: Program | undefined
   selectedProgram: string | null
   stats: Stats
@@ -157,6 +160,8 @@ function SalesChart({ salesByDay, cost, color }: {
 // ── Vista principal ────────────────────────────────────────────────────────────
 
 export default function ViewHoy({
+  accessToken,
+  branchId,
   program,
   selectedProgram,
   stats,
@@ -187,7 +192,7 @@ export default function ViewHoy({
   const returningClients = cards.filter(c => c.total_visits > 1).length
   const hasLogo = !!program?.logo_url
   const [showQrBig, setShowQrBig] = useState(false)
-  const qrUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
+  const qrUrl = useUnifiedQr(selectedProgram, accessToken, branchId)
   // Costo mensual real del plan en pesos (los mismos precios que se cobran). Prueba y regalo: sin costo.
   const calificarCost = (PLAN_PRICES_ARS as Record<string, number>)[(businessPlan ?? '').toLowerCase()] ?? 0
   const fmtARS = (n: number) => `$${Math.round(n).toLocaleString('es-AR')}`

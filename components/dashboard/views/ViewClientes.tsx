@@ -1,5 +1,6 @@
 'use client'
 
+import { useUnifiedQr } from '@/lib/use-unified-qr'
 import React, { useState } from 'react'
 import Link from 'next/link'
 import type { Program, Card } from '@/types/dashboard'
@@ -75,7 +76,7 @@ export default function ViewClientes({
   }
 
   const color   = program?.color_primary ?? '#7C3AED'
-  const joinUrl = `https://calificar.com.ar/fidelizacion/unirse?program=${selectedProgram}`
+  const joinUrl = useUnifiedQr(selectedProgram, accessToken)
 
   async function deleteClient(cardId: string) {
     setDeleting(true)
