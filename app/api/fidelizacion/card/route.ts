@@ -46,6 +46,20 @@ export async function GET(req: NextRequest) {
     card.loyalty_programs = { ...card.loyalty_programs, referral_enabled: !!ref?.enabled && canUse(plan0, 'referrals') }
   }
 
+  // Pedido de reseña en Google: se muestra una sola vez por cliente, si el negocio lo activó (Pro en adelante)
+  let review_prompt: { google_maps_url: string; whatsapp_number: string } | null = null
+  if (card.loyalty_programs?.id && 'review_state' in card && !card.review_state && (card.stamps ?? 0) >= 1 && canUse(plan0, 'reviews')) {
+    const { data: gr } = await supabase
+      .from('google_review_settings')
+      .select('enabled, google_maps_url')
+      .eq('program_id', card.loyalty_programs.id)
+      .maybeSingle()
+    const wa = (Array.isArray(bizRaw0) ? bizRaw0[0] : bizRaw0) as { whatsapp_number?: string | null } | null
+    if (gr?.enabled && gr.google_maps_url && wa?.whatsapp_number) {
+      review_prompt = { google_maps_url: gr.google_maps_url, whatsapp_number: wa.whatsapp_number }
+    }
+  }
+
   // Los premios en el camino son del plan Pro en adelante
   if (card.loyalty_programs && !canUse(plan0, 'milestones')) {
     card.loyalty_programs = { ...card.loyalty_programs, milestones: [] }
@@ -63,5 +77,5 @@ export async function GET(req: NextRequest) {
     card.loyalty_programs = { ...card.loyalty_programs, ...GENERIC_CARD_DESIGN, calificar_branding: true }
   }
 
-  return NextResponse.json({ card, wallet_link })
+  return NextResponse.json({ card, wallet_link, review_prompt })
 }

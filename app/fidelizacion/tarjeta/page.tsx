@@ -38,6 +38,15 @@ type CardData = {
   }
 }
 
+// El número se guarda como lo escribió el negocio; WhatsApp necesita el formato internacional de Argentina
+function waNumber(raw: string): string {
+  let d = raw.replace(/\D/g, '')
+  if (d.startsWith('54')) return d
+  d = d.replace(/^0+/, '')
+  if (d.length === 12 && d.startsWith('15') === false && d.slice(2, 4) === '15') d = d.slice(0, 2) + d.slice(4)
+  return '549' + d
+}
+
 function TarjetaContent() {
   const params = useSearchParams()
   const cardId = params.get('card')
@@ -50,6 +59,8 @@ function TarjetaContent() {
   const [loading, setLoading] = useState(true)
   const [notifState, setNotifState] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
   const [showNotifModal, setShowNotifModal] = useState(false)
+  const [reviewPrompt, setReviewPrompt] = useState<{ google_maps_url: string; whatsapp_number: string } | null>(null)
+  const [showReview, setShowReview] = useState(false)
   const [coupons, setCoupons] = useState<{ label: string; code: string; created_at: string }[]>([])
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [installPrompt, setInstallPrompt] = useState<any>(null)
@@ -197,7 +208,17 @@ function TarjetaContent() {
 
     fetch(`/api/fidelizacion/card?card_id=${cardId}`)
       .then(r => r.json())
-      .then(d => { setCard(d.card); if (d.wallet_link) setWalletLinkFromApi(d.wallet_link); setLoading(false) })
+      .then(d => {
+        setCard(d.card)
+        if (d.wallet_link) setWalletLinkFromApi(d.wallet_link)
+        setLoading(false)
+        // Pedido de reseña: si dijo "ahora no", no vuelve a aparecer por 7 días
+        if (d.review_prompt) {
+          let snoozed = false
+          try { snoozed = Number(localStorage.getItem(`review_snooze_${cardId}`) ?? 0) > Date.now() } catch {}
+          if (!snoozed) { setReviewPrompt(d.review_prompt); setTimeout(() => setShowReview(true), 1500) }
+        }
+      })
       .catch(() => setLoading(false))
 
     fetch(`/api/fidelizacion/card-coupons?card_id=${cardId}`)
@@ -647,7 +668,46 @@ function TarjetaContent() {
         <p className="text-xs text-white/30 text-center pb-2">
           Guardá este link o escaneá el QR del local para sumar sellos.
         </p>
-      </div>
+        {/* Pedido de reseña en Google */}
+      {showReview && reviewPrompt && card && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={() => setShowReview(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="text-4xl text-center mb-2">⭐</div>
+            <h3 className="text-xl font-extrabold text-zinc-900 text-center mb-1">¿Nos dejás tu reseña en Google?</h3>
+            <p className="text-sm text-zinc-500 text-center mb-5">
+              Nos ayuda muchísimo. Si la dejás, mandanos la captura por WhatsApp y te sumamos un sello 🎁
+            </p>
+            <a
+              href={reviewPrompt.google_maps_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full text-center bg-violet-600 text-white font-bold text-sm py-3.5 rounded-2xl mb-2"
+            >⭐ Dejar mi reseña</a>
+            <button
+              onClick={() => {
+                const text = `Hola! Soy ${card.name}. Ya dejé mi reseña en Google, te paso la captura para el sello 🎁`
+                fetch('/api/fidelizacion/card-review', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ card_id: card.id }),
+                }).catch(() => {})
+                window.open(`https://wa.me/${waNumber(reviewPrompt.whatsapp_number)}?text=${encodeURIComponent(text)}`, '_blank')
+                setShowReview(false)
+                setReviewPrompt(null)
+              }}
+              className="block w-full text-center bg-emerald-500 text-white font-bold text-sm py-3.5 rounded-2xl mb-2"
+            >Ya la dejé · Mandar captura</button>
+            <button
+              onClick={() => {
+                try { localStorage.setItem(`review_snooze_${cardId}`, String(Date.now() + 7 * 24 * 3600 * 1000)) } catch {}
+                setShowReview(false)
+              }}
+              className="block w-full text-center text-sm text-zinc-400 py-2"
+            >Ahora no</button>
+          </div>
+        </div>
+      )}
+    </div>
 
       {/* Botón WhatsApp flotante */}
       {card?.loyalty_programs?.businesses?.whatsapp_number && (() => {

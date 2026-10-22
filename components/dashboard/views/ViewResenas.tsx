@@ -71,7 +71,7 @@ export default function ViewResenas({ selectedProgram, isPro, accessToken }: Vie
     <div className="p-4 md:p-8 w-full">
       <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-white mb-1">Potenciador de reseñas Google</h1>
       <p className="text-zinc-400 dark:text-gray-500 text-sm mb-6">
-        Cuando un cliente completa su tarjeta, le mandamos un push invitándolo a dejarte una reseña.
+        Le pedimos a tus clientes una reseña en Google con un aviso en su tarjeta (se muestra una sola vez). Si la dejan, te mandan la captura por WhatsApp y vos les cargás el sello desde Clientes (botón "Sello por reseña"). Además, al completar la tarjeta les llega un push con el mismo pedido.
       </p>
 
       {!isPro && (

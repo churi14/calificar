@@ -15,12 +15,17 @@ export async function GET(req: NextRequest) {
   const denied = await requireProgramAccess(req, program_id)
   if (denied) return denied
 
-  const { data: cards, error } = await supabase
+  const base = 'id, name, phone, stamps, total_visits, birth_date, created_at, dni'
+  const load = (cols: string) => supabase
     .from('loyalty_cards')
-    .select('id, name, phone, stamps, total_visits, birth_date, created_at, dni')
+    .select(cols)
     .eq('program_id', program_id)
     .not('active', 'is', false)
     .order('created_at', { ascending: false })
+
+  // review_state existe una vez corrida la migración review_prompt.sql; sin ella la lista sigue andando
+  let { data: cards, error } = await load(`${base}, review_state`)
+  if (error) ({ data: cards, error } = await load(base))
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ cards })

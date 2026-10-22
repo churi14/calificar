@@ -45,6 +45,8 @@ export type Card = {
   birth_date: string | null
   created_at: string
   dni?: string | null
+  /** null = sin pedido, claimed = avisó que dejó la reseña, rewarded = ya tiene su sello */
+  review_state?: string | null
 }
 
 export type Transaction = {

@@ -29,6 +29,21 @@ export default function ViewClientes({
   onClientAdded,
   onClientDeleted,
 }: ViewClientesProps) {
+  // El cliente mandó la captura de su reseña: se le carga un sello (una sola vez)
+  async function rewardReview(cardId: string, name: string) {
+    if (!confirm(`¿Ya viste la captura de la reseña de ${name}? Se le va a cargar un sello.`)) return
+    const res = await fetch('/api/fidelizacion/review-reward', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+      body: JSON.stringify({ card_id: cardId, program_id: selectedProgram }),
+    })
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      alert(d.error ?? 'No se pudo cargar el sello')
+    }
+    onClientAdded?.()
+  }
+
   const [search,        setSearch]        = useState('')
   const [filter,        setFilter]        = useState<'todos' | 'activo' | 'inactivo'>('todos')
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
@@ -267,6 +282,9 @@ export default function ViewClientes({
                             {c.name.charAt(0).toUpperCase()}
                           </div>
                           <span className="font-semibold text-zinc-900 dark:text-white">{c.name}</span>
+                          {c.review_state === 'claimed' && (
+                            <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full whitespace-nowrap">📸 Reseña: esperando captura</span>
+                          )}
                         </div>
                       </td>
                       <td className="px-5 py-4 text-zinc-500 dark:text-gray-400 text-xs">{c.phone}</td>
@@ -309,6 +327,13 @@ export default function ViewClientes({
                             className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-800 px-2.5 py-1 rounded-lg font-semibold transition-colors">
                             + Sello
                           </button>
+                          {c.review_state === 'claimed' && (
+                            <button
+                              onClick={() => rewardReview(c.id, c.name)}
+                              className="text-xs bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-2.5 py-1 rounded-lg font-semibold transition-colors whitespace-nowrap">
+                              Sello por reseña
+                            </button>
+                          )}
                           <button
                             onClick={() => setDeleteConfirm({ id: c.id, name: c.name })}
                             className="text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded-lg font-semibold transition-colors hover:bg-red-50 dark:hover:bg-red-950">
