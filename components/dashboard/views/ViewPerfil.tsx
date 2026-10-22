@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { Program } from '@/types/dashboard'
+import PasswordModal from '@/components/dashboard/ui/PasswordModal'
 
 // ── props ─────────────────────────────────────────────────────────────────────
 interface ViewPerfilProps {
@@ -24,6 +25,7 @@ export default function ViewPerfil({
   const [waNumber, setWaNumber]               = useState('')
   const [address, setAddress]                 = useState('')
   const [saving, setSaving]                   = useState(false)
+  const [showPassword, setShowPassword]       = useState(false)
   const [saved, setSaved]                     = useState(false)
   const [deleting, setDeleting]               = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -173,6 +175,21 @@ export default function ViewPerfil({
       >
         {saved ? '✓ Guardado' : saving ? 'Guardando...' : 'Guardar cambios'}
       </button>
+
+      {/* Seguridad de la cuenta */}
+      <div className="mt-8 bg-white dark:bg-gray-900 border border-zinc-100 dark:border-gray-800 rounded-2xl p-6">
+        <p className="text-sm font-bold text-zinc-900 dark:text-white mb-1">🔒 Contraseña de la cuenta</p>
+        <p className="text-xs text-zinc-400 dark:text-gray-500 mb-4">
+          Creá una contraseña para entrar más rápido, sin esperar un código por mail. También podés cambiarla cuando quieras.
+        </p>
+        <button
+          onClick={() => setShowPassword(true)}
+          className="text-sm font-semibold border border-violet-200 text-violet-700 px-4 py-2 rounded-xl hover:bg-violet-50 transition-colors"
+        >
+          Crear o cambiar contraseña
+        </button>
+      </div>
+      {showPassword && <PasswordModal onClose={() => setShowPassword(false)} />}
 
       {/* Zona de peligro */}
       <div className="mt-8 border border-red-100 dark:border-red-900 rounded-2xl p-5 bg-red-50/40 dark:bg-red-950/20">

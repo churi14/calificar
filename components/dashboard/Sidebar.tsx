@@ -9,7 +9,6 @@ import {
 } from '@phosphor-icons/react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import type { ViewType } from '@/types/dashboard'
-import PasswordModal from '@/components/dashboard/ui/PasswordModal'
 
 const supabaseClient = createSupabaseClient()
 
@@ -84,7 +83,6 @@ export default function Sidebar({
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const [branchOpen, setBranchOpen] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
   // Se muestra el selector si hay más de una sucursal o si puede agregar
   const showBranchPicker = branches.length > 1 || canAddBranch
   const currentBranch = branches.find(b => b.id === selectedBranch) ?? branches[0]
@@ -327,13 +325,6 @@ export default function Sidebar({
             )
           })()}
 
-          {showPassword && <PasswordModal onClose={() => setShowPassword(false)} />}
-          <button
-            onClick={() => setShowPassword(true)}
-            className="text-[10px] text-zinc-400 hover:text-zinc-600 transition-colors mb-1.5 block"
-          >
-            🔒 Contraseña de la cuenta
-          </button>
           {/* Cerrar sesión + Dark toggle */}
           <div className="flex items-center justify-between mb-2">
             <button
