@@ -20,6 +20,15 @@ function UnirseContent() {
   const router = useRouter()
   const programId = params.get('program')
   const refCode = params.get('ref')
+  // Viene de escanear el QR del local: si ya es cliente, vuelve al QR para sumar su sello
+  const fromQr = params.get('qr') === '1'
+  const qrBack = (() => {
+    const q = new URLSearchParams()
+    if (params.get('k')) q.set('k', params.get('k') as string)
+    if (params.get('b')) q.set('b', params.get('b') as string)
+    const str = q.toString()
+    return `/s/${programId}${str ? `?${str}` : ''}`
+  })()
 
   const [program, setProgram] = useState<Program | null>(null)
   const [phone, setPhone] = useState('')
@@ -46,6 +55,12 @@ function UnirseContent() {
         .then(r => r.json())
         .then(d => {
           if (d.card) {
+            if (fromQr && d.card.phone && d.card.name) {
+              localStorage.setItem(`cal_phone_${programId}`, d.card.phone)
+              localStorage.setItem(`cal_name_${programId}`, d.card.name)
+              router.replace(qrBack)
+              return
+            }
             router.replace(`/t/${programId}?card=${savedCard}`)
           } else {
             // Tarjeta borrada — limpiar storage y mostrar formulario
@@ -117,6 +132,12 @@ function UnirseContent() {
     setLookupLoading(false)
     if (!data.found) { setLookupError('No encontramos una tarjeta con ese número.'); return }
     localStorage.setItem(`loyalty_card_${programId}`, data.card.id)
+    if (fromQr && data.card.name) {
+      localStorage.setItem(`cal_phone_${programId}`, lookupPhone)
+      localStorage.setItem(`cal_name_${programId}`, data.card.name)
+      router.push(qrBack)
+      return
+    }
     router.push(`/t/${programId}?card=${data.card.id}`)
   }
 

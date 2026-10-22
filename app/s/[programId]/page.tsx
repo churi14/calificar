@@ -50,6 +50,16 @@ function SelfStampContent() {
     const savedPhone = localStorage.getItem(`cal_phone_${programId}`)
     const savedName = localStorage.getItem(`cal_name_${programId}`)
     const savedDni = localStorage.getItem(`cal_dni_${programId}`)
+    // Un celular que no se reconoce (no hay tarjeta guardada) va directo al registro.
+    // Si ya tiene tarjeta, ahí mismo puede decir "ya tengo tarjeta" y vuelve a sumar su sello.
+    // El link de un solo uso (?t=) sigue pidiendo el teléfono acá, como antes.
+    if (!(savedPhone && savedName) && !stampToken) {
+      const qs = new URLSearchParams({ program: programId, qr: '1' })
+      if (localKey) qs.set('k', localKey)
+      if (branchId) qs.set('b', branchId)
+      window.location.replace(`/fidelizacion/unirse?${qs.toString()}`)
+      return
+    }
     if (savedPhone && savedName) {
       setPhone(savedPhone)
       setName(savedName)
