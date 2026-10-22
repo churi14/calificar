@@ -14,6 +14,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [codeMode, setCodeMode] = useState<'off' | 'email' | 'verify'>('off')
+  const [usePassword, setUsePassword] = useState(false)
   const [code, setCode] = useState('')
   const [info, setInfo] = useState('')
 
@@ -89,74 +90,73 @@ function LoginForm() {
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
-            <span className="text-xs text-slate-500">o con email</span>
+            <span className="text-xs text-slate-500">o con tu email</span>
             <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            {error && (
-              <div className="text-red-400 text-sm p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.2)' }}>{error}</div>
-            )}
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                placeholder="tu@email.com"
-                className="w-full rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none placeholder-slate-600"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}
-                onFocus={e => (e.target.style.borderColor = 'rgba(124,58,237,0.6)')}
-                onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.10)')}
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Contraseña</label>
-                <Link href="/recuperar" className="text-xs text-slate-500 hover:text-violet-400 transition-colors">
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </div>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-                placeholder="••••••••"
-                className="w-full rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none placeholder-slate-600"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}
-                onFocus={e => (e.target.style.borderColor = 'rgba(124,58,237,0.6)')}
-                onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.10)')}
-              />
-            </div>
-            <button type="submit" disabled={loading}
-              className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
-              {loading ? 'Ingresando...' : 'Ingresar'}
-            </button>
-          </form>
+          {error && (
+            <div className="text-red-400 text-sm p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.2)' }}>{error}</div>
+          )}
 
-          {codeMode === 'off' && (
+          {!usePassword && (
             <>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
-                <span className="text-xs text-slate-500">¿Sin contraseña?</span>
-                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
-              </div>
-              <button type="button" onClick={() => sendCode()} disabled={loading}
-                className="w-full flex flex-col items-center gap-0.5 rounded-xl py-3 text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)' }}>
-                <span className="font-bold text-sm">✉️ Recibir un código por mail</span>
-                <span className="text-[11px] text-violet-200">Escribí tu email arriba y entrás en segundos</span>
+              {codeMode !== 'verify' ? (
+                <form onSubmit={sendCode} className="space-y-3">
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+                    placeholder="tu@email.com"
+                    className="w-full rounded-xl px-3 py-3 text-sm text-white focus:outline-none placeholder-slate-600"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}
+                    onFocus={e => (e.target.style.borderColor = 'rgba(124,58,237,0.6)')}
+                    onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.10)')}
+                  />
+                  <button type="submit" disabled={loading}
+                    className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+                    {loading ? 'Enviando...' : 'Recibir código por mail'}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={verifyCode} className="space-y-3">
+                  {info && <p className="text-emerald-400 text-xs">{info} Revisá también spam.</p>}
+                  <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code} autoFocus
+                    onChange={e => setCode(e.target.value.replace(/\D/g, ''))} placeholder="Código del mail"
+                    className="w-full rounded-xl px-3 py-3 text-center text-lg font-bold tracking-widest text-white focus:outline-none placeholder-slate-600"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }} />
+                  <button type="submit" disabled={loading || code.length < 6}
+                    className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl text-sm disabled:opacity-50">
+                    {loading ? 'Entrando...' : 'Entrar'}
+                  </button>
+                  <button type="button" onClick={() => sendCode()} disabled={loading} className="w-full text-xs text-slate-400 hover:text-white">
+                    Reenviar código
+                  </button>
+                </form>
+              )}
+              <button type="button" onClick={() => { setUsePassword(true); setError('') }}
+                className="w-full text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                Tengo contraseña
               </button>
             </>
           )}
-          {codeMode === 'verify' && (
-            <form onSubmit={verifyCode} className="space-y-3">
-              {info && <p className="text-emerald-400 text-xs">{info}</p>}
-              <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code}
-                onChange={e => setCode(e.target.value.replace(/\D/g, ''))} placeholder="Código del mail"
-                className="w-full rounded-xl px-3 py-2.5 text-center text-lg font-bold tracking-widest text-white focus:outline-none placeholder-slate-600"
+
+          {usePassword && (
+            <form onSubmit={handleLogin} className="space-y-3">
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+                placeholder="tu@email.com"
+                className="w-full rounded-xl px-3 py-3 text-sm text-white focus:outline-none placeholder-slate-600"
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }} />
-              <button type="submit" disabled={loading || code.length < 6}
-                className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl text-sm disabled:opacity-50">
-                Entrar con el código
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+                placeholder="Contraseña"
+                className="w-full rounded-xl px-3 py-3 text-sm text-white focus:outline-none placeholder-slate-600"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }} />
+              <button type="submit" disabled={loading}
+                className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-50">
+                {loading ? 'Ingresando...' : 'Ingresar'}
               </button>
-              <button type="button" onClick={() => sendCode()} disabled={loading} className="w-full text-xs text-slate-400 hover:text-white">
-                Reenviar código
-              </button>
+              <div className="flex items-center justify-between">
+                <button type="button" onClick={() => { setUsePassword(false); setError('') }} className="text-xs text-slate-500 hover:text-slate-300">
+                  ← Entrar con código
+                </button>
+                <Link href="/recuperar" className="text-xs text-slate-500 hover:text-violet-400 transition-colors">¿Olvidaste tu contraseña?</Link>
+              </div>
             </form>
           )}
         </div>
