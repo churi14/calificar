@@ -51,9 +51,7 @@ export default function ViewSelloRapido({
   const qrLink = localKey ? `${selfLink}${selfLink.includes('?') ? '&' : '?'}k=${localKey}` : selfLink
 
   // ── Pedidos por WhatsApp / delivery ──
-  const [waPhone, setWaPhone] = useState('')
   const [waBusy, setWaBusy] = useState(false)
-  const [waCopied, setWaCopied] = useState(false)
   const [linkOnly, setLinkOnly] = useState(false)
   const [linkOnlyAvailable, setLinkOnlyAvailable] = useState(true)
   const [linkOnlySaving, setLinkOnlySaving] = useState(false)
@@ -94,35 +92,15 @@ export default function ViewSelloRapido({
     } catch { return null }
   }
 
-  /** Número de WhatsApp argentino: acepta 1155667788, 011 15 5566-7788, +54 9 11 5566 7788 */
-  function waNumber(raw: string): string {
-    let d = raw.replace(/\D/g, '').replace(/^0+/, '')
-    if (!d) return ''
-    if (d.startsWith('54')) return d
-    d = d.replace(/^(\d{2,4})15(\d{6,8})$/, '$1$2')   // saca el 15 del medio
-    return `54${d.startsWith('9') ? '' : '9'}${d}`
-  }
-
   const waMessage = (link: string) => `¡Gracias por tu pedido! 🎁 Sumá tu sello de fidelidad acá (el link sirve una sola vez): ${link}`
 
+  /** Abre WhatsApp con el mensaje y un link NUEVO; el negocio elige el chat */
   async function sendByWhatsApp() {
     setWaBusy(true)
     const link = await freshLink()
     setWaBusy(false)
     if (!link) return
-    const num = waNumber(waPhone)
-    window.open(`https://wa.me/${num}?text=${encodeURIComponent(waMessage(link))}`, '_blank')
-    setWaPhone('')
-  }
-
-  async function copyWaMessage() {
-    setWaBusy(true)
-    const link = await freshLink()
-    setWaBusy(false)
-    if (!link) return
-    await navigator.clipboard.writeText(waMessage(link))
-    setWaCopied(true)
-    setTimeout(() => setWaCopied(false), 2000)
+    window.open(`https://wa.me/?text=${encodeURIComponent(waMessage(link))}`, '_blank')
   }
 
   useEffect(() => {
@@ -275,99 +253,23 @@ export default function ViewSelloRapido({
       {/* Divisor */}
       <div className="my-10 border-t border-zinc-100" />
 
-      {/* Pedidos por WhatsApp / delivery / dark kitchen */}
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 mb-10">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Delivery, dark kitchen y pedidos por WhatsApp</p>
-        <h3 className="font-bold text-zinc-900 mb-1">Mandá el sello con cada pedido</h3>
-        <p className="text-sm text-zinc-600 mb-4 leading-relaxed">
-          Si tus clientes no pasan por un local, tocá el botón y se abre WhatsApp con un mensaje y un link
-          <b> de un solo uso</b> para ese cliente. Lo abre, pone su teléfono y suma su sello. Si lo reenvía o se lo pasa a otro, no sirve.
-        </p>
-        <div className="flex gap-2 mb-3">
-          <input
-            type="tel"
-            value={waPhone}
-            onChange={e => setWaPhone(e.target.value)}
-            placeholder="Teléfono del cliente (ej: 1155667788)"
-            aria-label="Teléfono del cliente"
-            className="flex-1 min-w-0 px-4 py-3 rounded-xl border border-zinc-200 bg-white text-sm focus:outline-none focus:border-emerald-400"
-          />
-          <button
-            onClick={sendByWhatsApp}
-            disabled={waBusy}
-            className="flex-shrink-0 px-4 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-60"
-            style={{ background: '#25D366' }}
-          >
-            {waBusy ? '…' : 'Enviar por WhatsApp'}
-          </button>
-        </div>
-        <button onClick={copyWaMessage} disabled={waBusy} className="text-xs font-semibold text-emerald-700 hover:text-emerald-900">
-          {waCopied ? '✓ Mensaje copiado' : 'O copiar el mensaje y pegarlo en el chat'}
-        </button>
-        <p className="text-xs text-zinc-400 mt-3">El teléfono es opcional: sin teléfono, WhatsApp te deja elegir el chat. El link vale 2 horas o hasta que se use.</p>
-
-        {canConfigure && (
-          <div className="mt-5 pt-4 border-t border-emerald-200">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-bold text-zinc-900">Dar sellos solo con este link</p>
-                <p className="text-xs text-zinc-500 mt-0.5 leading-snug">
-                  Para pedidos por WhatsApp o delivery: el link fijo (el que se podría compartir o adivinar) deja de dar sellos, y solo vale el link que vos mandás en cada pedido. El QR del local sigue funcionando siempre, para quien retira.
-                </p>
-              </div>
-              <button
-                onClick={toggleLinkOnly}
-                disabled={linkOnlySaving || !linkOnlyAvailable}
-                aria-pressed={linkOnly}
-                className={`relative w-12 h-6 rounded-full shrink-0 transition-colors ${linkOnly ? 'bg-emerald-500' : 'bg-zinc-300'} disabled:opacity-50`}
-              >
-                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${linkOnly ? 'left-7' : 'left-1'}`} />
-              </button>
-            </div>
-            {linkOnlyError && <p className="text-xs text-red-500 mt-2">{linkOnlyError}</p>}
-            {!linkOnlyAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_link_only.sql para poder activarlo.</p>}
-          </div>
-        )}
-      </div>
-
-      {/* Link de auto-sello */}
+      {/* QR del local */}
       <div>
-        <h3 className="font-bold text-zinc-900 mb-1">Link fijo de auto-sello</h3>
+        <h3 className="font-bold text-zinc-900 mb-1">QR del local</h3>
         <p className="text-sm text-zinc-500 mb-4">
-          Un link que sirve siempre, pensado para el local. El cliente lo abre, pone su teléfono y se sella solo.
-          {linkOnly ? ' Ahora está desactivado: para pedidos solo vale el link de un solo uso (el QR del local sigue funcionando).' : ' Para pedidos por WhatsApp o delivery usá mejor el link de un solo uso de arriba.'}
-        </p>
-        <div className="flex items-center gap-2 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3">
-          <span className="text-sm text-zinc-600 font-mono truncate flex-1">{selfLink}</span>
-          <button
-            onClick={copyLink}
-            className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
-            style={{ background: copied ? '#10b981' : '#7C3AED', color: 'white' }}
-          >
-            {copied ? '✓ Copiado' : 'Copiar'}
-          </button>
-        </div>
-        <p className="text-xs text-zinc-400 mt-2">
-          El link aplica anti-abuso: máximo 1 sello por número cada 4 horas.
-        </p>
-      </div>
-
-      {/* QR permanente para el mostrador */}
-      <div className="mt-8 pt-6 border-t border-zinc-100">
-        <h3 className="font-bold text-zinc-900 mb-1">QR para sumar sellos en el local</h3>
-        <p className="text-sm text-zinc-500 mb-4">
-          Imprimilo y ponélo en el mostrador. El cliente lo escanea, pone su teléfono y se sella
-          solo. No tiene vencimiento y funciona siempre, también para quien retira su pedido en el local. Si ya imprimiste un QR anterior, reimprimí este: el viejo deja de dar sellos cuando prendés el interruptor de arriba.
+          Imprimilo y ponélo en el mostrador. Es el mismo QR para todo: si el cliente es nuevo, se registra y recibe su primer sello;
+          si ya es cliente, se sella solo. No tiene vencimiento y funciona siempre, también para quien retira su pedido en el local.
+          {' '}Si ya imprimiste un QR anterior, reimprimí este: el viejo deja de dar sellos cuando prendés el interruptor de pedidos.
         </p>
         <div className="flex flex-col items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-2xl p-5">
           <img
             src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
-            alt="QR sellos"
+            alt="QR del local"
             width={160}
             height={160}
             className="rounded-xl"
           />
-          <p className="text-xs text-zinc-400 text-center">Para el local y los retiros · Sin vencimiento</p>
+          <p className="text-xs text-zinc-400 text-center">Para el local y los retiros · Sin vencimiento · 1 sello por número cada 4 horas</p>
           <div className="flex gap-2 w-full">
             <button
               onClick={() => window.open(qrLink, '_blank')}
@@ -376,32 +278,30 @@ export default function ViewSelloRapido({
               Ampliar QR
             </button>
             <button
-              onClick={() => navigator.clipboard.writeText(selfLink)}
+              onClick={copyLink}
               className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
             >
-              Copiar link
+              {copied ? '✓ Copiado' : 'Copiar link'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Link seguro con vencimiento */}
-      <div className="mt-8 pt-6 border-t border-zinc-100">
-        <div className="flex items-center gap-2 mb-1">
-          <h3 className="font-bold text-zinc-900">Link seguro con vencimiento</h3>
-        </div>
+      {/* Pedidos: delivery, dark kitchen y WhatsApp */}
+      <div className="mt-10 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Delivery, dark kitchen y pedidos por WhatsApp</p>
+        <h3 className="font-bold text-zinc-900 mb-1">Link de un solo uso para cada pedido</h3>
         {isProPlus ? (
           <>
-            <p className="text-sm text-zinc-500 mb-4">
-              Cada link sirve <b>una sola vez</b> y vale 2 horas. En cuanto alguien lo usa para cargar un sello,
-              deja de funcionar. Esta pantalla muestra uno nuevo cada 10 segundos, y al tocar Copiar siempre
-              te da uno distinto para cada cliente.
+            <p className="text-sm text-zinc-600 mb-4 leading-relaxed">
+              Cada link sirve <b>una sola vez</b> y vale 2 horas. En cuanto el cliente lo usa para sumar su sello, deja de funcionar:
+              si lo reenvía o se lo pasa a otro, no sirve. Al tocar Copiar o Enviar siempre sale uno nuevo, distinto para cada cliente.
             </p>
             {loadingToken ? (
               <div className="h-12 bg-zinc-100 rounded-xl animate-pulse" />
             ) : secureLink ? (
               <>
-                <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2 bg-white border border-emerald-200 rounded-xl px-4 py-3">
                   <span className="text-sm text-emerald-800 font-mono truncate flex-1">{secureLink}</span>
                   <button
                     onClick={copySecureLink}
@@ -422,9 +322,15 @@ export default function ViewSelloRapido({
                     {secondsLeft > 0 ? `${secondsLeft}s` : 'Actualizando…'}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-400 mt-1">
-                  Cada link vale 2 horas o hasta que se use.
-                </p>
+                <button
+                  onClick={sendByWhatsApp}
+                  disabled={waBusy}
+                  className="mt-4 w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-60"
+                  style={{ background: '#25D366' }}
+                >
+                  {waBusy ? '…' : 'Enviar por WhatsApp'}
+                </button>
+                <p className="text-xs text-zinc-400 mt-1.5 text-center">Se abre WhatsApp con el mensaje y el link listo; vos elegís el chat.</p>
               </>
             ) : (
               <p className="text-sm text-red-500">No se pudo generar el link. Recargá la página.</p>
@@ -433,10 +339,31 @@ export default function ViewSelloRapido({
         ) : (
           <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-4">
             <p className="text-sm text-zinc-500">
-              Los links con vencimiento automático están disponibles en el plan{' '}
-              <strong>Pro</strong>. Evitá que tus clientes guarden el link y se sellen solos cuando
-              quieran.
+              Los links con vencimiento automático están disponibles en el plan <strong>Pro</strong>.
             </p>
+          </div>
+        )}
+
+        {canConfigure && (
+          <div className="mt-5 pt-4 border-t border-emerald-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-zinc-900">Dar sellos solo con link de un solo uso</p>
+                <p className="text-xs text-zinc-500 mt-0.5 leading-snug">
+                  Para delivery y pedidos por WhatsApp: los links comunes y copiados dejan de dar sellos, y solo vale el link que mandás en cada pedido. El QR del local sigue funcionando siempre, para quien retira.
+                </p>
+              </div>
+              <button
+                onClick={toggleLinkOnly}
+                disabled={linkOnlySaving || !linkOnlyAvailable}
+                aria-pressed={linkOnly}
+                className={`relative w-12 h-6 rounded-full shrink-0 transition-colors ${linkOnly ? 'bg-emerald-500' : 'bg-zinc-300'} disabled:opacity-50`}
+              >
+                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${linkOnly ? 'left-7' : 'left-1'}`} />
+              </button>
+            </div>
+            {linkOnlyError && <p className="text-xs text-red-500 mt-2">{linkOnlyError}</p>}
+            {!linkOnlyAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_link_only.sql para poder activarlo.</p>}
           </div>
         )}
       </div>
