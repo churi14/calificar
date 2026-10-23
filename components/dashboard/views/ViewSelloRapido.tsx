@@ -194,7 +194,7 @@ export default function ViewSelloRapido({
   }
 
   return (
-    <div className="p-6 max-w-md mx-auto pt-10">
+    <div className="p-6 max-w-5xl mx-auto pt-8">
       <h2 className="text-2xl font-extrabold text-zinc-900 mb-1">Sello rápido</h2>
       <p className="text-sm text-zinc-500 mb-8">Ingresá el teléfono del cliente y sellá con un tap.</p>
       {branchLabel && (
@@ -203,6 +203,9 @@ export default function ViewSelloRapido({
         </p>
       )}
 
+      {/* Dos columnas en pantallas grandes: todo a la vista sin bajar */}
+      <div className="grid lg:grid-cols-2 gap-8 items-start">
+      <div>
       {/* Input teléfono */}
       <div className="relative mb-4">
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">📱</span>
@@ -250,8 +253,8 @@ export default function ViewSelloRapido({
         {stamping ? 'Sellando…' : stamped ? '¡Listo!' : '⚡ Sellar'}
       </button>
 
-      {/* Divisor */}
-      <div className="my-10 border-t border-zinc-100" />
+      {/* Separador */}
+      <div className="my-6 border-t border-zinc-100" />
 
       {/* QR del local */}
       <div>
@@ -265,8 +268,8 @@ export default function ViewSelloRapido({
           <img
             src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
             alt="QR del local"
-            width={160}
-            height={160}
+            width={140}
+            height={140}
             className="rounded-xl"
           />
           <p className="text-xs text-zinc-400 text-center">Para el local y los retiros · Sin vencimiento · 1 sello por número cada 4 horas</p>
@@ -287,8 +290,11 @@ export default function ViewSelloRapido({
         </div>
       </div>
 
-      {/* Pedidos: delivery, dark kitchen y WhatsApp */}
-      <div className="mt-10 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5">
+      </div>
+
+      {/* Columna derecha: pedidos (delivery, dark kitchen y WhatsApp) */}
+      <div>
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5">
         <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Delivery, dark kitchen y pedidos por WhatsApp</p>
         <h3 className="font-bold text-zinc-900 mb-1">Link de un solo uso para cada pedido</h3>
         {isProPlus ? (
@@ -366,6 +372,8 @@ export default function ViewSelloRapido({
             {!linkOnlyAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_link_only.sql para poder activarlo.</p>}
           </div>
         )}
+      </div>
+      </div>
       </div>
     </div>
   )
