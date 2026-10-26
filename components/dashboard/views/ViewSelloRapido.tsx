@@ -34,6 +34,12 @@ export default function ViewSelloRapido({
   const [stamped, setStamped] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedSecure, setCopiedSecure] = useState(false)
+  const [copiedLogin, setCopiedLogin] = useState(false)
+  // Entrada para ver la tarjeta sin sumar sello (aparte de los QR de sellos)
+  const loginLink =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/t/${selectedProgram}`
+      : `/t/${selectedProgram}`
   const selfLink =
     typeof window !== 'undefined'
       ? `${window.location.origin}/s/${selectedProgram}${branchId ? `?b=${branchId}` : ''}`
@@ -372,6 +378,44 @@ export default function ViewSelloRapido({
             {!linkOnlyAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_link_only.sql para poder activarlo.</p>}
           </div>
         )}
+      </div>
+
+      {/* QR para ver la tarjeta (no suma sellos) */}
+      <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-5">
+        <div className="flex items-center gap-4">
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(loginLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+            alt="QR para ver mi tarjeta"
+            width={96}
+            height={96}
+            className="rounded-lg shrink-0"
+          />
+          <div className="min-w-0">
+            <h3 className="font-bold text-zinc-900 leading-tight">QR para ver mi tarjeta</h3>
+            <p className="text-xs text-zinc-500 mt-1 leading-snug">
+              Para que el cliente entre a su tarjeta cuando quiera, sin sumar sellos. Si no la tiene guardada, pone su teléfono y la ve. Es aparte del QR del local.
+            </p>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => window.open(loginLink, '_blank')}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
+              >
+                Ampliar QR
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(loginLink).then(() => {
+                    setCopiedLogin(true)
+                    setTimeout(() => setCopiedLogin(false), 2000)
+                  })
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
+              >
+                {copiedLogin ? '✓ Copiado' : 'Copiar link'}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
       </div>
       </div>
