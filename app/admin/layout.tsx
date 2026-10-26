@@ -5,6 +5,9 @@ import AdminShell from './AdminShell'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
+  manifest: '/admin-manifest.json',
+  themeColor: '#7C3AED',
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Admin' },
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -104,15 +104,27 @@
 [data-dark="true"] .sticky { background-color: #18181b !important; border-color: #3f3f46 !important; }
 [data-dark="true"] .focus\:border-gray-400:focus { border-color: #6b7280 !important; }
 
-/* Modo noche del panel de administración: invierte los colores de toda la página
-   y vuelve a invertir imágenes, logos y QR para que se vean normales. */
-html.admin-night {
-  background: #fff;
-  filter: invert(1) hue-rotate(180deg);
-}
-html.admin-night img,
-html.admin-night video,
-html.admin-night canvas,
-html.admin-night iframe {
-  filter: invert(1) hue-rotate(180deg);
-}
+/* Modo noche del panel de administración (se activa con html.admin-night desde AdminShell).
+   Pisa los colores claros más usados por las páginas del admin. */
+html.admin-night body { background-color: #09090b; color: #e4e4e7; }
+html.admin-night .bg-white { background-color: #18181b !important; }
+html.admin-night .bg-gray-50, html.admin-night .bg-zinc-50, html.admin-night .bg-slate-50 { background-color: #09090b !important; }
+html.admin-night .bg-gray-100, html.admin-night .bg-zinc-100, html.admin-night .bg-slate-100,
+html.admin-night .bg-gray-200, html.admin-night .bg-zinc-200 { background-color: #27272a !important; }
+html.admin-night .bg-violet-50, html.admin-night .bg-violet-100 { background-color: #2e1065 !important; }
+html.admin-night .bg-green-50, html.admin-night .bg-green-100, html.admin-night .bg-emerald-50, html.admin-night .bg-emerald-100 { background-color: #052e1b !important; }
+html.admin-night .bg-red-50, html.admin-night .bg-red-100 { background-color: #3f1212 !important; }
+html.admin-night .bg-amber-50, html.admin-night .bg-amber-100, html.admin-night .bg-yellow-50, html.admin-night .bg-yellow-100, html.admin-night .bg-orange-50, html.admin-night .bg-orange-100 { background-color: #3a2a07 !important; }
+html.admin-night .bg-blue-50, html.admin-night .bg-blue-100, html.admin-night .bg-sky-50 { background-color: #0c2340 !important; }
+html.admin-night .text-gray-900, html.admin-night .text-gray-800, html.admin-night .text-gray-700,
+html.admin-night .text-zinc-900, html.admin-night .text-zinc-800, html.admin-night .text-zinc-700,
+html.admin-night .text-slate-900, html.admin-night .text-slate-800, html.admin-night .text-black,
+html.admin-night .text-\[\#0F172A\] { color: #f4f4f5 !important; }
+html.admin-night .text-gray-600, html.admin-night .text-gray-500, html.admin-night .text-zinc-600, html.admin-night .text-zinc-500, html.admin-night .text-slate-600, html.admin-night .text-slate-500 { color: #a1a1aa !important; }
+html.admin-night .text-gray-400, html.admin-night .text-gray-300, html.admin-night .text-zinc-400, html.admin-night .text-zinc-300 { color: #71717a !important; }
+html.admin-night .border-gray-50, html.admin-night .border-gray-100, html.admin-night .border-gray-200, html.admin-night .border-gray-300,
+html.admin-night .border-zinc-100, html.admin-night .border-zinc-200, html.admin-night .border-zinc-300,
+html.admin-night .divide-gray-50 > * + *, html.admin-night .divide-gray-100 > * + * { border-color: #27272a !important; }
+html.admin-night input, html.admin-night textarea, html.admin-night select { background-color: #18181b; color: #f4f4f5; border-color: #3f3f46; }
+html.admin-night input::placeholder, html.admin-night textarea::placeholder { color: #71717a; }
+html.admin-night .hover\:bg-gray-50:hover, html.admin-night .hover\:bg-gray-100:hover, html.admin-night .hover\:bg-zinc-800:hover { background-color: #27272a !important; }

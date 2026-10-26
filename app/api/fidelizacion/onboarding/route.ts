@@ -18,6 +18,34 @@ const adminSupabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+/** Manda un mail a los administradores cuando se registra un negocio nuevo */
+async function notifyAdminsNewBusiness(b: { name: string; type: string; phone: string; email: string }) {
+  if (!process.env.RESEND_API_KEY) return
+  let to: string[] = (process.env.ADMIN_NOTIFY_EMAIL ?? '').split(',').map(x => x.trim()).filter(Boolean)
+  if (to.length === 0) {
+    const { data } = await adminSupabase.from('profiles').select('email').eq('role', 'admin')
+    to = (data ?? []).map(r => r.email as string).filter(Boolean)
+  }
+  if (to.length === 0) return
+  const digits = b.phone.startsWith('54') ? b.phone : `549${b.phone.replace(/^0+/, '')}`
+  const wa = b.phone ? `https://wa.me/${digits}?text=${encodeURIComponent(`Hola! Te escribo de Calificar por ${b.name}.`)}` : ''
+  const { Resend } = await import('resend')
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  await resend.emails.send({
+    from: 'Calificar <notificaciones@calificar.com.ar>',
+    to,
+    subject: `Nuevo registro: ${b.name}`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:480px">
+      <h2 style="margin:0 0 12px">Se registró un negocio nuevo 🎉</h2>
+      <p style="margin:4px 0"><b>Negocio:</b> ${b.name}</p>
+      <p style="margin:4px 0"><b>Rubro:</b> ${b.type}</p>
+      <p style="margin:4px 0"><b>Email:</b> ${b.email}</p>
+      <p style="margin:4px 0"><b>WhatsApp:</b> ${b.phone || 'sin teléfono'}</p>
+      ${wa ? `<p style="margin:16px 0"><a href="${wa}" style="background:#25D366;color:#fff;text-decoration:none;font-weight:bold;padding:12px 20px;border-radius:10px;display:inline-block">Escribirle por WhatsApp</a></p>` : ''}
+    </div>`,
+  })
+}
+
 export async function POST(req: NextRequest) {
   try {
     // ── Verificar sesión del usuario ─────────────────────────────────────────
@@ -107,6 +135,18 @@ export async function POST(req: NextRequest) {
       }
 
       businessId = business.id
+
+      // Aviso por mail al administrador: nuevo registro (no frena el registro si falla)
+      try {
+        await notifyAdminsNewBusiness({
+          name: businessName,
+          type: businessType ?? 'otro',
+          phone: typeof phone === 'string' ? phone.replace(/\D/g, '') : '',
+          email: user.email ?? '',
+        })
+      } catch (e) {
+        console.error('[onboarding] no se pudo avisar al admin:', e)
+      }
     }
 
     // ── Verificar si el negocio ya tiene un programa de fidelidad ────────────

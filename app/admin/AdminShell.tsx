@@ -38,6 +38,13 @@ export default function AdminShell({
 
   useEffect(() => () => { document.documentElement.classList.remove('admin-night') }, [])
 
+  // Permite instalar el admin como app (PWA) desde el navegador
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/admin-sw.js', { scope: '/admin/' }).catch(() => {})
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex">
       {/* Sidebar */}
