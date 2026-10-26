@@ -17,6 +17,14 @@ type BizRow = {
   loyalty_programs: { id: string }[]
 }
 
+// WhatsApp necesita el número en formato internacional de Argentina
+function waAR(raw: string): string {
+  let d = raw.replace(/\D/g, '')
+  if (d.startsWith('54')) return d
+  d = d.replace(/^0+/, '')
+  return '549' + d
+}
+
 const PLAN_OPTIONS = [
   { value: 'trial',    label: 'Trial',    color: 'bg-zinc-100 text-zinc-600' },
   { value: 'beauty',   label: 'Beauty',   color: 'bg-pink-100 text-pink-700' },
@@ -174,8 +182,13 @@ export default function PlanesPage() {
                     <p className="font-bold text-zinc-900 text-sm truncate">{biz.name}</p>
                     <p className="text-[10px] text-zinc-400 truncate">{biz.owner_email ?? biz.owner_user_id}</p>
                     {biz.whatsapp_number && (
-                      <a href={`https://wa.me/${biz.whatsapp_number}`} target="_blank" rel="noreferrer" className="text-[10px] text-emerald-600 font-semibold hover:underline">
-                        WhatsApp {biz.whatsapp_number}
+                      <a
+                        href={`https://wa.me/${waAR(biz.whatsapp_number)}?text=${encodeURIComponent(`Hola! Te escribo de Calificar por ${biz.name}.`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 mt-1 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded-md transition-colors"
+                      >
+                        💬 WhatsApp · {biz.whatsapp_number}
                       </a>
                     )}
                   </div>

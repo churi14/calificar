@@ -771,21 +771,21 @@ export default function AdminFidelizacionPage() {
                     <div>
                       <p className="font-bold text-gray-900 text-sm">{p.name}</p>
                       <p className="text-xs text-gray-400">{p.businesses?.name ?? '—'}</p>
-                      <p className="text-xs mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2">
                         {p.businesses?.whatsapp_number ? (
                           <a
-                            href={`https://wa.me/${waAR(p.businesses.whatsapp_number)}`}
+                            href={`https://wa.me/${waAR(p.businesses.whatsapp_number)}?text=${encodeURIComponent(`Hola! Te escribo de Calificar por ${p.businesses.name}.`)}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-emerald-600 font-semibold hover:underline"
+                            className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
                           >
-                            📞 {p.businesses.whatsapp_number}
+                            💬 WhatsApp · {p.businesses.whatsapp_number}
                           </a>
                         ) : (
-                          <span className="text-gray-300">Sin teléfono cargado</span>
+                          <span className="text-xs text-gray-300">Sin teléfono cargado</span>
                         )}
-                        {p.businesses?.owner_email && <span className="text-gray-400">{p.businesses.owner_email}</span>}
-                      </p>
+                        {p.businesses?.owner_email && <span className="text-xs text-gray-400">{p.businesses.owner_email}</span>}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
