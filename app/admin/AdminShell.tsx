@@ -27,15 +27,16 @@ export default function AdminShell({
     if (saved === '1') setDark(true)
   }, [])
 
-  // Aplicar/quitar clase `dark` en <html>
+  // Modo noche: oscurece todas las páginas del admin (ver .admin-night en globals.css).
+  // Se saca al salir del admin para que no afecte al resto del sitio.
   useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    const root = document.documentElement
+    root.classList.remove('dark')
+    root.classList.toggle('admin-night', dark)
     localStorage.setItem('cal_admin_dark', dark ? '1' : '0')
   }, [dark])
+
+  useEffect(() => () => { document.documentElement.classList.remove('admin-night') }, [])
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex">

@@ -103,3 +103,16 @@
 [data-dark="true"] .text-rose-500    { color: #fb7185 !important; }
 [data-dark="true"] .sticky { background-color: #18181b !important; border-color: #3f3f46 !important; }
 [data-dark="true"] .focus\:border-gray-400:focus { border-color: #6b7280 !important; }
+
+/* Modo noche del panel de administración: invierte los colores de toda la página
+   y vuelve a invertir imágenes, logos y QR para que se vean normales. */
+html.admin-night {
+  background: #fff;
+  filter: invert(1) hue-rotate(180deg);
+}
+html.admin-night img,
+html.admin-night video,
+html.admin-night canvas,
+html.admin-night iframe {
+  filter: invert(1) hue-rotate(180deg);
+}

@@ -25,14 +25,28 @@ export async function GET(req: NextRequest) {
     .from('loyalty_programs')
     .select(`
       *,
-      businesses(name, id, plan, plan_expires_at),
+      businesses(name, id, plan, plan_expires_at, whatsapp_number, owner_user_id),
       loyalty_cards(count)
     `)
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ programs })
+  // Mail del dueño de cada negocio, para poder contactarlo
+  type Biz = { owner_user_id?: string | null }
+  const bizOf = (p: { businesses?: unknown }) => (Array.isArray(p.businesses) ? p.businesses[0] : p.businesses) as Biz | null
+  const ownerIds = [...new Set((programs ?? []).map(p => bizOf(p)?.owner_user_id).filter(Boolean))] as string[]
+  const emailMap: Record<string, string> = {}
+  if (ownerIds.length) {
+    const { data: profiles } = await supabase.from('profiles').select('id, email').in('id', ownerIds)
+    for (const pr of profiles ?? []) emailMap[pr.id as string] = pr.email as string
+  }
+  const withOwner = (programs ?? []).map(p => {
+    const b = bizOf(p)
+    return b ? { ...p, businesses: { ...b, owner_email: b.owner_user_id ? emailMap[b.owner_user_id] ?? null : null } } : p
+  })
+
+  return NextResponse.json({ programs: withOwner })
 }
 
 // ─── POST: crear programa + clase en Google Wallet ───────────────────────────

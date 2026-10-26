@@ -12,8 +12,16 @@ type Program = {
   logo_url: string | null
   address: string | null
   created_at: string
-  businesses: { name: string; id: string } | null
+  businesses: { name: string; id: string; whatsapp_number?: string | null; owner_email?: string | null } | null
   loyalty_cards: { count: number }[]
+}
+
+// WhatsApp necesita el número en formato internacional de Argentina
+function waAR(raw: string): string {
+  let d = raw.replace(/\D/g, '')
+  if (d.startsWith('54')) return d
+  d = d.replace(/^0+/, '')
+  return '549' + d
 }
 
 type Business = { id: string; name: string }
@@ -763,6 +771,21 @@ export default function AdminFidelizacionPage() {
                     <div>
                       <p className="font-bold text-gray-900 text-sm">{p.name}</p>
                       <p className="text-xs text-gray-400">{p.businesses?.name ?? '—'}</p>
+                      <p className="text-xs mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                        {p.businesses?.whatsapp_number ? (
+                          <a
+                            href={`https://wa.me/${waAR(p.businesses.whatsapp_number)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-emerald-600 font-semibold hover:underline"
+                          >
+                            📞 {p.businesses.whatsapp_number}
+                          </a>
+                        ) : (
+                          <span className="text-gray-300">Sin teléfono cargado</span>
+                        )}
+                        {p.businesses?.owner_email && <span className="text-gray-400">{p.businesses.owner_email}</span>}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
