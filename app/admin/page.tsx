@@ -76,31 +76,37 @@ export default async function AdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-gray-900">Panel Admin</h1>
-        <p className="text-sm text-gray-400 mt-0.5">Vista global de la plataforma</p>
+        <h1 className="text-2xl font-bold text-gray-800">Panel Admin</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Vista global de la plataforma</p>
       </div>
 
       {/* STATS GLOBALES */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
         {[
-          { label: 'Clientes totales', value: totalClients ?? 0, delta: newClientsWeek ?? 0, icon: '👥', color: 'text-gray-900' },
-          { label: 'Locales activos', value: totalBusinesses ?? 0, delta: newBusinessesWeek ?? 0, icon: '🏪', color: 'text-blue-600' },
-          { label: 'Scans totales', value: totalScans ?? 0, delta: newScansWeek ?? 0, icon: '📱', color: 'text-amber-500' },
-          { label: 'Feedback recibido', value: totalFeedback ?? 0, delta: null, icon: '💬', color: 'text-green-600' },
+          { label: 'Clientes totales', value: totalClients ?? 0, delta: newClientsWeek ?? 0, icon: '👥' },
+          { label: 'Locales activos', value: totalBusinesses ?? 0, delta: newBusinessesWeek ?? 0, icon: '🏪' },
+          { label: 'Scans totales', value: totalScans ?? 0, delta: newScansWeek ?? 0, icon: '📱' },
+          { label: 'Feedback recibido', value: totalFeedback ?? 0, delta: null, icon: '💬' },
         ].map(s => (
-          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5">
-            <div className="text-xl mb-2">{s.icon}</div>
-            <p className={`text-3xl font-extrabold ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
-            {s.delta !== null && s.delta > 0 && (
-              <p className="text-xs text-green-600 font-semibold mt-1">+{s.delta} esta semana</p>
-            )}
+          <div key={s.label} className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-xl">{s.icon}</div>
+            <div className="mt-5 flex items-end justify-between gap-2">
+              <div>
+                <p className="text-sm text-gray-500">{s.label}</p>
+                <p className="mt-2 text-3xl font-bold text-gray-800">{s.value}</p>
+              </div>
+              {s.delta !== null && s.delta > 0 && (
+                <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-sm font-medium text-green-600 whitespace-nowrap">
+                  ↑ {s.delta} <span className="hidden 2xl:inline">esta semana</span>
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
       {/* GRÁFICO SCANS */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="font-bold text-gray-900">Scans últimos 7 días</h2>
@@ -112,7 +118,7 @@ export default async function AdminPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ÚLTIMOS CLIENTES */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-bold text-gray-900">Últimos clientes</h2>
             <Link href="/admin/clientes" className="text-xs text-gray-500 hover:text-gray-700">Ver todos →</Link>
@@ -152,7 +158,7 @@ export default async function AdminPage() {
         </div>
 
         {/* ÚLTIMOS LOCALES */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-bold text-gray-900">Últimos locales</h2>
           </div>

@@ -128,3 +128,5 @@ html.admin-night .divide-gray-50 > * + *, html.admin-night .divide-gray-100 > * 
 html.admin-night input, html.admin-night textarea, html.admin-night select { background-color: #18181b; color: #f4f4f5; border-color: #3f3f46; }
 html.admin-night input::placeholder, html.admin-night textarea::placeholder { color: #71717a; }
 html.admin-night .hover\:bg-gray-50:hover, html.admin-night .hover\:bg-gray-100:hover, html.admin-night .hover\:bg-zinc-800:hover { background-color: #27272a !important; }
+html.admin-night .bg-\[\#ecf3ff\] { background-color: #1e2a5a !important; }
+html.admin-night .text-\[\#465fff\] { color: #9db2ff !important; }
