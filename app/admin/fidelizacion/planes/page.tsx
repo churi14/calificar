@@ -44,6 +44,7 @@ function planLabel(plan: string) {
 function PlanEditor({ biz, onSaved }: { biz: BizRow; onSaved: (b: BizRow) => void }) {
   const [plan, setPlan] = useState(biz.plan ?? 'trial')
   const [months, setMonths] = useState('')
+  const [days, setDays] = useState('')
   const [notes, setNotes] = useState(biz.billing_notes ?? '')
   const [extra, setExtra] = useState(String(biz.extra_locales ?? 0))
   const [saving, setSaving] = useState(false)
@@ -58,6 +59,7 @@ function PlanEditor({ biz, onSaved }: { biz: BizRow; onSaved: (b: BizRow) => voi
         business_id: biz.id,
         plan,
         months: months ? parseInt(months) : undefined,
+        days: days ? parseInt(days) : undefined,
         billing_notes: notes,
         extra_locales: plan === 'pro' ? parseInt(extra) || 0 : 0,
       }),
@@ -86,6 +88,23 @@ function PlanEditor({ biz, onSaved }: { biz: BizRow; onSaved: (b: BizRow) => voi
           </button>
         ))}
       </div>
+
+      {/* Prueba por días: al vencer, el negocio pasa al modo básico */}
+      {(plan === 'beauty' || plan === 'starter' || plan === 'pro' || plan === 'ultimate') && (
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-xs text-zinc-500 w-24 flex-shrink-0">Días de prueba</label>
+          <input type="number" min="1" max="365" value={days} onChange={e => setDays(e.target.value)}
+            placeholder="Ej: 7"
+            className="w-24 border border-zinc-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-violet-400" />
+          {[7, 14, 30].map(n => (
+            <button key={n} type="button" onClick={() => setDays(String(n))}
+              className="text-[11px] font-semibold px-2 py-1 rounded-md bg-zinc-100 text-zinc-600 hover:bg-zinc-200">
+              {n} días
+            </button>
+          ))}
+          <span className="text-xs text-zinc-400 w-full pl-[6.5rem]">Si cargás días, se ignoran los meses.</span>
+        </div>
+      )}
 
       {/* Meses (para billing mensual) */}
       {(plan === 'beauty' || plan === 'starter' || plan === 'pro' || plan === 'ultimate') && (

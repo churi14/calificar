@@ -4,6 +4,7 @@
  * Body: { business_id, plan, months?, billing_notes? }
  *
  * plan: 'trial' | 'beauty' | 'starter' | 'pro' | 'ultimate' | 'gifted'
+ * days: prueba de N días (tiene prioridad sobre months).
  * months: si se pasa, plan_expires_at = ahora + N meses. Si no, null (no vence).
  */
 import { NextRequest, NextResponse } from 'next/server'
@@ -33,7 +34,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Solo admins pueden cambiar planes' }, { status: 403 })
   }
 
-  const { business_id, plan, months, billing_notes, extra_locales } = await req.json()
+  const { business_id, plan, months, days, billing_notes, extra_locales } = await req.json()
 
   if (!business_id || !plan) {
     return NextResponse.json({ error: 'business_id y plan son requeridos' }, { status: 400 })
@@ -45,7 +46,11 @@ export async function PUT(req: NextRequest) {
 
   // Calcular vencimiento
   let plan_expires_at: string | null = null
-  if (months && months > 0) {
+  const daysN = Math.floor(Number(days))
+  if (daysN > 0) {
+    // Prueba de N días: vence a las N×24 h
+    plan_expires_at = new Date(Date.now() + Math.min(daysN, 365) * 86400000).toISOString()
+  } else if (months && months > 0) {
     const d = new Date()
     d.setMonth(d.getMonth() + months)
     plan_expires_at = d.toISOString()
