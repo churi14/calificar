@@ -37,6 +37,12 @@ export default function ViewSelloRapido({
   const [copied, setCopied] = useState(false)
   const [copiedSecure, setCopiedSecure] = useState(false)
   const [copiedLogin, setCopiedLogin] = useState(false)
+  const [copiedJoin, setCopiedJoin] = useState(false)
+  // Registro de clientes nuevos: crea la tarjeta sin sumar sello (aparte del QR del local)
+  const joinLink =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/fidelizacion/unirse?program=${selectedProgram}`
+      : `/fidelizacion/unirse?program=${selectedProgram}`
   // Entrada para ver la tarjeta sin sumar sello (aparte de los QR de sellos)
   const loginLink =
     typeof window !== 'undefined'
@@ -295,9 +301,18 @@ export default function ViewSelloRapido({
       <div>
         <h3 className="font-bold text-zinc-900 mb-1">QR del local</h3>
         <p className="text-sm text-zinc-500 mb-4">
-          Imprimilo y ponélo en el mostrador. Es el mismo QR para todo: si el cliente es nuevo, se registra y recibe su primer sello;
-          si ya es cliente, se sella solo. No tiene vencimiento y funciona siempre, también para quien retira su pedido en el local.
-          {' '}Si ya imprimiste un QR anterior, reimprimí este: el viejo deja de dar sellos cuando prendés el interruptor de pedidos.
+          {businessOnly ? (
+            <>
+              Con "solo sella el negocio" prendido, este QR <b>no suma sellos</b>: si el cliente es nuevo se registra y ve su tarjeta vacía;
+              si ya es cliente, ve su tarjeta. Los sellos los cargás vos desde el panel.
+            </>
+          ) : (
+            <>
+              Imprimilo y ponélo en el mostrador. Es el mismo QR para todo: si el cliente es nuevo, se registra y recibe su primer sello;
+              si ya es cliente, se sella solo. No tiene vencimiento y funciona siempre, también para quien retira su pedido en el local.
+              {linkOnly && ' Si ya imprimiste un QR anterior, reimprimí este: el viejo deja de dar sellos mientras esté activado el modo de links de un solo uso.'}
+            </>
+          )}
         </p>
         <div className="flex flex-col items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-2xl p-5">
           <img
@@ -384,6 +399,12 @@ export default function ViewSelloRapido({
         </div>
       )}
 
+      {businessOnly ? (
+        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-500 leading-relaxed">
+          <p className="font-bold text-zinc-700 mb-1">Links de un solo uso para pedidos</p>
+          No aplican mientras "solo sella el negocio" esté prendido: ningún link suma sellos al cliente. Apagalo arriba si querés volver a mandar links por WhatsApp.
+        </div>
+      ) : (
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5">
         <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Delivery, dark kitchen y pedidos por WhatsApp</p>
         <h3 className="font-bold text-zinc-900 mb-1">Link de un solo uso para cada pedido</h3>
@@ -440,7 +461,8 @@ export default function ViewSelloRapido({
           </div>
         )}
 
-        {canConfigure && (
+        {/* El interruptor solo se muestra si ya estaba activado, para poder apagarlo; ya no se ofrece prenderlo */}
+        {canConfigure && linkOnly && (
           <div className="mt-5 pt-4 border-t border-emerald-200">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -462,6 +484,45 @@ export default function ViewSelloRapido({
             {!linkOnlyAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_link_only.sql para poder activarlo.</p>}
           </div>
         )}
+      </div>
+      )}
+
+      {/* QR de registro (crea la tarjeta, no suma sellos) */}
+      <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-5">
+        <div className="flex items-center gap-4">
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(joinLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+            alt="QR de registro"
+            width={96}
+            height={96}
+            className="rounded-lg shrink-0"
+          />
+          <div className="min-w-0">
+            <h3 className="font-bold text-zinc-900 leading-tight">QR de registro (sin sello)</h3>
+            <p className="text-xs text-zinc-500 mt-1 leading-snug">
+              Para que un cliente nuevo cree su tarjeta sin recibir ningún sello. Sirve para sumar clientes a distancia o cuando los sellos los cargás vos.
+            </p>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => window.open(joinLink, '_blank')}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
+              >
+                Ampliar QR
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(joinLink).then(() => {
+                    setCopiedJoin(true)
+                    setTimeout(() => setCopiedJoin(false), 2000)
+                  })
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
+              >
+                {copiedJoin ? '✓ Copiado' : 'Copiar link'}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* QR para ver la tarjeta (no suma sellos) */}
