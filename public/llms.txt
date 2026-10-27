@@ -1,0 +1,41 @@
+# Calificar
+
+> Calificar es una plataforma argentina para negocios locales. Su producto principal, Calificar Fidelización, es una tarjeta de sellos digital: el cliente suma sellos escaneando un QR (sin descargar ninguna app) y el negocio ve a sus clientes, sus visitas y sus premios desde un panel web. También ofrece Calificar Reseñas, para conseguir más reseñas en Google con carteles NFC y QR.
+
+Sitio: https://calificar.com.ar
+País y moneda: Argentina, precios en pesos argentinos (ARS). Pagos con Mercado Pago.
+
+## Calificar Fidelización (tarjeta de sellos digital)
+
+Para quién es: cafeterías, restaurantes, dark kitchens y delivery, panaderías, kioscos, barberías, salones de belleza, gimnasios y cualquier negocio que quiera que sus clientes vuelvan.
+
+Cómo funciona:
+- El negocio crea su tarjeta (logo, colores, cantidad de sellos y premio) y la prueba gratis 14 días.
+- Imprime un QR para el local. Si el cliente es nuevo, se registra con su teléfono y recibe su primer sello; si ya es cliente, el mismo QR le suma un sello.
+- Para delivery y pedidos por WhatsApp hay links de un solo uso, para que un sello no se pueda reutilizar.
+- El cliente puede guardar la tarjeta en su celular (PWA, y Google Wallet en planes pagos).
+- Desde el panel el negocio ve clientes, sellos, canjes y estadísticas, y puede mandar avisos a sus clientes.
+
+Funciones según plan:
+- Starter: tarjeta web con logo, QR, sello rápido o manual, cupones y lista de clientes, 1 local.
+- Pro: suma Google Wallet, avisos push, exportar clientes, premios en el camino, cumpleaños, reactivación de clientes, reseñas de Google, referidos y hasta 3 locales con métricas por local.
+- Ultimate: suma ruleta de premios, estadísticas de actividad, equipo con usuarios, dominio propio, tarjeta sin marca Calificar y hasta 50 locales.
+- Beauty: plan para salones de belleza, peluquerías, uñas y estética, con la tarjeta y cumpleaños automáticos.
+
+Precios por mes (ARS): Beauty $7.999 · Starter $14.999 · Pro $29.999 · Ultimate $69.999. Oferta de bienvenida: 50% de descuento el primer mes durante la primera semana. Sin plan anual obligatorio.
+
+## Calificar Reseñas
+
+Carteles NFC y QR que llevan al cliente directo a dejar su reseña en Google, con un embudo que filtra las calificaciones negativas para atenderlas en privado. Incluye generador de QR dinámicos.
+
+## Páginas principales
+
+- [Inicio: Calificar Fidelización](https://calificar.com.ar)
+- [Planes y precios](https://calificar.com.ar/precios)
+- [Preguntas frecuentes](https://calificar.com.ar/preguntas-frecuentes)
+- [Tarjeta de fidelización para salones de belleza](https://calificar.com.ar/fidelizacion/salones-de-belleza)
+- [Calificar Reseñas](https://calificar.com.ar/servicios)
+- [Generador de QR dinámicos gratis](https://calificar.com.ar/qr)
+- [Calificar para gastronomía](https://calificar.com.ar/gastronomia)
+- [Blog](https://calificar.com.ar/blog)
+- [Sobre Calificar](https://calificar.com.ar/sobre-calificar)
