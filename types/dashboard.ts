@@ -27,6 +27,8 @@ export type Program = {
   member_branch_id?: string | null
   /** Nombre que el dueño le puso a la sucursal principal (vacío = "Principal") */
   main_branch_name?: string | null
+  /** Cómo atiende el negocio: local, sin_calle o delivery (null = sin elegir) */
+  venue_type?: string | null
   businesses?: { name: string; id: string }
 }
 

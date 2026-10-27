@@ -10,6 +10,7 @@ import {
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import type { ViewType } from '@/types/dashboard'
 import { APP_VERSION } from '@/lib/changelog'
+import { deliveryNavLabel } from '@/lib/venue-type'
 
 const supabaseClient = createSupabaseClient()
 
@@ -38,6 +39,8 @@ interface SidebarProps {
   role?: 'owner' | 'staff'
   /** Abre el popup de novedades desde el número de versión */
   onShowWhatsNew?: () => void
+  /** Tipo de local: solo cambia cómo se llama la sección de links a distancia */
+  venueType?: string | null
 }
 
 /** Lo que ve un miembro del equipo */
@@ -85,6 +88,7 @@ export default function Sidebar({
   onRenameBranch,
   role = 'owner',
   onShowWhatsNew,
+  venueType = null,
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const [branchOpen, setBranchOpen] = useState(false)
@@ -197,7 +201,10 @@ export default function Sidebar({
 
         {/* Nav principal */}
         <nav className="flex-1 px-3 space-y-0.5 pb-2">
-          {NAV_ITEMS.filter(item => role === 'owner' || STAFF_NAV.includes(item.id)).map(item => {
+          {NAV_ITEMS
+            .filter(item => role === 'owner' || STAFF_NAV.includes(item.id))
+            .map(item => item.id === 'delivery' ? { ...item, label: deliveryNavLabel(venueType) } : item)
+            .map(item => {
             const isActive = active === item.id
             return (
               <button

@@ -10,6 +10,8 @@ interface ViewDeliveryProps {
   branchLabel?: string
   /** Solo el dueño puede cambiar el modo */
   canConfigure?: boolean
+  /** Tipo de local, solo para ajustar el título */
+  venueType?: string | null
 }
 
 /** Delivery, dark kitchen y locales sin atención al público: links de un solo uso para cada pedido */
@@ -19,6 +21,7 @@ export default function ViewDelivery({
   branchId = null,
   branchLabel,
   canConfigure = true,
+  venueType = null,
 }: ViewDeliveryProps) {
   const [secureLink, setSecureLink] = useState<string | null>(null)
   const [secondsLeft, setSecondsLeft] = useState<number>(0)
@@ -131,8 +134,14 @@ export default function ViewDelivery({
 
   return (
     <div className="p-6 max-w-xl mx-auto pt-8">
-      <h2 className="text-2xl font-extrabold text-zinc-900 mb-1">Delivery y dark kitchen</h2>
-      <p className="text-sm text-zinc-500 mb-8">Para negocios que venden por delivery, WhatsApp o no reciben gente en el local.</p>
+      <h2 className="text-2xl font-extrabold text-zinc-900 mb-1">
+        {venueType === 'sin_calle' ? 'Links a distancia' : 'Delivery y dark kitchen'}
+      </h2>
+      <p className="text-sm text-zinc-500 mb-8">
+        {venueType === 'sin_calle'
+          ? 'Para locales sin salida a la calle: mandás un link por WhatsApp y el cliente suma su sello sin pasar por un QR.'
+          : 'Para negocios que venden por delivery, WhatsApp o no reciben gente en el local.'}
+      </p>
       {branchLabel && (
         <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-700 bg-violet-50 rounded-full px-3 py-1 -mt-5 mb-6">
           Los sellos cuentan en: {branchLabel}

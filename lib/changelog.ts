@@ -25,6 +25,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { plan: 'pro', title: 'Tiempo entre sellos a tu medida', desc: 'Elegí que un cliente reciba un sello cada 4 horas, cada 12 horas o 1 por día. Con "solo sella el negocio", el límite vale también para tus empleados.' },
       { plan: 'todos', title: 'QR para ver mi tarjeta', desc: 'En Sello rápido hay un QR nuevo para que tus clientes entren a su tarjeta sin sumar un sello.' },
       { plan: 'todos', title: 'Novedades en el panel', desc: 'Ahora te avisamos acá cada mejora nueva, ordenada por plan, y podés ver la versión del panel.' },
+      { plan: 'todos', title: 'Tipo de local', desc: 'En Ajustes → Perfil elegís si tenés local a la calle, un local sin atención al público (uñas, consultorio) o delivery / dark kitchen, y los textos se adaptan.' },
       { plan: 'pro', title: 'Sucursales con una sola tarjeta', desc: 'Todos tus locales comparten la misma tarjeta de sellos y ves las métricas de cada uno.' },
       { plan: 'ultimate', title: 'Hasta 50 sucursales', desc: 'Sumá todos los locales que necesites con una sola tarjeta compartida.' },
     ],

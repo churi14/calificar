@@ -449,6 +449,7 @@ export default function NegocioDashboard() {
         onRenameBranch={id => setRenameBranchId(id)}
         role={program?.role ?? 'owner'}
         onShowWhatsNew={() => setShowWhatsNew(true)}
+        venueType={program?.venue_type ?? null}
       />
 
       {/* Cambiar nombre de una sucursal */}
@@ -575,6 +576,7 @@ export default function NegocioDashboard() {
         )}
         {activeNav === 'delivery' && selectedProgram && (
           <ViewDelivery
+            venueType={program?.venue_type ?? null}
             selectedProgram={selectedProgram}
             accessToken={accessToken}
             branchId={selectedBranch}
@@ -666,7 +668,8 @@ export default function NegocioDashboard() {
         {activeNav === 'perfil' && (
           <ViewPerfil program={program} selectedProgram={selectedProgram}
             businessName={businessName} onSaved={(name: string) => setBusinessName(name)}
-            accessToken={accessToken} />
+            accessToken={accessToken} venueType={program?.venue_type ?? null}
+            onVenueSaved={v => setPrograms(ps => ps.map(p => p.id === selectedProgram ? { ...p, venue_type: v } : p))} />
         )}
         {activeNav === 'plan' && (
           <ViewPlan onNav={(id) => setActiveNav(id as ViewType)} businessCreatedAt={businessCreatedAt}

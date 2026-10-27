@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Program } from '@/types/dashboard'
 import PasswordModal from '@/components/dashboard/ui/PasswordModal'
+import { VENUE_TYPES, type VenueType } from '@/lib/venue-type'
 
 // ── props ─────────────────────────────────────────────────────────────────────
 interface ViewPerfilProps {
@@ -11,6 +12,9 @@ interface ViewPerfilProps {
   businessName: string
   onSaved: (name: string) => void
   accessToken?: string
+  /** Tipo de local actual (null = sin elegir) y aviso al padre cuando cambia */
+  venueType?: string | null
+  onVenueSaved?: (v: VenueType) => void
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
@@ -20,7 +24,11 @@ export default function ViewPerfil({
   businessName,
   onSaved,
   accessToken,
+  venueType = null,
+  onVenueSaved,
 }: ViewPerfilProps) {
+  const [venueSaving, setVenueSaving] = useState(false)
+  const [venueError, setVenueError]   = useState('')
   const [name, setName]                       = useState(businessName)
   const [waNumber, setWaNumber]               = useState('')
   const [address, setAddress]                 = useState('')
@@ -53,6 +61,24 @@ export default function ViewPerfil({
     }
     setDeleting(false)
     setShowDeleteConfirm(false)
+  }
+
+  async function saveVenue(v: VenueType) {
+    if (!selectedProgram || v === venueType) return
+    setVenueSaving(true); setVenueError('')
+    try {
+      const res = await fetch('/api/fidelizacion/update-business', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
+        body: JSON.stringify({ program_id: selectedProgram, venue_type: v }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) setVenueError(d.error ?? 'No se pudo guardar')
+      else onVenueSaved?.(v)
+    } catch {
+      setVenueError('Error de red. Intentá de nuevo.')
+    }
+    setVenueSaving(false)
   }
 
   async function save() {
@@ -134,6 +160,34 @@ export default function ViewPerfil({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Tipo de local */}
+      <div className="bg-white dark:bg-gray-900 border border-zinc-100 dark:border-gray-800 rounded-2xl p-6 mb-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-gray-500 mb-1">TIPO DE LOCAL</p>
+        <p className="text-xs text-zinc-400 dark:text-gray-500 mb-3">
+          Cómo atendés a tus clientes. Ajusta los textos del panel; los sellos y los QR siguen funcionando igual.
+        </p>
+        <div className="space-y-2">
+          {VENUE_TYPES.map(t => {
+            const on = venueType === t.id
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => saveVenue(t.id)}
+                disabled={venueSaving}
+                aria-pressed={on}
+                className="w-full text-left rounded-xl border px-4 py-3 transition-colors disabled:opacity-60"
+                style={{ borderColor: on ? color : '#E4E4E7', background: on ? `${color}10` : undefined }}
+              >
+                <p className="text-sm font-semibold text-zinc-900 dark:text-white">{on ? '● ' : '○ '}{t.label}</p>
+                <p className="text-xs text-zinc-400 dark:text-gray-500 mt-0.5">{t.hint}</p>
+              </button>
+            )
+          })}
+        </div>
+        {venueError && <p className="text-xs text-red-500 mt-2">{venueError}</p>}
       </div>
 
       {/* Ubicación */}

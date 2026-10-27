@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyProgramOwner } from '@/lib/business-auth'
+import { isVenueType } from '@/lib/venue-type'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,13 +16,22 @@ const supabase = createClient(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { program_id, whatsapp_number, business_name } = body
+    const { program_id, whatsapp_number, business_name, venue_type } = body
 
     if (!program_id) return NextResponse.json({ error: 'program_id requerido' }, { status: 400 })
 
     // Verificar que el usuario es dueño
     const owner = await verifyProgramOwner(req, program_id)
     if (!owner) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+    // Tipo de local: vive en el programa, no en el negocio (el rubro del negocio define los precios)
+    if (venue_type !== undefined) {
+      if (!isVenueType(venue_type)) return NextResponse.json({ error: 'Tipo de local inválido' }, { status: 400 })
+      const { error: vErr } = await supabase.from('loyalty_programs').update({ venue_type }).eq('id', program_id)
+      if (vErr) {
+        return NextResponse.json({ error: 'Todavía no se puede guardar el tipo de local: falta actualizar la base de datos (migración venue_type.sql).' }, { status: 503 })
+      }
+    }
 
     // Obtener el business_id del programa
     const { data: program } = await supabase
