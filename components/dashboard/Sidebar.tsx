@@ -5,7 +5,7 @@ import {
   House, Lightning, IdentificationCard, UsersThree, Tag, Bell, MapPin,
   Cake, ArrowCounterClockwise, ChartBar, Star, ShareNetwork,
   CirclesThree, GitBranch, Globe, Printer, Gear, Question,
-  Rocket, MagnifyingGlass, Calculator, IdentificationBadge, QrCode, Sun, Moon, PencilSimple,
+  Rocket, Motorcycle, MagnifyingGlass, Calculator, IdentificationBadge, QrCode, Sun, Moon, PencilSimple,
 } from '@phosphor-icons/react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import type { ViewType } from '@/types/dashboard'
@@ -47,6 +47,7 @@ const NAV_ITEMS: { id: ViewType; label: string; Icon: React.ElementType }[] = [
   { id: 'hoy',          label: 'Hoy',                    Icon: House },
   { id: 'sello-rapido', label: 'Sello rápido',           Icon: Lightning },
   { id: 'tarjeta',      label: 'Tarjeta',                Icon: IdentificationCard },
+  { id: 'delivery',     label: 'Delivery / Dark kitchen', Icon: Motorcycle },
   { id: 'clientes',     label: 'Clientes',               Icon: UsersThree },
   { id: 'cupones',      label: 'Cupones',                Icon: Tag },
   { id: 'push',         label: 'Avisos push',            Icon: Bell },

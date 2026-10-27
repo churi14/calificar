@@ -94,6 +94,7 @@ export type ViewType =
   | 'hoy'
   | 'sello-rapido'
   | 'tarjeta'
+  | 'delivery'
   | 'clientes'
   | 'cupones'
   | 'push'

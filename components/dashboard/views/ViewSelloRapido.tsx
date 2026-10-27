@@ -35,7 +35,6 @@ export default function ViewSelloRapido({
   const [stamping, setStamping] = useState(false)
   const [stamped, setStamped] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [copiedSecure, setCopiedSecure] = useState(false)
   const [copiedLogin, setCopiedLogin] = useState(false)
   const [copiedJoin, setCopiedJoin] = useState(false)
   // QR ampliado en un popup (para mostrarlo en pantalla o sacarle captura)
@@ -57,21 +56,13 @@ export default function ViewSelloRapido({
 
   // Link seguro rotativo (disponible en todos los planes)
   const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false
-  const isProPlus = true
-  const [secureLink, setSecureLink] = useState<string | null>(null)
   const [localKey, setLocalKey] = useState<string | null>(null)
-  const [secondsLeft, setSecondsLeft] = useState<number>(0)
-  const [loadingToken, setLoadingToken] = useState(false)
 
   // QR del local: lleva una clave para seguir dando sellos aunque se exija el link de un solo uso en los pedidos
   const qrLink = localKey ? `${selfLink}${selfLink.includes('?') ? '&' : '?'}k=${localKey}` : selfLink
 
-  // ── Pedidos por WhatsApp / delivery ──
-  const [waBusy, setWaBusy] = useState(false)
+  // ── Modo dark kitchen (se configura en Delivery): acá solo se lee para ajustar los textos ──
   const [linkOnly, setLinkOnly] = useState(false)
-  const [linkOnlyAvailable, setLinkOnlyAvailable] = useState(true)
-  const [linkOnlySaving, setLinkOnlySaving] = useState(false)
-  const [linkOnlyError, setLinkOnlyError] = useState('')
 
   // ── Control de sellos (plan Pro): solo sella el negocio + tiempo entre sellos ──
   const canControl = canUse(plan, 'business_only') && !isExpired
@@ -88,7 +79,7 @@ export default function ViewSelloRapido({
     fetch(`/api/fidelizacion/stamp-settings?program_id=${selectedProgram}`, { headers: authHeaders })
       .then(r => r.json())
       .then(d => {
-        setLinkOnly(!!d.require_stamp_token); setLinkOnlyAvailable(d.available !== false)
+        setLinkOnly(!!d.require_stamp_token)
         setBusinessOnly(!!d.business_only)
         setStampInterval(isStampInterval(d.stamp_interval) ? d.stamp_interval : DEFAULT_STAMP_INTERVAL)
         setControlAvailable(d.control_available !== false)
@@ -110,102 +101,16 @@ export default function ViewSelloRapido({
     if (patch.stamp_interval) setStampInterval(patch.stamp_interval)
   }
 
-  async function toggleLinkOnly() {
-    setLinkOnlySaving(true); setLinkOnlyError('')
-    const next = !linkOnly
-    const r = await fetch('/api/fidelizacion/stamp-settings', {
-      method: 'POST', headers: authHeaders,
-      body: JSON.stringify({ program_id: selectedProgram, require_stamp_token: next }),
+  // Clave del QR del local (lleva la clave para seguir dando sellos aunque rija el modo dark kitchen)
+  useEffect(() => {
+    if (!selectedProgram || !accessToken) return
+    fetch(`/api/fidelizacion/stamp-token?program_id=${selectedProgram}${branchId ? `&branch_id=${branchId}` : ''}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
     })
-    const d = await r.json().catch(() => ({}))
-    setLinkOnlySaving(false)
-    if (!r.ok) { setLinkOnlyError(d.error ?? 'No se pudo cambiar'); return }
-    setLinkOnly(next)
-  }
-
-  /** Pide un link de un solo uso NUEVO (uno distinto para cada cliente) */
-  async function freshLink(): Promise<string | null> {
-    try {
-      const r = await fetch(
-        `/api/fidelizacion/stamp-token?program_id=${selectedProgram}&fresh=1${branchId ? `&branch_id=${branchId}` : ''}`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      )
-      const d = await r.json()
-      return d.link ?? null
-    } catch { return null }
-  }
-
-  const waMessage = (link: string) => `¡Gracias por tu pedido! 🎁 Sumá tu sello de fidelidad acá (el link sirve una sola vez): ${link}`
-
-  /** Abre WhatsApp con el mensaje y un link NUEVO; el negocio elige el chat */
-  async function sendByWhatsApp() {
-    setWaBusy(true)
-    const link = await freshLink()
-    setWaBusy(false)
-    if (!link) return
-    window.open(`https://wa.me/?text=${encodeURIComponent(waMessage(link))}`, '_blank')
-  }
-
-  useEffect(() => {
-    if (!isProPlus) return
-    async function fetchToken() {
-      setLoadingToken(true)
-      try {
-        const res = await fetch(
-          `/api/fidelizacion/stamp-token?program_id=${selectedProgram}${branchId ? `&branch_id=${branchId}` : ''}`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        )
-        const data = await res.json()
-        if (data.link) {
-          setSecureLink(data.link)
-          setSecondsLeft(data.seconds_remaining)
-        }
-        if (data.local_key) setLocalKey(data.local_key)
-      } catch { /* silent */ }
-      setLoadingToken(false)
-    }
-    fetchToken()
-  }, [isProPlus, selectedProgram, accessToken, branchId])
-
-  // Countdown y auto-refresh cuando expira
-  useEffect(() => {
-    if (!isProPlus || secondsLeft <= 0) return
-    const interval = setInterval(() => {
-      setSecondsLeft(s => {
-        if (s <= 1) {
-          fetch(`/api/fidelizacion/stamp-token?program_id=${selectedProgram}${branchId ? `&branch_id=${branchId}` : ''}`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-            .then(r => r.json())
-            .then(data => {
-              if (data.link) {
-                setSecureLink(data.link)
-                setSecondsLeft(data.seconds_remaining)
-              }
-            })
-            .catch(() => {})
-          return 0
-        }
-        return s - 1
-      })
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [isProPlus, secondsLeft, selectedProgram, accessToken, branchId])
-
-  function formatCountdown(s: number) {
-    const m = Math.floor(s / 60)
-    const sec = s % 60
-    return `${m}:${sec.toString().padStart(2, '0')}`
-  }
-
-  async function copySecureLink() {
-    // Siempre se copia un link NUEVO: si dos clientes recibieran el mismo, el segundo no podría usarlo
-    const link = (await freshLink()) ?? secureLink
-    if (!link) return
-    await navigator.clipboard.writeText(link)
-    setCopiedSecure(true)
-    setTimeout(() => setCopiedSecure(false), 2000)
-  }
+      .then(r => r.json())
+      .then(data => { if (data.local_key) setLocalKey(data.local_key) })
+      .catch(() => {})
+  }, [selectedProgram, accessToken, branchId])
 
   function search(value: string) {
     setPhone(value)
@@ -348,7 +253,7 @@ export default function ViewSelloRapido({
 
       </div>
 
-      {/* Columna derecha: control de sellos y pedidos (delivery, dark kitchen y WhatsApp) */}
+      {/* Columna derecha: control de sellos y QR de registro / de ver tarjeta */}
       <div>
       {canConfigure && (
         <div className="rounded-2xl border border-violet-200 bg-violet-50/40 p-5 mb-6">
@@ -399,93 +304,6 @@ export default function ViewSelloRapido({
             </p>
           )}
         </div>
-      )}
-
-      {businessOnly ? (
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 text-sm text-zinc-500 leading-relaxed">
-          <p className="font-bold text-zinc-700 mb-1">Links de un solo uso para pedidos</p>
-          No aplican mientras "solo sella el negocio" esté prendido: ningún link suma sellos al cliente. Apagalo arriba si querés volver a mandar links por WhatsApp.
-        </div>
-      ) : (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Delivery, dark kitchen y pedidos por WhatsApp</p>
-        <h3 className="font-bold text-zinc-900 mb-1">Link de un solo uso para cada pedido</h3>
-        {isProPlus ? (
-          <>
-            <p className="text-sm text-zinc-600 mb-4 leading-relaxed">
-              Cada link sirve <b>una sola vez</b> y vale 2 horas. En cuanto el cliente lo usa para sumar su sello, deja de funcionar:
-              si lo reenvía o se lo pasa a otro, no sirve. Al tocar Copiar o Enviar siempre sale uno nuevo, distinto para cada cliente.
-            </p>
-            {loadingToken ? (
-              <div className="h-12 bg-zinc-100 rounded-xl animate-pulse" />
-            ) : secureLink ? (
-              <>
-                <div className="flex items-center gap-2 bg-white border border-emerald-200 rounded-xl px-4 py-3">
-                  <span className="text-sm text-emerald-800 font-mono truncate flex-1">{secureLink}</span>
-                  <button
-                    onClick={copySecureLink}
-                    className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all"
-                    style={{ background: copiedSecure ? '#10b981' : '#7C3AED', color: 'white' }}
-                  >
-                    {copiedSecure ? '✓ Copiado' : 'Copiar'}
-                  </button>
-                </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="flex-1 h-1 bg-zinc-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-400 rounded-full transition-all duration-1000"
-                      style={{ width: `${Math.min(100, (secondsLeft / 10) * 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-zinc-400 tabular-nums">
-                    {secondsLeft > 0 ? `${secondsLeft}s` : 'Actualizando…'}
-                  </span>
-                </div>
-                <button
-                  onClick={sendByWhatsApp}
-                  disabled={waBusy}
-                  className="mt-4 w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-60"
-                  style={{ background: '#25D366' }}
-                >
-                  {waBusy ? '…' : 'Enviar por WhatsApp'}
-                </button>
-                <p className="text-xs text-zinc-400 mt-1.5 text-center">Se abre WhatsApp con el mensaje y el link listo; vos elegís el chat.</p>
-              </>
-            ) : (
-              <p className="text-sm text-red-500">No se pudo generar el link. Recargá la página.</p>
-            )}
-          </>
-        ) : (
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-4">
-            <p className="text-sm text-zinc-500">
-              Los links con vencimiento automático están disponibles en el plan <strong>Pro</strong>.
-            </p>
-          </div>
-        )}
-
-        {canConfigure && (
-          <div className="mt-5 pt-4 border-t border-emerald-200">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-bold text-zinc-900">Modo dark kitchen / locales sin atención al público</p>
-                <p className="text-xs text-zinc-500 mt-0.5 leading-snug">
-                  Para negocios que venden por delivery o WhatsApp: el link fijo de sellos deja de sumar sellos y solo valen los links de un solo uso que mandás en cada pedido. El QR del local sigue sumando, para quien retira. Apagado, el link fijo también suma sellos.
-                </p>
-              </div>
-              <button
-                onClick={toggleLinkOnly}
-                disabled={linkOnlySaving || !linkOnlyAvailable}
-                aria-pressed={linkOnly}
-                className={`relative w-12 h-6 rounded-full shrink-0 transition-colors ${linkOnly ? 'bg-emerald-500' : 'bg-zinc-300'} disabled:opacity-50`}
-              >
-                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${linkOnly ? 'left-7' : 'left-1'}`} />
-              </button>
-            </div>
-            {linkOnlyError && <p className="text-xs text-red-500 mt-2">{linkOnlyError}</p>}
-            {!linkOnlyAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_link_only.sql para poder activarlo.</p>}
-          </div>
-        )}
-      </div>
       )}
 
       {/* QR de registro (crea la tarjeta, no suma sellos) */}

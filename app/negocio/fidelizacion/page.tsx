@@ -20,6 +20,7 @@ import RenameBranchModal from '@/components/dashboard/ui/RenameBranchModal'
 // ── Vistas ────────────────────────────────────────────────────────────────────
 import ViewHoy              from '@/components/dashboard/views/ViewHoy'
 import ViewSelloRapido      from '@/components/dashboard/views/ViewSelloRapido'
+import ViewDelivery         from '@/components/dashboard/views/ViewDelivery'
 import ViewTarjeta          from '@/components/dashboard/views/ViewTarjeta'
 import ViewClientes         from '@/components/dashboard/views/ViewClientes'
 import ViewCupones          from '@/components/dashboard/views/ViewCupones'
@@ -571,6 +572,15 @@ export default function NegocioDashboard() {
               <p className="text-zinc-500 text-sm">Todavía no configuraste tu programa de fidelidad.</p>
             </div>
           )
+        )}
+        {activeNav === 'delivery' && selectedProgram && (
+          <ViewDelivery
+            selectedProgram={selectedProgram}
+            accessToken={accessToken}
+            branchId={selectedBranch}
+            branchLabel={branches.length > 0 ? currentBranchLabel : undefined}
+            canConfigure={(program?.role ?? 'owner') === 'owner'}
+          />
         )}
         {activeNav === 'tarjeta' && (
           <ViewTarjeta program={program} selectedProgram={selectedProgram}
