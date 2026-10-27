@@ -152,6 +152,11 @@ export default function ViewDelivery({
             Cada link sirve <b>una sola vez</b> y vale 2 horas. En cuanto el cliente lo usa para sumar su sello, deja de funcionar:
             si lo reenvía o se lo pasa a otro, no sirve. Al tocar Copiar o Enviar siempre sale uno nuevo, distinto para cada cliente.
           </p>
+          <ul className="text-sm text-zinc-600 mb-4 leading-relaxed space-y-1 list-disc pl-5">
+            <li><b>Cliente que ya tiene tarjeta:</b> pone su teléfono y recibe el sello.</li>
+            <li><b>Cliente nuevo:</b> pone su teléfono y su nombre; se le crea la tarjeta y recibe su primer sello en el mismo paso.</li>
+            <li>Si querés que se registre <b>sin recibir sello</b>, usá el "QR de registro" de Sello rápido.</li>
+          </ul>
           {loadingToken ? (
             <div className="h-12 bg-zinc-100 rounded-xl animate-pulse" />
           ) : secureLink ? (
