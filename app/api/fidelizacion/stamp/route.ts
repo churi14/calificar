@@ -16,6 +16,8 @@ import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
 import { verifyProgramMember } from '@/lib/business-auth'
 import { resolveBranchId } from '@/lib/branches'
 import { couponPrefix } from '@/lib/coupons'
+import { getStampRules } from '@/lib/stamp-rules'
+import { recentSince, nextStampAt, limitText } from '@/lib/stamp-interval'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -64,22 +66,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Programa no encontrado' }, { status: 404 })
     }
 
-    // Anti-abuso: máximo 1 sello por cliente cada 4 horas (excepto 'manual' desde el panel del negocio)
-    if (registered_by !== 'manual') {
-      const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+    // Anti-abuso: tiempo mínimo entre sellos de una tarjeta (4 horas salvo que el negocio elija otro).
+    // El panel sigue sin límite ('manual'), excepto con "solo sella el negocio": ahí el límite vale para todos,
+    // también para el dueño y el equipo, así nadie puede sellar de más.
+    const rules = await getStampRules(program_id)
+    if (registered_by !== 'manual' || rules.businessOnly) {
       const { data: recentStamp } = await supabase
         .from('loyalty_transactions')
-        .select('id')
+        .select('id, created_at')
         .eq('card_id', card_id)
         .eq('type', 'stamp')
-        .gte('created_at', fourHoursAgo)
+        .gte('created_at', recentSince(rules.interval).toISOString())
+        .order('created_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (recentStamp) {
         return NextResponse.json({
-          error: 'Ya sumaste un sello en las últimas 4 horas.',
+          error: rules.businessOnly
+            ? `Este cliente ya recibió un sello ${limitText(rules.interval)}.`
+            : `Ya sumaste un sello ${limitText(rules.interval)}.`,
           cooldown: true,
+          next_available: nextStampAt(rules.interval, new Date(recentStamp.created_at)).toISOString(),
           wallet_object_id: card.wallet_object_id ?? null,
         }, { status: 429 })
       }

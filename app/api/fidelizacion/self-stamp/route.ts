@@ -2,7 +2,8 @@
  * POST /api/fidelizacion/self-stamp
  * El cliente se sella a sí mismo desde el link /s/[programId].
  * Busca o crea la tarjeta por teléfono y aplica el sello.
- * Anti-abuso: máximo 1 sello por tarjeta cada 4 horas.
+ * Anti-abuso: tiempo mínimo entre sellos (4 horas, o lo que el negocio elija en el plan Pro).
+ * Con el modo "solo sella el negocio" no suma sellos: solo crea la tarjeta si es nueva.
  */
 import { programCan } from '@/lib/program-plan'
 import { NextRequest, NextResponse } from 'next/server'
@@ -11,6 +12,8 @@ import { updateLoyaltyObjectStamps } from '@/lib/wallet/google-wallet'
 import { resolveBranchId } from '@/lib/branches'
 import { couponPrefix } from '@/lib/coupons'
 import { timingSafeEqual } from 'crypto'
+import { getStampRules } from '@/lib/stamp-rules'
+import { recentSince, nextStampAt, limitText } from '@/lib/stamp-interval'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -109,22 +112,48 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, is_new: true, needs_name: true })
     }
 
-    // Anti-abuso: máximo 1 sello por tarjeta cada 4 horas (se mira antes de gastar el link de un solo uso)
+    // "Solo sella el negocio" (plan Pro): el cliente nunca suma sellos por su cuenta, ni con el QR ni con links.
+    // Si es nuevo se le crea la tarjeta sin sellos; los sellos los carga el negocio desde el panel.
+    const rules = await getStampRules(program_id)
+    if (rules.businessOnly) {
+      if (!card) {
+        const { data: newCard, error: createErr } = await supabase
+          .from('loyalty_cards')
+          .insert({ program_id, phone: cleanPhone, name: cleanName, stamps: 0, total_visits: 0, active: true, ...(cleanDni ? { dni: cleanDni } : {}) })
+          .select()
+          .single()
+        if (createErr || !newCard) {
+          return NextResponse.json({ error: 'No se pudo crear la tarjeta' }, { status: 500 })
+        }
+        card = newCard
+      }
+      return NextResponse.json({
+        success: true,
+        business_only: true,
+        is_new: isNew,
+        client_name: card.name,
+        stamps: card.stamps,
+        stamps_goal: program.stamps_goal,
+      })
+    }
+
+    // Anti-abuso: tiempo mínimo entre sellos de una tarjeta, 4 horas salvo que el negocio elija otro
+    // (se mira antes de gastar el link de un solo uso)
     if (card) {
-      const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
       const { data: recentStamp } = await supabase
         .from('loyalty_transactions')
         .select('id, created_at')
         .eq('card_id', card.id)
         .eq('type', 'stamp')
-        .gte('created_at', fourHoursAgo)
+        .gte('created_at', recentSince(rules.interval).toISOString())
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
       if (recentStamp) {
-        const nextAvailable = new Date(new Date(recentStamp.created_at).getTime() + 4 * 60 * 60 * 1000)
+        const nextAvailable = nextStampAt(rules.interval, new Date(recentStamp.created_at))
         return NextResponse.json({
-          error: 'Ya recibiste un sello en las últimas 4 horas.',
+          error: `Ya recibiste un sello ${limitText(rules.interval)}.`,
           cooldown: true,
           next_available: nextAvailable.toISOString(),
           stamps: card.stamps,

@@ -32,6 +32,7 @@ export type Feature =
   | 'team'
   | 'custom_domain'
   | 'no_branding'
+  | 'business_only'
 
 type Tier = 'starter' | 'pro' | 'ultimate'
 const RANK: Record<Tier, number> = { starter: 1, pro: 2, ultimate: 3 }
@@ -58,6 +59,7 @@ const MIN_TIER: Record<Feature, Tier> = {
   team: 'ultimate',
   custom_domain: 'ultimate',
   no_branding: 'ultimate',
+  business_only: 'pro',   // "solo sella el negocio" y tiempo entre sellos configurable
 }
 
 /** Lo que NO tiene la prueba gratuita (el resto sí) */

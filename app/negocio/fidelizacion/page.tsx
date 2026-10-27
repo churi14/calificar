@@ -11,6 +11,8 @@ import { planState, planDaysLeft } from '@/lib/plan-status'
 // ── Componentes de UI ─────────────────────────────────────────────────────────
 import Sidebar        from '@/components/dashboard/Sidebar'
 import DiscountPopup  from '@/components/dashboard/ui/DiscountPopup'
+import WhatsNewPopup  from '@/components/dashboard/ui/WhatsNewPopup'
+import { APP_VERSION } from '@/lib/changelog'
 import StampModal     from '@/components/dashboard/ui/StampModal'
 import NewBranchModal from '@/components/dashboard/ui/NewBranchModal'
 import RenameBranchModal from '@/components/dashboard/ui/RenameBranchModal'
@@ -60,6 +62,8 @@ export default function NegocioDashboard() {
   const [loading, setLoading]                     = useState(true)
   const [activeNav, setActiveNav]                 = useState<ViewType>('hoy')
   const [showDiscount, setShowDiscount]           = useState(false)
+  const [showWhatsNew, setShowWhatsNew]           = useState(false)
+  const [stampError, setStampError]               = useState('')
   const [showNewBranch, setShowNewBranch]         = useState(false)
   const [renameBranchId, setRenameBranchId]       = useState<string | null>(null)   // 'main' o id de sucursal
   const [branches, setBranches]                 = useState<Branch[]>([])
@@ -288,11 +292,19 @@ export default function NegocioDashboard() {
   }
 
   async function manualStamp(cardId: string, purchaseAmount?: number) {
-    await fetch('/api/fidelizacion/stamp', {
+    const stampRes = await fetch('/api/fidelizacion/stamp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
       body: JSON.stringify({ card_id: cardId, program_id: selectedProgram, registered_by: 'manual', purchase_amount: purchaseAmount ?? null, branch_id: selectedBranch ?? undefined }),
     })
+    // Con "solo sella el negocio" el servidor puede rechazar el sello (ya sellado hoy): se avisa en pantalla
+    if (!stampRes.ok) {
+      const body = await stampRes.json().catch(() => ({}))
+      setStampError(body.error ?? 'No se pudo cargar el sello')
+      purchaseAmount = undefined
+    } else {
+      setStampError('')
+    }
     const r = await fetch(`/api/fidelizacion/admin/clients?program_id=${selectedProgram}`, {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     })
@@ -358,6 +370,26 @@ export default function NegocioDashboard() {
   const planLeft = planDaysLeft(planInfo)
   const isTrialPlan = businessPlan === 'trial'
 
+  // Novedades: una vez por versión. Los negocios recién creados no lo ven (para ellos todo es nuevo).
+  useEffect(() => {
+    if (loading || !businessCreatedAt) return
+    const ageDays = (Date.now() - new Date(businessCreatedAt).getTime()) / 86_400_000
+    let seen: string | null = null
+    try { seen = localStorage.getItem('cal_whatsnew_seen') } catch {}
+    if (seen === APP_VERSION) return
+    if (ageDays < 2) {
+      try { localStorage.setItem('cal_whatsnew_seen', APP_VERSION) } catch {}
+      return
+    }
+    const t = setTimeout(() => setShowWhatsNew(true), 2500)
+    return () => clearTimeout(t)
+  }, [loading, businessCreatedAt])
+
+  function closeWhatsNew() {
+    try { localStorage.setItem('cal_whatsnew_seen', APP_VERSION) } catch {}
+    setShowWhatsNew(false)
+  }
+
   // ── Loading screen ────────────────────────────────────────────────────────
   if (loading && programs.length === 0) {
     return (
@@ -375,6 +407,9 @@ export default function NegocioDashboard() {
       {showDiscount && (
         <DiscountPopup onClose={() => setShowDiscount(false)} daysLeft={daysLeftDiscount} businessType={businessType} />
       )}
+
+      {/* Popup de novedades (después del de descuento, para no apilar dos) */}
+      {showWhatsNew && !showDiscount && <WhatsNewPopup onClose={closeWhatsNew} />}
 
       {/* Mobile header */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-4 h-14 bg-white border-b border-zinc-100">
@@ -412,6 +447,7 @@ export default function NegocioDashboard() {
         onAddBranch={() => setShowNewBranch(true)}
         onRenameBranch={id => setRenameBranchId(id)}
         role={program?.role ?? 'owner'}
+        onShowWhatsNew={() => setShowWhatsNew(true)}
       />
 
       {/* Cambiar nombre de una sucursal */}
@@ -480,6 +516,14 @@ export default function NegocioDashboard() {
               className="flex-shrink-0 text-xs font-bold bg-white text-violet-700 px-3 py-1.5 rounded-xl hover:opacity-90">
               Ver planes →
             </button>
+          </div>
+        )}
+
+        {/* Sello rechazado (por ejemplo, el cliente ya recibió el de hoy) */}
+        {stampError && (
+          <div className="flex items-center justify-between gap-4 px-5 py-3 text-sm bg-amber-50 text-amber-900 border-b border-amber-200 font-medium">
+            <p>⏳ {stampError}</p>
+            <button onClick={() => setStampError('')} aria-label="Cerrar aviso" className="text-amber-700 hover:text-amber-900 text-lg leading-none">✕</button>
           </div>
         )}
 

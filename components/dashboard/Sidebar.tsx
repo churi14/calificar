@@ -9,6 +9,7 @@ import {
 } from '@phosphor-icons/react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import type { ViewType } from '@/types/dashboard'
+import { APP_VERSION } from '@/lib/changelog'
 
 const supabaseClient = createSupabaseClient()
 
@@ -35,6 +36,8 @@ interface SidebarProps {
   onRenameBranch?: (id: string) => void
   /** Rol de quien mira el panel: el equipo solo ve sellos, clientes y cupones */
   role?: 'owner' | 'staff'
+  /** Abre el popup de novedades desde el número de versión */
+  onShowWhatsNew?: () => void
 }
 
 /** Lo que ve un miembro del equipo */
@@ -80,6 +83,7 @@ export default function Sidebar({
   onAddBranch,
   onRenameBranch,
   role = 'owner',
+  onShowWhatsNew,
 }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(active === 'perfil' || active === 'plan')
   const [branchOpen, setBranchOpen] = useState(false)
@@ -347,6 +351,15 @@ export default function Sidebar({
               }
             </button>
           </div>
+
+          {onShowWhatsNew && (
+            <button
+              onClick={() => { onShowWhatsNew(); onClose() }}
+              className="text-[10px] text-zinc-400 hover:text-violet-600 transition-colors"
+            >
+              ✦ Novedades · v{APP_VERSION}
+            </button>
+          )}
         </div>
       </aside>
     </>

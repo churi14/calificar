@@ -6,6 +6,8 @@ import { useState, useEffect, Suspense } from 'react'
 type Result = {
   success: boolean
   is_new?: boolean
+  /** El negocio carga los sellos: el cliente solo ve su tarjeta */
+  business_only?: boolean
   needs_name?: boolean
   client_name?: string
   stamps?: number
@@ -184,6 +186,25 @@ function SelfStampContent() {
               Ver mis sellos
             </button>
           </div>
+        </div>
+      </Screen>
+    ) : result.business_only ? (
+      <Screen>
+        <div className="text-center">
+          <div className="text-7xl mb-4">🎴</div>
+          <h1 className="text-2xl font-extrabold text-zinc-900 mb-1">
+            {result.is_new ? `¡Bienvenido${result.client_name ? `, ${result.client_name}` : ''}!` : `Hola${result.client_name ? `, ${result.client_name}` : ''}`}
+          </h1>
+          <p className="text-zinc-500 text-sm mb-6">
+            {result.is_new ? 'Tu tarjeta fue creada. ' : ''}Acá los sellos los carga el negocio: pedíselo en caja diciendo tu número.
+          </p>
+          <StampProgress stamps={result.stamps ?? 0} goal={result.stamps_goal ?? 10} />
+          <p className="text-xs text-zinc-400 mt-4">
+            Tenés <strong>{result.stamps ?? 0}</strong> de {result.stamps_goal} sellos
+          </p>
+          <a href={`/t/${programId}`} className="inline-block mt-6 px-6 py-3 rounded-2xl bg-violet-100 text-violet-700 font-semibold text-sm">
+            Ver mi tarjeta
+          </a>
         </div>
       </Screen>
     ) : result.goal_reached ? (
@@ -398,7 +419,7 @@ function SelfStampContent() {
           </div>
 
           <p className="text-center text-xs text-zinc-400 mt-6">
-            Máximo 1 sello cada 4 horas por número.
+            Hay un tiempo mínimo entre un sello y el siguiente.
           </p>
         </>
       ) : (

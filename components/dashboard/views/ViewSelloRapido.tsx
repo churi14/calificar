@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import type { Card } from '@/types/dashboard'
+import { canUse } from '@/lib/plan-features'
+import { STAMP_INTERVALS, DEFAULT_STAMP_INTERVAL, isStampInterval, type StampInterval } from '@/lib/stamp-interval'
 
 interface ViewSelloRapidoProps {
   cards: Card[]
@@ -63,15 +65,42 @@ export default function ViewSelloRapido({
   const [linkOnlySaving, setLinkOnlySaving] = useState(false)
   const [linkOnlyError, setLinkOnlyError] = useState('')
 
+  // ── Control de sellos (plan Pro): solo sella el negocio + tiempo entre sellos ──
+  const canControl = canUse(plan, 'business_only') && !isExpired
+  const [businessOnly, setBusinessOnly] = useState(false)
+  const [stampInterval, setStampInterval] = useState<StampInterval>(DEFAULT_STAMP_INTERVAL)
+  const [controlAvailable, setControlAvailable] = useState(true)
+  const [controlSaving, setControlSaving] = useState(false)
+  const [controlError, setControlError] = useState('')
+
   const authHeaders: HeadersInit = { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
 
   useEffect(() => {
     if (!selectedProgram || !accessToken) return
     fetch(`/api/fidelizacion/stamp-settings?program_id=${selectedProgram}`, { headers: authHeaders })
       .then(r => r.json())
-      .then(d => { setLinkOnly(!!d.require_stamp_token); setLinkOnlyAvailable(d.available !== false) })
+      .then(d => {
+        setLinkOnly(!!d.require_stamp_token); setLinkOnlyAvailable(d.available !== false)
+        setBusinessOnly(!!d.business_only)
+        setStampInterval(isStampInterval(d.stamp_interval) ? d.stamp_interval : DEFAULT_STAMP_INTERVAL)
+        setControlAvailable(d.control_available !== false)
+      })
       .catch(() => {})
   }, [selectedProgram, accessToken]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Guarda un cambio del control de sellos y, si sale bien, lo refleja en pantalla */
+  async function saveControl(patch: { business_only_stamps?: boolean; stamp_interval?: StampInterval }) {
+    setControlSaving(true); setControlError('')
+    const r = await fetch('/api/fidelizacion/stamp-settings', {
+      method: 'POST', headers: authHeaders,
+      body: JSON.stringify({ program_id: selectedProgram, ...patch }),
+    })
+    const d = await r.json().catch(() => ({}))
+    setControlSaving(false)
+    if (!r.ok) { setControlError(d.error ?? 'No se pudo guardar'); return }
+    if (patch.business_only_stamps !== undefined) setBusinessOnly(patch.business_only_stamps)
+    if (patch.stamp_interval) setStampInterval(patch.stamp_interval)
+  }
 
   async function toggleLinkOnly() {
     setLinkOnlySaving(true); setLinkOnlyError('')
@@ -278,7 +307,11 @@ export default function ViewSelloRapido({
             height={140}
             className="rounded-xl"
           />
-          <p className="text-xs text-zinc-400 text-center">Para el local y los retiros · Sin vencimiento · 1 sello por número cada 4 horas</p>
+          <p className="text-xs text-zinc-400 text-center">
+            {businessOnly
+              ? 'Con "solo sella el negocio" este QR no suma sellos: muestra la tarjeta del cliente.'
+              : `Para el local y los retiros · Sin vencimiento · 1 sello por número ${{ h4: 'cada 4 horas', h12: 'cada 12 horas', day: 'por día' }[stampInterval]}`}
+          </p>
           <div className="flex gap-2 w-full">
             <button
               onClick={() => window.open(qrLink, '_blank')}
@@ -298,8 +331,59 @@ export default function ViewSelloRapido({
 
       </div>
 
-      {/* Columna derecha: pedidos (delivery, dark kitchen y WhatsApp) */}
+      {/* Columna derecha: control de sellos y pedidos (delivery, dark kitchen y WhatsApp) */}
       <div>
+      {canConfigure && (
+        <div className="rounded-2xl border border-violet-200 bg-violet-50/40 p-5 mb-6">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-violet-700 mb-1">Control de sellos · Plan Pro</p>
+          <h3 className="font-bold text-zinc-900 mb-1">Quién sella y cada cuánto</h3>
+          {canControl ? (
+            <>
+              <div className="flex items-start justify-between gap-4 mt-3">
+                <div>
+                  <p className="text-sm font-bold text-zinc-900">Solo sella el negocio</p>
+                  <p className="text-xs text-zinc-500 mt-0.5 leading-snug">
+                    El QR y el link del local dejan de sumar sellos: el cliente solo ve su tarjeta. Los sellos los cargás vos desde acá (Sello rápido) o desde Clientes, y el límite de abajo vale también para tu equipo.
+                  </p>
+                </div>
+                <button
+                  onClick={() => saveControl({ business_only_stamps: !businessOnly })}
+                  disabled={controlSaving || !controlAvailable}
+                  aria-pressed={businessOnly}
+                  className={`relative w-12 h-6 rounded-full shrink-0 transition-colors ${businessOnly ? 'bg-violet-600' : 'bg-zinc-300'} disabled:opacity-50`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${businessOnly ? 'left-7' : 'left-1'}`} />
+                </button>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-violet-200">
+                <label className="text-sm font-bold text-zinc-900 block mb-1" htmlFor="stamp-interval">Tiempo entre sellos de un mismo cliente</label>
+                <select
+                  id="stamp-interval"
+                  value={stampInterval}
+                  onChange={e => saveControl({ stamp_interval: e.target.value as StampInterval })}
+                  disabled={controlSaving || !controlAvailable}
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-800 focus:outline-none focus:border-violet-400 disabled:opacity-50"
+                >
+                  {STAMP_INTERVALS.map(i => <option key={i.id} value={i.id}>{i.label}</option>)}
+                </select>
+                <p className="text-xs text-zinc-500 mt-1.5 leading-snug">
+                  {businessOnly
+                    ? 'Si alguien intenta sellar de nuevo antes de tiempo, el panel le avisa que ya sellaste a ese cliente.'
+                    : 'Aplica a los sellos que se dan con el QR y el link. Desde el panel el sello sigue sin límite hasta que prendas "solo sella el negocio".'}
+                </p>
+              </div>
+              {controlError && <p className="text-xs text-red-500 mt-2">{controlError}</p>}
+              {!controlAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_business_only.sql para poder usarlo.</p>}
+            </>
+          ) : (
+            <p className="text-sm text-zinc-500 mt-2">
+              Elegir que solo sella el negocio y cuánto tiempo pasa entre sellos está disponible en el plan <strong>Pro</strong>.
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5">
         <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Delivery, dark kitchen y pedidos por WhatsApp</p>
         <h3 className="font-bold text-zinc-900 mb-1">Link de un solo uso para cada pedido</h3>
