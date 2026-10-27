@@ -24,6 +24,8 @@ const DEFAULT_DESCRIPTION = 'Conseguí más reseñas positivas en Google y filtr
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  // Verificación de Bing Webmaster Tools (no sacar: si se quita, Bing pierde la verificación)
+  verification: { other: { 'msvalidate.01': '6567FBD9A160EC72851A4C406BBFCD63' } },
   title: {
     default: DEFAULT_TITLE,
     template: `%s | ${SITE_NAME}`,
