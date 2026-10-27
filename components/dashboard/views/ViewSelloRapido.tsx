@@ -38,6 +38,8 @@ export default function ViewSelloRapido({
   const [copiedSecure, setCopiedSecure] = useState(false)
   const [copiedLogin, setCopiedLogin] = useState(false)
   const [copiedJoin, setCopiedJoin] = useState(false)
+  // QR ampliado en un popup (para mostrarlo en pantalla o sacarle captura)
+  const [zoomQr, setZoomQr] = useState<{ title: string; url: string } | null>(null)
   // Registro de clientes nuevos: crea la tarjeta sin sumar sello (aparte del QR del local)
   const joinLink =
     typeof window !== 'undefined'
@@ -329,7 +331,7 @@ export default function ViewSelloRapido({
           </p>
           <div className="flex gap-2 w-full">
             <button
-              onClick={() => window.open(qrLink, '_blank')}
+              onClick={() => setZoomQr({ title: 'QR del local', url: qrLink })}
               className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
             >
               Ampliar QR
@@ -461,14 +463,13 @@ export default function ViewSelloRapido({
           </div>
         )}
 
-        {/* El interruptor solo se muestra si ya estaba activado, para poder apagarlo; ya no se ofrece prenderlo */}
-        {canConfigure && linkOnly && (
+        {canConfigure && (
           <div className="mt-5 pt-4 border-t border-emerald-200">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-bold text-zinc-900">Dar sellos solo con link de un solo uso</p>
+                <p className="text-sm font-bold text-zinc-900">Modo dark kitchen / locales sin atención al público</p>
                 <p className="text-xs text-zinc-500 mt-0.5 leading-snug">
-                  Para delivery y pedidos por WhatsApp: los links comunes y copiados dejan de dar sellos, y solo vale el link que mandás en cada pedido. El QR del local sigue funcionando siempre, para quien retira.
+                  Para negocios que venden por delivery o WhatsApp: el link fijo de sellos deja de sumar sellos y solo valen los links de un solo uso que mandás en cada pedido. El QR del local sigue sumando, para quien retira. Apagado, el link fijo también suma sellos.
                 </p>
               </div>
               <button
@@ -504,7 +505,7 @@ export default function ViewSelloRapido({
             </p>
             <div className="flex gap-2 mt-2">
               <button
-                onClick={() => window.open(joinLink, '_blank')}
+                onClick={() => setZoomQr({ title: 'QR de registro (sin sello)', url: joinLink })}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
               >
                 Ampliar QR
@@ -542,7 +543,7 @@ export default function ViewSelloRapido({
             </p>
             <div className="flex gap-2 mt-2">
               <button
-                onClick={() => window.open(loginLink, '_blank')}
+                onClick={() => setZoomQr({ title: 'QR para ver mi tarjeta', url: loginLink })}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
               >
                 Ampliar QR
@@ -564,6 +565,31 @@ export default function ViewSelloRapido({
       </div>
       </div>
       </div>
+
+      {/* QR ampliado */}
+      {zoomQr && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: 'rgba(24,24,27,0.6)' }}
+          onClick={e => { if (e.target === e.currentTarget) setZoomQr(null) }}
+        >
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center">
+            <h3 className="font-bold text-zinc-900 text-lg mb-4">{zoomQr.title}</h3>
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(zoomQr.url)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+              alt={zoomQr.title}
+              className="w-full max-w-[300px] mx-auto rounded-xl"
+            />
+            <p className="text-[11px] text-zinc-400 mt-3 break-all">{zoomQr.url}</p>
+            <button
+              onClick={() => setZoomQr(null)}
+              className="mt-5 w-full py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
