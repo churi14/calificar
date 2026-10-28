@@ -35,8 +35,7 @@ export default function ViewSelloRapido({
   const [stamping, setStamping] = useState(false)
   const [stamped, setStamped] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [copiedLogin, setCopiedLogin] = useState(false)
-  const [copiedJoin, setCopiedJoin] = useState(false)
+  const [qrTab, setQrTab] = useState('local')
   // QR ampliado en un popup (para mostrarlo en pantalla o sacarle captura)
   const [zoomQr, setZoomQr] = useState<{ title: string; url: string } | null>(null)
   // Registro de clientes nuevos: crea la tarjeta sin sumar sello (aparte del QR del local)
@@ -134,8 +133,27 @@ export default function ViewSelloRapido({
     setTimeout(() => { setFound(null); setStamped(false) }, 2500)
   }
 
-  function copyLink() {
-    navigator.clipboard.writeText(selfLink).then(() => {
+  const limitText = { h4: 'cada 4 horas', h12: 'cada 12 horas', day: 'por día' }[stampInterval]
+  const qrs = [
+    {
+      id: 'local', tab: 'Del local', title: 'QR del local', url: qrLink, copy: selfLink,
+      desc: businessOnly
+        ? 'Con "solo sella el negocio" prendido no suma sellos: el cliente nuevo se registra y el que ya es cliente ve su tarjeta.'
+        : `Para el mostrador. El cliente nuevo se registra y recibe su primer sello; el que ya es cliente se sella solo (1 sello ${limitText}). No vence.${linkOnly ? ' Con el modo dark kitchen activo, reimprimí este QR: los anteriores dejan de sellar.' : ''}`,
+    },
+    {
+      id: 'registro', tab: 'Registro', title: 'QR de registro (sin sello)', url: joinLink, copy: joinLink,
+      desc: 'El cliente nuevo crea su tarjeta sin recibir sello. Sirve para sumar clientes a distancia o cuando los sellos los cargás vos.',
+    },
+    {
+      id: 'tarjeta', tab: 'Ver tarjeta', title: 'QR para ver mi tarjeta', url: loginLink, copy: loginLink,
+      desc: 'El cliente entra a su tarjeta con su teléfono cuando quiera, sin sumar sellos.',
+    },
+  ]
+  const qr = qrs.find(q => q.id === qrTab) ?? qrs[0]
+
+  function copyQr() {
+    navigator.clipboard.writeText(qr.copy).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -151,237 +169,142 @@ export default function ViewSelloRapido({
         </p>
       )}
 
-      {/* Dos columnas en pantallas grandes: todo a la vista sin bajar */}
       <div className="grid lg:grid-cols-2 gap-8 items-start">
-      <div>
-      {/* Input teléfono */}
-      <div className="relative mb-4">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">📱</span>
-        <input
-          type="tel"
-          value={phone}
-          onChange={e => search(e.target.value)}
-          placeholder="Número de teléfono"
-          className="w-full pl-11 pr-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg font-medium placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
-        />
-      </div>
-
-      {/* Resultado búsqueda */}
-      {found === 'none' && (
-        <div className="rounded-2xl border border-zinc-100 bg-zinc-50 px-5 py-4 text-center text-zinc-500 text-sm mb-4">
-          No hay ningún cliente con ese número.
-        </div>
-      )}
-
-      {found && found !== 'none' && !stamped && (
-        <div className="rounded-2xl border border-violet-100 bg-violet-50 px-5 py-4 mb-4 flex items-center justify-between">
-          <div>
-            <p className="font-bold text-violet-900 text-lg">{found.name}</p>
-            <p className="text-violet-600 text-sm">
-              {found.stamps} sello{found.stamps !== 1 ? 's' : ''} actuales
-            </p>
+        {/* Izquierda: lo de todos los días */}
+        <div>
+          <div className="relative mb-4">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">📱</span>
+            <input
+              type="tel"
+              value={phone}
+              onChange={e => search(e.target.value)}
+              placeholder="Número de teléfono"
+              className="w-full pl-11 pr-4 py-4 rounded-2xl border border-zinc-200 bg-white text-zinc-900 text-lg font-medium placeholder-zinc-400 focus:outline-none focus:border-violet-400 transition"
+            />
           </div>
-          <span className="text-3xl">🃏</span>
-        </div>
-      )}
 
-      {stamped && (
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4 mb-4 text-center">
-          <p className="text-emerald-700 font-bold text-lg">✅ ¡Sello cargado!</p>
-        </div>
-      )}
-
-      {/* Botón sellar */}
-      <button
-        onClick={doStamp}
-        disabled={!found || found === 'none' || stamping || stamped}
-        className="w-full py-4 rounded-2xl font-extrabold text-lg text-white transition-all disabled:opacity-40"
-        style={{ background: '#7C3AED' }}
-      >
-        {stamping ? 'Sellando…' : stamped ? '¡Listo!' : '⚡ Sellar'}
-      </button>
-
-      {/* Separador */}
-      <div className="my-6 border-t border-zinc-100" />
-
-      {/* QR del local */}
-      <div>
-        <h3 className="font-bold text-zinc-900 mb-1">QR del local</h3>
-        <p className="text-sm text-zinc-500 mb-4">
-          {businessOnly ? (
-            <>
-              Con "solo sella el negocio" prendido, este QR <b>no suma sellos</b>: si el cliente es nuevo se registra y ve su tarjeta vacía;
-              si ya es cliente, ve su tarjeta. Los sellos los cargás vos desde el panel.
-            </>
-          ) : (
-            <>
-              Imprimilo y ponélo en el mostrador. Es el mismo QR para todo: si el cliente es nuevo, se registra y recibe su primer sello;
-              si ya es cliente, se sella solo. No tiene vencimiento y funciona siempre, también para quien retira su pedido en el local.
-              {linkOnly && ' Si ya imprimiste un QR anterior, reimprimí este: el viejo deja de dar sellos mientras esté activado el modo de links de un solo uso.'}
-            </>
+          {found === 'none' && (
+            <div className="rounded-2xl border border-zinc-100 bg-zinc-50 px-5 py-4 text-center text-zinc-500 text-sm mb-4">
+              No hay ningún cliente con ese número.
+            </div>
           )}
-        </p>
-        <div className="flex flex-col items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-2xl p-5">
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
-            alt="QR del local"
-            width={140}
-            height={140}
-            className="rounded-xl"
-          />
-          <p className="text-xs text-zinc-400 text-center">
-            {businessOnly
-              ? 'Con "solo sella el negocio" este QR no suma sellos: muestra la tarjeta del cliente.'
-              : `Para el local y los retiros · Sin vencimiento · 1 sello por número ${{ h4: 'cada 4 horas', h12: 'cada 12 horas', day: 'por día' }[stampInterval]}`}
-          </p>
-          <div className="flex gap-2 w-full">
-            <button
-              onClick={() => setZoomQr({ title: 'QR del local', url: qrLink })}
-              className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
-            >
-              Ampliar QR
-            </button>
-            <button
-              onClick={copyLink}
-              className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
-            >
-              {copied ? '✓ Copiado' : 'Copiar link'}
-            </button>
-          </div>
-        </div>
-      </div>
 
-      </div>
-
-      {/* Columna derecha: control de sellos y QR de registro / de ver tarjeta */}
-      <div>
-      {canConfigure && (
-        <div className="rounded-2xl border border-violet-200 bg-violet-50/40 p-5 mb-6">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-violet-700 mb-1">Control de sellos · Plan Pro</p>
-          <h3 className="font-bold text-zinc-900 mb-1">Quién sella y cada cuánto</h3>
-          {canControl ? (
-            <>
-              <div className="flex items-start justify-between gap-4 mt-3">
-                <div>
-                  <p className="text-sm font-bold text-zinc-900">Solo sella el negocio</p>
-                  <p className="text-xs text-zinc-500 mt-0.5 leading-snug">
-                    El QR y el link del local dejan de sumar sellos: el cliente solo ve su tarjeta. Los sellos los cargás vos desde acá (Sello rápido) o desde Clientes, y el límite de abajo vale también para tu equipo.
-                  </p>
-                </div>
-                <button
-                  onClick={() => saveControl({ business_only_stamps: !businessOnly })}
-                  disabled={controlSaving || !controlAvailable}
-                  aria-pressed={businessOnly}
-                  className={`relative w-12 h-6 rounded-full shrink-0 transition-colors ${businessOnly ? 'bg-violet-600' : 'bg-zinc-300'} disabled:opacity-50`}
-                >
-                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${businessOnly ? 'left-7' : 'left-1'}`} />
-                </button>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-violet-200">
-                <label className="text-sm font-bold text-zinc-900 block mb-1" htmlFor="stamp-interval">Tiempo entre sellos de un mismo cliente</label>
-                <select
-                  id="stamp-interval"
-                  value={stampInterval}
-                  onChange={e => saveControl({ stamp_interval: e.target.value as StampInterval })}
-                  disabled={controlSaving || !controlAvailable}
-                  className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-800 focus:outline-none focus:border-violet-400 disabled:opacity-50"
-                >
-                  {STAMP_INTERVALS.map(i => <option key={i.id} value={i.id}>{i.label}</option>)}
-                </select>
-                <p className="text-xs text-zinc-500 mt-1.5 leading-snug">
-                  {businessOnly
-                    ? 'Si alguien intenta sellar de nuevo antes de tiempo, el panel le avisa que ya sellaste a ese cliente.'
-                    : 'Aplica a los sellos que se dan con el QR y el link. Desde el panel el sello sigue sin límite hasta que prendas "solo sella el negocio".'}
+          {found && found !== 'none' && !stamped && (
+            <div className="rounded-2xl border border-violet-100 bg-violet-50 px-5 py-4 mb-4 flex items-center justify-between">
+              <div>
+                <p className="font-bold text-violet-900 text-lg">{found.name}</p>
+                <p className="text-violet-600 text-sm">
+                  {found.stamps} sello{found.stamps !== 1 ? 's' : ''} actuales
                 </p>
               </div>
-              {controlError && <p className="text-xs text-red-500 mt-2">{controlError}</p>}
-              {!controlAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_business_only.sql para poder usarlo.</p>}
-            </>
-          ) : (
-            <p className="text-sm text-zinc-500 mt-2">
-              Elegir que solo sella el negocio y cuánto tiempo pasa entre sellos está disponible en el plan <strong>Pro</strong>.
-            </p>
+              <span className="text-3xl">🃏</span>
+            </div>
+          )}
+
+          {stamped && (
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4 mb-4 text-center">
+              <p className="text-emerald-700 font-bold text-lg">✅ ¡Sello cargado!</p>
+            </div>
+          )}
+
+          <button
+            onClick={doStamp}
+            disabled={!found || found === 'none' || stamping || stamped}
+            className="w-full py-4 rounded-2xl font-extrabold text-lg text-white transition-all disabled:opacity-40"
+            style={{ background: '#7C3AED' }}
+          >
+            {stamping ? 'Sellando…' : stamped ? '¡Listo!' : '⚡ Sellar'}
+          </button>
+
+          {/* Control de sellos (plan Pro), compacto */}
+          {canConfigure && (
+            <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-zinc-900">Control de sellos</h3>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-violet-700 bg-violet-50 rounded-full px-2 py-0.5">Pro</span>
+              </div>
+              {canControl ? (
+                <>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-900">Solo sella el negocio</p>
+                      <p className="text-xs text-zinc-500 mt-0.5 leading-snug">Los QR y links no suman sellos: los cargás vos o tu equipo.</p>
+                    </div>
+                    <button
+                      onClick={() => saveControl({ business_only_stamps: !businessOnly })}
+                      disabled={controlSaving || !controlAvailable}
+                      aria-pressed={businessOnly}
+                      className={`relative w-12 h-6 rounded-full shrink-0 transition-colors ${businessOnly ? 'bg-violet-600' : 'bg-zinc-300'} disabled:opacity-50`}
+                    >
+                      <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${businessOnly ? 'left-7' : 'left-1'}`} />
+                    </button>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between gap-4">
+                    <label className="text-sm font-semibold text-zinc-900" htmlFor="stamp-interval">Tiempo entre sellos</label>
+                    <select
+                      id="stamp-interval"
+                      value={stampInterval}
+                      onChange={e => saveControl({ stamp_interval: e.target.value as StampInterval })}
+                      disabled={controlSaving || !controlAvailable}
+                      className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:border-violet-400 disabled:opacity-50"
+                    >
+                      {STAMP_INTERVALS.map(i => <option key={i.id} value={i.id}>{i.label}</option>)}
+                    </select>
+                  </div>
+                  {controlError && <p className="text-xs text-red-500 mt-2">{controlError}</p>}
+                  {!controlAvailable && <p className="text-xs text-amber-600 mt-2">Falta correr la migración stamp_business_only.sql para poder usarlo.</p>}
+                </>
+              ) : (
+                <p className="text-sm text-zinc-500">
+                  Que solo selle el negocio y el tiempo entre sellos están disponibles en el plan <strong>Pro</strong>.
+                </p>
+              )}
+            </div>
           )}
         </div>
-      )}
 
-      {/* QR de registro (crea la tarjeta, no suma sellos) */}
-      <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-5">
-        <div className="flex items-center gap-4">
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(joinLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
-            alt="QR de registro"
-            width={96}
-            height={96}
-            className="rounded-lg shrink-0"
-          />
-          <div className="min-w-0">
-            <h3 className="font-bold text-zinc-900 leading-tight">QR de registro (sin sello)</h3>
-            <p className="text-xs text-zinc-500 mt-1 leading-snug">
-              Para que un cliente nuevo cree su tarjeta sin recibir ningún sello. Sirve para sumar clientes a distancia o cuando los sellos los cargás vos.
-            </p>
-            <div className="flex gap-2 mt-2">
+        {/* Derecha: un solo cuadro con los tres QR */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-5">
+          <h3 className="font-bold text-zinc-900 mb-3">Códigos QR</h3>
+          <div className="flex gap-1 p-1 bg-zinc-100 rounded-xl mb-4" role="tablist">
+            {qrs.map(q => (
               <button
-                onClick={() => setZoomQr({ title: 'QR de registro (sin sello)', url: joinLink })}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
+                key={q.id}
+                role="tab"
+                aria-selected={qr.id === q.id}
+                onClick={() => { setQrTab(q.id); setCopied(false) }}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${qr.id === q.id ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+              >
+                {q.tab}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-col items-center gap-3">
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qr.url)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
+              alt={qr.title}
+              width={170}
+              height={170}
+              className="rounded-xl"
+            />
+            <p className="font-semibold text-zinc-900 text-sm">{qr.title}</p>
+            <p className="text-xs text-zinc-500 text-center leading-snug">{qr.desc}</p>
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={() => setZoomQr({ title: qr.title, url: qr.url })}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
               >
                 Ampliar QR
               </button>
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(joinLink).then(() => {
-                    setCopiedJoin(true)
-                    setTimeout(() => setCopiedJoin(false), 2000)
-                  })
-                }}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
+                onClick={copyQr}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
               >
-                {copiedJoin ? '✓ Copiado' : 'Copiar link'}
+                {copied ? '✓ Copiado' : 'Copiar link'}
               </button>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* QR para ver la tarjeta (no suma sellos) */}
-      <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-5">
-        <div className="flex items-center gap-4">
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(loginLink)}&color=0F172A&bgcolor=FFFFFF&qzone=2`}
-            alt="QR para ver mi tarjeta"
-            width={96}
-            height={96}
-            className="rounded-lg shrink-0"
-          />
-          <div className="min-w-0">
-            <h3 className="font-bold text-zinc-900 leading-tight">QR para ver mi tarjeta</h3>
-            <p className="text-xs text-zinc-500 mt-1 leading-snug">
-              Para que el cliente entre a su tarjeta cuando quiera, sin sumar sellos. Si no la tiene guardada, pone su teléfono y la ve. Es aparte del QR del local.
-            </p>
-            <div className="flex gap-2 mt-2">
-              <button
-                onClick={() => setZoomQr({ title: 'QR para ver mi tarjeta', url: loginLink })}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
-              >
-                Ampliar QR
-              </button>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(loginLink).then(() => {
-                    setCopiedLogin(true)
-                    setTimeout(() => setCopiedLogin(false), 2000)
-                  })
-                }}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
-              >
-                {copiedLogin ? '✓ Copiado' : 'Copiar link'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      </div>
       </div>
 
       {/* QR ampliado */}
