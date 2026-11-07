@@ -107,6 +107,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         gtag('js', new Date());
         gtag('config', '${GA_ID}');
       `}</Script>
+      {process.env.NEXT_PUBLIC_UMAMI_URL && process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
+        <Script
+          src={`${process.env.NEXT_PUBLIC_UMAMI_URL.replace(/\/$/, '')}/script.js`}
+          data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+          strategy="afterInteractive"
+        />
+      )}
       <body className="font-sans">
         {children}
         <ConditionalWhatsApp />
