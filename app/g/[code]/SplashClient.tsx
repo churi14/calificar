@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from 'react'
 
+const DURATION_MS = 4000
+const SKIP_AFTER_MS = 2000
+
+const PERKS = [
+  'Tarjeta de sellos digital con QR',
+  'Premios, cupones y avisos al celular',
+  'Cumpleaños y reseñas de Google',
+]
+
 export default function SplashClient({
   businessName,
   googleUrl,
@@ -11,83 +20,87 @@ export default function SplashClient({
   googleUrl: string
   code: string
 }) {
-  const [progress, setProgress] = useState(0)
+  const [canSkip, setCanSkip] = useState(false)
 
   useEffect(() => {
-    // Registrar scan
+    // Registrar scan (si falla, la redirección sigue igual)
     fetch('/api/g/scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
-    })
+    }).catch(() => {})
 
-    // Barra de progreso
-    const start = Date.now()
-    const duration = 2000
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - start
-      const pct = Math.min((elapsed / duration) * 100, 100)
-      setProgress(pct)
-      if (elapsed >= duration) {
-        clearInterval(interval)
-        window.location.href = googleUrl
-      }
-    }, 16)
-
-    return () => clearInterval(interval)
+    // La redirección tiene su propio temporizador: no depende de la barra ni del resto de la pantalla
+    const redirect = setTimeout(() => { window.location.href = googleUrl }, DURATION_MS)
+    const skip = setTimeout(() => setCanSkip(true), SKIP_AFTER_MS)
+    return () => {
+      clearTimeout(redirect)
+      clearTimeout(skip)
+    }
   }, [code, googleUrl])
 
+  // Se abre en otra pestaña para no cortar la redirección; el código permite medir qué carteles traen visitas
+  const promoUrl = `https://calificar.com.ar/?utm_source=cartel&utm_medium=splash&utm_campaign=cartel-qr&utm_content=${encodeURIComponent(code)}`
+
   return (
-    <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center px-6 pb-11 text-center relative">
       <style>{`
-        @keyframes fadeUp {
+        @keyframes splashFill {
+          from { width: 0%; }
+          to   { width: 100%; }
+        }
+        @keyframes splashUp {
           from { opacity: 0; transform: translateY(12px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .fade-up { animation: fadeUp 500ms cubic-bezier(0.23,1,0.32,1) forwards; }
-        .fade-up-2 { animation: fadeUp 500ms cubic-bezier(0.23,1,0.32,1) 150ms forwards; opacity: 0; }
-        .fade-up-3 { animation: fadeUp 500ms cubic-bezier(0.23,1,0.32,1) 300ms forwards; opacity: 0; }
+        .splash-fill { animation: splashFill ${DURATION_MS}ms linear forwards; }
+        .splash-up { animation: splashUp 500ms cubic-bezier(0.23,1,0.32,1) forwards; }
+        .splash-up-2 { animation: splashUp 500ms cubic-bezier(0.23,1,0.32,1) 150ms forwards; opacity: 0; }
       `}</style>
 
-      {/* Logo Calificar */}
-      <div className="fade-up mb-8">
-        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="#FBCAD8">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-        </div>
+      {/* Nombre del negocio y barra de espera */}
+      <h1 className="splash-up text-white text-[34px] leading-[1.1] font-bold tracking-tight mb-2 max-w-[340px] break-words text-balance">
+        {businessName}
+      </h1>
+      <p className="splash-up text-gray-500 text-sm mb-5">Redirigiendo…</p>
+      <div className="splash-up w-[200px] h-1 bg-white/10 rounded-full overflow-hidden mb-12">
+        <div className="splash-fill h-full bg-[#FBCAD8] rounded-full" />
       </div>
 
-      {/* Nombre del negocio */}
-      <div className="fade-up-2 text-center mb-10">
-        <h1 className="text-white text-2xl font-extrabold tracking-tight mb-1">
-          {businessName}
-        </h1>
-        <p className="text-gray-500 text-sm">Redirigiendo…</p>
-      </div>
-
-      {/* Barra de progreso */}
-      <div className="fade-up-3 w-full max-w-xs">
-        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[#FBCAD8] rounded-full transition-none"
-            style={{ width: `${progress}%`, transition: 'width 16ms linear' }}
-          />
-        </div>
-      </div>
-
-      {/* Powered by Calificar */}
-      <div className="absolute bottom-8 left-0 right-0 text-center">
+      {/* Marca Calificar Fidelización */}
+      <div className="splash-up-2 flex flex-col items-center">
+        <a href={promoUrl} target="_blank" rel="noopener noreferrer" className="block mb-5">
+          <img src="/qr-logo.svg" alt="Calificar Fidelización" width={230} className="w-[230px] h-auto" />
+        </a>
+        <p className="text-white font-semibold text-base mb-2.5">Que tus clientes vuelvan</p>
+        <ul className="text-left mb-3 space-y-1.5">
+          {PERKS.map(p => (
+            <li key={p} className="text-[13px] text-slate-300 leading-snug flex gap-2">
+              <span className="text-[#FBCAD8] font-bold" aria-hidden="true">✓</span>
+              {p}
+            </li>
+          ))}
+        </ul>
         <a
-          href="https://calificar.com.ar"
+          href={promoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+          className="inline-block bg-[#FBCAD8] text-[#0F172A] text-[15px] font-semibold px-7 py-3 rounded-xl"
         >
-          ★ Powered by{' '}
-          <span className="font-semibold text-gray-500">Calificar</span>
+          Probar Calificar →
         </a>
       </div>
+
+      {/* Salida rápida: aparece a los 2 segundos */}
+      {canSkip && (
+        <button
+          type="button"
+          onClick={() => { window.location.href = googleUrl }}
+          className="absolute bottom-6 left-0 right-0 text-[13px] text-slate-400 underline"
+        >
+          Ir ahora
+        </button>
+      )}
     </div>
   )
 }
