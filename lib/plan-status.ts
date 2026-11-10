@@ -6,9 +6,19 @@
  *            El sistema sigue funcionando: se suman sellos, se registran clientes, se canjean premios.
  *
  * La prueba dura TRIAL_DAYS desde que se creó el negocio (no hay una columna aparte).
+ * Los negocios creados antes de TRIAL_CHANGE_AT conservan los 14 días con los que se registraron.
  */
-export const TRIAL_DAYS = 14
+export const TRIAL_DAYS = 5
+export const LEGACY_TRIAL_DAYS = 14
 export const GRACE_DAYS = 1
+
+const TRIAL_CHANGE_AT = new Date('2026-11-10T00:00:00-03:00').getTime()
+
+/** Días de prueba que le corresponden a un negocio según cuándo se creó */
+export function trialDaysFor(createdAt?: string | null): number {
+  if (!createdAt) return TRIAL_DAYS
+  return new Date(createdAt).getTime() < TRIAL_CHANGE_AT ? LEGACY_TRIAL_DAYS : TRIAL_DAYS
+}
 
 export type PlanState = 'active' | 'grace' | 'basic'
 
@@ -26,7 +36,7 @@ export function planEndsAt(b: PlanStatusInput): Date | null {
   if (plan === 'gifted') return null
   if (plan === 'trial') {
     if (!b.created_at) return null
-    return new Date(new Date(b.created_at).getTime() + TRIAL_DAYS * DAY_MS)
+    return new Date(new Date(b.created_at).getTime() + trialDaysFor(b.created_at) * DAY_MS)
   }
   return b.plan_expires_at ? new Date(b.plan_expires_at) : null
 }

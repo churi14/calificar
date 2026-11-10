@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import PhoneCardPreview from '@/components/landing/PhoneCardPreview'
 import RoiCalculator from '@/components/roi/RoiCalculator'
-import { PLAN_PRICES_ARS, discountedPrice, fmtARS } from '@/lib/plans'
+import { PLAN_PRICES_ARS, fmtARS } from '@/lib/plans'
 
 export const metadata: Metadata = {
   title: 'Tarjeta de fidelización para salones de belleza · Calificar',
-  description: 'Tarjeta de sellos digital para peluquerías, uñas, pestañas, estética y spa. Tus clientes vuelven a reservar, sin papel y sin descargar apps. 14 días gratis.',
+  description: 'Tarjeta de sellos digital para peluquerías, uñas, pestañas, estética y spa. Tus clientes vuelven a reservar, sin papel y sin descargar apps. 5 días gratis.',
   openGraph: {
     title: 'Fidelización para salones de belleza · Calificar',
     description: 'Que tus clientes vuelvan al salón: tarjeta digital en el celular, avisos, premios y recuperación de clientes que dejaron de venir.',
@@ -92,7 +92,7 @@ const faqs = [
   { q: '¿Cómo recupero a clientes que hace tiempo no vienen?', a: 'Activás la reactivación y Calificar avisa automáticamente a quienes pasaron un tiempo sin sumar sellos. Vos elegís cuánto tiempo y a qué hora sale el mensaje.' },
   { q: '¿Qué premios funcionan mejor en un salón?', a: 'Los que se sienten cercanos: un servicio de regalo (un brushing, un diseño de uñas) suele convencer más que un descuento chico. Arriba te dejamos algunas ideas.' },
   { q: '¿Es difícil para mi equipo?', a: 'No. Sumar un sello lleva unos segundos con el QR del salón, y el panel funciona desde el celular.' },
-  { q: '¿Puedo probarlo antes de pagar?', a: 'Sí. Tenés 14 días gratis, sin tarjeta de crédito.' },
+  { q: '¿Puedo probarlo antes de pagar?', a: 'Sí. Tenés 5 días gratis, sin tarjeta de crédito.' },
 ]
 
 export default function SalonesDeBellezaPage() {
@@ -145,7 +145,7 @@ export default function SalonesDeBellezaPage() {
                 href="/fidelizacion/onboarding"
                 className="bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-2xl text-base transition-colors text-center shadow-lg shadow-violet-300/60"
               >
-                Empezar 14 días gratis
+                Empezar 5 días gratis
               </Link>
               <a
                 href="#como-funciona"
@@ -279,7 +279,7 @@ export default function SalonesDeBellezaPage() {
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">¿Cuánto le deja la tarjeta a tu salón?</h2>
             <p className="text-zinc-600 max-w-xl mx-auto">Armá tu tarjeta con premios en el camino (por ejemplo, uno en el sello 3, otro en el 6 y el final en el 10) y mirá en pesos cuándo recuperás lo que invertís y cuánto ganás.</p>
           </div>
-          <RoiCalculator mode="full" initial={{ presetId: 'peluqueria' }} cta={{ href: '/fidelizacion/onboarding', label: 'Armar mi tarjeta · 14 días gratis' }} />
+          <RoiCalculator mode="full" initial={{ presetId: 'peluqueria' }} cta={{ href: '/fidelizacion/onboarding', label: 'Armar mi tarjeta · 5 días gratis' }} />
         </div>
       </section>
 
@@ -299,9 +299,6 @@ export default function SalonesDeBellezaPage() {
                 <span className="text-4xl font-extrabold">{fmtARS(PLAN_PRICES_ARS.beauty)}</span>
                 <span className="text-sm text-zinc-500">ARS por mes</span>
               </div>
-              <p className="mt-2 text-sm font-semibold text-violet-700 bg-violet-50 rounded-xl px-3 py-2 inline-block self-start">
-                Primer mes {fmtARS(discountedPrice(PLAN_PRICES_ARS.beauty))}: 50% de descuento si arrancás en tu primera semana
-              </p>
               <ul className="space-y-2.5 text-sm text-zinc-700 my-6 flex-1">
                 {[
                   'Tarjeta digital con el logo de tu salón',
@@ -316,7 +313,7 @@ export default function SalonesDeBellezaPage() {
                 ))}
               </ul>
               <Link href="/fidelizacion/onboarding?tipo=salon" className="block text-center bg-violet-600 hover:bg-violet-500 text-white font-bold py-3.5 rounded-2xl transition-colors">
-                Probá 14 días gratis
+                Probá 5 días gratis
               </Link>
               <p className="text-xs text-zinc-400 text-center mt-3">Sin tarjeta de crédito.</p>
             </div>
@@ -374,12 +371,12 @@ export default function SalonesDeBellezaPage() {
       <section className="py-24 px-6 text-center" style={{ background: 'linear-gradient(135deg,#7C3AED 0%,#6D28D9 100%)' }}>
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-4">¿Listo para que tus clientes vuelvan?</h2>
-          <p className="text-violet-100 mb-8">Armá la tarjeta de tu salón en unos minutos. 14 días gratis, sin tarjeta de crédito.</p>
+          <p className="text-violet-100 mb-8">Armá la tarjeta de tu salón en unos minutos. 5 días gratis, sin tarjeta de crédito.</p>
           <Link
             href="/fidelizacion/onboarding"
             className="inline-block bg-white text-violet-700 font-bold px-8 py-4 rounded-2xl text-base hover:bg-violet-50 transition-colors"
           >
-            Empezar 14 días gratis
+            Empezar 5 días gratis
           </Link>
           <p className="text-violet-200 text-xs mt-4">
             ¿Querés ver los planes? <Link href="/fidelizacion#precios" className="underline">Mirá los precios</Link>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
-import { PLAN_PRICES_ARS, DISCOUNT_WINDOW_DAYS, discountedPrice, isBeautyType } from '@/lib/plans'
+import { PLAN_PRICES_ARS, isBeautyType } from '@/lib/plans'
 
 const serviceClient = createServiceClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,28 +15,12 @@ const PLANS = {
   ultimate:{ name: 'Plan Ultimate — Calificar Fidelización',price: PLAN_PRICES_ARS.ultimate },
 } as const
 
-/** Returns true if the business was created within the welcome-offer window (DISCOUNT_WINDOW_DAYS) */
-async function isWithinFirstWeek(userId: string): Promise<boolean> {
-  const { data: biz } = await serviceClient
-    .from('businesses')
-    .select('created_at')
-    .eq('owner_user_id', userId)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle()
-
-  if (!biz?.created_at) return false
-  const createdAt = new Date(biz.created_at)
-  const diffDays = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
-  return diffDays <= DISCOUNT_WINDOW_DAYS
-}
-
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const { plan, discount } = await req.json()
+  const { plan } = await req.json()
   if (!plan || !(plan in PLANS)) {
     return NextResponse.json({ error: 'Plan inválido' }, { status: 400 })
   }
@@ -58,23 +42,12 @@ export async function POST(req: NextRequest) {
   const planData = PLANS[plan as keyof typeof PLANS]
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://calificar.com.ar'
 
-  // Server-side discount validation: only allow inside the welcome-offer window
-  let finalPrice: number = planData.price
-  let planTitle = planData.name
-  if (discount) {
-    const eligible = await isWithinFirstWeek(user.id)
-    if (!eligible) {
-      return NextResponse.json({ error: `La oferta de bienvenida ya terminó: duraba ${DISCOUNT_WINDOW_DAYS} días desde que creaste tu negocio.` }, { status: 403 })
-    }
-    finalPrice = discountedPrice(planData.price)
-    planTitle = planData.name + ' — 50% OFF Primer Mes'
-  }
-
+  // El precio sale siempre del servidor (lib/plans.ts): no se acepta ningún monto ni descuento del cliente
   const preference = {
     items: [{
-      title:      planTitle,
+      title:      planData.name,
       quantity:   1,
-      unit_price: finalPrice,
+      unit_price: planData.price,
       currency_id: 'ARS',
     }],
     external_reference: `${user.id}|${plan}`,

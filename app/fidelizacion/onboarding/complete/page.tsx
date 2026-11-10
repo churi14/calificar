@@ -127,7 +127,7 @@ function CompleteContent() {
         }))
 
         // Limpiar storage — siempre ir al dashboard primero
-        // El upgrade a plan pago se hace desde el dashboard (con el popup del 50%)
+        // El upgrade a plan pago se hace desde el dashboard
         localStorage.removeItem('cal_onboarding')
         localStorage.removeItem('cal_onboarding_draft')
         localStorage.removeItem('cal_chosen_plan')

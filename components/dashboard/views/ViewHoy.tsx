@@ -8,6 +8,7 @@ import {
 } from '@phosphor-icons/react'
 import type { Program, Card, Transaction, Stats, PushLog } from '@/types/dashboard'
 import { PLAN_PRICES_ARS } from '@/lib/plans'
+import { planDaysLeft } from '@/lib/plan-status'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface ViewHoyProps {
@@ -200,11 +201,8 @@ export default function ViewHoy({
   const trialDaysLeft = (() => {
     if (businessPlan && businessPlan !== 'trial') return null
     if (!businessCreatedAt) return null
-    const days = Math.ceil(
-      (new Date(businessCreatedAt).getTime() + 14 * 24 * 60 * 60 * 1000 - Date.now()) /
-        (1000 * 60 * 60 * 24)
-    )
-    return Math.max(0, days)
+    // Misma cuenta que el resto de la app (5 días; los negocios anteriores al cambio conservan 14)
+    return planDaysLeft({ plan: 'trial', created_at: businessCreatedAt })
   })()
 
   const kpis = [

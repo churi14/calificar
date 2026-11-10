@@ -3,14 +3,13 @@
 import React, { useEffect, useState } from 'react'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import { Sun, Moon } from '@phosphor-icons/react'
-import { DISCOUNT_WINDOW_DAYS, discountDaysLeft, maxLocales } from '@/lib/plans'
+import { maxLocales } from '@/lib/plans'
 import { canUse } from '@/lib/plan-features'
 import type { Audience } from '@/lib/audience-types'
 import { planState, planDaysLeft } from '@/lib/plan-status'
 
 // ── Componentes de UI ─────────────────────────────────────────────────────────
 import Sidebar        from '@/components/dashboard/Sidebar'
-import DiscountPopup  from '@/components/dashboard/ui/DiscountPopup'
 import WhatsNewPopup  from '@/components/dashboard/ui/WhatsNewPopup'
 import { APP_VERSION } from '@/lib/changelog'
 import StampModal     from '@/components/dashboard/ui/StampModal'
@@ -62,7 +61,6 @@ export default function NegocioDashboard() {
   const [stats, setStats]                         = useState<Stats>({ total: 0, stampsToday: 0, rewardsTotal: 0 })
   const [loading, setLoading]                     = useState(true)
   const [activeNav, setActiveNav]                 = useState<ViewType>('hoy')
-  const [showDiscount, setShowDiscount]           = useState(false)
   const [showWhatsNew, setShowWhatsNew]           = useState(false)
   const [stampError, setStampError]               = useState('')
   const [showNewBranch, setShowNewBranch]         = useState(false)
@@ -114,20 +112,7 @@ export default function NegocioDashboard() {
         const newBiz = JSON.parse(newBizRaw)
         if (newBiz.name) setBusinessName(newBiz.name)
         if (newBiz.plan) setBusinessPlan(newBiz.plan)
-        if (newBiz.created_at) {
-          setBusinessCreatedAt(newBiz.created_at)
-          const isPaid = ['starter', 'pro', 'ultimate', 'gifted'].includes(newBiz.plan ?? '')
-          if (!isPaid) {
-            const diff = (Date.now() - new Date(newBiz.created_at).getTime()) / (1000 * 60 * 60 * 24)
-            if (diff <= DISCOUNT_WINDOW_DAYS) {
-              const dismissed = localStorage.getItem('cal_discount_dismissed')
-              if (!dismissed) {
-                const nextShow = parseInt(localStorage.getItem('cal_discount_next') ?? '0')
-                if (Date.now() >= nextShow) setTimeout(() => setShowDiscount(true), 1500)
-              }
-            }
-          }
-        }
+        if (newBiz.created_at) setBusinessCreatedAt(newBiz.created_at)
         localStorage.removeItem('cal_new_biz')
       }
     } catch {}
@@ -156,20 +141,7 @@ export default function NegocioDashboard() {
           setExtraLocales(Number(biz?.extra_locales ?? 0))
           setBusinessType(String(biz?.type ?? ''))
           if (biz?.plan_expires_at !== undefined) setPlanExpiresAt(biz.plan_expires_at)
-          if (biz?.created_at) {
-            setBusinessCreatedAt(biz.created_at)
-            const isPaid = ['beauty', 'starter', 'pro', 'ultimate', 'gifted'].includes(biz.plan ?? '')
-            if (!isPaid) {
-              const diff = (Date.now() - new Date(biz.created_at).getTime()) / (1000 * 60 * 60 * 24)
-              if (diff <= DISCOUNT_WINDOW_DAYS) {
-                const dismissed = localStorage.getItem('cal_discount_dismissed')
-                if (!dismissed) {
-                  const nextShow = parseInt(localStorage.getItem('cal_discount_next') ?? '0')
-                  if (Date.now() >= nextShow) setTimeout(() => setShowDiscount(true), 1500)
-                }
-              }
-            }
-          }
+          if (biz?.created_at) setBusinessCreatedAt(biz.created_at)
         }
         if (d.email) setUserEmail(d.email)
         setLoading(false)
@@ -364,7 +336,6 @@ export default function NegocioDashboard() {
   const planExpired = !!(planExpiresAt && new Date(planExpiresAt) < new Date())
   // Cuántos locales permite el plan (Starter 1, Pro 3, Ultimate sin límite): la principal cuenta como uno
   const canAddBranch = !planExpired && branches.length + 1 < maxLocales(businessPlan, extraLocales)
-  const daysLeftDiscount = discountDaysLeft(businessCreatedAt)
   // Estado de la prueba o del plan: activo, gracia de 1 día, o modo básico (tarjeta genérica)
   const planInfo = { plan: businessPlan, plan_expires_at: planExpiresAt, created_at: businessCreatedAt }
   const planStatus = planState(planInfo)
@@ -404,13 +375,8 @@ export default function NegocioDashboard() {
   return (
     <div className="flex min-h-screen bg-zinc-50" data-dark={String(isDark)}>
 
-      {/* Popup descuento */}
-      {showDiscount && (
-        <DiscountPopup onClose={() => setShowDiscount(false)} daysLeft={daysLeftDiscount} businessType={businessType} />
-      )}
-
-      {/* Popup de novedades (después del de descuento, para no apilar dos) */}
-      {showWhatsNew && !showDiscount && <WhatsNewPopup onClose={closeWhatsNew} />}
+      {/* Popup de novedades */}
+      {showWhatsNew && <WhatsNewPopup onClose={closeWhatsNew} />}
 
       {/* Mobile header */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-4 h-14 bg-white border-b border-zinc-100">
@@ -588,7 +554,7 @@ export default function NegocioDashboard() {
           <ViewTarjeta program={program} selectedProgram={selectedProgram}
             onLogoUploaded={handleLogoUploaded} accessToken={accessToken}
             plan={businessPlan} planExpiresAt={planExpiresAt}
-            stats={stats} businessCreatedAt={businessCreatedAt} />
+            stats={stats} />
         )}
         {activeNav === 'clientes' && (
           <ViewClientes cards={cards} program={program} selectedProgram={selectedProgram}
@@ -672,7 +638,7 @@ export default function NegocioDashboard() {
             onVenueSaved={v => setPrograms(ps => ps.map(p => p.id === selectedProgram ? { ...p, venue_type: v } : p))} />
         )}
         {activeNav === 'plan' && (
-          <ViewPlan onNav={(id) => setActiveNav(id as ViewType)} businessCreatedAt={businessCreatedAt}
+          <ViewPlan onNav={(id) => setActiveNav(id as ViewType)}
             plan={businessPlan} planExpiresAt={planExpiresAt} businessType={businessType} />
         )}
         {activeNav === 'ayuda' && <ViewAyuda onNav={(id) => setActiveNav(id as ViewType)} />}

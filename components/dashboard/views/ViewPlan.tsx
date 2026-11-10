@@ -1,20 +1,7 @@
 'use client'
 
-import { PLAN_PRICES_ARS, DISCOUNT_WINDOW_DAYS, discountedPrice, fmtARS, isBeautyType } from '@/lib/plans'
-import React, { useState, useEffect } from 'react'
-
-// ── hook de cuenta regresiva ───────────────────────────────────────────────────
-function useCountdown(targetMs: number) {
-  const [remaining, setRemaining] = useState(Math.max(0, targetMs - Date.now()))
-  useEffect(() => {
-    const t = setInterval(() => setRemaining(Math.max(0, targetMs - Date.now())), 1000)
-    return () => clearInterval(t)
-  }, [targetMs])
-  const h = Math.floor(remaining / 3600000)
-  const m = Math.floor((remaining % 3600000) / 60000)
-  const s = Math.floor((remaining % 60000) / 1000)
-  return { remaining, h, m, s }
-}
+import { PLAN_PRICES_ARS, fmtARS, isBeautyType } from '@/lib/plans'
+import React, { useState } from 'react'
 
 // ── planes ────────────────────────────────────────────────────────────────────
 const BEAUTY_PLAN = {
@@ -40,7 +27,7 @@ const VIEW_PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    price: '$14.999',
+    price: '$10.000',
     period: 'ARS/mes',
     desc: 'Para empezar a fidelizar clientes con sellos digitales.',
     color: '#7C3AED',
@@ -57,7 +44,7 @@ const VIEW_PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '$29.999',
+    price: '$25.000',
     period: 'ARS/mes',
     desc: 'Para negocios que quieren más control y automatización.',
     color: '#7C3AED',
@@ -76,7 +63,7 @@ const VIEW_PLANS = [
   {
     id: 'ultimate',
     name: 'Ultimate',
-    price: '$69.999',
+    price: '$50.000',
     period: 'ARS/mes',
     desc: 'Para cadenas y franquicias con muchos locales.',
     color: '#7C3AED',
@@ -94,17 +81,9 @@ const VIEW_PLANS = [
   },
 ]
 
-const DISC_PRICES: Record<string, string> = {
-  beauty:   fmtARS(discountedPrice(PLAN_PRICES_ARS.beauty)),
-  starter:  fmtARS(discountedPrice(PLAN_PRICES_ARS.starter)),
-  pro:      fmtARS(discountedPrice(PLAN_PRICES_ARS.pro)),
-  ultimate: fmtARS(discountedPrice(PLAN_PRICES_ARS.ultimate)),
-}
-
 // ── props ─────────────────────────────────────────────────────────────────────
 interface ViewPlanProps {
   onNav: (id: string) => void
-  businessCreatedAt?: string | null
   plan?: string
   planExpiresAt?: string | null
   /** Tipo de negocio: los salones ven el plan Beauty en lugar de Starter */
@@ -112,16 +91,11 @@ interface ViewPlanProps {
 }
 
 // ── componente ────────────────────────────────────────────────────────────────
-export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'trial', planExpiresAt = null, businessType }: ViewPlanProps) {
+export default function ViewPlan({ onNav, plan = 'trial', planExpiresAt = null, businessType }: ViewPlanProps) {
   const plansToShow = isBeautyType(businessType) ? [BEAUTY_PLAN, ...VIEW_PLANS.filter(p => p.id !== 'starter')] : VIEW_PLANS
   const planExpired = !!(planExpiresAt && new Date(planExpiresAt) < new Date())
   const planNames: Record<string, string> = { beauty: 'Beauty', starter: 'Starter', pro: 'Pro', ultimate: 'Ultimate', gifted: 'Ultimate (regalo)' }
   const isPaidPlan = plan in planNames && !planExpired
-  const discountDeadlineMs = businessCreatedAt
-    ? new Date(businessCreatedAt).getTime() + DISCOUNT_WINDOW_DAYS * 24 * 60 * 60 * 1000
-    : 0
-  const isDiscountEligible = discountDeadlineMs > Date.now()
-  const { h, m, s } = useCountdown(discountDeadlineMs)
 
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [checkoutErr, setCheckoutErr] = useState('')
@@ -133,7 +107,7 @@ export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'tria
       const res = await fetch('/api/mp/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId, discount: isDiscountEligible }),
+        body: JSON.stringify({ plan: planId }),
       })
       const data = await res.json()
       if (!res.ok) { setCheckoutErr(data.error || 'Error al procesar'); setLoadingPlan(null); return }
@@ -155,31 +129,6 @@ export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'tria
             : 'Estás en el período de prueba gratuita. Elegí el plan que mejor se adapta a tu negocio.'}
       </p>
 
-      {isDiscountEligible && (
-        <div
-          className="mb-6 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 flex-wrap"
-          style={{
-            background: 'linear-gradient(135deg, #7C3AED22, #6366f122)',
-            border: '1px solid #7C3AED44',
-          }}
-        >
-          <div>
-            <span className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-1">
-              50% OFF — OFERTA DE BIENVENIDA
-            </span>
-            <p className="text-sm font-semibold text-zinc-800 dark:text-gray-200">
-              Oferta de bienvenida · Se aplica automáticamente al elegir tu plan.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-violet-700 dark:text-violet-400 font-extrabold flex-shrink-0">
-            <span className="bg-violet-100 dark:bg-violet-950 px-3 py-1.5 rounded-xl text-2xl tabular-nums">
-              {Math.ceil((discountDeadlineMs - Date.now()) / (1000 * 60 * 60 * 24))}
-            </span>
-            <span className="text-sm font-semibold text-violet-500 dark:text-violet-400">días restantes</span>
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {plansToShow.map(plan => (
           <div
@@ -197,25 +146,10 @@ export default function ViewPlan({ onNav, businessCreatedAt = null, plan = 'tria
             )}
             <div className="mb-4 mt-1">
               <p className="text-xs font-bold uppercase tracking-widest mb-1 text-violet-600 dark:text-violet-400">{plan.name}</p>
-              {isDiscountEligible ? (
-                <div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-extrabold text-violet-600 dark:text-violet-400">{DISC_PRICES[plan.id]}</span>
-                    <span className="text-xs text-zinc-400 dark:text-gray-500">{plan.period}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-zinc-400 dark:text-gray-500 line-through">{plan.price}</span>
-                    <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950 px-2 py-0.5 rounded-full">
-                      50% OFF primer mes
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{plan.price}</span>
-                  <span className="text-xs text-zinc-400 dark:text-gray-500 ml-1">{plan.period}</span>
-                </div>
-              )}
+              <div className="flex items-baseline gap-0.5">
+                <span className="text-2xl font-extrabold text-zinc-900 dark:text-white">{plan.price}</span>
+                <span className="text-xs text-zinc-400 dark:text-gray-500 ml-1">{plan.period}</span>
+              </div>
               <p className="text-xs text-zinc-400 dark:text-gray-500 mt-1">{plan.desc}</p>
             </div>
             <div className="flex-1 space-y-2 mb-5">

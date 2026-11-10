@@ -1,7 +1,6 @@
 'use client'
 
 import { useUnifiedQr } from '@/lib/use-unified-qr'
-import { PLAN_PRICES_ARS, discountedPrice, fmtARS } from '@/lib/plans'
 import { canUse } from '@/lib/plan-features'
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -17,9 +16,9 @@ const PLANS = [
   {
     id: 'starter',
     name: 'Starter',
-    price: '$14.999',
+    price: '$10.000',
     period: 'ARS / mes',
-    sub: '$500/día · menos que un café',
+    sub: '$333/día · menos que un café',
     desc: 'PARA TU NEGOCIO',
     features: ['Tarjeta digital con tu logo', 'QR listo para imprimir', 'Sello rápido, manual o escaneando al cliente', 'Cupones únicos para canjear los premios', 'Lista de clientes y panel', '1 local'],
     pills: ['Tarjetas ilimitadas', 'Notificaciones ilimitadas'],
@@ -30,9 +29,9 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '$29.999',
+    price: '$25.000',
     period: 'ARS / mes',
-    sub: '$1.000/día · menos que dos cafés',
+    sub: '$833/día · menos que un café',
     desc: 'PARA DESTACAR',
     features: ['Todo lo de Starter', 'Avisos ilimitados al celular, también a grupos de clientes', 'Cumpleaños, reseñas de Google y recuperación de clientes', 'Referidos y aviso al pasar cerca del local', 'Google Wallet y diseño completo', 'Premios en el camino y exportar clientes', 'Hasta 3 locales con métricas de cada uno', 'Soporte prioritario'],
     pills: ['Tarjetas ilimitadas', 'Notificaciones ilimitadas'],
@@ -43,9 +42,9 @@ const PLANS = [
   {
     id: 'ultimate',
     name: 'Ultimate',
-    price: '$69.999',
+    price: '$50.000',
     period: 'ARS / mes',
-    sub: '$2.333/día · para todas tus sucursales',
+    sub: '$1.667/día · para todas tus sucursales',
     desc: 'SIN LÍMITES',
     features: ['Todo lo de Pro', 'Ruleta de la suerte', 'Recuperar según la frecuencia de cada cliente', 'Grupos de clientes con tus propias reglas', 'Estadísticas de actividad', 'Equipo: cada empleado con su usuario', 'Tarjeta sin marca Calificar y dominio propio', 'Hasta 50 locales'],
     pills: ['Tarjetas ilimitadas', 'Notificaciones ilimitadas'],
@@ -70,14 +69,9 @@ const CARD_TEMPLATES = [
 
 // ── PlansModal ────────────────────────────────────────────────────────────────
 
-function PlansModal({ onClose, isDiscountEligible = false }: { onClose: () => void; isDiscountEligible?: boolean }) {
+function PlansModal({ onClose }: { onClose: () => void }) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [err, setErr] = useState('')
-  const DISC_PRICES: Record<string, string> = {
-    starter: fmtARS(discountedPrice(PLAN_PRICES_ARS.starter)),
-    pro: fmtARS(discountedPrice(PLAN_PRICES_ARS.pro)),
-    ultimate: fmtARS(discountedPrice(PLAN_PRICES_ARS.ultimate)),
-  }
 
   async function checkout(planId: string) {
     setLoadingPlan(planId)
@@ -86,11 +80,10 @@ function PlansModal({ onClose, isDiscountEligible = false }: { onClose: () => vo
       const res = await fetch('/api/mp/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId, discount: isDiscountEligible }),
+        body: JSON.stringify({ plan: planId }),
       })
       const data = await res.json()
       if (!res.ok) { setErr(data.error || 'Error al procesar'); setLoadingPlan(null); return }
-      if (isDiscountEligible) localStorage.setItem('cal_discount_dismissed', '1')
       window.location.href = data.init_point
     } catch { setErr('Error de conexión'); setLoadingPlan(null) }
   }
@@ -100,19 +93,9 @@ function PlansModal({ onClose, isDiscountEligible = false }: { onClose: () => vo
       <div className="bg-zinc-950 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl">
         <div className="relative px-7 pt-6 pb-5 text-center border-b border-zinc-800">
           <button onClick={onClose} className="absolute right-5 top-5 text-zinc-500 hover:text-zinc-300 text-xl leading-none">✕</button>
-          {isDiscountEligible ? (
-            <>
-              <div className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">50% OFF — PRIMER MES</div>
-              <h2 className="text-xl font-extrabold text-white">Oferta de bienvenida. Solo esta semana.</h2>
-              <p className="text-zinc-400 text-sm mt-1">El descuento se aplica automáticamente al elegir tu plan.</p>
-            </>
-          ) : (
-            <>
-              <div className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">14 DÍAS GRATIS</div>
-              <h2 className="text-xl font-extrabold text-white">Probá gratis y empezá a fidelizar desde el primer día.</h2>
-              <p className="text-zinc-400 text-sm mt-1">Sin tarjeta de crédito. Sin compromiso.</p>
-            </>
-          )}
+          <div className="inline-block bg-violet-600 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">5 DÍAS GRATIS</div>
+          <h2 className="text-xl font-extrabold text-white">Probá gratis y empezá a fidelizar desde el primer día.</h2>
+          <p className="text-zinc-400 text-sm mt-1">Sin tarjeta de crédito. Sin compromiso.</p>
         </div>
         <div className="p-5 grid grid-cols-3 gap-4">
           {PLANS.map(plan => (
@@ -126,18 +109,11 @@ function PlansModal({ onClose, isDiscountEligible = false }: { onClose: () => vo
                 <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${plan.highlight ? 'text-violet-600' : 'text-zinc-400'}`}>{plan.desc}</p>
                 <p className={`text-xl font-extrabold mb-1 ${plan.highlight ? 'text-zinc-900' : 'text-white'}`}>{plan.name}</p>
                 <div className="flex items-baseline gap-1 mb-1">
-                  {isDiscountEligible ? (
-                    <>
-                      <span className={`text-lg line-through ${plan.highlight ? 'text-zinc-400' : 'text-zinc-600'}`}>{plan.price}</span>
-                      <span className={`text-3xl font-extrabold ${plan.highlight ? 'text-violet-600' : 'text-violet-400'}`}>{DISC_PRICES[plan.id]}</span>
-                    </>
-                  ) : (
-                    <span className={`text-3xl font-extrabold ${plan.highlight ? 'text-zinc-900' : 'text-white'}`}>{plan.price}</span>
-                  )}
+                  <span className={`text-3xl font-extrabold ${plan.highlight ? 'text-zinc-900' : 'text-white'}`}>{plan.price}</span>
                   <span className={`text-xs ${plan.highlight ? 'text-zinc-400' : 'text-zinc-500'}`}>{plan.period}</span>
                 </div>
                 <div className={`text-[10px] px-2.5 py-1 rounded-lg inline-block mb-3 ${plan.highlight ? 'bg-zinc-100 text-zinc-500' : 'bg-zinc-800 text-zinc-400'}`}>
-                  {isDiscountEligible ? '50% OFF primer mes' : plan.sub}
+                  {plan.sub}
                 </div>
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {plan.pills.map(p => (
@@ -181,7 +157,6 @@ interface ViewTarjetaProps {
   plan?: string
   planExpiresAt?: string | null
   stats?: { total: number; stampsToday: number; rewardsTotal: number }
-  businessCreatedAt?: string | null
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
@@ -194,7 +169,6 @@ export default function ViewTarjeta({
   plan = 'trial',
   planExpiresAt = null,
   stats,
-  businessCreatedAt = null,
 }: ViewTarjetaProps) {
   const fileRef      = useRef<HTMLInputElement>(null)
   const appIconRef   = useRef<HTMLInputElement>(null)
@@ -382,13 +356,7 @@ export default function ViewTarjeta({
   return (
     <div className="p-4 md:p-8 w-full">
       {showPlans && (
-        <PlansModal
-          onClose={() => setShowPlans(false)}
-          isDiscountEligible={
-            !!businessCreatedAt &&
-            (Date.now() - new Date(businessCreatedAt).getTime()) / (1000 * 60 * 60 * 24) <= 7
-          }
-        />
+        <PlansModal onClose={() => setShowPlans(false)} />
       )}
 
       <div className="mb-6">

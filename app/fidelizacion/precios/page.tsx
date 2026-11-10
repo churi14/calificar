@@ -4,10 +4,10 @@ import { PLAN_PRICES_ARS, fmtARS } from '@/lib/plans'
 
 export const metadata: Metadata = {
   title: 'Planes y precios de Calificar Fidelización · Starter, Pro y Ultimate',
-  description: `Qué incluye cada plan de la tarjeta de sellos digital: Starter (${fmtARS(PLAN_PRICES_ARS.starter)}), Pro (${fmtARS(PLAN_PRICES_ARS.pro)}) y Ultimate (${fmtARS(PLAN_PRICES_ARS.ultimate)}) por mes. 14 días de prueba, sin tarjeta de crédito.`,
+  description: `Qué incluye cada plan de la tarjeta de sellos digital: Starter (${fmtARS(PLAN_PRICES_ARS.starter)}), Pro (${fmtARS(PLAN_PRICES_ARS.pro)}) y Ultimate (${fmtARS(PLAN_PRICES_ARS.ultimate)}) por mes. 5 días de prueba, sin tarjeta de crédito.`,
   openGraph: {
     title: 'Planes de Calificar Fidelización',
-    description: `Tarjetas de sellos digitales para tu negocio, desde ${fmtARS(PLAN_PRICES_ARS.starter)} por mes. 14 días de prueba.`,
+    description: `Tarjetas de sellos digitales para tu negocio, desde ${fmtARS(PLAN_PRICES_ARS.starter)} por mes. 5 días de prueba.`,
   },
 }
 
@@ -83,7 +83,7 @@ const PLANS = [
     name: 'Starter',
     tag: 'Para empezar con un local',
     price: PLAN_PRICES_ARS.starter,
-    perDay: '$500 por día',
+    perDay: '$333 por día',
     blurb: 'Reemplazá las tarjetitas de papel y empezá a saber quiénes vuelven.',
     items: [
       'Tarjeta digital con tu logo',
@@ -100,7 +100,7 @@ const PLANS = [
     name: 'Pro',
     tag: 'Para hacer que vuelvan más',
     price: PLAN_PRICES_ARS.pro,
-    perDay: '$1.000 por día',
+    perDay: '$833 por día',
     blurb: 'Todo lo de Starter, más avisos, campañas automáticas y tu tarjeta con tu estilo.',
     items: [
       'Todo lo de Starter',
@@ -118,7 +118,7 @@ const PLANS = [
     name: 'Ultimate',
     tag: 'Para cadenas y muchos locales',
     price: PLAN_PRICES_ARS.ultimate,
-    perDay: '$2.333 por día',
+    perDay: '$1.667 por día',
     blurb: 'Todo lo de Pro, más herramientas para crecer y manejar un equipo.',
     items: [
       'Todo lo de Pro',
@@ -140,7 +140,7 @@ const FAQS = [
     a: 'No. Las tarjetas son ilimitadas en los tres planes: tener 50 o 5.000 clientes cuesta lo mismo. Lo que cambia entre un plan y otro son las funciones y la cantidad de locales.',
   },
   {
-    q: '¿Cómo funciona la prueba de 14 días?',
+    q: '¿Cómo funciona la prueba de 5 días?',
     a: 'Armás tu tarjeta y probás casi todo sin poner ninguna tarjeta de crédito. Al terminar, elegís el plan que te sirva. Si no elegís ninguno, tu tarjeta sigue funcionando, pero se ve con un diseño genérico y la marca Calificar.',
   },
   {
@@ -190,7 +190,7 @@ export default function PreciosPage() {
               Iniciar sesión
             </Link>
             <Link href="/fidelizacion/onboarding" className="text-sm font-bold bg-violet-600 text-white px-4 py-2 rounded-xl hover:bg-violet-500 transition-colors">
-              Probá 14 días gratis
+              Probá 5 días gratis
             </Link>
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function PreciosPage() {
           </h1>
           <p className="text-zinc-600 text-lg leading-relaxed max-w-2xl mx-auto">
             Tarjetas ilimitadas en los tres planes: no pagás más por tener más clientes.
-            Probás 14 días sin tarjeta de crédito y elegís después.
+            Probás 5 días sin tarjeta de crédito y elegís después.
           </p>
         </div>
       </section>
@@ -244,7 +244,7 @@ export default function PreciosPage() {
                   p.highlight ? 'bg-violet-600 text-white hover:bg-violet-500' : 'border border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white'
                 }`}
               >
-                Probá 14 días gratis
+                Probá 5 días gratis
               </Link>
             </div>
           ))}
@@ -329,7 +329,7 @@ export default function PreciosPage() {
       {/* Cierre */}
       <section className="py-20 text-center" style={{ background: 'linear-gradient(135deg,#7C3AED 0%,#6D28D9 100%)' }}>
         <div className="max-w-2xl mx-auto px-5">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">Probalo 14 días, sin tarjeta.</h2>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">Probalo 5 días, sin tarjeta.</h2>
           <p className="text-violet-100 mb-8">Armás tu tarjeta en unos minutos y elegís el plan después.</p>
           <Link
             href="/fidelizacion/onboarding"

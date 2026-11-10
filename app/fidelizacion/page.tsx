@@ -50,8 +50,8 @@ const plans = [
     label: 'PARA TU NEGOCIO',
     name: 'Starter',
     slug: 'starter',
-    price: '$14.999',
-    perDay: '$500 al día',
+    price: '$10.000',
+    perDay: '$333 al día',
     perDaySub: 'menos que un café',
     features: [
       'Tarjeta digital con tu logo',
@@ -68,9 +68,9 @@ const plans = [
     label: 'PARA DESTACAR',
     name: 'Pro',
     slug: 'pro',
-    price: '$29.999',
-    perDay: '$1.000 al día',
-    perDaySub: 'menos que un café doble',
+    price: '$25.000',
+    perDay: '$833 al día',
+    perDaySub: 'menos que un café',
     features: [
       'Todo lo de Starter',
       'Avisos ilimitados al celular, también a grupos de clientes',
@@ -88,8 +88,8 @@ const plans = [
     label: 'SIN LÍMITES',
     name: 'Ultimate',
     slug: 'ultimate',
-    price: '$69.999',
-    perDay: '$2.333 al día',
+    price: '$50.000',
+    perDay: '$1.667 al día',
     perDaySub: 'para todas tus sucursales',
     features: [
       'Todo lo de Pro',
@@ -111,7 +111,7 @@ const faqs = [
   { q: '¿Cómo suma el cliente su sello?', a: 'Hay dos formas: escanea el QR del mostrador, o abre el link de un solo uso que el negocio le manda por WhatsApp con cada pedido.' },
   { q: '¿Puedo personalizar el diseño de la tarjeta?', a: 'Sí. En todos los planes subís tu logo. Con Pro además elegís plantillas, colores, íconos y fondo para que la tarjeta tenga tu identidad visual.' },
   { q: '¿Qué pasa si el cliente cambia de celular?', a: 'La tarjeta vive en la nube. Al loguearse de nuevo a su cuenta Google, recupera todo.' },
-  { q: '¿Puedo probar antes de pagar?', a: 'Sí. Tenés 14 días gratis sin tarjeta de crédito.' },
+  { q: '¿Puedo probar antes de pagar?', a: 'Sí. Tenés 5 días gratis sin tarjeta de crédito.' },
 ]
 
 export default function FidelizacionLanding() {
@@ -206,7 +206,7 @@ export default function FidelizacionLanding() {
                 href="/fidelizacion/onboarding"
                 className="bg-violet-600 hover:bg-violet-500 text-white font-bold px-8 py-4 rounded-2xl text-base transition-colors text-center shadow-lg shadow-violet-300/60"
               >
-                Empezar 14 días gratis
+                Empezar 5 días gratis
               </Link>
               <a
                 href="#como-funciona"
@@ -348,7 +348,7 @@ export default function FidelizacionLanding() {
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">¿Cuánto te deja una tarjeta de sellos?</h2>
             <p className="text-zinc-600 max-w-xl mx-auto">Poné lo que cobrás y cuántos clientes atendés. Te mostramos en pesos cuánto ganás después de pagar los premios y el plan.</p>
           </div>
-          <RoiCalculator mode="preview" cta={{ href: '/fidelizacion/onboarding', label: 'Probalo con tus números · 14 días gratis' }} />
+          <RoiCalculator mode="preview" cta={{ href: '/fidelizacion/onboarding', label: 'Probalo con tus números · 5 días gratis' }} />
         </div>
       </section>
 
@@ -386,13 +386,13 @@ export default function FidelizacionLanding() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-10">
             <h2 className="text-4xl font-extrabold tracking-tight text-zinc-900 mb-3">Precios simples</h2>
-            <p className="text-zinc-600 text-lg">14 días gratis. Cambiá de plan o cancelá cuando quieras.</p>
+            <p className="text-zinc-600 text-lg">5 días gratis. Cambiá de plan o cancelá cuando quieras.</p>
             <p className="text-sm text-violet-600 mt-2 font-medium">🇦🇷 Precios válidos únicamente para Argentina</p>
           </div>
 
           {/* Promo banner */}
           <div className="rounded-2xl px-6 py-4 text-center mb-10 max-w-xl mx-auto" style={{ border: '1px solid #DDD0FB', background: '#F3EEFF' }}>
-            <span className="bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-2">14 días gratis</span>
+            <span className="bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-2">5 días gratis</span>
             <p className="text-zinc-900 font-bold text-lg">Probá gratis y empezá a fidelizar desde el primer día.</p>
             <p className="text-zinc-600 text-sm mt-1">Sin tarjeta de crédito. Sin compromiso.</p>
           </div>
@@ -498,7 +498,7 @@ export default function FidelizacionLanding() {
             Empezá hoy, gratis.
           </h2>
           <p className="text-violet-200 text-lg mb-8">
-            14 días de prueba. Sin tarjeta de crédito.
+            5 días de prueba. Sin tarjeta de crédito.
           </p>
           <Link
             href="/fidelizacion/onboarding"
